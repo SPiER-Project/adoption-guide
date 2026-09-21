@@ -281,6 +281,16 @@ Not in scope: rewriting the rail or record sections' copy (PR 5), the fillers
 
 Depends on: PR 4 merged.
 
+What PR 4 left for this one, beyond the audit's own list: the landing screen's
+two links jump to the `activity` and `on-file` anchors rather than navigating,
+and this PR turns them into pages. ⚠️ **Deleting the rail's *Tools that satisfy
+this stage* chips is the measured part of §4.3, not a tidy-up** — with the
+pathway's obligations off the rail, a stage that used to carry a card now falls
+into that branch, and Sarah Patel's chart grew from 1,217px to 1,589px at 375px
+because of it. The same block holds the *Open this stage →* link, which is the
+only route into `/patient/pathway/:stageId`; move it before deleting the block
+or `check:catalog` fails on a stranded route.
+
 ```
 PR 5 of the clinical-app redesign: the rail and the record become pages a
 clinician opens on purpose, and nothing on the clinical surface names a

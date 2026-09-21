@@ -123,16 +123,21 @@ describe('PatientPathway — the header in panel chrome', () => {
     expect(container.querySelector('.pathway-footnote')).toBeNull()
   })
 
-  it('moves them to a footnote in the panel, keeping the way into the protocol', () => {
+  it('draws no footnote strip in the panel at all', () => {
+    // ⚠️ This test asserted the OPPOSITE until 2026-09-21, and the change is
+    // the point rather than a relaxation. The strip was the panel's only
+    // chrome-level navigation, which was the argument for it; the landing
+    // screen (`ChartLanding`) is that navigation now — *Why this?* is where the
+    // published protocol is reached from, and a deployment's tool settings do
+    // not belong one tap from a clinician's suicide-risk recommendation
+    // (clinical-app audit §4.7).
     const { container } = renderRail('panel', [])
     expect(container.querySelector('.pathway-subtitle')).toBeNull()
-    const foot = container.querySelector('.pathway-footnote')
-    expect(foot).not.toBeNull()
-    // The panel has no sidebar, so this link is the only exit to the definition.
-    expect(foot!.querySelector('a[href="/patient/pathway"]')).not.toBeNull()
-    // The rail's own title and progress line are NOT rendered in the panel: the
-    // chart's PageHeader carries both (title + `PathwayProgress` lede), so the
-    // panel shows one heading above the first stage rather than three.
+    expect(container.querySelector('.pathway-footnote')).toBeNull()
+    expect(container.querySelector('a[href="/patient/pathway"]')).toBeNull()
+    // The rail's own title and progress line are NOT rendered in the panel
+    // either: the chart draws the landing screen above it, so the panel shows
+    // one instruction rather than three headings.
     expect(container.querySelector('.pathway-title')).toBeNull()
     expect(container.querySelector('.pathway-progress')).toBeNull()
   })
@@ -206,16 +211,17 @@ describe('CdsCardView — long detail and the configure link', () => {
     expect(panel.container.textContent).toContain('No tool is enabled for this step.')
   })
 
-  it('reaches the settings from the panel footnote, and the shell does not need to', () => {
-    // The other half of the rule above, and the reason the assertion there had
-    // to get narrower rather than be deleted. PanelShell carries no nav — it
-    // exists to give the vertical budget back to the form — so this strip is the
-    // panel's only chrome-level navigation, and without a row here the settings
-    // are unreachable from inside a host chart.
+  it('offers the settings nowhere in the panel, and the shell does not need it here', () => {
+    // The other half of the rule above. The rail used to carry a settings link
+    // in a panel-only footnote, on the argument that PanelShell has no nav and
+    // the page would otherwise be unreachable inside a host chart. It is now
+    // unreachable there on purpose: `lib/toolEnablement.ts` records that the
+    // preset has no effect in panel chrome, so the link promised a fix it could
+    // not deliver, and §4.9 is where an operator's page belongs.
     const panel = renderRail('panel', [card(3)])
-    expect(panel.container.querySelector('.pathway-footnote a[href="/settings"]')).not.toBeNull()
+    expect(panel.container.querySelector('a[href="/settings"]')).toBeNull()
     cleanup()
-    // The shell has a sidebar and a full header; the footnote is panel-only.
+    // The shell has a sidebar and a full header; the footnote never existed there.
     const shell = renderRail('ehr', [card(3)])
     expect(shell.container.querySelector('.pathway-footnote')).toBeNull()
   })

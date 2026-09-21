@@ -835,17 +835,19 @@
    is coloured like the "Complete" pill's quieter cousin rather than like the
    blue "Do now" flag it replaces there. */
 
-/* In panel chrome the header's two subtitle lines become one footnote under
-   the rail. The links survive: in the panel the protocol link is the only way
-   into the published pathway. */
-.pathway-footnote {
-  margin: var(--space-3) 0 0;
-  font-size: var(--font-size-xs);
-  color: var(--text-faint);
-}
+/* `.pathway-footnote` was the panel's link strip — the published protocol and
+   the tool-configuration page, under the rail. Both left with the landing
+   screen (clinical-app audit §4.7): the protocol is reached through *Why
+   this?*, and a deployment setting does not belong one tap from a clinician's
+   suicide-risk recommendation. The rules went with the markup rather than
+   being left for `check:css-dead` to find. */
 
-.pathway-footnote a {
-  color: inherit;
+/* Everything on file, under one anchor — where the landing screen's second
+   link lands. The three sections inside keep their own spacing; this wrapper
+   exists to be a scroll target, and carries the same offset every other anchor
+   on this page does. */
+.chart-record {
+  scroll-margin-top: var(--anchor-scroll-offset);
 }
 
 /* `.pathway-header` and `.pathway-progress` used to be shrunk here for the

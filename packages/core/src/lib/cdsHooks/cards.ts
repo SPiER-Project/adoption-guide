@@ -50,6 +50,31 @@ const APP_BASE_URL = `${DEPLOY_ORIGINS.pages}/`
 const SOURCE_LABEL = 'SPiER Suicide-Safer Pathway'
 
 /**
+ * The `spier-card-id` prefix every card built from a pathway OBLIGATION carries.
+ *
+ * ⚠️ **Read by `isPathwayObligationCard` below and written by `cardFor`, once
+ * each.** The chart's landing screen renders the obligations itself and leaves
+ * the rest to the rail below it, so something has to tell the two apart — and
+ * the audit's rule is *guidance is not an action* (§4.5), which is a statement
+ * about where a card came from rather than about which card it happens to be.
+ * A predicate naming the problem-list card by id would answer the question the
+ * wrong way round: a second guidance card added later would be silently
+ * promoted onto the landing screen, which is the one surface that is allowed to
+ * hold exactly one thing. Phrased as "not an obligation", a new guidance card
+ * is guidance by construction and a new obligation card is an obligation by
+ * construction.
+ */
+const PATHWAY_CARD_ID_PREFIX = 'cds-pathway-'
+
+/**
+ * Whether this card is something the published pathway OWES this record, as
+ * opposed to a documentation prompt or other guidance. See the prefix above.
+ */
+export function isPathwayObligationCard(card: Card): boolean {
+  return (card.extension?.['spier-card-id'] ?? '').startsWith(PATHWAY_CARD_ID_PREFIX)
+}
+
+/**
  * Emit card links as SMART app launches instead of deep links.
  *
  * ⚠️ **Opt-in, and the reason is who consumes the card.** In-app, the Patient
@@ -164,7 +189,7 @@ function cardFor(
     source: { label: SOURCE_LABEL, url: APP_BASE_URL, topic: stageTopic(obligation.stageId) },
     ...(link ? { links: [link] } : {}),
     extension: {
-      'spier-card-id': `cds-pathway-${obligation.actionId}`,
+      'spier-card-id': `${PATHWAY_CARD_ID_PREFIX}${obligation.actionId}`,
       'spier-stage-id': obligation.stageId,
       ...(options.primary ? { 'spier-primary': true as const } : {}),
       // A standing instruction has no tool at all, so "no tools enabled for

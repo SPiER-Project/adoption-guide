@@ -6,9 +6,118 @@ caseload, the measures), the shared chrome in `packages/app-shell/`, the shared
 views in `packages/tool-views/`, and the mock EHR that launches them
 (`services/mock-ehr/`).
 
-**Status:** PRs 1, 2 and 3 have shipped; PRs 4–7 have not started. §7 records
-the decisions Brad made on 2026-09-21; the briefs to run PRs 4–7 each in a
+**Status:** PRs 1, 2, 3 and 4 have shipped; PRs 5–7 have not started. §7 records
+the decisions Brad made on 2026-09-21; the briefs to run PRs 5–7 each in a
 fresh session are in [`clinical-app-redesign-briefs.md`](clinical-app-redesign-briefs.md).
+
+**Status 2026-09-21 (PR 4):** the chart opens on one instruction — §1.6, §1.7,
+§4.1, §4.2, §4.7 and rule 5. `apps/clinical/src/components/ChartLanding.tsx` is
+the landing screen and decides nothing: it renders PR 3's evaluation as one
+card whose title is the act, whose sentence is the trigger and whose single
+button launches the tool, with the rest of what the tier owes as ONE LINE of
+text under it rather than as cards on the rail. Under it sit *Why this?* and
+two links with a fact each — *Where this patient is · Step N of 8* and *What's
+on file · N records*, which for this PR jump to anchors above the rail and the
+record sections (PR 5 makes them pages). A patient with nothing outstanding
+reads *Nothing is due* with the same two links and no *Why this?*, and the
+empty-chart notice survives, demoted below the card.
+
+*Why this?* (`/patient/why`) is the discoverable half, reached from the landing
+card and nowhere else: what on the record triggered the recommendation, what
+the published step asks for in its own words, the reassessment cadence, every
+other instrument the deployment offers at that step, and one link to the
+protocol. On the clinical surface a caveat's drawer is a different PAGE rather
+than a `<details>` under the button (§2) — 73 words, and at 470×900 it fits
+without scrolling.
+
+**The rail keeps the guidance cards and loses the obligations.** Rendering the
+pathway's own steps in both places would be §1.5 rebuilt one layer down, so
+`isPathwayObligationCard` in `packages/core/src/lib/cdsHooks/cards.ts` splits
+them — phrased as *not an obligation* rather than *is the problem-list card*, so
+a second guidance card added later stays guidance instead of being silently
+promoted onto the one screen that is allowed to hold one thing. `buildCdsCards`
+is unchanged for the CDS service, and the chart reads the same evaluator the
+builder does.
+
+**The panel names its patient on a phone** whatever the launch said (§1.7,
+decision §7.3). `PanelShell` measures its own width through a `ResizeObserver`
+and draws the dense strip below 640px even with `need_patient_banner: false`,
+because the parameter says the host HAS a banner and not that it is VISIBLE —
+stacked hundreds of pixels up on a phone, and covered outright since the panel
+became a takeover (#574). ⚠️ **Stated rather than discovered later: a DESKTOP
+dock narrower than 640px now gets the strip too**, and the demo host's 470px
+dock is one, so the parameter takes effect only at dock widths ≥640. That is
+one 24px line of redundancy beside a visible host banner against a phone with
+no patient named at all; the only rule that would separate the two cases is a
+device sniff with no breakpoint token behind it. ⚠️ A width of **zero** is
+treated as unmeasured rather than narrow — every element reports 0 before
+layout and jsdom reports it forever, so the naive comparison makes the narrow
+branch the default and nobody ever sees the wide one.
+
+`PatientIdentityStrip` gains the patient's age, because §4.7 makes the chrome's
+banner and the landing screen's *who* line one strip rather than two: the dense
+form trades the date of birth for the age, the full banner keeps both.
+
+**The two chromes converge.** `LaunchShell` is untouched — four sidebar
+destinations, status footer, patient banner — and the chart simply draws no
+page header in panel chrome, where the strip is above it and the act is below.
+`PatientPathway`'s panel footnote is gone, not moved: *The published protocol*
+is reached through *Why this?*, and a deployment's tool settings do not belong
+one tap from a suicide-risk recommendation (§4.9 is where that page goes).
+`lib/toolEnablement.ts` already recorded that the preset has no effect in panel
+chrome, so that link was offering a fix it could not deliver.
+
+Measured in a real browser, launched from a local mock EHR with
+`need_patient_banner: false`, against `main` at 35a9094 and this branch:
+
+| Chart | Width | Patient named | First button | Words on arrival | Height |
+|---|---|---|---|---|---|
+| Sarah Patel | 375 | no → **yes** | 437px → **153px** | 116 → 146 | 1,217 → 1,589px |
+| Sarah Patel | 470 | no → **yes** | 379px → **134px** | 116 → 146 | 994 → 1,312px |
+| Maria Alvarez | 375 | no → **yes** | 1,079px → **134px** | 299 → **169** | 3,021 → **1,860px** |
+| Maria Alvarez | 470 | no → **yes** | 876px → **134px** | 299 → **169** | 2,415 → **1,529px** |
+
+⚠️ **The button's position stops depending on the patient, and that is the
+result rather than a side effect.** On `main` the one thing to do sat at 437px
+for a chart owing one act and at 1,079px for a chart owing three, because the
+obligations were cards grouped into a rail ordered by stage — so the more a
+patient needed, the further a clinician scrolled to start. It is 134px for both
+now, and 153px on Sarah's phone only because her trigger sentence wraps to a
+second line.
+
+The whole landing screen — strip, card, button, *Why this?*, both links — ends
+at 319px of an 812px phone viewport.
+
+⚠️ **Two of those numbers went the wrong way, for one reason that is PR 5's.**
+Sarah's chart is longer and wordier than before because the rail's
+`cards.length === 0` branch shows *Tools that satisfy this stage*, and taking
+the obligations off the rail is exactly what puts her active stage into that
+branch: seven tool chips where one card used to be. §4.3 deletes those chips.
+They could not be deleted here — the same block holds the *Open this stage →*
+link, which is the ONLY route into `/patient/pathway/:stageId` and
+`check:catalog` fails a stranded one.
+
+**Deliberately not done in PR 4.** The rail and the record sections keep their
+copy, their headings and their resource-typed rows (§4.3, §4.4, §1.9 — PR 5),
+so the two links still land on anchors rather than on pages, and the guidance
+card on Maria's rail still prints a LOINC code at a clinician. No clinical word
+budget and no clinical jargon scan (rules 1 and 2, PR 5). One deviation from
+§4.2 worth naming: the *use a different instrument* list did not MOVE off the
+stage page, it became one component
+(`apps/clinical/src/components/StageAlternatives.tsx`) rendered by both. The
+stage page's own design note says a guided page with no way off it designs
+clinical judgment out of the product, §4.3 leaves that page as it is, and
+`check:dupes` would fail a paste — so the honest reading of "the alternatives
+are on *Why this?*" is one definition and two callers.
+
+⚠️ Fourteen defects were planted one at a time and each watched to fail before
+the tests were trusted: a second act card; an act other than the evaluator's
+primary; the also-due list rendered as cards; a launch button surviving a
+disabled tool; the landing card moved below the rail; the panel regaining its
+page header; the rail regaining the obligations; the record anchor removed; the
+narrow rule dropped; a zero width treated as narrow; the breakpoint lowered
+past the dock width; *Why this?* losing its way back, re-reading the record in
+its own words, and rendering an argument for a patient who owes nothing.
 
 **Status 2026-09-21 (PR 3):** the chart stops answering "what do I do" three
 times — §1.4, §1.5, §4.5 and rules 3 and 4. A new evaluator in
@@ -708,7 +817,7 @@ Each PR is mergeable on its own and leaves every gate green.
 | **1** | Shipped (#574) | Mock EHR: the dock is a bottom sheet under 60rem; launch copy; this audit | §1.2, rule 8 |
 | **2** | Shipped (#575) | Demo host hygiene: `mock-ehr` job in `deploy.yml`; prefetch on the host's CDS call; `embed=0` on top-level launches; the "written since" line on the chart page; nightly reset of written data | §1.1, §1.3, §1.13, §1.14, rule 7 |
 | **3** | Shipped (#576) | The pathway evaluator in core (§4.5): one primary from the published pathway, satisfied steps retire, act-titled cards, product defaults stop recommending; the CDS service inherits. Grew four things the evaluator exposed: the CAMS mapper emits the coded overall risk its published crosswalk was waiting for, the demo's story for that chart stops naming the wrong number, the caseload's risk column reads the harmonized tier, and `unknown` stops rendering as `none` | §1.4, §1.5, rules 3–4 |
-| **4** | — | The landing screen and *Why this?*: §4.1, §4.2, the narrow-panel strip, the two chromes converging on it | §1.6, §1.7, rule 5 |
+| **4** | Shipped | The landing screen and *Why this?*: §4.1, §4.2, the narrow-panel strip, the two chromes converging on it. The rail keeps only the guidance cards; `PanelShell` loses its footnote links; the identity strip gains the patient's age | §1.6, §1.7, rule 5 |
 | **5** | — | *Where this patient is* and *What's on file*: the rail and record sections become pages; the walkthrough leaves the clinical build; the protocol page in plain words; clinical word budgets and the clinical jargon scan | §1.9, §1.10, rules 1–2 |
 | **6** | — | Fillers and recorders: the scratch-chart notice, the confirmation beat, one next action | §1.8, rule 6 |
 | **7** | — | The caseload and measures: an audit section first, by this method, then the worklist leads, settings leaves the panel's navigation, the framed summary's request count. ⚠️ Two of its findings landed early in PR 3 — the risk column and the `none`/`unknown` split — so its audit section starts from a page that already ranks on the tier | §1.10, §1.11, §1.12 |

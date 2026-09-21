@@ -54,6 +54,7 @@ import { TOOL_VIEWS } from '@spier/tool-views/data/toolViews'
 const ToolConfiguration = lazy(() => import('./pages/ToolConfiguration').then(m => ({ default: m.ToolConfiguration })))
 const PatientChart = lazy(() => import('./pages/PatientChart').then(m => ({ default: m.PatientChart })))
 const PathwayProtocol = lazy(() => import('./pages/PathwayProtocol').then(m => ({ default: m.PathwayProtocol })))
+const WhyThis = lazy(() => import('./pages/WhyThis').then(m => ({ default: m.WhyThis })))
 const PathwayStage = lazy(() => import('./pages/PathwayStage').then(m => ({ default: m.PathwayStage })))
 const PopulationView = lazy(() => import('./pages/PopulationView').then(m => ({ default: m.PopulationView })))
 const PopulationSummaryEmbed = lazy(() => import('./pages/PopulationSummaryEmbed').then(m => ({ default: m.PopulationSummaryEmbed })))
@@ -111,6 +112,15 @@ function AppRoutes() {
               only ever meant "you wanted the chart". */}
           <Route path="chart" element={<Navigate to="/patient/record" replace />} />
           <Route path="chart/:patientId" element={<LegacyChartRedirect />} />
+          {/* The reasoning behind the chart's one recommendation: what on the
+              record triggered it, what the protocol asks for, and what else
+              could satisfy the step. Reached from the landing card and from
+              nowhere else, which is the design — a clinician who wants the
+              argument gets it in one tap and one who does not never meets it
+              (clinical-app audit §4.2). It takes no patient in its path: the
+              active patient persists across non-chart routes exactly as it does
+              for /patient/pathway/:stageId beside it. */}
+          <Route path="why" element={<WhyThis />} />
           {/* The published protocol, beside the chart rather than in the guide
               (Phase 4 of docs/plans/suicide-safer-care-pathway.md). This is the
               route the embedded SMART panel reaches from the chart's pathway

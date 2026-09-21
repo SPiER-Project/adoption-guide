@@ -1,0 +1,32 @@
+/* ===========================
+   "Why this?" — the page behind the landing card's one link.
+
+   Prose, so the page root takes the prose width: three short sections and a
+   drawer, none of them a table. `Card`, `SectionHeader` and `Button` own every
+   surface on it; what is here is the root width and the reading measure.
+   =========================== */
+
+.why-this {
+  max-width: var(--page-width-prose);
+}
+
+.why-this__prose {
+  margin: 0 0 var(--space-3);
+  max-width: var(--measure-prose);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-normal);
+  color: var(--text-body);
+}
+
+.why-this__prose:last-child {
+  margin-bottom: 0;
+}
+
+.why-this__more {
+  margin: 0;
+  font-size: var(--font-size-base);
+}
+
+.why-this__protocol {
+  margin: var(--space-5) 0 0;
+}
