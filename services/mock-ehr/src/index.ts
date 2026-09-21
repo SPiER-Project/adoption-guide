@@ -7,8 +7,13 @@
  * be the same one (docs/plans/embedded-panel-smart-launch.md §6).
  *
  * See docs/plans/archive/mock-ehr-read-api.md for what this is and is not.
+ *
+ * ⚠️ **Deliberately thin, and it has to stay that way.** The two value exports
+ * below pull `cloudflare:workers`, which does not resolve under Node — so
+ * nothing a test needs to import may live in this file. The handlers are in
+ * `worker.ts` for exactly that reason; `scheduled.test.ts` drives them there.
  */
-import app from './app'
+import worker from './worker'
 
 /**
  * Every Durable Object class has to be exported from the Worker's entry point —
@@ -23,4 +28,13 @@ import app from './app'
 export { DemoStore } from './demoStore'
 export { FhircastHub } from './fhircastHub'
 
-export default app
+/**
+ * ⚠️ **`worker`, not `app`.** This file exported the Hono app directly until
+ * the nightly reset (2026-09-21). A Worker with a Cron Trigger must export a
+ * `scheduled` handler, and an app is not one; `worker.ts` is the object that
+ * carries both halves. Reverting this line to `export default app` for
+ * tidiness would leave the cron firing into a Worker with no handler — an
+ * error in the Cloudflare dashboard and nowhere else. `scheduled.test.ts`
+ * reads this file to say so.
+ */
+export default worker

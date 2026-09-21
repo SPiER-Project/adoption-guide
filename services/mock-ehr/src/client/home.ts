@@ -19,6 +19,15 @@
  * ⚠️ **No `topic`.** The chart reuses one FHIRcast topic across every launch it
  * makes so the host and the panel share a session. This page has no chart to
  * stay in step with, so it lets the server mint a fresh one.
+ *
+ * ⚠️ **The two top-level launches send `embed: false`, and saying nothing is
+ * not the same thing.** The app persists the embed flag in sessionStorage for
+ * the tab, because the OAuth leg replaces the query string and the flag has to
+ * survive it (PresentationProvider). So a visitor who launches the framed
+ * caseload above and then presses one of these buttons in the same tab gets
+ * panel chrome on a full-window app — the flag from the first launch, with
+ * nothing in the second to contradict it. `embed: false` becomes `embed=0` in
+ * the query and the app clears what it remembered.
  */
 
 interface LaunchResponse {
@@ -68,7 +77,13 @@ for (const button of document.querySelectorAll<HTMLButtonElement>('[data-launch-
     button.disabled = true
     button.textContent = 'Authorizing…'
     try {
-      window.location.href = await mintLaunch(intent ? { userScoped: true, intent } : { userScoped: true })
+      // `embed: false` rather than nothing — see the header. These two open in
+      // this tab, which is the tab the framed caseload above already launched in.
+      window.location.href = await mintLaunch(
+        intent
+          ? { userScoped: true, embed: false, intent }
+          : { userScoped: true, embed: false },
+      )
     } catch (error) {
       button.disabled = false
       button.textContent = original

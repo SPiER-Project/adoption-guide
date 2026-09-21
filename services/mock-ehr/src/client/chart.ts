@@ -289,10 +289,59 @@ function refreshWrites(): Promise<void> {
     })
     .catch(() => { out.textContent = 'Could not read the write log.' })
 }
-void refreshWrites()
+
+/**
+ * The same log, narrowed to THIS chart, shown beside the launch button.
+ *
+ * ⚠️ **Deliberately outside the drawer, and it is the only thing on this page
+ * that is.** The launch card's story is static prose about the fixture — "no
+ * suicide-risk screening on file" — while written data stays in this server
+ * for every later visitor. Marcus Chen reads as untouched and opens at step 3
+ * with fourteen records behind him. The presenter who meets that has to be able
+ * to see why without opening anything, so this line is where the contradiction
+ * is, not one click away from it.
+ *
+ * ⚠️ Per-patient, not the total. The drawer's readout is the whole store, which
+ * is the operator's number; the question this answers is about one chart, and
+ * the total cannot answer it.
+ *
+ * Failure is silence: the line stays hidden. An unreadable write log already
+ * says so in the drawer, and a second copy of that error beside the launch
+ * button would be a page shouting about its own plumbing.
+ */
+function refreshWrittenSince(): Promise<void> {
+  const out = must('written-since')
+  return fetch('/_admin/writes?patient=' + encodeURIComponent(PATIENT))
+    .then(res => (res.ok ? (res.json() as Promise<WritesResponse>) : null))
+    .then((body) => {
+      if (!body || body.count === 0) { out.hidden = true; return }
+      const n = body.count
+      // Built as nodes rather than as an HTML string, the rule config.ts's
+      // renderInline exists for — `n` is this server's own count and the rest
+      // is a constant, and that is exactly the reasoning that stops being true
+      // one refactor later.
+      const link = document.createElement('a')
+      link.href = '/settings'
+      link.textContent = 'Settings'
+      out.replaceChildren(
+        document.createTextNode(
+          `${n} record${n === 1 ? ' was' : 's were'} added to this chart by an earlier demo — `,
+        ),
+        link,
+        document.createTextNode(' → Reset written data.'),
+      )
+      out.hidden = false
+    })
+    .catch(() => { out.hidden = true })
+}
+
+function refreshAllWrites(): Promise<unknown> {
+  return Promise.all([refreshWrites(), refreshWrittenSince()])
+}
+void refreshAllWrites()
 // The panel writes on submit, inside a cross-origin frame we cannot observe,
 // so poll while it is open rather than pretending to know when it finished.
-setInterval(() => { if (!dock.hidden) void refreshWrites() }, 4000)
+setInterval(() => { if (!dock.hidden) void refreshAllWrites() }, 4000)
 
 // ── CDS Hooks patient-view ────────────────────────────────────────────────────
 // No prefetch: see the header of chartPage.ts. hookInstance must be unique per

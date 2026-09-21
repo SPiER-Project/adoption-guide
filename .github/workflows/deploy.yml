@@ -555,6 +555,86 @@ jobs:
             echo "- Cards launch: \`SMART_LAUNCH_URL\` (the clinical Worker)"
           } >> "$GITHUB_STEP_SUMMARY"
 
+  # ── Cloudflare Workers: the demo HOST, the fourth Worker ──
+  #
+  # Added 2026-09-21. Until then this was the one Worker deployed by hand, and
+  # the consequence is the reason the job exists: the live host sat weeks behind
+  # `main`, serving a chart page that posted to a CDS origin the split had
+  # already vacated, so *Recommendations from SPiER* failed on every chart while
+  # `main` was green. A deploy step a human has to remember is a deploy step
+  # that gets skipped, and the symptom reads as a code bug rather than as a
+  # deploy that never happened.
+  #
+  # ⚠️ **`npm run deploy`, not a re-listed `npx wrangler deploy`.** The service's
+  # own script is `build:client && vite build && wrangler deploy` behind a guard
+  # that refuses to run outside CI — the browser modules are built from source
+  # and `wrangler deploy` alone would ship whatever `src/client/dist/` happened
+  # to hold. Calling the script is what keeps this job and a local emergency
+  # deploy the same sequence.
+  #
+  # ⚠️ **`copy-fhir` is required even though the patients are not generated.**
+  # `src/validate.ts` globs the generated conformance resources to build the
+  # profile index it validates writes against, and `assertUsableIndex` throws on
+  # an empty one — at module load, so a Worker built without the tree deploys
+  # fine and 500s on its first request.
+  #
+  # ⚠️ **Deliberately `needs:` NOTHING**, for the reason the `clinical` job
+  # states: this Worker holds no IG, so waiting on a ~6-minute Java render would
+  # couple the demo host to a failure it does not depend on.
+  mock-ehr:
+    name: Deploy the mock EHR Worker to Cloudflare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .github/.nvmrc
+
+      - name: Install root dependencies
+        working-directory: .
+        run: npm ci
+
+      - name: Install Worker dependencies
+        working-directory: ./services/mock-ehr
+        run: npm ci
+
+      - name: Cache FHIR package cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.fhir/packages
+          key: fhir-packages-${{ hashFiles('ig/sushi-config.yaml') }}
+          restore-keys: |
+            fhir-packages-
+
+      - name: Generate the FHIR artifacts
+        working-directory: .
+        run: npm run copy-fhir
+
+      # `CI` is already `true` on every GitHub runner; it is named here because
+      # the service's `deploy` script reads it as an explicit authorization —
+      # "this is the one place this Worker ships from" — rather than as ambient
+      # environment. A reader of this file should be able to see why the guard
+      # passes.
+      - name: Build and deploy to Cloudflare
+        working-directory: ./services/mock-ehr
+        env:
+          CI: true
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npm run deploy
+
+      - name: Report what shipped
+        run: |
+          {
+            echo "### Cloudflare Workers — mock EHR"
+            echo ""
+            echo "- Worker: \`spier-mock-ehr\`"
+            echo "- Serves: the demo host — a FHIR read API over the 14 scenarios, the chart pages, and SMART authorization"
+            echo "- Frames: the clinical Worker (\`DEFAULT_PANEL_BASE_URL\`); written data resets nightly on a Cron Trigger"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   # ── Cloudflare Workers: the Adoption Guide SPA + the rendered IG, one origin ──
   #
   # Separate from `build` so the two targets fail independently: a wrangler

@@ -33,6 +33,42 @@ here for the reasoning. Every ⚠️ below is a defect that shipped: the paragra
 exists because something passed while checking nothing, or read correct-looking
 and was false. See [`docs/internals/README.md`](README.md).
 
+## All four deploy from `main` — since 2026-09-21
+
+`.github/workflows/deploy.yml` carries a job per Worker: `clinical`, `cds`,
+`mock-ehr` and `cloudflare` (the guide + IG). Each does its own checkout,
+install and `wrangler deploy`, and each `needs:` nothing except the guide's,
+which consumes the gated IG render. All four `npm run deploy` scripts refuse to
+run outside CI.
+
+⚠️ **`services/mock-ehr` was the fourth job for a day short of a month, and the
+demo is what paid for it.** Its README said "this Worker is NOT deployed by CI"
+and asked for a hand `npm run deploy` after any merge under that directory.
+Eleven commits touched it between 2026-09-15 and 2026-09-20 and none of them
+reached the host, so the live demo served a chart page from before the CDS
+split: *Recommendations from SPiER* failed on every chart, and steps 3 and 5 of
+`docs/mock-ehr-demo-script.md` could not be performed. Every gate was green the
+whole time, because nothing in the repo could see a deploy that had not
+happened. Worse, #558 had given all four services the same `test -n "$CI"`
+guard the day before, so the README's own instruction had stopped working too —
+the documented recovery from the defect was itself broken.
+
+⚠️ **`scripts/check-deploy-jobs.mjs` holds it, and rule 3 is the load-bearing
+one.** Five rules: every `services/*/wrangler.jsonc` declares a `name`; that
+name appears in `deploy.yml`; some job both works in `./services/<dir>` **and**
+runs a deploy there; every deploy step names a directory that exists; and the
+scan fails when it reads fewer than four services or four jobs. Rule 3 exists
+because rule 2 alone passes on a name typed into a comment — the same shape
+`check-worker-csp.mjs` rule 3 was planted against, where a surviving `import
+type` satisfied a gate that only looked for a mention. All five were planted
+and watched go red.
+
+⚠️ **The mock EHR's job needs `copy-fhir` even though its patients are not
+generated.** The 14 Patients come from `packages/demo-population`, but
+`src/validate.ts` globs the generated conformance resources and
+`assertUsableIndex` throws on an empty index — at module load, so a Worker
+built without the tree deploys cleanly and 500s on its first request.
+
 ## One toolchain, four services — shared since 2026-09-20
 
 #387's "no npm workspaces" gave the repo one root install; the cost is that each

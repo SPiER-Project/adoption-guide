@@ -335,6 +335,15 @@ export function homePage(patients: DemoPatient[], { scriptUrl }: { scriptUrl: st
         capability profile, a top-level launch, the write reset) are on
         <a href="/settings">Settings</a>.
       </p>
+      <h3>What you record stays here, until tomorrow morning</h3>
+      <p class="lede">
+        Anything the panel writes lands on this server and stays there for the next visitor &mdash;
+        that is the demo, not a leak: the point is a write reaching a FHIR server, with this host's
+        own log corroborating what the panel says it saved. So a chart may be further along than the
+        story beside it says, and a chart says so when it is. <strong>Written data is cleared
+        automatically every night</strong>, and <a href="/settings">Settings</a> has
+        <strong>Reset written data</strong> for a clean chart now.
+      </p>
       <h3>What the framed caseload is, and what it still does not prove</h3>
       <p class="lede">
         ⚠️ <strong>The frame at the top of this page is not the frame that used to be there.</strong>
@@ -431,6 +440,19 @@ const CHART_CSS = `
   .launch__text { flex: 1 1 22rem; min-width: 0; }
   .launch__title { margin: 0; font-size: var(--text-base); font-weight: 700; }
   .launch__lede { margin: var(--s1) 0 0; font-size: var(--text-sm); }
+  /* ⚠️ Under the lede and NOT in the drawer, because it contradicts the lede.
+     The story beside the button is static prose about the fixture ("no
+     screening on file"); writes from an earlier visitor live in this server and
+     are shown to the next one. A presenter who meets Marcus Chen three steps
+     further along than the script says has to be able to see why without
+     opening anything. Warning-toned rather than faint: it is a correction. */
+  .launch__written {
+    margin: var(--s2) 0 0;
+    font-size: var(--text-sm);
+    padding-left: var(--s2);
+    border-left: 3px solid var(--warning);
+    color: var(--ink-soft);
+  }
   /* The protocol note, one size down: true, and not the reason to press the button. */
   .launch__meta { margin: var(--s2) 0 0; font-size: var(--text-xs); color: var(--ink-faint); }
 
@@ -608,6 +630,11 @@ export function patientChartPage(
             suicide-safer care pathway and what to do next, and anything you record in it is written
             back to this chart. ${esc(story)}
           </p>
+          <!-- Filled by the client module from /_admin/writes?patient=, and
+               hidden while the count is zero. Server-rendered empty rather than
+               omitted: the page is one template for fourteen charts and the
+               count is not known at render time. -->
+          <p class="launch__written" id="written-since" hidden></p>
           <p class="launch__meta">
             Opens in a panel on this chart over a SMART on FHIR launch: SPiER authorizes against
             this EHR, reads this chart, and writes to it.

@@ -571,33 +571,56 @@ developer machines for exactly that reason.
 
 ## Deploy
 
-⚠️ **This Worker is NOT deployed by CI.** The panel host redeploys itself from
-`main` through the Cloudflare dashboard integration; this one does not. After
-merging anything under `services/mock-ehr/`:
+**From `main`, by CI, like the other three.** `.github/workflows/deploy.yml`
+carries a `mock-ehr` job beside `clinical`, `cds` and `cloudflare`: root
+install, service install, `copy-fhir`, then this package's own
+`npm run deploy`. Merge and it ships.
+
+⚠️ **This Worker was the one CI did not deploy, and the cost is the reason the
+job exists.** The live host sat weeks behind `main`: it served a chart page
+from before the CDS service moved to its own Worker, so *Recommendations from
+SPiER* failed on every chart while `main` was green and every gate passed. The
+paragraph that used to be here asked for `npm run deploy` by hand after every
+merge, and eleven commits touched this directory in six days without one.
+`node scripts/check-deploy-jobs.mjs` (`npm run check:deploy-jobs`, in the root
+`verify`) now fails the moment a `services/*/wrangler.jsonc` has no job that
+ships it.
+
+⚠️ **The hand-deploy instruction had already stopped working before it was
+deleted.** #558 gave all four services the same `test -n "$CI"` guard on
+2026-09-20 for parity, so the command this README asked for refused to run —
+the README and the package contradicted each other for a day, and the symptom
+was the same either way: a host serving the previous commit.
+
+⚠️ **`copy-fhir` is a prerequisite of the build, even though the patients are
+not generated.** The 14 Patients come from `packages/demo-population`, but
+`src/validate.ts` globs the generated conformance resources to build the index
+it validates writes against, and `assertUsableIndex` throws on an empty one —
+at module load. A Worker built without the tree deploys cleanly and 500s on its
+first request. The CI job runs it; so does `npm run verify`.
+
+To ship an emergency build without waiting for `main` — and only then, because
+the deploy that follows a merge will overwrite it:
 
 ```
-npm install && npm run deploy
+npm install && npm --prefix ../.. run copy-fhir && CI=true npm run deploy
 ```
-
-Otherwise the live host keeps serving the old build, and the symptom is a demo
-that behaves like the previous commit — which reads as a code bug rather than a
-deploy that never happened.
 
 ⚠️ **`npm install` is not belt-and-braces here — this package has its own
-`node_modules` and nothing else installs it.** This line said `npm run deploy`
-alone, and in a checkout where only `web/` had ever been installed it fails at
-`vite: command not found` — which reads as a broken build script rather than a
-missing install. Same rule as `CLAUDE.md`'s note about `web/`, one directory
+`node_modules` and nothing else installs it.** Without it the build fails at
+`vite: command not found`, which reads as a broken build script rather than a
+missing install. Same rule as `CLAUDE.md`'s note about the root, one directory
 over. Nor is CI cover: the `mock-ehr` job installs into its *own* runner, so a
 green PR says nothing about whether your machine can build this.
 
-⚠️ **Deploy AFTER the panel host has redeployed, not before.** They are two
-Workers and only one is automatic, so between a merge and this command the pair
-is briefly mismatched. That direction is the harmless one — an old host framing a
-new panel. The other direction is not: deploy this first and the front door
-frames `#/population/summary` on a panel build that has no such route, and
+⚠️ **The pair can be briefly mismatched, and one direction is worse.** This
+Worker and the panel it frames deploy from the same push but as separate jobs.
+An old host framing a new panel is harmless. The other direction is not: a host
+ahead of the panel can frame a route the panel build does not have, and
 `HashRouter` answers an unknown route with the app's fallback rather than an
-error, so the frame renders something plausible and wrong.
+error — so the frame renders something plausible and wrong. Both jobs run on
+the same commit, so this is a window of seconds rather than a sequencing rule;
+if you hand-deploy, deploy the panel first.
 
 the repo root's `npm run verify` does **not** cover this package. CI runs the same
 `verify` as its own `mock-ehr` job in `.github/workflows/web-lint.yml`, which

@@ -298,6 +298,35 @@ describe('POST /_admin/launch — the embed flag', () => {
     expect(new URL(body.launchUrl!).searchParams.has('embed')).toBe(false)
   })
 
+  it('puts embed=0 in the QUERY when a caller says NOT embedded', async () => {
+    // ⚠️ The defect this pins (audit §1.13). The app persists the embed flag in
+    // sessionStorage for the TAB, because the OAuth leg replaces the query
+    // string and the flag has to survive it. So "send nothing" does not mean
+    // "not embedded" — it means "no opinion", and a tab that was ever embedded
+    // keeps panel chrome on the next top-level launch. `embed=0` is the only
+    // way for a caller to say otherwise without opening a new tab, and
+    // PresentationProvider records an explicit parameter either way.
+    const { body } = await mint({ patient: 'patient-011', embed: false })
+    const url = new URL(body.launchUrl!)
+    expect(url.searchParams.get('embed')).toBe('0')
+    expect(url.hash).toBe('#/launch')
+    // Before the `#`, for the same reason embed=1 is.
+    expect(body.launchUrl!.indexOf('embed=0')).toBeLessThan(body.launchUrl!.indexOf('#'))
+  })
+
+  it('sends embed: false from BOTH of the front door\'s top-level launches', async () => {
+    // The host half of the same defect: the route can emit embed=0 and it is
+    // worth nothing until the page asks for it. Both worklist buttons open in
+    // THIS tab — the tab whose framed caseload has already launched embedded.
+    const module = await clientModule('/')
+    expect(module).toContain('embed: false')
+    // Both branches of the intent ternary, so adding an intent cannot quietly
+    // drop the flag on one of them.
+    expect(module.match(/embed:\s*false/g)?.length).toBe(2)
+    // And the framed caseload above them is still the embedded one.
+    expect(module).toContain('embed: true')
+  })
+
   it('still carries iss and launch, which are what make it a SMART launch', async () => {
     const { body } = await mint({ patient: 'patient-011', embed: true })
     const url = new URL(body.launchUrl!)
@@ -463,6 +492,31 @@ describe('the chart leads with the launch, and carries no controls', () => {
     expect(await clientModule('/chart/patient-011')).toContain('/_admin/writes')
     expect(chart.body).not.toContain('id="reset-writes"')
     expect((await html('/settings')).body).toContain('id="reset-writes"')
+  })
+
+  it('says on the CHART when an earlier demo wrote to it, outside the drawer', async () => {
+    // ⚠️ The defect (audit §1.3): the launch card's story is static prose about
+    // the fixture while writes persist for every later visitor, so Marcus Chen
+    // reads as "nothing on file" and opens at step 3. The correction has to be
+    // where the contradiction is — a presenter meeting him mid-day must not
+    // have to open a drawer to find out why.
+    const chart = await html('/chart/patient-002')
+    const hood = chart.body.indexOf('<details class="hood"')
+    const line = chart.body.indexOf('id="written-since"')
+    expect(line).toBeGreaterThan(-1)
+    expect(line).toBeLessThan(hood)
+    // Under the launch lede, inside the launch card — not a banner of its own.
+    expect(chart.body.indexOf('class="launch__lede"')).toBeLessThan(line)
+    expect(line).toBeLessThan(chart.body.indexOf('Recommendations from SPiER'))
+    // Hidden until there is something to say. A chart nobody has written to
+    // must not carry an empty warning rule.
+    expect(chart.body).toMatch(/id="written-since" hidden/)
+
+    // The count comes from the PER-PATIENT log. The whole-store number is the
+    // operator's and cannot answer "has anyone written to this chart".
+    const module = await clientModule('/chart/patient-002')
+    expect(module).toMatch(/\/_admin\/writes\?patient=/)
+    expect(module).toContain('added to this chart by an earlier demo')
   })
 })
 
