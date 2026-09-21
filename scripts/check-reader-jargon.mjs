@@ -8,7 +8,7 @@
  * The mock-EHR UX pass (#461-#463) found the pages explaining how they were
  * BUILT rather than what to do, and fixed it once, there. The guide never got
  * that pass, and the adoption-guide UX audit
- * (docs/plans/adoption-guide-ux-audit-2026-09-20.md §1.3) found the same class
+ * (docs/plans/archive/adoption-guide-ux-audit-2026-09-20.md §1.3) found the same class
  * across it:
  *
  *   - the CDS Service page named `observationMappers`, `derivePathwayStatus`,

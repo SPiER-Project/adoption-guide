@@ -27,7 +27,7 @@
  * `docs/internals/surfaces-and-routing.md` had recorded the hole in one
  * sentence ("that class needs a grep"); the grep was pointed at one surface.
  * So it now walks both, from each app's own App.tsx, against each app's own
- * routes. The audit that found it: docs/plans/adoption-guide-ux-audit-2026-09-20.md §1.1.
+ * routes. The audit that found it: docs/plans/archive/adoption-guide-ux-audit-2026-09-20.md §1.1.
  *
  * ── Why no other gate saw either ──────────────────────────────────────────
  *

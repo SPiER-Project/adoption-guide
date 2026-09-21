@@ -40,7 +40,7 @@
  * ─── What this page is for, and the length it has to hold ────────────────────
  *
  * ⚠️ **It was 1,716 words, and a reader met their first link 1,400 words in.**
- * The adoption-guide UX audit (docs/plans/adoption-guide-ux-audit-2026-09-20.md
+ * The adoption-guide UX audit (docs/plans/archive/adoption-guide-ux-audit-2026-09-20.md
  * §3, §4.1) measured it: Capture → Translate → Act was stated three times over,
  * the four surfaces were given five paragraphs of prose and then four cards
  * saying the same four things, and every one of the site's four readers was

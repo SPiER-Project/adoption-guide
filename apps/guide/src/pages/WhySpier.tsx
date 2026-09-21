@@ -4,7 +4,7 @@
  *
  * ── Why this page exists ────────────────────────────────────────────────────
  *
- * The adoption-guide UX audit (docs/plans/adoption-guide-ux-audit-2026-09-20.md
+ * The adoption-guide UX audit (docs/plans/archive/adoption-guide-ux-audit-2026-09-20.md
  * §3, §4.1) found the Overview saying Capture → Translate → Act three times —
  * as three cards, as three numbered essays, and again in a section explaining
  * that the three were not the navigation — then giving the four surfaces five

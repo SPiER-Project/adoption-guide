@@ -712,7 +712,7 @@ that app. A redirect into the other app is a cross-origin hop
 (`apps/guide/src/components/ClinicalRedirect.tsx`), not a `<Navigate>`. Proved
 red three ways before trusting: a guide page linking `/settings`, a guide
 `<Navigate>` into `/population/measures`, and a clinical `chartHref` pointing at
-`/guide/tools` ([`docs/plans/adoption-guide-ux-audit-2026-09-20.md`](../plans/adoption-guide-ux-audit-2026-09-20.md) §1.1).
+`/guide/tools` ([`docs/plans/archive/adoption-guide-ux-audit-2026-09-20.md`](../plans/archive/adoption-guide-ux-audit-2026-09-20.md) §1.1).
 
 ### A green `check:*` is not proof of coverage
 
@@ -764,7 +764,7 @@ and an arrow assigned to an object property rather than a top-level binding.
 ## `check:jargon` and the page budgets — the guide's two copy rules (2026-09-20)
 
 The adoption-guide UX audit
-([`docs/plans/adoption-guide-ux-audit-2026-09-20.md`](../plans/adoption-guide-ux-audit-2026-09-20.md))
+([`docs/plans/archive/adoption-guide-ux-audit-2026-09-20.md`](../plans/archive/adoption-guide-ux-audit-2026-09-20.md))
 ends in five copy rules, and observes that two of them are cheap to enforce and
 *"both would have failed today"*. These are those two. PRs 1-4 fixed the
 instances; without these, the class comes back one paragraph at a time.

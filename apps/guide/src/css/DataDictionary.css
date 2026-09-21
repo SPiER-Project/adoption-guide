@@ -260,10 +260,11 @@
    Jump nav
    =========================== */
 
-/* A wrapping row of pills rather than a sticky rail: the page is 8 sections and
-   ~8900px, so the nav earns its place, but a sticky bar would sit under an
-   already-sticky app bar and a patient banner on other routes. Inline and once
-   is enough. */
+/* A wrapping row of pills rather than a sticky rail: the page is 8 sections, and
+   until audit §4.5 (2026-09-21) closed seven of them into drawers it ran ~8900px,
+   so the nav earns its place — but a sticky bar would sit under an already-sticky
+   app bar and a patient banner on other routes. Inline and once is enough. A
+   jump also OPENS the drawer it lands on; see `jumpToSection` in the page. */
 .dd-jump {
   display: flex;
   flex-wrap: wrap;
@@ -340,5 +341,8 @@
      this computed value and subtracts it by hand — see the note on JumpNav for
      why the CSS property alone would sit dead here. */
   scroll-margin-top: var(--anchor-scroll-offset);
-  margin-bottom: var(--space-8);
+  /* Was --space-8 between eight open tables. Each section is a closed drawer
+     now (a hairline and one line), so the stack reads as a list at --space-4;
+     the open one gets its room from the drawer body's own padding. */
+  margin-bottom: var(--space-4);
 }

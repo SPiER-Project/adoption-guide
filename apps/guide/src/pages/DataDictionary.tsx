@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useScrollToHash } from '@spier/app-shell/hooks/useScrollToHash'
 import {
   STAGES,
@@ -12,7 +13,7 @@ import {
   type StageId,
 } from '@spier/core/data/catalog'
 import '../css/DataDictionary.css'
-import { SectionHeader } from '@spier/ui/SectionHeader'
+import { Disclosure } from '@spier/ui/Disclosure'
 import { EmptyState } from '@spier/ui/EmptyState'
 import { Pill } from '@spier/ui/Pill'
 import { DataTable } from '@spier/ui/DataTable'
@@ -331,6 +332,43 @@ export function DataDictionary() {
   const [toggled, setToggled] = useState<Record<string, boolean>>({})
   // Installs the deep-link scroll effect AND returns the in-page jump.
   const { jumpTo } = useScrollToHash()
+  const location = useLocation()
+
+  /**
+   * Which stage drawers are open, keyed by section anchor.
+   *
+   * ── Why the stage tables are drawers (audit §4.5) ──────────────────────────
+   *
+   * This was the longest page on the site: eight open tables, 2,001 words and
+   * seventeen screens on arrival, with a jump nav that could only move a reader
+   * between them. §4.5 asked for navigation rather than cuts — the content is a
+   * reference and every row is there on purpose — so each stage's table is a
+   * closed drawer and the page opens on one screen: the description, the
+   * filters, the jump nav, the normalization layer and ONE table.
+   *
+   * The explicit decision here is layered over a default, the same shape as the
+   * rows' `toggled ?? autoOpen`, because three things open a drawer on the
+   * reader's behalf and the reader's own click must still win over all of them:
+   *
+   *   - arrival opens the FIRST stage the page renders, so the table format is
+   *     in front of the reader rather than eight closed lines;
+   *   - a deep link (`#dd-clarify-risk`) opens the stage it names instead of the
+   *     first one — the scroll from `useScrollToHash` lands on the section, and
+   *     landing on a closed drawer would look like the link missed;
+   *   - a search opens every stage that still renders, because `grouped` is
+   *     derived from `filtered`, so every stage on the page has a match and a
+   *     match inside a closed drawer is a result the reader cannot see.
+   */
+  const [openStages, setOpenStages] = useState<Record<string, boolean>>({})
+  const deepLinked = location.hash.replace(/^#/, '')
+  const searching = search.trim() !== ''
+  const isStageOpen = (anchor: string, index: number) =>
+    openStages[anchor] ?? (searching || anchor === deepLinked || (index === 0 && !deepLinked))
+  /** A jump lands on an open drawer: open it first, then scroll to the section. */
+  const jumpToSection = (anchor: string) => {
+    setOpenStages(prev => ({ ...prev, [anchor]: true }))
+    jumpTo(anchor)
+  }
 
   const resources = useMemo(() => {
     const set = new Set(BINDINGS.map(b => b.fhirResource))
@@ -433,7 +471,7 @@ export function DataDictionary() {
         <span className="dd-count">{filtered.length} of {BINDINGS.length} entries</span>
       </div>
 
-      <JumpNav sections={jumpSections} onJump={jumpTo} />
+      <JumpNav sections={jumpSections} onJump={jumpToSection} />
 
       {grouped.length === 0 && (
         <EmptyState panel>No entries match your filters.</EmptyState>
@@ -441,13 +479,20 @@ export function DataDictionary() {
 
       <SharedConcepts concepts={visibleConcepts} toolIndex={toolIndex} />
 
-      {grouped.map(group => (
-        <section key={group.stageId} className="dd-stage-section" id={sectionAnchor(group.stageId)}>
-          <SectionHeader
-            title={group.stageTitle}
-            meta={`${group.bindings.length} ${group.bindings.length === 1 ? 'element' : 'elements'}`}
-          />
-
+      {grouped.map((group, index) => {
+        const anchor = sectionAnchor(group.stageId)
+        const n = group.bindings.length
+        return (
+        /* The `<section>` keeps the anchor id: it is what the jump nav scrolls
+           to and what a deep link names, and it stays at the top of the drawer
+           whether the drawer is open or closed. */
+        <section key={group.stageId} className="dd-stage-section" id={anchor}>
+          <Disclosure
+            summary={group.stageTitle}
+            hint={`${n} ${n === 1 ? 'element' : 'elements'}`}
+            open={isStageOpen(anchor, index)}
+            onToggle={open => setOpenStages(prev => ({ ...prev, [anchor]: open }))}
+          >
           <DataTable framed fixed>
               {/*
                 The column budget. `table-layout: fixed` means these percentages
@@ -500,8 +545,10 @@ export function DataDictionary() {
                 })}
               </tbody>
           </DataTable>
+          </Disclosure>
         </section>
-      ))}
+        )
+      })}
     </div>
   )
 }

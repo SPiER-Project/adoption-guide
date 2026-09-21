@@ -157,10 +157,11 @@ const CAPS: Record<string, { cap: number; why: string }> = {
   dashboard: { cap: SURFACE_GUIDE_CAP, why: SURFACE_GUIDE_WHY },
   'cds-service': { cap: SURFACE_GUIDE_CAP, why: SURFACE_GUIDE_WHY },
   'data-dictionary': {
-    cap: 2050,
-    why: '⚠️ Today’s count, not a target, and the longest page on the site. §4.5 leaves its content unchanged for ' +
-      'now and asks for a per-stage filter or a jump list instead — navigation rather than cuts — so this budget ' +
-      'is here to stop it growing, not to claim it is right.',
+    cap: 1200,
+    why: '§4.5 asked for navigation rather than cuts, and got it on 2026-09-21: the eight stage tables are closed ' +
+      'drawers, arrival opens the first, a jump opens its target and a search opens every stage with a match. ' +
+      'From 2,001 words to 1,155 on arrival — the description, the filters, the jump nav, the normalization layer ' +
+      'and ONE table (the first stage holds the most rows). Not a row was cut.',
   },
   'adoption-rubric': {
     cap: 420,

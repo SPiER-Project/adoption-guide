@@ -112,8 +112,10 @@ describe('the jump nav', () => {
     for (const link of container.querySelectorAll('.dd-jump-link')) {
       // Every label must name a section that is actually present.
       const label = link.textContent.replace(/\d+$/, '')
+      // A stage's title is its drawer's label since §4.5; the normalization
+      // layer keeps a SectionHeader, so both are places a label may live.
       expect(
-        [...container.querySelectorAll('.section-header__title')].some(t =>
+        [...container.querySelectorAll('.section-header__title, .disclosure__label')].some(t =>
           (t.textContent ?? '').includes(label.trim()),
         ),
       ).toBe(true)
@@ -207,5 +209,72 @@ describe('search still explains itself', () => {
       r => !(r as HTMLElement).hidden,
     ).length
     expect(after).toBe(before - 1)
+  })
+})
+
+/**
+ * Audit §4.5: the eight stage tables are closed drawers, and three things open
+ * one on the reader's behalf. Each case below is the way that could regress
+ * into a page that LOOKS broken — a jump that scrolls to a closed line, a
+ * search whose matches are inside a drawer nobody opened, a deep link that
+ * lands on the wrong stage.
+ */
+describe('the stage drawers', () => {
+  const drawers = (container: HTMLElement) =>
+    [...container.querySelectorAll<HTMLDetailsElement>('.dd-stage-section details')]
+
+  it('opens the first stage on arrival and closes the rest', () => {
+    const { container } = renderPage()
+    const open = drawers(container).map(d => d.open)
+    expect(open.length).toBeGreaterThan(2)
+    expect(open[0]).toBe(true)
+    expect(open.slice(1).every(o => o === false)).toBe(true)
+  })
+
+  it('opens the stage a deep link names, instead of the first', () => {
+    const { container } = render(
+      <MemoryRouter initialEntries={['/guide/data-dictionary#dd-clarify-risk']}>
+        <DataDictionary />
+      </MemoryRouter>,
+    )
+    const target = container.querySelector<HTMLDetailsElement>('#dd-clarify-risk details')!
+    expect(target.open).toBe(true)
+    // ⚠️ The scroll from useScrollToHash lands on the section; a closed drawer
+    // there reads as the link having missed. And the first stage must not ALSO
+    // be open, or the deep link is a second table rather than a destination.
+    expect(drawers(container)[0].open).toBe(false)
+  })
+
+  it('a jump opens the drawer it scrolls to', () => {
+    const { container } = renderPage()
+    const closed = drawers(container).find(d => !d.open)!
+    const section = closed.closest('.dd-stage-section')!
+    const label = section.querySelector('.disclosure__label')!.textContent
+    const link = [...container.querySelectorAll('.dd-jump-link')].find(l =>
+      l.textContent.startsWith(label),
+    )!
+    fireEvent.click(link)
+    expect(closed.open).toBe(true)
+  })
+
+  it('a search opens every stage that still has a match', () => {
+    const { container } = renderPage()
+    fireEvent.change(container.querySelector('.dd-search')!, { target: { value: 'careplan' } })
+    const shown = drawers(container)
+    // `grouped` derives from `filtered`, so every stage still on the page holds
+    // a match; a match inside a closed drawer is a result the reader cannot see.
+    expect(shown.length).toBeGreaterThan(0)
+    expect(shown.every(d => d.open)).toBe(true)
+  })
+
+  it('lets the reader close a drawer the page opened', () => {
+    const { container } = renderPage()
+    const first = drawers(container)[0]
+    expect(first.open).toBe(true)
+    // The browser flips the attribute, then fires `toggle`; the page records
+    // the decision, and it wins over the arrival default.
+    first.open = false
+    fireEvent(first, new Event('toggle'))
+    expect(drawers(container)[0].open).toBe(false)
   })
 })

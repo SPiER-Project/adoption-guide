@@ -1,6 +1,8 @@
+> Archived 2026-09-21: every PR in §6 shipped on 2026-09-20 as #567, #568, #569, #570, #571 and #572, and §4.5 — the one recommendation the status notes below left open — shipped the next day as the Data Dictionary's stage drawers. The per-PR status notes are kept as written; §4 describes the target, and the pages now match it.
+
 # Adoption Guide — copy, layout and UX audit
 
-**Date:** 2026-09-20 · **Branch audited:** `main` at `5262c1b` · **Status:** PR 1 (§1.1 dead links and their gate, §1.2 stale statements), PR 2 (§4.1 the Overview rewrite), PR 3 (§4.2 the Care Pathway split, §1.3 the artifact's documentation strings), PR 4 (§4.3 Tools as pages), PR 5 (§4.4 the three "see it running" pages) and PR 6 (§4.6 the sidebar, and the two §5 gates) applied — every PR in §6 is in. §4.5, the Data Dictionary's navigation, is the one recommendation left open.
+**Date:** 2026-09-20 · **Branch audited:** `main` at `5262c1b`
 
 **Status 2026-09-20 (PR 6):** the sidebar is relabelled to §4.6 and both §5
 gates exist. The three groups are **Understand** (Care Pathway, Tools), **See
@@ -336,7 +338,7 @@ link 1,400 words in.
 **Nouns, not questions.** The sidebar reads *The standard / Care Pathway /
 Tools / Data Dictionary*. A first-time reader does not know what "the standard"
 is or why a pathway and a dictionary sit under it. The 2026-09-17 regroup
-([`archive/guide-navigation-regroup.md`](archive/guide-navigation-regroup.md))
+([`archive/guide-navigation-regroup.md`](guide-navigation-regroup.md))
 fixed the *kind* problem — those three really are the same kind of thing — but
 the labels describe the artifacts, not the reader's task.
 
