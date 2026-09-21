@@ -74,7 +74,16 @@ Measured in a real browser, launched from a local mock EHR with
 |---|---|---|---|---|---|
 | Sarah Patel | 375 | no → **yes** | 437px → **153px** | 116 → 146 | 1,217 → 1,589px |
 | Sarah Patel | 470 | no → **yes** | 379px → **134px** | 116 → 146 | 994 → 1,312px |
+| Maria Alvarez | 375 | no → **yes** | 1,079px → **134px** | 299 → **169** | 3,021 → **1,860px** |
 | Maria Alvarez | 470 | no → **yes** | 876px → **134px** | 299 → **169** | 2,415 → **1,529px** |
+
+⚠️ **The button's position stops depending on the patient, and that is the
+result rather than a side effect.** On `main` the one thing to do sat at 437px
+for a chart owing one act and at 1,079px for a chart owing three, because the
+obligations were cards grouped into a rail ordered by stage — so the more a
+patient needed, the further a clinician scrolled to start. It is 134px for both
+now, and 153px on Sarah's phone only because her trigger sentence wraps to a
+second line.
 
 The whole landing screen — strip, card, button, *Why this?*, both links — ends
 at 319px of an 812px phone viewport.
