@@ -6,7 +6,7 @@
  * Until 2026-09-20 the Tools section was 40 accordion cards; expanding one
  * added five sections and 1,600px, and the form — the thing a reader came to
  * try — was a secondary button at the bottom of that, behind "Show details".
- * The adoption-guide UX audit (docs/plans/adoption-guide-ux-audit-2026-09-20.md
+ * The adoption-guide UX audit (docs/plans/archive/adoption-guide-ux-audit-2026-09-20.md
  * §4.3) put the form where the reader lands: this page is the tool's name and
  * purpose, its form in the foreground with the FHIR beside it, the catalogue
  * detail in closed drawers below, and one way onward to the Demo EHR. It

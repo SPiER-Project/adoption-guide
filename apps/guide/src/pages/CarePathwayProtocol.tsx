@@ -7,7 +7,7 @@
  * says it, in full: the spine of steps with the tier table in place, the
  * three things the artifact deliberately does not encode, the FHIRPath gates
  * and canonical URLs in a drawer, and provenance with the JSON last. Split out
- * by the adoption-guide UX audit (docs/plans/adoption-guide-ux-audit-2026-09-20.md
+ * by the adoption-guide UX audit (docs/plans/archive/adoption-guide-ux-audit-2026-09-20.md
  * §4.2), which measured the two pages as one 2,445-word page that put the
  * artifact in front of every reader.
  *

@@ -19,7 +19,7 @@
 //
 // ⚠️ **The grouping survived 2026-09-20; the LABELS did not, and neither did
 // 'evaluate'.** The adoption-guide UX audit
-// (docs/plans/adoption-guide-ux-audit-2026-09-20.md §4.6) found the names
+// (docs/plans/archive/adoption-guide-ux-audit-2026-09-20.md §4.6) found the names
 // described the CONTENT — 'The standard', 'The applications' — where a sidebar
 // is read as a question: a reader arriving at a row headed 'The standard' does
 // not know whether it is for them. The three headings are now the reader's own

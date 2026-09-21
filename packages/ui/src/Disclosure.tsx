@@ -56,6 +56,8 @@ export function Disclosure({
   hint,
   variant = 'rule',
   defaultOpen = false,
+  open,
+  onToggle,
   className,
   children,
 }: {
@@ -70,6 +72,17 @@ export function Disclosure({
    * component exists is that the page fits on one screen when they are closed.
    */
   defaultOpen?: boolean
+  /**
+   * Controlled open state, for a page that opens a drawer on the reader's
+   * behalf — a jump nav that lands on a closed section, a search that matched
+   * inside one. With `open` given the drawer follows it and reports the
+   * reader's own clicks through `onToggle`; without it, `defaultOpen` and the
+   * browser own the state. Added for the Data Dictionary (audit §4.5), whose
+   * eight stage tables became drawers and whose jump nav has to open the one
+   * it scrolls to.
+   */
+  open?: boolean
+  onToggle?: (open: boolean) => void
   /** Layout only — never a radius, padding, border or background. */
   className?: string
   children: ReactNode
@@ -77,7 +90,10 @@ export function Disclosure({
   return (
     <details
       className={cx('disclosure', `disclosure--${variant}`, className)}
-      open={defaultOpen}
+      open={open ?? defaultOpen}
+      // `toggle` fires after the browser has flipped the attribute, so the
+      // element already holds the state the reader asked for.
+      onToggle={onToggle ? (e) => onToggle((e.currentTarget as HTMLDetailsElement).open) : undefined}
     >
       <summary className="disclosure__summary">
         <span className="disclosure__label">{summary}</span>

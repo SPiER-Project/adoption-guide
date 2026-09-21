@@ -68,4 +68,21 @@ describe('Disclosure', () => {
     render(<Disclosure summary="Licensing">terms</Disclosure>)
     expect(document.querySelector('.disclosure__hint')).toBeNull()
   })
+
+  it('follows a controlled `open` and reports the reader’s own toggle', () => {
+    const seen: boolean[] = []
+    const { rerender } = render(
+      <Disclosure summary="Clarify Risk" open={false} onToggle={o => seen.push(o)}>rows</Disclosure>,
+    )
+    const details = document.querySelector('details.disclosure') as HTMLDetailsElement
+    expect(details.open).toBe(false)
+    // The page opens it — a jump nav landing here, a search matching inside.
+    rerender(<Disclosure summary="Clarify Risk" open onToggle={o => seen.push(o)}>rows</Disclosure>)
+    expect(details.open).toBe(true)
+    // The reader closes it: the browser flips the attribute, then fires
+    // `toggle`, and the component reports the state the element now holds.
+    details.open = false
+    fireEvent(details, new Event('toggle'))
+    expect(seen).toEqual([false])
+  })
 })

@@ -86,13 +86,6 @@ const ALLOWED = new Map(Object.entries({
   'docs/plans/docs-and-ig-content-consolidation.md::public/SPiER-Overview-Care-Pathway.html': 'same',
   'docs/plans/docs-and-ig-content-consolidation.md::scripts/fetch-roadmap.mjs': 'same',
 
-  // -- the adoption-guide UX audit records each defect where it stood on
-  //    2026-09-20. Its §1.1 names the accordion drill-in that rendered the
-  //    dead launch button; PR 4 of the same audit retired that file (the
-  //    Tools list links a page per tool instead), and the audit's own status
-  //    note at the top says so. The finding is history, not a claim.
-  'docs/plans/adoption-guide-ux-audit-2026-09-20.md::apps/guide/src/components/ToolDetail.tsx': 'the audit names the file that held the defect; PR 4 (#570) deleted it, and the status note records that',
-
   // -- the 14 demo patients left the IG in #399 (step E2a). Three plan docs
   //    narrate that move and name the file it moved from.
   'docs/plans/embedded-panel-smart-launch.md::ig/input/fsh/population-patients.fsh': 'the patients left the IG in #399; doc narrates the move',

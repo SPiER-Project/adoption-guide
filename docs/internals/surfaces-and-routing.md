@@ -91,7 +91,7 @@ grep above was pointed at one surface.** `check:surface-links` walked only
 chart" after every submit, the recorders' cross-links, the try page's up-link
 and seven redirects all fell to the catch-all and landed on the Overview,
 silently, for a day. Found by the adoption-guide UX audit
-([`docs/plans/adoption-guide-ux-audit-2026-09-20.md`](../plans/adoption-guide-ux-audit-2026-09-20.md) §1.1).
+([`docs/plans/archive/adoption-guide-ux-audit-2026-09-20.md`](../plans/archive/adoption-guide-ux-audit-2026-09-20.md) §1.1).
 
 The rule that came out of it: **a view rendered by both apps holds no route
 literal.** `SurfaceLinksContext`

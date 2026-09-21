@@ -5,7 +5,7 @@
  * protocol — every step, gate, FHIRPath condition, canonical URL and note, in
  * 2,445 words — under a simulator, and answered nowhere the question a reader
  * deciding whether to adopt actually has: what does a good pathway DO? The
- * adoption-guide UX audit (docs/plans/adoption-guide-ux-audit-2026-09-20.md
+ * adoption-guide UX audit (docs/plans/archive/adoption-guide-ux-audit-2026-09-20.md
  * §3, §4.2) split it. This page is the five things a pathway does, in prose a
  * decision-maker can read, the C-SSRS simulator as the centrepiece, and the
  * tier table it lights up. The full artifact — spine, gates, provenance, the
