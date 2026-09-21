@@ -60,9 +60,19 @@ function requestedScopes(access: 'read' | 'write'): Set<string> {
   )
 }
 
-/** Every resource type `getSlice` searches for. */
+/**
+ * Every resource type a slice read searches for.
+ *
+ * ⚠️ **Read off `SLICE_READS`, not off `this.search('X')`.** The fourteen
+ * searches became a table when the cohort read arrived (clinical-app audit
+ * §8.8) — two callers, one list — and the old pattern then matched **nothing**.
+ * This gate's own liveness assertion is what said so, on the first run after
+ * the refactor, which is the whole reason that assertion exists.
+ */
 function searchedTypes(): string[] {
-  return [...new Set([...SMART_DATA_SOURCE.matchAll(/this\.search\('([A-Za-z]+)'/g)].map(m => m[1]))]
+  const block = /const SLICE_READS: SliceRead\[\] = \[([\s\S]*?)\n\]/.exec(SMART_DATA_SOURCE)
+  if (!block) throw new Error('could not find SLICE_READS — has it been renamed?')
+  return [...new Set([...block[1].matchAll(/type: '([A-Za-z]+)'/g)].map(m => m[1]))]
 }
 
 /** Every resource type `saveArtifact` PUTs rather than POSTs. */

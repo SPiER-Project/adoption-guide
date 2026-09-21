@@ -64,11 +64,6 @@
    the prose is set in — so the cap goes on the box and the padding comes out of
    the measure. It ran 178 characters a line under a full-width table. */
 
-.md-gap-link {
-  color: var(--accent-info-text);
-  font-variant-numeric: tabular-nums;
-}
-
 .md-measure {
   margin-bottom: var(--space-6);
 }

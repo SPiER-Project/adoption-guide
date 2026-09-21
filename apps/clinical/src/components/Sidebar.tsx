@@ -17,7 +17,8 @@ import '@spier/app-shell/css/Sidebar.css'
  *
  * ⚠️ No `usePatient()`, inherited from the component this came from and worth
  * keeping: a sidebar that reads no patient context cannot be the thing that
- * leaks one.
+ * leaks one. Whether there IS a patient is a `boolean` prop from `LaunchShell`,
+ * which reads that context already — see `hasPatient`.
  *
  * ⚠️ **The IG is deliberately absent.** `services/clinical` does not serve
  * `/ig/` at all, so a link to it fell through to the SPA fallback and reopened
@@ -26,7 +27,7 @@ import '@spier/app-shell/css/Sidebar.css'
  * `services/clinical/README.md`.
  */
 const LINKS = [
-  { to: '/patient/record', label: 'Patient record' },
+  { to: '/patient/record', label: 'Patient record', needsPatient: true },
   { to: '/population/caseload', label: 'Caseload' },
   { to: '/population/measures', label: 'Measures' },
   { to: '/settings', label: 'Settings' },
@@ -35,9 +36,20 @@ const LINKS = [
 type SidebarProps = {
   isOpen: boolean
   onClose: () => void
+  /**
+   * Is there a patient to open a record for?
+   *
+   * ⚠️ **A worklist launch has none, and this link was an error page.** SPiER
+   * opened from a worklist is connected and patient-less: *Patient record*
+   * rendered "the launch did not include a patient context", and then, under
+   * it, a full recommendation card with a **Launch PHQ-9** button — for nobody,
+   * against a session the server refuses every write from (clinical-app audit
+   * §8.6). A destination that cannot work is not a destination.
+   */
+  hasPatient: boolean
 }
 
-export function Sidebar({ isOpen, onClose }: SidebarProps) {
+export function Sidebar({ isOpen, onClose, hasPatient }: SidebarProps) {
   // Dismiss the mobile overlay on Escape, mirroring the click-away behaviour.
   // The listener is only attached while the sidebar is open.
   useEffect(() => {
@@ -54,7 +66,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {isOpen && <div className="sidebar-overlay" onClick={onClose} />}
       <aside className={cx('sidebar', isOpen && 'sidebar--open')}>
         <nav className="sidebar-nav" aria-label="SPiER">
-          {LINKS.map((item) => (
+          {LINKS.filter(item => hasPatient || !item.needsPatient).map((item) => (
             <NavLink
               key={item.to}
               to={item.to}

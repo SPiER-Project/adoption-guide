@@ -172,9 +172,6 @@ const REVOKED_CAPS = {}
  * measured, because that is the number the cap is really made of.
  */
 const INHERITS_TYPE = {
-  'apps/clinical/src/css/ToolConfiguration.css|.tool-config-intro':
-    'Inherits 16px from the page (measured), so the cap lands at 656px and the run at 83 characters. ' +
-    'Left on inheritance rather than pinned: it is the page intro and takes the body size by default.',
   'apps/clinical/src/css/ToolConfiguration.css|.tool-config-effect':
     'Deliberate, and the reason the box is capped at all. It sets no font-size, so it resolves the ' +
     'token at the inherited 16px and gets a CALLOUT width (656px); `.tool-config-effect__body` ' +

@@ -29,7 +29,7 @@
  * what keeps the population view and the measure dashboard from disagreeing
  * about the same patient.
  */
-import type { MeasureEvaluation } from '@spier/core/lib/measures'
+import { MEASURE_SPECS, type MeasureEvaluation } from '@spier/core/lib/measures'
 import type { DerivedRegistryRow } from '@spier/core/lib/registry'
 
 export type AlertSeverity = 'red' | 'yellow'
@@ -43,11 +43,20 @@ export interface PopulationAlert {
   /** One sentence of why, safe to show a clinician. */
   detail: string
   /**
-   * The measure group this was derived from, or null when it comes from the
-   * registry row itself. Rendered as provenance — an alert with no traceable
-   * source is an alert nobody can audit.
+   * What this alert was derived from, in the reader's words — the published
+   * measure's TITLE, or null when it comes from the patient's workflow rather
+   * than from a measure. An alert nobody can trace is an alert nobody can
+   * dispute, so the provenance stays; what left is the identifier.
+   *
+   * ⚠️ **The KEY stays and the RENDERING changes.** This carried only
+   * `{ measureId, groupCode }` and the panel printed it —
+   * `SPiERCaringContactAdherence · caring-contact-within-30-days`, under every
+   * one of nineteen alerts (clinical-app audit §1.9, and §8.5's table). That
+   * pair is the implementer's handle on the criterion and the suppression
+   * tests read it, so it is still here; what a reader is shown is `title`,
+   * which the measure publishes and which is the same fact in their words.
    */
-  source: { measureId: string; groupCode: string } | null
+  source: { measureId: string; groupCode: string; title: string } | null
 }
 
 /** How a failed measure group presents. Keyed `${measureId}/${groupCode}`. */
@@ -69,15 +78,14 @@ const GROUP_ALERTS: Record<
   },
   'SPiERRiskStatusDocumented/risk-status-documented': {
     severity: 'red',
-    label: 'No coded risk level in the episode',
+    label: 'No risk level recorded on the open episode',
     detail:
-      'The suicide-safer care episode is open with no risk-concept Observation dated inside it, so the current tier is not discrete data.',
+      'The suicide-safer care episode is open and no risk level has been recorded since it started, so nothing downstream can act on one.',
   },
   'SPiERLethalMeansCounselingCompleted/lethal-means-counseling': {
     severity: 'yellow',
     label: 'Lethal means counseling not recorded',
-    detail:
-      'No completed means-safety counseling Procedure is documented during the episode.',
+    detail: 'No completed means-safety counselling is documented during the episode.',
   },
   'SPiERFollowUpTimeliness/outreach-within-48-hours': {
     severity: 'red',
@@ -125,14 +133,19 @@ const GROUP_ALERTS: Record<
 }
 
 /**
- * Deck rules with no measure behind them, and what each waits on. Rendered by
- * the panel so "4 alerts" cannot be misread as "everything else is fine".
+ * Rules the dashboard names that nothing here can compute, and what each waits
+ * on. Rendered by the panel so "4 alerts" cannot be misread as "everything else
+ * is fine".
+ *
+ * ⚠️ The wording is the CARE MANAGER's. These said "waiting on the care-team
+ * role model (phase 4)" — a phase of a plan document she has never seen
+ * (clinical-app audit §8.5).
  */
 export const UNAVAILABLE_RULES: Array<{ rule: string; waitingOn: string }> = [
-  { rule: 'Safety plan due for review', waitingOn: 'a safety-plan review interval, which the deck does not state' },
-  { rule: 'Psychiatric consultation overdue', waitingOn: 'the care-team role model (phase 4)' },
-  { rule: 'PCP review overdue', waitingOn: 'the care-team role model (phase 4)' },
-  { rule: 'Missing emergency contact', waitingOn: 'an emergency-contact consent artifact' },
+  { rule: 'Safety plan due for review', waitingOn: 'how often a safety plan should be reviewed, which nothing here states yet' },
+  { rule: 'Psychiatric consultation overdue', waitingOn: 'who is on each patient\u2019s care team, which SPiER does not record yet' },
+  { rule: 'PCP review overdue', waitingOn: 'who is on each patient\u2019s care team, which SPiER does not record yet' },
+  { rule: 'Missing emergency contact', waitingOn: 'a record of the patient agreeing to an emergency contact' },
 ]
 
 /**
@@ -154,6 +167,18 @@ const IMPLIED_BY: Record<string, string> = {
 }
 
 const SEVERITY_ORDER: Record<AlertSeverity, number> = { red: 0, yellow: 1 }
+
+/**
+ * A criterion key, plus the published title the panel actually renders.
+ *
+ * The title falls back to nothing rather than to the id: a reader shown
+ * `SPiERReferralCompletion` has learned less than a reader shown nothing, and
+ * `populationAlerts.test.ts` fails on a key with no measure behind it anyway.
+ */
+function sourceFor(key: string): PopulationAlert['source'] {
+  const [measureId, groupCode] = key.split('/')
+  return { measureId, groupCode, title: MEASURE_SPECS.find(m => m.id === measureId)?.title ?? '' }
+}
 
 /**
  * Alerts for one patient, from their measure evaluations plus their registry row.
@@ -183,14 +208,13 @@ export function alertsForPatient(
     // matching entry here. populationAlerts.test.ts fails in that case rather
     // than letting the panel silently drop a real failure.
     if (!spec) continue
-    const [measureId, groupCode] = key.split('/')
     alerts.push({
       patientId: row.id,
       patientName: row.displayName,
       severity: spec.severity,
       label: spec.label,
       detail: spec.detail,
-      source: { measureId, groupCode },
+      source: sourceFor(key),
     })
   }
 

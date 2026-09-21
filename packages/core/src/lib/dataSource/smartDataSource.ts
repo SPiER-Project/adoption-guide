@@ -128,6 +128,33 @@ function patientRefField(resourceType: string): 'subject' | 'patient' | 'for' | 
 }
 
 /**
+ * Which patient a fetched resource belongs to, read through the same table
+ * `patientRefField` writes through.
+ *
+ * ⚠️ **Needed only by the COHORT read.** A patient-scoped search already knows
+ * whose resources came back; a search that asked for fourteen patients at once
+ * does not, and has to sort the Bundle out again. Appointment is the awkward
+ * one in this direction too — its patient is a `participant.actor` and not a
+ * top-level element — so the `null` from `patientRefField` is a real branch
+ * here rather than a fall-through.
+ */
+function patientIdOf(resource: FhirResource): string | undefined {
+  const idFrom = (ref: unknown): string | undefined => {
+    const value = (ref as { reference?: unknown } | undefined)?.reference
+    if (typeof value !== 'string') return undefined
+    return /(?:^|\/)Patient\/([^/?]+)$/.exec(value)?.[1]
+  }
+  const field = patientRefField(resource.resourceType)
+  if (field) return idFrom((resource as Record<string, unknown>)[field])
+  const participants = (resource as { participant?: Array<{ actor?: unknown }> }).participant ?? []
+  for (const p of participants) {
+    const id = idFrom(p?.actor)
+    if (id) return id
+  }
+  return undefined
+}
+
+/**
  * Attach the patient link in whichever element this resource type actually
  * uses.
  *
@@ -156,6 +183,114 @@ function withPatientLink<T extends FhirResource>(resource: T, patientId: string)
   return { ...resource, participant: participants }
 }
 
+
+/** Where one search's results land while a slice is being assembled. */
+type SliceKey =
+  | 'questionnaireResponses'
+  | 'surveyObservations'
+  | 'procedureObservations'
+  | 'carePlans'
+  | 'communications'
+  | 'episodes'
+  | 'flags'
+  | 'tasks'
+  | 'documentReferences'
+  | 'serviceRequests'
+  | 'appointments'
+  | 'consents'
+  | 'procedures'
+  | 'encounters'
+
+type SliceBuckets = Record<SliceKey, FhirResource[]>
+
+interface SliceRead {
+  key: SliceKey
+  type: string
+  params: string
+  /**
+   * The chart's core data: a failure here surfaces as the chart's error state.
+   * Everything else is best-effort — a server may not grant those scopes, and
+   * the chart still works without them — and degrades to an empty bucket.
+   */
+  core?: true
+}
+
+/**
+ * The fourteen searches a chart slice is made of.
+ *
+ * ⚠️ **A table rather than fourteen lines of `Promise.all`, because there are
+ * now TWO readers of it** — `getSlice` for one patient and `getSlices` for a
+ * whole cohort — and fourteen searches written out twice is exactly the
+ * hand-duplicated list this repo has `check:dupes` for. Adding a type here
+ * adds it to both reads and to the slice.
+ */
+const SLICE_READS: SliceRead[] = [
+  { key: 'questionnaireResponses', type: 'QuestionnaireResponse', params: '', core: true },
+  { key: 'surveyObservations', type: 'Observation', params: '&category=survey', core: true },
+  // Stage-4 means-safety actions are category `procedure`, not `survey` — they
+  // record what was secured, not an instrument's answers. Best-effort so a
+  // server that rejects the second query still returns a usable chart.
+  { key: 'procedureObservations', type: 'Observation', params: '&category=procedure' },
+  { key: 'carePlans', type: 'CarePlan', params: '' },
+  { key: 'communications', type: 'Communication', params: '' },
+  // Stage 7 (Track Risk Over Time).
+  { key: 'episodes', type: 'EpisodeOfCare', params: '' },
+  { key: 'flags', type: 'Flag', params: '' },
+  { key: 'tasks', type: 'Task', params: '' },
+  // Stage 5 (Coordinate Handoffs).
+  { key: 'documentReferences', type: 'DocumentReference', params: '' },
+  { key: 'serviceRequests', type: 'ServiceRequest', params: '' },
+  { key: 'appointments', type: 'Appointment', params: '' },
+  { key: 'consents', type: 'Consent', params: '' },
+  // Stage 4 (Document Safety Actions) — the lethal-means counseling Procedure
+  // the Stage-8 measure counts.
+  { key: 'procedures', type: 'Procedure', params: '' },
+  // #263 correlation hinge: without it the chart still renders, it just cannot
+  // group artifacts by contact.
+  { key: 'encounters', type: 'Encounter', params: '' },
+]
+
+function emptyBuckets(): SliceBuckets {
+  return Object.fromEntries(SLICE_READS.map(r => [r.key, [] as FhirResource[]])) as SliceBuckets
+}
+
+/** One patient's buckets, turned into the slice the app reads. */
+function assembleSlice(buckets: SliceBuckets): PatientSlice {
+  // A server may return the same Observation under both category queries.
+  const observations = [...buckets.surveyObservations, ...buckets.procedureObservations].filter(
+    (o, i, all) => !o.id || all.findIndex(x => x.id === o.id) === i,
+  )
+
+  const responses = buckets.questionnaireResponses
+    .map(qr => toStoredResponse(qr as QuestionnaireResponseResource))
+    .sort((a, b) => new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime())
+
+  // Recompute risk alerts from the QRs in chronological order, keeping the
+  // latest alert per tool — the same upsert semantics as the local store.
+  let riskAlerts: RiskAlert[] = []
+  for (const r of responses) {
+    const derived = deriveFromResponse(r.resource)
+    if (!derived) continue
+    riskAlerts = [...riskAlerts.filter(a => a.tool !== derived.riskAlert.tool), derived.riskAlert]
+  }
+
+  return {
+    responses,
+    observations: observations as ObservationResource[],
+    carePlans: buckets.carePlans as CarePlanResource[],
+    communications: buckets.communications as CommunicationResource[],
+    episodes: buckets.episodes as EpisodeOfCareResource[],
+    flags: buckets.flags as FlagResource[],
+    tasks: buckets.tasks as TaskResource[],
+    documentReferences: buckets.documentReferences as DocumentReferenceResource[],
+    serviceRequests: buckets.serviceRequests as ServiceRequestResource[],
+    appointments: buckets.appointments as AppointmentResource[],
+    consents: buckets.consents as ConsentResource[],
+    procedures: buckets.procedures as ProcedureResource[],
+    encounters: buckets.encounters as EncounterResource[],
+    riskAlerts,
+  }
+}
 
 export class SmartDataSource implements FhirDataSource, WritebackTarget {
   private readonly listeners = new Set<() => void>()
@@ -205,10 +340,20 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
     return pid
   }
 
-  /** Patient-scoped search, following pagination and unwrapping bundle entries. */
-  private async search(resourceType: string, patientId: string, extraParams = ''): Promise<FhirResource[]> {
+  /**
+   * Patient-scoped search, following pagination and unwrapping bundle entries.
+   *
+   * ⚠️ **Takes a LIST of patients, and the comma is the point.** A comma
+   * separated list of values on a reference parameter is core FHIR search
+   * semantics for OR, and it is what turns a fourteen-patient cohort read from
+   * 196 requests into 14 (clinical-app audit §8.8). Each id is encoded on its
+   * own and the separators are left literal, because a percent-encoded comma is
+   * a comma INSIDE one value on a server that reads the query string strictly.
+   */
+  private async search(resourceType: string, patientIds: string[], extraParams = ''): Promise<FhirResource[]> {
+    const patient = patientIds.map(id => encodeURIComponent(id)).join(',')
     const result = await this.client.request<unknown>(
-      `${resourceType}?patient=${encodeURIComponent(patientId)}${extraParams}`,
+      `${resourceType}?patient=${patient}${extraParams}`,
       { pageLimit: 0, flat: true },
     )
     // flat:true yields the entry resources; filter defensively (bundles can
@@ -221,85 +366,95 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
 
   async getSlice(patientId: string | null): Promise<PatientSlice> {
     const pid = this.resolvePatientId(patientId)
-    // QRs and Observations are the chart's core data — failures there surface
-    // as the chart's error state. CarePlan/Communication reads are
-    // best-effort (a server may not grant those scopes) and degrade to empty.
-    const [
-      qrs,
-      surveyObservations,
-      procedureObservations,
-      carePlans,
-      communications,
-      episodes,
-      flags,
-      tasks,
-      documentReferences,
-      serviceRequests,
-      appointments,
-      consents,
-      procedures,
-      encounters,
-    ] = await Promise.all([
-      this.search('QuestionnaireResponse', pid),
-      this.search('Observation', pid, '&category=survey'),
-      // Stage-4 means-safety actions are category `procedure`, not `survey` —
-      // they record what was secured, not an instrument's answers. Best-effort
-      // so a server that rejects the second query still returns a usable chart.
-      this.search('Observation', pid, '&category=procedure').catch(() => [] as FhirResource[]),
-      this.search('CarePlan', pid).catch(() => [] as FhirResource[]),
-      this.search('Communication', pid).catch(() => [] as FhirResource[]),
-      // Stage 7 (Track Risk Over Time). Best-effort like CarePlan/Communication:
-      // a server may not grant these scopes, and the chart still works without them.
-      this.search('EpisodeOfCare', pid).catch(() => [] as FhirResource[]),
-      this.search('Flag', pid).catch(() => [] as FhirResource[]),
-      this.search('Task', pid).catch(() => [] as FhirResource[]),
-      // Stage 5 (Coordinate Handoffs) — best-effort for the same reason.
-      this.search('DocumentReference', pid).catch(() => [] as FhirResource[]),
-      this.search('ServiceRequest', pid).catch(() => [] as FhirResource[]),
-      this.search('Appointment', pid).catch(() => [] as FhirResource[]),
-      this.search('Consent', pid).catch(() => [] as FhirResource[]),
-      // Stage 4 (Document Safety Actions) — the lethal-means counseling
-      // Procedure the Stage-8 measure counts. Best-effort for the same reason.
-      this.search('Procedure', pid).catch(() => [] as FhirResource[]),
-      // #263 correlation hinge. Best-effort like the rest: without it the chart
-      // still renders, it just cannot group artifacts by contact.
-      this.search('Encounter', pid).catch(() => [] as FhirResource[]),
-    ])
-
-    // A server may return the same Observation under both category queries.
-    const observations = [...surveyObservations, ...procedureObservations].filter(
-      (o, i, all) => !o.id || all.findIndex(x => x.id === o.id) === i,
+    const buckets = emptyBuckets()
+    await Promise.all(
+      SLICE_READS.map(async read => {
+        const run = this.search(read.type, [pid], read.params)
+        buckets[read.key] = read.core ? await run : await run.catch(() => [] as FhirResource[])
+      }),
     )
+    return assembleSlice(buckets)
+  }
 
-    const responses = qrs
-      .map(qr => toStoredResponse(qr as QuestionnaireResponseResource))
-      .sort((a, b) => new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime())
-
-    // Recompute risk alerts from the QRs in chronological order, keeping the
-    // latest alert per tool — the same upsert semantics as the local store.
-    let riskAlerts: RiskAlert[] = []
-    for (const r of responses) {
-      const derived = deriveFromResponse(r.resource)
-      if (!derived) continue
-      riskAlerts = [...riskAlerts.filter(a => a.tool !== derived.riskAlert.tool), derived.riskAlert]
+  /**
+   * Every cohort patient's slice, in ONE set of searches rather than one set
+   * each.
+   *
+   * ⚠️ **This is a whole-cohort read and it is NOT how a chart is read.** It
+   * exists because the caseload and its embedded summary need fourteen slices
+   * at once, and asking for them a patient at a time is 196 cross-origin
+   * requests — each with a preflight — to draw a page of tiles (clinical-app
+   * audit §1.12, measured in §8.8). `getSlice` stays the chart's read: a
+   * patient-bound session has one patient and nothing to batch.
+   *
+   * ⚠️ **What this cannot see: a server that answers a comma list with an empty
+   * Bundle instead of an error.** Comma-as-OR is in the base specification, and
+   * a server that does not implement it is expected to refuse — which lands in
+   * the `catch` below. One that silently narrows to nothing would look exactly
+   * like a cohort with no records, which is the failure mode this repo keeps
+   * writing gates against. The guard is the cheapest decisive one available: if
+   * the batched read finds NOTHING for ANY patient across ALL fourteen
+   * searches, it is re-run one patient at a time. That costs nothing when there
+   * is data, and a genuinely empty cohort reaches the same answer twice.
+   */
+  async getSlices(patientIds: string[]): Promise<Map<string, PatientSlice>> {
+    const ids = [...new Set(patientIds)].filter(Boolean)
+    const slices = new Map<string, PatientSlice>()
+    if (ids.length === 0) return slices
+    if (ids.length === 1) {
+      slices.set(ids[0], await this.getSlice(ids[0]))
+      return slices
     }
 
-    return {
-      responses,
-      observations: observations as ObservationResource[],
-      carePlans: carePlans as CarePlanResource[],
-      communications: communications as CommunicationResource[],
-      episodes: episodes as EpisodeOfCareResource[],
-      flags: flags as FlagResource[],
-      tasks: tasks as TaskResource[],
-      documentReferences: documentReferences as DocumentReferenceResource[],
-      serviceRequests: serviceRequests as ServiceRequestResource[],
-      appointments: appointments as AppointmentResource[],
-      consents: consents as ConsentResource[],
-      procedures: procedures as ProcedureResource[],
-      encounters: encounters as EncounterResource[],
-      riskAlerts,
+    const wanted = new Set(ids)
+    const buckets = new Map(ids.map(id => [id, emptyBuckets()]))
+    let found = 0
+    try {
+      await Promise.all(
+        SLICE_READS.map(async read => {
+          const run = this.search(read.type, ids, read.params)
+          const rows = read.core ? await run : await run.catch(() => [] as FhirResource[])
+          for (const row of rows) {
+            // A resource whose patient is not one we asked for is dropped
+            // rather than guessed at: a server that ignored `patient` entirely
+            // would otherwise put a stranger's record on a caseload row.
+            const pid = patientIdOf(row)
+            if (!pid || !wanted.has(pid)) continue
+            buckets.get(pid)?.[read.key].push(row)
+            found++
+          }
+        }),
+      )
+    } catch {
+      // A refused OR search is the expected shape of "this server does not
+      // implement comma-as-OR", and it refuses for the WHOLE cohort at once —
+      // so there is no partial result worth keeping.
+      return this.slicesOneByOne(ids)
     }
+    if (found === 0) return this.slicesOneByOne(ids)
+
+    for (const id of ids) slices.set(id, assembleSlice(buckets.get(id) ?? emptyBuckets()))
+    return slices
+  }
+
+  /**
+   * The per-patient read, kept as the fallback the batched one falls back TO.
+   *
+   * A patient this session cannot read is OMITTED rather than mapped to an
+   * empty slice — a 403 for one chart and a chart with nothing in it are two
+   * different answers, and `getSlices`' contract is to keep them apart.
+   */
+  private async slicesOneByOne(ids: string[]): Promise<Map<string, PatientSlice>> {
+    const entries = await Promise.all(
+      ids.map(async id => {
+        try {
+          return [id, await this.getSlice(id)] as const
+        } catch {
+          return null
+        }
+      }),
+    )
+    return new Map(entries.filter((e): e is readonly [string, PatientSlice] => e !== null))
   }
 
   /**

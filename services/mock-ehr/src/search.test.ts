@@ -11,18 +11,31 @@ const ALL = HELD_RESOURCES.map(h => h.resource)
 describe('belongsToPatient', () => {
   it('reads the element each type actually uses, not just subject', () => {
     // Matching only `subject` would return zero of these four.
-    expect(applySearch(ALL, 'EpisodeOfCare', { patientId: 'patient-011' }).length).toBeGreaterThan(0)
-    expect(applySearch(ALL, 'Task', { patientId: 'patient-011' }).length).toBeGreaterThan(0)
-    expect(applySearch(ALL, 'Appointment', { patientId: 'patient-011' }).length).toBeGreaterThan(0)
-    expect(applySearch(ALL, 'Consent', { patientId: 'patient-011' }).length).toBeGreaterThan(0)
+    expect(applySearch(ALL, 'EpisodeOfCare', { patientIds: ['patient-011'] }).length).toBeGreaterThan(0)
+    expect(applySearch(ALL, 'Task', { patientIds: ['patient-011'] }).length).toBeGreaterThan(0)
+    expect(applySearch(ALL, 'Appointment', { patientIds: ['patient-011'] }).length).toBeGreaterThan(0)
+    expect(applySearch(ALL, 'Consent', { patientIds: ['patient-011'] }).length).toBeGreaterThan(0)
   })
 
   it('does not leak one patient’s resources into another’s search', () => {
     for (const type of ['QuestionnaireResponse', 'Observation', 'Encounter']) {
-      const mine = applySearch(ALL, type, { patientId: 'patient-011' })
+      const mine = applySearch(ALL, type, { patientIds: ['patient-011'] })
       expect(mine.length).toBeGreaterThan(0)
       for (const r of mine) expect(belongsToPatient(r, 'patient-001')).toBe(false)
     }
+  })
+
+  it('returns every listed patient’s resources for an OR search, and nobody else’s', () => {
+    const both = applySearch(ALL, 'QuestionnaireResponse', {
+      patientIds: ['patient-001', 'patient-011'],
+    })
+    expect(both.some(r => belongsToPatient(r, 'patient-001'))).toBe(true)
+    expect(both.some(r => belongsToPatient(r, 'patient-011'))).toBe(true)
+    // The whole cohort read rests on this: a listed patient widens the result
+    // and an unlisted one never appears in it.
+    expect(both.some(r => belongsToPatient(r, 'patient-002'))).toBe(false)
+    const one = applySearch(ALL, 'QuestionnaireResponse', { patientIds: ['patient-001'] })
+    expect(both.length).toBeGreaterThan(one.length)
   })
 
   it('accepts the reference spellings a client may write', () => {
@@ -61,7 +74,20 @@ describe('parseSearch', () => {
   it('accepts patient, its subject alias, and a Patient/ prefix', () => {
     for (const qs of ['patient=patient-011', 'subject=patient-011', 'patient=Patient/patient-011']) {
       const parsed = parseSearch(new URLSearchParams(qs))
-      expect(parsed.ok && parsed.query.patientId).toBe('patient-011')
+      expect(parsed.ok && parsed.query.patientIds).toEqual(['patient-011'])
+    }
+  })
+
+  it('reads `patient=a,b,c` as the OR a cohort read needs', () => {
+    const parsed = parseSearch(new URLSearchParams('patient=patient-001,Patient/patient-002, patient-003 '))
+    expect(parsed.ok && parsed.query.patientIds).toEqual(['patient-001', 'patient-002', 'patient-003'])
+  })
+
+  it('refuses `patient=` with no value rather than reading it as the roster', () => {
+    for (const qs of ['patient=', 'patient=,,']) {
+      const parsed = parseSearch(new URLSearchParams(qs))
+      expect(parsed.ok).toBe(false)
+      expect(parsed.ok === false && parsed.status).toBe(400)
     }
   })
 
@@ -91,7 +117,7 @@ describe('the roster search', () => {
     const parsed = parseSearch(new URLSearchParams(), { type: 'Patient' })
     expect(parsed.ok).toBe(true)
     expect(parsed.ok && parsed.query.allPatients).toBe(true)
-    expect(parsed.ok && parsed.query.patientId).toBeUndefined()
+    expect(parsed.ok && parsed.query.patientIds).toBeUndefined()
   })
 
   it('REFUSES a scoped roster search rather than returning an empty Bundle', () => {
@@ -115,8 +141,8 @@ describe('the roster search', () => {
       { resourceType: 'Observation', id: 'o1', subject: { reference: 'Patient/patient-001' } },
     ]
     expect(applySearch(resources, 'Patient', { allPatients: true })).toHaveLength(2)
-    // ⚠️ A missing `patientId` must NOT read as "unscoped". A bug that dropped
-    // the id would otherwise turn a patient-scoped search into a whole-server
+    // ⚠️ A missing `patientIds` must NOT read as "unscoped". A bug that dropped
+    // the list would otherwise turn a patient-scoped search into a whole-server
     // one, and the Bundle would look perfectly normal.
     expect(applySearch(resources, 'Patient', {})).toHaveLength(0)
     expect(applySearch(resources, 'Observation', {})).toHaveLength(0)
@@ -160,7 +186,7 @@ describe('identifier search', () => {
 
   it('narrows to the one resource carrying that identifier', () => {
     const found = applySearch(held, 'EpisodeOfCare', {
-      patientId: 'patient-001',
+      patientIds: ['patient-001'],
       identifier: `${CLIENT_SYS}|episode-abc`,
     })
     expect(found.map(r => r.id)).toEqual(['srv-7'])
@@ -170,7 +196,7 @@ describe('identifier search', () => {
     // The failure a lenient server makes: ignoring the parameter and answering
     // with the whole set, which reads as "found it" to a caller taking [0].
     const found = applySearch(held, 'EpisodeOfCare', {
-      patientId: 'patient-001',
+      patientIds: ['patient-001'],
       identifier: `${CLIENT_SYS}|episode-never-written`,
     })
     expect(found).toEqual([])

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { STAGES, stageTitleById } from '@spier/core/data/catalog'
-import { resetLocalDemoData } from '@spier/app-shell/lib/dataSource/localDataSource'
 import { type DerivedRegistryRow, type RegistryRiskLevel } from '@spier/core/lib/registry'
 import { RISK_LABEL, CENSUS_ORDER } from '../lib/populationSummary'
 import { AGE_BANDS, bandOf, ageOf } from '../lib/populationFilters'
@@ -19,7 +18,8 @@ import {
 import { CaseloadTable, HeaderFilter } from '../components/CaseloadTable'
 import { COLUMNS } from '../components/caseloadColumns'
 import { PageHeader } from '@spier/ui/PageHeader'
-import { PopulationAlertsPanel } from '../components/PopulationAlertsPanel'
+import { CaseloadAlertsLine } from '../components/CaseloadAlertsLine'
+import { CohortScopeNotice } from '../components/CohortScopeNotice'
 import { PopulationSummary } from '../components/PopulationSummary'
 import '../css/PopulationView.css'
 import { cx } from '@spier/ui/cx'
@@ -43,7 +43,6 @@ export function PopulationView() {
   const wrapperRef = useRef<HTMLElement>(null)
   const tableRef = useRef<HTMLTableElement>(null)
   const [tableOverflows, setTableOverflows] = useState(false)
-  const [confirmingReset, setConfirmingReset] = useState(false)
 
   // Caseload-wide derivation — rows, risk counts, tiles, census, alerts —
   // shared verbatim with the embeddable summary widget on /population/summary.
@@ -164,17 +163,6 @@ export function PopulationView() {
     setAgeFilter('all')
   }
 
-  /**
-   * Clear the stored slices, then reload. The reload is the point: every context,
-   * memo and derived registry row in the app is built from slice data, so
-   * re-rendering in place would leave some of it stale. See
-   * `resetLocalDemoData()`.
-   */
-  const handleResetDemo = () => {
-    resetLocalDemoData()
-    window.location.reload()
-  }
-
   const toggleSort = (col: SortCol) => {
     setSort(prev =>
       prev.col === col
@@ -218,6 +206,19 @@ export function PopulationView() {
 
   const FILTER_LABEL: Record<FilterKey, string> = { stage: 'Stage', risk: 'Risk', age: 'Age' }
 
+  // ⚠️ A session that cannot serve a cohort renders NO cohort screen — see
+  // `CohortScopeNotice`. Rendering the tiles, the alerts and the table over
+  // zero patients is what produced a page of zeros captioned "that is a real
+  // result" on a chart launch (audit §8.7).
+  if (scope !== 'registry') {
+    return (
+      <div className="population-view">
+        <PageHeader eyebrow="SPiER" title="Caseload" lede="Who on your panel is owed an action." />
+        <CohortScopeNotice scope={scope} />
+      </div>
+    )
+  }
+
   return (
     <div className="population-view">
       {/* ⚠️ Titled "Caseload", not "Population View" — the retired lens name.
@@ -225,40 +226,20 @@ export function PopulationView() {
           /population/measures are its two screens, and naming this one after the
           product would leave the reader wondering which of the two they were on.
           Eyebrow names the project rather than a lens: this is a single page, so
-          its parent is SPiER itself — same as the front door. See PageHeader. */}
-      <PageHeader
-        eyebrow="SPiER"
-        title="Caseload"
-        lede="Caseload of patients on the suicide-safer care pathway. Recommendations show the next best step regardless of which tools your implementation has enabled — what matters here is the patient's status and risk, not the specific instrument."
-      />
-
-      {/* ⚠️ Under SMART the seam is bound to ONE patient, so the caseload is that
-          patient and nothing else. Saying so is the point: this page previously
-          rendered the bundled 14-patient registry during a live SMART session,
-          which reads as a server-side worklist. A genuine one needs a
-          user-scoped launch and a cohort read — blocker 2 in
-          embedded-panel-smart-launch.md §6.3, deliberately not invented here. */}
-      {scope === 'in-context' && (
-        <Notice tone="warning">
-          <strong>Showing the patient in context only.</strong> A SMART access token is
-          bound to one patient, so this connection cannot serve a caseload. A
-          registry read needs a user-scoped launch and a cohort query, which this
-          server does not offer yet — so nothing here is a cross-patient claim.
-        </Notice>
-      )}
+          its parent is SPiER itself — same as the front door. See PageHeader.
+          ⚠️ The lede STOPS EXPLAINING (audit §4.8). It used to spend 37 words on
+          what a recommendation is and on tool enablement — a fact about the
+          deployment, addressed to whoever configured it, above a worklist. */}
+      <PageHeader eyebrow="SPiER" title="Caseload" lede="Who on your panel is owed an action." />
 
       {isLoading && entries.length === 0 && (
         <Notice tone="info">Reading the caseload from the connected server…</Notice>
       )}
 
-      {/* Side by side on wide screens. Stacked, these two zones cost ~640px of
-          vertical space before the caseload table starts — which buries the
-          worklist the page exists for. Two columns make the cost the taller of
-          the pair instead of their sum. */}
-      <div className="population-zones">
-        <PopulationSummary tiles={tiles} census={census} total={rows.length} />
-        <PopulationAlertsPanel groups={alertGroups} />
-      </div>
+      {/* One line, and it is above the table because an urgent alert is the one
+          thing that outranks the worklist order. The panel it replaces cost
+          ~350px here; the page it opens costs nothing until someone wants it. */}
+      <CaseloadAlertsLine groups={alertGroups} />
 
       <div className="population-table-head">
         {/* Toggle buttons, not role="tab": there is no tabpanel here — the same
@@ -324,60 +305,37 @@ export function PopulationView() {
         tableRef={tableRef}
       />
 
+      {/* BELOW the table (audit §4.8). Two zones stacked above it put the first
+          patient row at 1,104px on a laptop; the summary is a management
+          artifact and the table is the triage one, and only one of them can be
+          first. */}
+      <PopulationSummary tiles={tiles} census={census} total={rows.length} />
+
       <p className="population-footnote">
-        Mock registry data &mdash; {rows.length} patients sampled across the pathway stages and
-        risk levels. Click any row to view that patient's chart. Opening a patient here also
-        broadcasts a <strong>FHIRcast</strong> patient-open event: a chart open in another tab
-        follows along, the way context-synced apps do in production.
+        {/* ⚠️ This said "Mock registry data — 14 patients sampled across the
+            pathway stages and risk levels", and then explained FHIRcast: "a
+            chart open in another tab follows along, the way context-synced
+            apps do in production" (audit §1.9, §8.5). Both are the demo
+            presenter's copy, and the presenter's copy is the mock EHR's own
+            pages — the same call PR 5 made about the scenario walkthrough. */}
+        Opening a patient here opens their chart, and any chart already open beside it
+        follows.
       </p>
 
-      {/*
-        The deliberate way back to the curated scenarios (#301). Refreshed
-        fixtures reach an untouched patient on their own, but a patient you have
-        written to is yours and is never overwritten — and a slice seeded before
-        that mechanism existed cannot be told apart from one you edited. This is
-        the escape hatch for both, and it lives here because this is where the
-        page already says the data is a demo.
-
-        Two-click rather than a `window.confirm`: it discards anything entered in
-        the demo, the app uses no browser dialogs anywhere else, and the second
-        label states the consequence instead of asking "are you sure?".
-      */}
-      {/* ⚠️ Local-demo affordance only, so it is gated on the scope. This is the
-          one remaining `localDataSource` import on this page, and it is an ACTION
-          on demo storage rather than a data read — the read is what coupled this
-          lens to a concrete source (#390). Offering "reset the demo data" while
-          the rows came from a connected server would claim to do something it
-          cannot. */}
-      <p className="population-footnote">
-        {scope !== 'registry' ? (
-          <span className="population-reset-unavailable">
-            Resetting demo data applies to the local scenarios only — not to a connected
-            server.
-          </span>
-        ) : confirmingReset ? (
-          <>
-            <button type="button" className="population-reset-demo" onClick={handleResetDemo}>
-              Confirm reset &mdash; discards anything you entered
-            </button>{' '}
-            <button
-              type="button"
-              className="population-clear-filters"
-              onClick={() => setConfirmingReset(false)}
-            >
-              Cancel
-            </button>
-          </>
-        ) : (
-          <button
-            type="button"
-            className="population-clear-filters"
-            onClick={() => setConfirmingReset(true)}
-          >
-            Reset demo data to the shipped scenarios
-          </button>
-        )}
-      </p>
+      {/* ⚠️ **"Reset demo data to the shipped scenarios" was HERE and is gone,
+          because it could not do anything from this page any more** (audit
+          §8.6). It called `resetLocalDemoData()`, which clears the browser's
+          copy of the bundled scenarios — and it was gated on
+          `scope !== 'registry'`, written when `registry` meant "the local
+          store". Since #401 a worklist launch reports `registry` too, so the
+          button rendered during a live session against a server it cannot
+          touch, reloaded the page, and changed nothing a reader could see. The
+          clinical build compiles the demo population away, so there is no
+          session left in which it would have had anything to reset. The
+          control that actually resets this demo is **Reset written data** on
+          the demo EHR's own Settings page, beside the nightly job that does
+          the same thing (PR 2); `resetLocalDemoData` itself stays in
+          `packages/app-shell` with its tests. */}
     </div>
   )
 }

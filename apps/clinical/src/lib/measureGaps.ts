@@ -7,7 +7,18 @@
  * but rendered without explanation it reads as broken software. This module
  * supplies the missing sentence.
  *
- * Two rules the copy here has to keep:
+ * ⚠️ **Three rules, and the third arrived with PR 7.** The reader of this
+ * sentence is a quality lead, not an implementer: every entry below said which
+ * FHIR resource type or profile the registry lacks and ended with a GitHub
+ * issue number (clinical-app audit §1.9, §8.5). Four of them also asserted
+ * things about the demo data that had stopped being true — *"No scenario in
+ * the demo registry contains an EpisodeOfCare on the SPiER episode profile"*,
+ * on a page whose next table scored eight patients in exactly that cohort —
+ * and nobody saw it, because these strings only render for a measure that
+ * never computes. They say what is missing from the CHARTS now, which is the
+ * thing a quality lead can do something about.
+ *
+ * Two older rules the copy here has to keep:
  *
  *  1. NO FABRICATED NUMBERS. The explanation says what the denominator counts
  *     and which artifact the registry does not contain. It never invents a
@@ -46,10 +57,8 @@ export type Emptiness =
 export interface MeasureGap {
   /** What the denominator counts, in plain language. */
   denominator: string
-  /** Which artifact the demo registry does not contain, and why that empties it. */
+  /** What is not on any chart here, and why that empties the denominator. */
   missing: string
-  /** Issues that would populate it. Rendered as links to the SPiER repo. */
-  issues: number[]
 }
 
 /**
@@ -61,50 +70,42 @@ export const MEASURE_GAPS: Record<string, MeasureGap> = {
   SPiERScreenToAssessment: {
     denominator: 'patients with a positive suicide-risk screen',
     missing:
-      'The registry does seed screen-stage risk-concept Observations, but they carry no interpretation and score into instrument-specific value sets (the ASQ screening-result CodeSystem, for one) rather than the shared risk-tier ValueSet. A positive screen therefore cannot be told apart from a negative one, and counting them anyway would put negatives into a positive-screen denominator.',
-    issues: [77],
+      'Screening results are recorded here in each instrument’s own words rather than as a shared positive-or-negative answer, so a positive screen cannot be told apart from a negative one. Counting them anyway would put negative screens into a positive-screen denominator.',
   },
   SPiERRiskStatusDocumented: {
     denominator: 'patients in an open suicide-safer care episode',
     missing:
-      'No scenario in the demo registry contains an EpisodeOfCare on the SPiER episode profile, so no patient enters the cohort.',
-    issues: [209],
+      'No chart on this caseload has a suicide-safer care episode open, so nobody enters the cohort.',
   },
   SPiERSafetyPlanBeforeDischarge: {
     denominator: 'patients with a documented care transition',
     missing:
-      'A transition is evidenced by a safety-handoff Communication or a handoff-packet DocumentReference. The registry seeds neither, so the safety plans it does seed have no transition to be measured against.',
-    issues: [209],
+      'A transition is a handoff sent or a discharge packet recorded, and no chart here has either — so the safety plans that do exist have no transition to be measured against.',
   },
   SPiERLethalMeansCounselingCompleted: {
     denominator: 'patients in an open suicide-safer care episode',
     missing:
-      'No patient in the registry is in an EpisodeOfCare on the SPiER episode profile, so the cohort is empty. TL-008 does record the lethal-means counseling Procedure this measure counts — the numerator has somewhere to come from as soon as a patient enters the cohort.',
-    issues: [209],
+      'No chart on this caseload has a suicide-safer care episode open, so the cohort is empty. The means-safety recorder does write what this measure counts, so the numerator has somewhere to come from as soon as a patient enters it.',
   },
   SPiERReferralCompletion: {
     denominator: 'patients with a suicide-safety referral',
     missing:
-      'TL-017 records referrals as ServiceRequest, but no scenario in the registry contains one — so there is no referral loop to track through to completion.',
-    issues: [209],
+      'No chart on this caseload records a referral, so there is no loop to track through to completion.',
   },
   SPiERFollowUpTimeliness: {
     denominator: 'patients with a documented care transition',
     missing:
-      'Timeliness is measured forward from a transition — a safety-handoff Communication or a handoff packet — and the registry seeds none, so there is no index date for the 48-hour, 7-day, and 30-day windows to run from.',
-    issues: [209],
+      'Timeliness is measured forward from a transition — a handoff sent or a discharge packet recorded — and no chart here has one, so the 48-hour, 7-day and 30-day windows have no day to start from.',
   },
   SPiERReassessmentOnTime: {
     denominator: 'patients with at least two risk assessments in the period',
     missing:
-      'A reassessment interval needs two dated SPiERSuicideRiskConcept Observations inside the measurement period; a patient assessed once has no gap to be late on. Narrow periods therefore empty this measure legitimately — widen the window before reading anything into a blank score.',
-    issues: [279],
+      'Being late needs two dated assessments inside the period; a patient assessed once has no gap to be late on. A narrow period empties this measure legitimately — widen the window before reading anything into a blank score.',
   },
   SPiERCaringContactAdherence: {
     denominator: 'patients with a documented care transition',
     missing:
-      'The 30-day clock starts at a documented care transition — a safety-handoff Communication or a handoff packet — and no patient in the registry has one, so there is no index date for the window to run from. The opt-out exclusion is reachable: the TL-010 recorder writes the caring-contact-opt-out extension.',
-    issues: [209],
+      'The 30-day clock starts at a documented care transition — a handoff sent or a discharge packet recorded — and no chart here has one, so the window has no day to start from. A patient who opted out is excluded, and the caring-contact recorder writes that.',
   },
 }
 
@@ -116,8 +117,7 @@ export const MEASURE_GAPS: Record<string, MeasureGap> = {
 const GENERIC_GAP: MeasureGap = {
   denominator: "this measure's cohort",
   missing:
-    'No patient in the demo registry meets the cohort criteria, so there is nothing to score. The definition is live and will compute as soon as conforming artifacts exist.',
-  issues: [209],
+    'No patient on this caseload meets the criteria, so there is nothing to score. The measure is live and will compute as soon as one does.',
 }
 
 export function gapFor(measureId: string): MeasureGap {

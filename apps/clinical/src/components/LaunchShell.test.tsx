@@ -19,11 +19,11 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 
 vi.mock('../lib/surface', () => ({ SURFACE: 'clinical', IS_DEMO: false }))
 
-const smart = { isSmartSession: false }
+const smart = { isSmartSession: false, isSmartConnected: false, activePatientId: null as string | null }
 vi.mock('@spier/tool-views/context/PatientContext', () => ({
   usePatient: () => ({
-    activePatientId: null,
-    isSmartConnected: false,
+    activePatientId: smart.activePatientId,
+    isSmartConnected: smart.isSmartConnected,
     isSmartSession: smart.isSmartSession,
     riskAlerts: [],
     populationPatients: [],
@@ -38,6 +38,8 @@ const { LaunchShell } = await import('./LaunchShell')
 afterEach(() => {
   cleanup()
   smart.isSmartSession = false
+  smart.isSmartConnected = false
+  smart.activePatientId = null
 })
 
 const renderShell = (path = '/population/caseload') =>
@@ -79,9 +81,24 @@ describe('what the clinical chrome does NOT carry', () => {
 })
 
 describe('what it does carry', () => {
-  it('keeps the four clinical destinations', () => {
+  it('keeps the four clinical destinations when there is a patient', () => {
+    smart.activePatientId = 'patient-003'
     renderShell()
     for (const label of ['Patient record', 'Caseload', 'Measures', 'Settings']) {
+      expect(screen.getByRole('link', { name: label }), label).toBeTruthy()
+    }
+  })
+
+  /**
+   * ⚠️ A worklist launch is CONNECTED and has no patient, and *Patient record*
+   * was an error page with a launch button under it — for nobody, against a
+   * session the server refuses every write from (clinical-app audit §8.6).
+   */
+  it('drops Patient record on a launch that has no patient, and keeps the other three', () => {
+    smart.isSmartSession = true
+    renderShell()
+    expect(screen.queryByRole('link', { name: 'Patient record' })).toBeNull()
+    for (const label of ['Caseload', 'Measures', 'Settings']) {
       expect(screen.getByRole('link', { name: label }), label).toBeTruthy()
     }
   })
@@ -95,9 +112,17 @@ describe('what it does carry', () => {
     // `/` redirects to /patient/record on this surface, so linking it would work
     // — but it is a redirect, and the guide's `/` is an Overview that does not
     // exist here.
+    smart.activePatientId = 'patient-003'
     renderShell()
     const brand = screen.getAllByRole('link').find(a => a.className.includes('app-shell__brand'))
     expect(brand?.getAttribute('href')).toBe('/patient/record')
+  })
+
+  it('points the brand at the caseload when the session has no patient', () => {
+    smart.isSmartSession = true
+    renderShell()
+    const brand = screen.getAllByRole('link').find(a => a.className.includes('app-shell__brand'))
+    expect(brand?.getAttribute('href')).toBe('/population/caseload')
   })
 })
 

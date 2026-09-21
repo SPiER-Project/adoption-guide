@@ -294,6 +294,44 @@ describe('the bearer check on /fhir', () => {
     expect(own.status).toBe(200)
   })
 
+  it('403s a chart token whose OR list reaches past its own patient', async () => {
+    // ⚠️ **The scope check reads EVERY id in the list, not the first.** A
+    // cohort read asks `patient=a,b,c` (core FHIR OR — clinical-app audit
+    // §8.8), so a guard that checked one of them would make the comma a way
+    // around the patient scoping: the token's own patient first, anybody else
+    // after it.
+    const { accessToken } = await launchFor(BASE, { patient: 'patient-011' })
+    const headers = { authorization: `Bearer ${accessToken}` }
+    const sneaked = await app.request(
+      `${BASE}/fhir/Observation?patient=patient-011,patient-001`,
+      { headers },
+    )
+    expect(sneaked.status).toBe(403)
+    // …and its own patient, listed alone, still works.
+    const own = await app.request(`${BASE}/fhir/Observation?patient=patient-011`, { headers })
+    expect(own.status).toBe(200)
+  })
+
+  it('serves an OR list to a worklist token, which may cross patients', async () => {
+    const { accessToken } = await launchFor(BASE, {
+      launch: await mintLaunch({ userScoped: true }, {}),
+      scope: 'launch user/*.read',
+    })
+    const headers = { authorization: `Bearer ${accessToken}` }
+    const res = await app.request(
+      `${BASE}/fhir/QuestionnaireResponse?patient=patient-001,patient-011`,
+      { headers },
+    )
+    expect(res.status).toBe(200)
+    const bundle = (await res.json()) as { entry?: Array<{ resource: { subject?: { reference?: string } } }> }
+    const subjects = new Set((bundle.entry ?? []).map(e => e.resource.subject?.reference))
+    // Both patients, and the OR is what makes it one request instead of two.
+    expect(subjects.has('Patient/patient-001')).toBe(true)
+    expect(subjects.has('Patient/patient-011')).toBe(true)
+    // Nobody else: an OR widens what may be ASKED for, never what is returned.
+    expect([...subjects].every(s => s === 'Patient/patient-001' || s === 'Patient/patient-011')).toBe(true)
+  })
+
   it('a patient-context-free CLINICAL search is refused by the SEARCH layer, not by scope', async () => {
     // Worth pinning, because the obvious guess is wrong and it changed what #404
     // had to build. `parseSearch` requires `patient` for every clinical type, so

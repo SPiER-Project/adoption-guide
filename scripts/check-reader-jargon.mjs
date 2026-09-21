@@ -427,19 +427,23 @@ const PUBLISHED_INSTRUMENT_NAMES = []
 /**
  * Modules whose clinician copy is a LATER PR's, with the reason.
  *
- * ⚠️ **An exemption is a module nothing measures**, so each names the audit
- * section that owns it and stays here only until that PR lands. These two are
- * the caseload's alert provenance and the measure dashboard's empty-denominator
- * explanations — clinical-app audit §1.9's last three rows, scoped to PR 7 by
- * §6 and by decision §7.4, which puts the caseload and the measures behind
- * their own audit section rather than a copy edit.
+ * ⚠️ **EMPTY, and it got there by the exemptions being SPENT rather than
+ * forgotten.** It held two: `lib/measureGaps.ts` and `lib/populationAlerts.ts`,
+ * the measure dashboard's empty-denominator explanations and the caseload's
+ * alert provenance — clinical-app audit §1.9's last three rows, scoped to PR 7
+ * by decision §7.4 because the caseload was to be audited before it was
+ * edited. PR 7 audited it (§8.5) and rewrote both, so both came off. Only one
+ * of the two was what the exemption said it was: the alert provenance was the
+ * measure's criterion key, printed nineteen times; the measure explanations
+ * were ALSO out of date, four of them asserting things about the demo data
+ * that the same page disproved three lines below.
+ *
+ * ⚠️ Keeping the mechanism with nothing in it is deliberate. The next module
+ * that needs deferring should have to write down which PR owns it, and a check
+ * below fails an entry whose file no longer exists — so a stale one cannot sit
+ * here covering a path nobody rechecked.
  */
-const DEFERRED = {
-  'apps/clinical/src/lib/measureGaps.ts':
-    'the measure dashboard\u2019s empty-denominator explanations \u2014 audit \u00a71.10 and \u00a71.11, PR 7',
-  'apps/clinical/src/lib/populationAlerts.ts':
-    'the caseload\u2019s alert labels and provenance \u2014 audit \u00a71.9 (Alerts) and \u00a71.11, PR 7',
-}
+const DEFERRED = {}
 
 /**
  * Object properties holding a resource type, a code or a reference.

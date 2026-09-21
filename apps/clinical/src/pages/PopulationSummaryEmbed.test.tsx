@@ -110,7 +110,7 @@ describe('PopulationSummaryEmbed', () => {
       patient: null,
     } as never)
     await waitFor(() =>
-      expect(screen.getByText(/Showing the patient in context only/)).toBeTruthy(),
+      expect(screen.getByText(/This session is one patient/)).toBeTruthy(),
     )
     // `queryAllByText`, not `queryByText`: a bundled patient's name appears in
     // BOTH the alert group's heading and its "Open …'s chart" link, so the
@@ -133,18 +133,22 @@ describe('PopulationSummaryEmbed', () => {
     await waitFor(() =>
       expect(screen.queryAllByText(/Aisha Patel-Williams/).length).toBeGreaterThan(0),
     )
-    expect(screen.queryByText(/Showing the patient in context only/)).toBeNull()
+    expect(screen.queryByText(/This session is one patient/)).toBeNull()
   })
 
-  it('says so when the connection is bound to one patient', async () => {
-    // Under SMART the cohort is the launch patient and nothing else, so a census
-    // drawn from it is a census of one. The notice is the honesty, not the data.
+  it('renders NO summary at all when the connection is bound to one patient', async () => {
+    // ⚠️ The notice used to sit ABOVE the tiles and the tiles rendered anyway,
+    // so a chart launch framed a strip of zeros under a warning explaining why
+    // it could not compute them (clinical-app audit §8.7). A census of one is
+    // not a census, and a census of none is not a result.
     renderEmbed({
       client: { patient: { id: 'patient-011' } },
       patient: { id: 'patient-011', name: [{ family: 'Alvarez', given: ['Maria'] }] },
     } as never)
     await waitFor(() =>
-      expect(screen.getByText(/Showing the patient in context only/)).toBeTruthy(),
+      expect(screen.getByText(/This session is one patient/)).toBeTruthy(),
     )
+    expect(screen.queryByLabelText('Caseload summary')).toBeNull()
+    expect(screen.queryByLabelText('Alerts')).toBeNull()
   })
 })

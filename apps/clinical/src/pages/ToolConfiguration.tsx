@@ -83,64 +83,48 @@ export function ToolConfiguration() {
         up="/patient/record"
         eyebrowStyle="pill"
         title="Tool Configuration"
-        lede="Which suicide-prevention tools this SPiER deployment offers. Sites differ in what they have in place; this is where that is set."
+        lede="Which suicide-prevention tools this site has in place."
       />
 
-      <header className="tool-config-header">
-        <p className="tool-config-intro">
-          This is a setting of <strong>the app</strong>, not of the EHR it connects to. An EHR
-          advertises which FHIR resources it will accept &mdash; that is its{' '}
-          <em>capability</em>, and the Demo EHR has its own switch for it. It never sees SPiER's tool
-          catalog and has no opinion on whether a site offers CAMS. Tools that aren't yet built in
-          SPiER are listed but cannot be toggled.
-        </p>
-        <p className="tool-config-meta">
-          <span className="tool-config-meta-count">
-            {enabledCount} of {launchableCount} buildable tools enabled
-          </span>
-          <span className="tool-config-meta-divider">&middot;</span>
-          <span className="tool-config-meta-preset">
-            Profile:{' '}
-            <strong>
-              {activePreset === 'custom'
-                ? 'Customized'
-                : PRESETS.find(p => p.id === activePreset)?.label ?? activePreset}
-            </strong>
-          </span>
-          <span className="tool-config-meta-divider">&middot;</span>
-          <span className="tool-config-meta-count">
-            {TOOLS.length} total in catalog ({TOOLS.length - launchableCount} not yet built)
-          </span>
-        </p>
-      </header>
-
-      {/* Two different true statements, because the rule really does differ by
-          chrome. See the ⚠️ on this file and lib/toolEnablement.ts — the panel
-          offering everything is a fix, not a bug, and a presenter who flips a
-          preset in a host chart and sees nothing change needs to be told why
-          here rather than to conclude the switch is broken. */}
+      {/* ⚠️ **One sentence, where there were three paragraphs** (audit §4.9,
+          §8.4). The page was 1,501 words: an intro explaining the difference
+          between this setting and the EHR's own capability, a three-count meta
+          line, a chrome-dependent effect note, four preset descriptions, eight
+          stage descriptions written to an EHR vendor and forty published tool
+          purposes each ending "Belongs to the … stage of the SPiER pathway".
+          Its reader sets a deployment up once; what they need is the picker,
+          the list and what flipping a switch does. */}
       <Card as="aside" padding="compact" tone="muted" accent className="tool-config-effect">
-        {inPanel ? (
-          <p className="tool-config-effect__body">
-            <strong>This setting does not apply inside a host chart.</strong> Here the host{' '}
-            <em>is</em> the site, and its own recommendation cards come from SPiER's hosted CDS
-            service, which cannot read this browser's storage. If the chart beside you honoured a
-            preset the host's cards did not, the two would disagree about the same patient &mdash;
-            so in a panel every catalogued tool is offered. Flip presets on the standalone app to
-            see them take effect.
-          </p>
-        ) : (
-          <p className="tool-config-effect__body">
-            <strong>Changes here take effect on the patient chart.</strong> Recommendation cards
-            only offer launch actions for enabled tools, so this page decides what the chart can
-            offer at each pathway stage &mdash; a narrower profile models a site with less tooling
-            in place, not a gap to close.{' '}
-            <Link to={patientBase} className="tool-config-effect__link">
-              Open the patient chart &rarr;
-            </Link>
-          </p>
-        )}
+        <p className="tool-config-effect__body">
+          {inPanel ? (
+            <>
+              <strong>Your EHR decides here, not this page.</strong> Inside a chart every tool
+              is offered, so that what you see matches the suggestions the chart makes beside
+              it.
+            </>
+          ) : (
+            <>
+              <strong>Turning a tool off hides it from the chart.</strong> A narrower list
+              models a site with less in place — it is not a gap to close.{' '}
+              <Link to={patientBase} className="tool-config-effect__link">
+                Open the patient chart &rarr;
+              </Link>
+            </>
+          )}
+        </p>
       </Card>
+
+      <p className="tool-config-meta">
+        <span className="tool-config-meta-count">
+          {enabledCount} of {launchableCount} on
+        </span>
+        <span className="tool-config-meta-divider">&middot;</span>
+        <span className="tool-config-meta-preset">
+          {activePreset === 'custom'
+            ? 'Customized'
+            : PRESETS.find(p => p.id === activePreset)?.label ?? activePreset}
+        </span>
+      </p>
 
       <section className="tool-config-presets">
         <h3 className="tool-config-section-title">Presets</h3>
@@ -177,10 +161,14 @@ export function ToolConfiguration() {
         <h3 className="tool-config-section-title">Tools by pathway stage</h3>
         {toolsByStage.map(({ stage, tools }) => (
           <Card key={stage.id} className="tool-config-stage">
-            <header className="tool-config-stage-header">
-              <h4 className="tool-config-stage-title">{stage.title}</h4>
-              <p className="tool-config-stage-desc">{stage.description}</p>
-            </header>
+            {/* ⚠️ The stage's DESCRIPTION is gone, not reworded. It is the
+                published definition and it is addressed to an EHR vendor —
+                "The EHR finds a suicide-risk signal and determines whether
+                more review is needed" (audit §1.9, §8.4). PR 5 replaced the
+                same string on the rail with a clinician sentence; on a
+                checklist the stage is a grouping and its title is the whole of
+                what a grouping needs. */}
+            <h4 className="tool-config-stage-title">{stage.title}</h4>
             <div className="tool-config-stage-list">
               {tools.map(tool => {
                 const launchable = tool.launchActions.length > 0
@@ -204,13 +192,18 @@ export function ToolConfiguration() {
                         Not built
                       </Pill>
                     )}
-                    <span className="tool-row-body">
-                      <span className="tool-row-name">
-                        {tool.shortName ?? tool.name}
-                        <span className="tool-row-id">{tool.id}</span>
-                        <InclusionBadge className="tool-row-status" status={tool.inclusionStatus} />
-                      </span>
-                      <span className="tool-row-purpose">{tool.purpose}</span>
+                    {/* ⚠️ The tool's `purpose` is gone too, and for the reason
+                        the stage description is: all forty are published
+                        strings ending in "Belongs to the … stage of the SPiER
+                        pathway", and forty of them were 800 of this page's
+                        1,501 words. `lib/toolCopy.ts` renders the clinical
+                        first sentence where a reader is CHOOSING an instrument
+                        — the stage page and *Why this?* — and this reader is
+                        ticking a list of instruments they already run. */}
+                    <span className="tool-row-name">
+                      {tool.shortName ?? tool.name}
+                      <span className="tool-row-id">{tool.id}</span>
+                      <InclusionBadge className="tool-row-status" status={tool.inclusionStatus} />
                     </span>
                   </label>
                 )

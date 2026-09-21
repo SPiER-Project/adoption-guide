@@ -31,23 +31,6 @@
   text-decoration: underline;
 }
 
-/*
- * The armed half of the two-click demo reset (#301). Same quiet text-button
- * shape as the control above it, in the warning colour rather than the info one:
- * the first click is navigation-like, the second discards data.
- */
-.population-reset-demo {
-  background: none;
-  border: 0;
-  padding: 0;
-  font: inherit;
-  font-size: var(--font-size-md);
-  color: var(--accent-warning-text);
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: underline;
-}
-
 /* `.filter-chip` lived here with no caller of its own: the caseload filters
    from its column headers (see `.caseload-filter-*` below), and the rules were
    kept because *Patient Documents* on the chart still rendered the chips. That
@@ -756,9 +739,39 @@
    Deliberately loud: the failure it replaces was this page silently rendering
    bundled demo rows during a live SMART session. */
 
-/* Stands in for the reset control when the active source is not the local demo
-   store, so the footnote does not simply vanish and leave the reader wondering. */
-.population-reset-unavailable {
+
+/* The alerts, as one line above the table.
+
+   ⚠️ The line above the table is the only place on this page allowed to grow
+   with the data, and it does not: the panel it replaced went from 13 alerts to
+   19 as the fixtures did, and its height went with them. This is a count, a
+   clause and a link. */
+.caseload-alerts-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4) 0;
+  font-size: var(--font-size-base);
+  color: var(--text-body);
+}
+
+.caseload-alerts-clear {
   color: var(--text-muted);
-  font-style: italic;
+}
+
+.caseload-alerts-link {
+  font-weight: 600;
+  color: var(--accent-info);
+}
+
+.caseload-alerts-link:hover {
+  text-decoration: underline;
+}
+
+/* The collapsed summary on a phone: the tiles that are over their goal, and
+   nothing else. Same grid as `.pop-tiles`, with no bottom margin because the
+   census bar that usually follows is behind the toggle. */
+.pop-tiles--breached-only {
+  margin-bottom: 0;
 }

@@ -8,9 +8,9 @@
  *
  * ─── Why a view is data ───
  *
- * The deck contains FOUR tables over the same rows: the general caseload, the
- * reassessment tracker (panel 5), the care-manager work queue (panel 7) and the
- * consultant queue (panel 6). Written as four components they would share a row
+ * The dashboard specifies FOUR tables over the same rows: the general caseload,
+ * the reassessment tracker, the care-manager work queue and the consultant
+ * queue. Written as four components they would share a row
  * shape and nothing else, and would drift the first time `DerivedRegistryRow`
  * gained a field. So a view is a list of column keys plus a default sort, and
  * adding one means adding an entry here — no new component, no new markup.
@@ -135,9 +135,10 @@ export interface CaseloadView {
  * The views the current data supports.
  *
  * Deliberately absent, with what each waits on:
- *  - **Care manager work queue** (panel 7) — Task codes rich enough to pivot by
- *    work type, plus the role model for the "whose queue" part.
- *  - **Consultant queue** (panel 6) — the phase-4 role model and approval gate.
+ *  - **Care manager work queue** — Task codes rich enough to pivot by work
+ *    type, plus the role model for the "whose queue" part.
+ *  - **Consultant queue** — the role model and the approval gate that go with
+ *    it; neither exists yet.
  */
 export const CASELOAD_VIEWS: CaseloadView[] = [
   {
@@ -158,7 +159,7 @@ export const CASELOAD_VIEWS: CaseloadView[] = [
     id: 'reassessment',
     label: 'Reassessment',
     description:
-      'Deck panel 5 — when each patient is next due, on the cadence their tier publishes. Most overdue first.',
+      'When each patient is next due, on the cadence published for their risk level. Most overdue first.',
     columns: ['patient', 'risk', 'lastAssessment', 'nextReassessment', 'reassessmentStatus'],
     defaultSort: { col: 'nextDue', dir: 'asc' },
   },

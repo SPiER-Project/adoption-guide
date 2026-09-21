@@ -60,7 +60,8 @@ import type { ReactElement } from 'react'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { render, cleanup } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { POPULATION_SCENARIOS } from '@spier/demo-population'
+import { POPULATION_PATIENTS, POPULATION_SCENARIOS } from '@spier/demo-population'
+import { LocalDataSource } from '@spier/app-shell/lib/dataSource/localDataSource'
 import { SurfaceLinksContext } from '@spier/tool-views/context/SurfaceLinksContext'
 import { CLINICAL_SURFACE_LINKS } from '../surfaceLinks'
 // ⚠️ The route table as TEXT, through Vite's `?raw`, rather than through
@@ -82,10 +83,40 @@ vi.mock('@spier/tool-views/context/PresentationContext', () => ({
   usePresentation: () => ({ chromeMode: 'panel', hostDrawsPatientBanner: true }),
 }))
 vi.mock('../context/ToolConfigContext', () => ({
-  useToolConfig: () => ({ isToolEnabled: () => true }),
+  useToolConfig: () => ({
+    isToolEnabled: () => true,
+    activePreset: 'guided-pathway',
+    setPreset: () => {},
+    toggleTool: () => {},
+  }),
 }))
+/**
+ * ⚠️ **The caseload's three pages read a COHORT, so the mock carries one.**
+ * They go through `useRegistrySlices`, which asks the source; a `LocalDataSource`
+ * seeded with the demo population answers it synchronously (`getSliceSync`), so
+ * the caseload renders its fourteen rows on the first paint and a word count
+ * taken here is a word count of the full page rather than of a loading state.
+ *
+ * ⚠️ `isSmartSession: false` for the same reason, and it is safe: none of the
+ * six patient pages reads it, and it is what puts the hook on the local branch
+ * instead of waiting a tick for `listCohort`.
+ */
+const DEMO_SOURCE = new LocalDataSource({
+  patients: POPULATION_PATIENTS,
+  scenarios: POPULATION_SCENARIOS,
+})
+/**
+ * ⚠️ **Hoisted, and it has to be.** `useRegistrySlices` keys its read effect on
+ * the cohort array's identity, so a mock returning a fresh `[...]` on every
+ * render loops: effect → setState → render → new array → effect. The real
+ * provider hands back a stable reference; a mock must too.
+ */
+const DEMO_COHORT = [...POPULATION_PATIENTS]
+
 vi.mock('@spier/tool-views/context/PatientContext', () => ({
   usePatient: () => ({
+    dataSource: DEMO_SOURCE,
+    populationPatients: DEMO_COHORT,
     patientDisplay: { fullName: 'Jane Doe', dob: '1990-01-15', age: '36', mrn: '12345', gender: 'Female' },
     responses: scenario.responses,
     carePlans: scenario.carePlans,
@@ -103,7 +134,7 @@ vi.mock('@spier/tool-views/context/PatientContext', () => ({
     tasks: scenario.tasks ?? [],
     activePatientId: 'patient-001',
     isSmartConnected: true,
-    isSmartSession: true,
+    isSmartSession: false,
     walkthrough: [],
     isSliceLoading: false,
     dataSourceError: null,
@@ -114,6 +145,18 @@ vi.mock('@spier/tool-views/context/PatientContext', () => ({
 // jsdom implements neither, and more than one page's hooks call them on mount.
 Element.prototype.scrollTo = () => {}
 window.scrollTo = () => {}
+// The caseload measures its own table to decide whether to offer the filters
+// above it as well as inside the headers. jsdom computes no layout, so the
+// observer never fires and the compact filters stay off — which is the state
+// this budget is taken in, and the wider of the two.
+class NoopResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+globalThis.ResizeObserver ??= NoopResizeObserver as unknown as typeof ResizeObserver
+// `useNarrowViewport` asks for a media query; jsdom has none, and its absence
+// is the "not narrow" default the hook documents.
 
 const { PatientChart } = await import('./PatientChart')
 const { PatientWhere } = await import('./PatientWhere')
@@ -121,6 +164,11 @@ const { PatientOnFile } = await import('./PatientOnFile')
 const { WhyThis } = await import('./WhyThis')
 const { PathwayProtocol } = await import('./PathwayProtocol')
 const { PathwayStage } = await import('./PathwayStage')
+const { PopulationView } = await import('./PopulationView')
+const { PopulationAlerts } = await import('./PopulationAlerts')
+const { PopulationSummaryEmbed } = await import('./PopulationSummaryEmbed')
+const { MeasureDashboard } = await import('./MeasureDashboard')
+const { ToolConfiguration } = await import('./ToolConfiguration')
 
 afterEach(cleanup)
 
@@ -194,6 +242,55 @@ const CAPS: Record<string, { cap: number; why: string }> = {
       'measurement rounded up — it stops the page growing PROSE while the artifact stays the artifact, ' +
       'and it is meant to be LOWERED by the PR that rewrites it, never raised.',
   },
+  '/population/caseload': {
+    cap: 1100,
+    why:
+      'The care manager’s screen. 1,001 words, and about 950 of them are the FOURTEEN ROWS — a ' +
+      'row is a name, an MRN, a stage, a risk word, its open work, its last activity and its ' +
+      'recommended next step with a rationale, which is roughly 65 words. So this cap is nearly ' +
+      'all data and it is the weaker of the two numbers this page is held to: `CHROME_CAP` below ' +
+      'is the one that expresses audit §1.11, because a worklist’s defect is what sits ABOVE the ' +
+      'first patient and not how many patients there are. Raise this one for a bigger caseload; ' +
+      'never raise it for a sentence.',
+  },
+  '/population/alerts': {
+    cap: 260,
+    why:
+      'Every alert on the caseload, on the page the count opens (§4.8). 19 alerts over 8 patients ' +
+      'on the demo caseload, each group a closed <details> costing its summary — which is the ' +
+      'patient’s name and their alert labels, and is the whole reason the drawer is the unit. The ' +
+      'cap is the chrome plus today’s worst day with room above it.',
+  },
+  '/population/summary': {
+    cap: 260,
+    why:
+      'The framed half of the caseload — tiles, census, alerts — with no table and no page header, ' +
+      'embedded by the demo EHR at the top of its front door in a 503px box on a phone (§8.8). ' +
+      '233 words, most of it the alert groups’ own summaries: eight patients, each with the ' +
+      'labels of what they are owed. It is not smaller because this is the ONE place the inline ' +
+      'alert list is still right — a host framing an activity has nowhere to send a reader — and ' +
+      'the audit did not ask for the host’s layout to change.',
+  },
+  '/population/measures': {
+    cap: 560,
+    why:
+      'The quality lead’s screen: eight measures, each a table plus an explanation when it has ' +
+      'nothing to score. 503 words on the fourteen-patient caseload (§8.3). Nearly all of it is ' +
+      'the measures’ own published titles and group names, so the cap allows a ninth measure ' +
+      'without allowing a page of prose about them. What it replaced: 937 words on a session with ' +
+      'no cohort at all, because eight empty denominators each explained themselves (§8.7) — that ' +
+      'page renders one line now.',
+  },
+  '/settings': {
+    cap: 420,
+    why:
+      'The operator’s page (§4.9). 1,501 words and 8,641px on a phone before this PR: an intro ' +
+      'about the difference between this setting and the EHR’s capability, eight stage ' +
+      'descriptions written to an EHR vendor, and forty published tool purposes each ending ' +
+      '“Belongs to the … stage of the SPiER pathway”. It is the preset picker, the checklist and ' +
+      'one sentence now. The cap is roughly today plus a fifth preset — the forty tool NAMES are ' +
+      'most of it, and a forty-first is a word, not a paragraph.',
+  },
   '/patient/pathway/:stageId': {
     cap: 150,
     why:
@@ -209,19 +306,6 @@ const CAPS: Record<string, { cap: number; why: string }> = {
  * nothing measures — keep this list at the length a reader can check by eye.
  */
 const NO_BUDGET: Record<string, string> = {
-  '/settings':
-    'The operator’s page — 1,520 words and 34 checkboxes (§1.10). Audit §4.9 moves it off the ' +
-    'panel’s navigation rather than shortening it, and that is PR 7; a cap now would either pass ' +
-    'at today’s length or fail on a page nobody is rewriting yet.',
-  '/population/caseload':
-    'The care manager’s screen, and the audit’s §1.11 says its problem is the ORDER rather than ' +
-    'the length — the first patient row at 936px under a seven-tile summary. PR 7 audits it first.',
-  '/population/measures':
-    'Eight tables under a patient-bound token (§1.10). PR 7, with the caseload it belongs to.',
-  '/population/summary':
-    'Not a page a clinician opens: the summary and alerts with no table and no header, framed by ' +
-    'the mock EHR at the top of its front door. Its length is the HOST’s layout problem, and ' +
-    '§1.12 — about 400 requests to draw six tiles — is what PR 7 owes it.',
   '/patient/assessments/*':
     'The 18 fillers: almost every word is the INSTRUMENT’s, and the C-SSRS is longer than the ASQ ' +
     'because it asks more. The guide’s `ToolPage.test.tsx` caps the part SPiER writes.',
@@ -233,6 +317,11 @@ const NO_BUDGET: Record<string, string> = {
 /** path → the component the route renders. */
 const PAGES: Record<string, () => ReactElement> = {
   '/patient/record': PatientChart,
+  '/population/caseload': PopulationView,
+  '/population/alerts': PopulationAlerts,
+  '/population/summary': PopulationSummaryEmbed,
+  '/population/measures': MeasureDashboard,
+  '/settings': ToolConfiguration,
   '/patient/why': WhyThis,
   '/patient/where': PatientWhere,
   '/patient/on-file': PatientOnFile,
@@ -260,6 +349,49 @@ function measure(path: string): number {
   )
   return arrivalWords(container)
 }
+
+/**
+ * The caseload's SECOND number: the words a care manager meets before the first
+ * patient.
+ *
+ * ⚠️ **A whole-page cap cannot express audit §1.11.** The caseload is 1,001
+ * words and 950 of them are the fourteen rows, so a page cap moves with the
+ * caseload's size and says nothing about the thing that was wrong: a seven-tile
+ * summary, a nineteen-alert panel and a 37-word lede between the reader and the
+ * worklist, with the first row at 1,104px on a laptop and 1,419px on a phone.
+ * This counts what is rendered ABOVE the table, which is the number §4.8 is
+ * about.
+ */
+const CHROME_CAP = 60
+
+describe('the caseload leads with the worklist', () => {
+  it(`renders at most ${CHROME_CAP} words above the first patient`, () => {
+    const { container } = render(
+      <MemoryRouter initialEntries={['/population/caseload']}>
+        <SurfaceLinksContext.Provider value={CLINICAL_SURFACE_LINKS}>
+          <PopulationView />
+        </SurfaceLinksContext.Provider>
+      </MemoryRouter>,
+    )
+    const page = container.querySelector('.population-view')
+    const table = container.querySelector('table')
+    expect(page, 'the caseload did not render').toBeTruthy()
+    expect(table, 'the caseload rendered no table — a cap over nothing').toBeTruthy()
+    expect(table!.querySelectorAll('tbody tr').length).toBeGreaterThan(10)
+
+    let above = 0
+    for (const child of [...page!.children]) {
+      if (child.contains(table)) break
+      above += arrivalWords(child)
+    }
+    expect(
+      above,
+      `${above} words sit above the first patient row, over the ${CHROME_CAP} this page allows.\n` +
+        '        Audit §4.8: the table first, the summary below it, the alerts as one line that\n' +
+        '        opens a page. Anything longer than a lede and a count belongs under the table.',
+    ).toBeLessThanOrEqual(CHROME_CAP)
+  })
+})
 
 describe('every clinical page has a budget', () => {
   it('covers every route in the app that renders a page', () => {

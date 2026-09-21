@@ -143,18 +143,25 @@ export function matchesIdentifier(identifiers: unknown, token: string): boolean 
 
 export interface SearchQuery {
   /**
-   * The patient id the search is scoped to, or `undefined` for the ONE
+   * The patients the search is scoped to, or `undefined` for the ONE
    * all-patients search this server implements — the roster (#401).
+   *
+   * ⚠️ **A LIST, because `patient=a,b,c` is core FHIR.** A comma separated list
+   * of values on a reference parameter means OR, and a worklist app reading a
+   * cohort needs it: one id per request is 196 requests to draw a caseload
+   * summary (clinical-app audit §8.8). Every entry is still a patient this
+   * token must be allowed to read — the route checks each one — so this widens
+   * what a scoped search can ASK FOR without widening what it may SEE.
    *
    * ⚠️ `undefined` is only reachable when the caller passed
    * `allowAllPatients`, which the route grants solely for `GET /fhir/Patient`
    * on a token that may cross patients. `applySearch` therefore also requires
    * `allPatients` to be set explicitly rather than inferring "unscoped" from a
-   * missing id: a bug that dropped `patientId` would otherwise turn a
+   * missing list: a bug that dropped `patientIds` would otherwise turn a
    * patient-scoped search into a whole-server one, and the Bundle would look
    * perfectly normal.
    */
-  patientId?: string
+  patientIds?: string[]
   /** Set only for the roster search, so a missing `patientId` cannot pass for it. */
   allPatients?: true
   /** `category` token, when present. */
@@ -243,11 +250,26 @@ export function parseSearch(
         + 'patients — every clinical type is patient-scoped.',
     }
   }
-  // Tolerate `patient=Patient/patient-011` as well as a bare id.
-  const patientId = raw.startsWith('Patient/') ? raw.slice('Patient/'.length) : raw
+  // Tolerate `patient=Patient/patient-011` as well as a bare id, and
+  // `patient=a,b,c` — the OR form — as well as one.
+  const patientIds = raw
+    .split(',')
+    .map(v => v.trim())
+    .map(v => (v.startsWith('Patient/') ? v.slice('Patient/'.length) : v))
+    .filter(Boolean)
+  if (patientIds.length === 0) {
+    // `patient=` or `patient=,,` is a parameter that was sent and says nothing.
+    // Refusing beats treating it as the roster search, which is the one thing
+    // this module will not do by accident.
+    return {
+      ok: false,
+      status: 400,
+      diagnostics: "Search parameter 'patient' was supplied with no value.",
+    }
+  }
   const category = params.get('category') ?? undefined
   const identifier = params.get('identifier') ?? undefined
-  return { ok: true, query: { patientId, category, identifier } }
+  return { ok: true, query: { patientIds, category, identifier } }
 }
 
 /** Apply a parsed search to the held resources of one type. */
@@ -266,8 +288,8 @@ export function applySearch(
     if (query.allPatients) {
       return query.category === undefined || matchesToken(r.category, query.category)
     }
-    if (query.patientId === undefined) return false
-    if (!belongsToPatient(r, query.patientId)) return false
+    if (query.patientIds === undefined) return false
+    if (!query.patientIds.some(id => belongsToPatient(r, id))) return false
     if (query.category !== undefined && !matchesToken(r.category, query.category)) return false
     return true
   })

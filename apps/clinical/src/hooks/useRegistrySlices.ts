@@ -41,10 +41,16 @@ export interface RegistryEntry {
 }
 
 export type RegistryScope =
-  /** The source can serve the whole demo registry (local / in-memory). */
+  /** The source served a cohort, and these are its patients. */
   | 'registry'
-  /** The source is bound to one patient, so only that patient is readable. */
+  /** A patient-bound session: one chart is readable and a cohort is not. */
   | 'in-context'
+  /**
+   * Nothing to read at all — no session, and no bundled population to stand in
+   * for one. The clinical build compiles the demo population away, so this is
+   * what its caseload URL is on a browser that was never launched.
+   */
+  | 'no-source'
 
 export interface RegistrySlices {
   entries: RegistryEntry[]
@@ -54,36 +60,27 @@ export interface RegistrySlices {
 }
 
 /**
- * Which patients the ACTIVE source can honestly answer for.
+ * ⚠️ **A cohort of one is not a cohort, and this hook stops trying to build
+ * one** (clinical-app audit §8.7).
  *
- * A SMART session is patient-bound, so the cohort is the patient in context and
- * nothing else. This is the one judgement the hook makes, and it is a
- * presentational honesty call rather than a new capability: the alternative on
- * the table was to keep reading local data during a SMART session, which states
- * something false about where the rows came from.
+ * It used to answer a patient-bound session by filtering the BUNDLED registry
+ * down to the launch patient. Two things were wrong with that, and only the
+ * second was visible from inside the hook's own tests, which pass
+ * `populationPatients` explicitly:
+ *
+ *  - `apps/clinical` mounts `PatientProvider` with **no** `populationPatients`,
+ *    because neither build carries the demo population. So the filter ran over
+ *    an empty list every time and produced nothing — while the page said
+ *    *"Showing the patient in context only"* and showed nobody.
+ *  - Even where it worked it was answering the wrong question. A caseload is a
+ *    cross-patient artifact; one row is a chart. The pages now say which
+ *    session they are in and offer the launch that can serve a caseload,
+ *    instead of rendering a census of one.
+ *
+ * So the two non-registry scopes both carry **no entries**, and the difference
+ * between them is what a reader is told: `in-context` is "this token is one
+ * chart", `no-source` is "there is no connection here at all".
  */
-/**
- * The cohort when the source cannot serve one: the patient in context, and only
- * that patient.
- *
- * ⚠️ Under SMART the identity comes from the SMART context, NOT the URL:
- * `activePatientId` is URL-derived and is null on the dashboard route, so
- * filtering on it yielded an empty cohort. The launch patient is `patient.id`.
- *
- * Against the mock EHR the ids line up, because it serves these same fixtures.
- * Against a foreign server they would not, and the cohort is then empty — which
- * the scope notice explains rather than the page silently showing local rows.
- * Rendering an arbitrary server patient here would need the display fields
- * `toRegistryPatient` now builds from a `Patient` resource, so this caveat is
- * closable — it is left standing because changing the chart-launch path is not
- * what #401 is about.
- */
-function inContextCohort(
-  all: RegistryPatient[],
-  inContextId: string | null,
-): { patients: RegistryPatient[]; scope: RegistryScope } {
-  return { patients: all.filter(p => p.id === inContextId), scope: 'in-context' }
-}
 
 /** Read every cohort patient's slice, synchronously where the source allows. */
 function readSync(source: FhirDataSource, patients: RegistryPatient[]): RegistryEntry[] | null {
@@ -95,12 +92,7 @@ function readSync(source: FhirDataSource, patients: RegistryPatient[]): Registry
 }
 
 export function useRegistrySlices(): RegistrySlices {
-  const { dataSource, isSmartConnected, isSmartSession, activePatientId, patient, populationPatients } =
-    usePatient()
-
-  // Under SMART the in-context patient is the launch patient (`patient.id`);
-  // locally it is whatever the URL names.
-  const inContextId = isSmartConnected ? (patient?.id ?? null) : activePatientId
+  const { dataSource, isSmartSession, populationPatients } = usePatient()
 
   // The source's answer to "who is on the panel", once it has given one. Until
   // then, and whenever it answers `null`, the in-context fallback applies — so
@@ -153,12 +145,16 @@ export function useRegistrySlices(): RegistrySlices {
     // then hand it fourteen bundled demo patients while a real server sat on the
     // other end of the connection, labelled `scope: 'registry'`. Exactly the
     // dishonesty blocker 1 (#390) closed, re-entering through the new door.
-    if (!isSmartSession) return { patients: populationPatients, scope: 'registry' as RegistryScope }
-    // Connected, and the source has not served a cohort: one patient, said out
+    if (!isSmartSession) {
+      return populationPatients.length > 0
+        ? { patients: populationPatients, scope: 'registry' as RegistryScope }
+        : { patients: [], scope: 'no-source' as RegistryScope }
+    }
+    // Connected, and the source has not served a cohort: one chart, said out
     // loud. This is a patient-bound chart launch, or a source with no
     // `listCohort` at all.
-    return inContextCohort(populationPatients, inContextId)
-  }, [servedCohort, isSmartSession, populationPatients, inContextId])
+    return { patients: [], scope: 'in-context' as RegistryScope }
+  }, [servedCohort, isSmartSession, populationPatients])
 
   // First paint uses the sync read when the source has one, so a local session
   // renders with no loading flash — the behaviour before step C.
@@ -180,18 +176,31 @@ export function useRegistrySlices(): RegistrySlices {
         return
       }
       setIsLoading(true)
-      // `getSlice` is per-patient, so a cohort read is N reads. That is honest
-      // about what the seam offers rather than pretending to a batch query.
-      void Promise.all(
-        patients.map(p =>
-          dataSource
-            .getSlice(p.id)
-            .then(slice => ({ patient: p, slice }))
-            // One unreadable patient must not blank the whole page: a
-            // patient-bound token 403s for anyone but its own subject.
-            .catch(() => ({ patient: p, slice: EMPTY_SLICE })),
-        ),
-      )
+      // ⚠️ **The cohort read asks for the cohort**, when the source can answer
+      // that way. `getSlice` is per patient and a chart slice is fourteen
+      // searches, so fourteen patients used to be 196 cross-origin requests —
+      // each preflighted — to draw the caseload's summary tiles (clinical-app
+      // audit §8.8). `getSlices` is optional on the seam, so the per-patient
+      // loop below stays as the answer for a source that does not offer it.
+      // A patient missing from the returned map is one the source could not
+      // read, which is an empty slice HERE rather than an absent row: the
+      // caseload's job is to list the panel, and dropping a row would hide a
+      // patient rather than show an empty one.
+      const cohortRead = dataSource.getSlices
+        ? dataSource
+            .getSlices(patients.map(p => p.id))
+            .then(slices => patients.map(p => ({ patient: p, slice: slices.get(p.id) ?? EMPTY_SLICE })))
+        : Promise.all(
+            patients.map(p =>
+              dataSource
+                .getSlice(p.id)
+                .then(slice => ({ patient: p, slice }))
+                // One unreadable patient must not blank the whole page: a
+                // patient-bound token 403s for anyone but its own subject.
+                .catch(() => ({ patient: p, slice: EMPTY_SLICE })),
+            ),
+          )
+      void cohortRead
         .then(next => {
           if (!live) return
           setEntries(next)

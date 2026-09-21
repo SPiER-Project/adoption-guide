@@ -68,7 +68,10 @@ export function LaunchShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const location = useLocation()
   useScrollToTopOnNavigate()
-  const { isSmartSession } = usePatient()
+  const { isSmartSession, isSmartConnected, activePatientId } = usePatient()
+  // A chart launch has a patient in context; a worklist launch does not, and
+  // locally the URL names one. See `Sidebar`'s `hasPatient`.
+  const hasPatient = isSmartSession ? isSmartConnected : activePatientId !== null
   const isPatientView =
     location.pathname.startsWith('/patient') || location.pathname.startsWith('/chart')
 
@@ -84,13 +87,17 @@ export function LaunchShell() {
           >
             <span className={cx('app-shell__hamburger', sidebarOpen && 'app-shell__hamburger--active')} />
           </button>
-          <Link to="/patient/record" className="app-shell__brand">
+          {/* The wordmark goes where the sidebar's first live destination
+              goes: on a worklist launch that is the caseload, because
+              /patient/record is the error page this shell just stopped
+              offering. */}
+          <Link to={hasPatient ? '/patient/record' : '/population/caseload'} className="app-shell__brand">
             <SpierLogo className="app-shell__brand-logo" />
           </Link>
         </div>
       </header>
 
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} hasPatient={hasPatient} />
 
       <main className="app-shell__content">
         {isPatientView && <PatientBanner />}

@@ -175,7 +175,7 @@ export function summaryTiles(input: SummaryInput): SummaryTile[] {
       label: 'Historical risk',
       goal: 'Monitor',
       waitingOn:
-        'a lifetime-history axis. SPiER’s risk tier has no “historical” level, and adding one as a fifth ordinal would make the scale non-monotonic — see the plan’s gap 3.',
+        'a way to record a past attempt separately from a current risk level. Folding “historical” into the same scale would make a past attempt rank above or below a current one, which is not what it is.',
     },
     {
       state: 'value',
@@ -213,14 +213,14 @@ export function summaryTiles(input: SummaryInput): SummaryTile[] {
       label: 'Safety plans needing update',
       goal: '0',
       waitingOn:
-        'a safety-plan review interval. The deck states reassessment intervals but never one for plan review.',
+        'how often a safety plan should be reviewed. Reassessment has a published interval; plan review does not have one yet.',
     },
     {
       state: 'blocked',
       id: 'consults-overdue',
       label: 'Psychiatric consultations overdue',
       goal: '0',
-      waitingOn: 'the care-team role model, which SPiER has no CareTeam or PractitionerRole for (phase 4).',
+      waitingOn: 'who is on each patient’s care team. Nothing here records that yet, so “overdue” has nobody to be overdue for.',
     },
   ]
 }
