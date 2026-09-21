@@ -270,6 +270,50 @@ which is where it always belonged.
 | `fhirNote` | `CodeDrawer`, gated | the implementer: what it writes, and why that shape |
 | `draftTitle` + `draft` | `CodeDrawer`, gated | unchanged |
 
+### The two beats around the form — settled 2026-09-21
+
+The prose rule above is about the form. The clinical-app audit (§1.8, §4.6)
+found the two moments either side of it saying the wrong thing, and both are
+now the frame's, once.
+
+⚠️ **Before a submit, the question is "is there a patient in CONTEXT", not "is
+there an id in the URL".** `WorkflowForm` keyed its hint on `activePatientId`,
+which is read off the route, so under a live launch — where the patient comes
+from the launch context and the route carries no id — every recorder opened by
+telling the clinician *"No patient selected — this will be recorded in the
+scratch chart"* while `SmartDataSource` was correctly writing to that patient's
+chart. There are three answers and the old code had two: a session with a
+patient says nothing, a session with NO patient (a worklist launch, which has a
+server and no chart) says the write has nowhere to land, and only the local
+no-patient case is a scratch chart.
+
+⚠️ **After a submit, there is ONE next action and it is the pathway's.** A
+filler offered its mapper's `suggestedAction` and *View in chart* side by side;
+a recorder offered *View in chart* and, on the risk episode, a second link. All
+of it is `NextStep` now — the risk summary, then `evaluatePathway`'s primary for
+the record as it stands, then *Back to chart*, which means the landing screen.
+The mapper's suggestion is not deleted and is not rendered: it rides on the
+`RiskAlert`, which is part of the record the evaluator reads, so it informs the
+one answer instead of standing beside it.
+
+Two things this cost, both worth knowing:
+
+- **`NextStep` takes a `pending` record, and it is not a nicety.** A save is
+  asynchronous and against a SMART server it is a round trip, while the beat
+  renders the instant the submit lands. Evaluating the context's buckets alone
+  answers from the chart as it was BEFORE the submit — so a clinician who has
+  just completed the screen is told, for as long as the write takes, to
+  complete the screen. Every recorder passes what it wrote
+  (`useRecorderNotice`'s `report(notice, ...resources)` → `justRecorded`),
+  including the eight whose output the protocol does not read today: which
+  resource kinds it reads is the EVALUATOR's business and has moved once
+  already.
+- **A plant passed, and the suite is larger because of it.** Rewiring the beat
+  to prefer `riskAlert.suggestedAction` — the exact defect this removes — left
+  every assertion green, because the fixture was an empty chart and an empty
+  chart carries no `RiskAlert` at all. A test for "A and not B" has to run where
+  A and B disagree; `WorkflowForm.test.tsx` now builds a record where they do.
+
 ### And it *is* gated — `check:fhir-render` RULE 3
 
 ⚠️ **A text scan cannot do this one**, and shipping one that looked like it
@@ -400,6 +444,8 @@ where a derived resource type would be rendered.
 | the inspection invariant | `packages/tool-views/src/context/InspectContext.ts` |
 | the gate, its allowlist and its blind spots | `scripts/check-fhir-render.mjs`, [`web-gates.md`](web-gates.md) |
 | the recorder frame every view shares | `packages/tool-views/src/components/WorkflowForm.tsx` |
+| the confirmation beat both fillers and recorders end on | `packages/tool-views/src/components/NextStep.tsx` |
+| a recorder's success sentence + what it wrote, as one state | `packages/tool-views/src/lib/useRecorderNotice.ts` |
 | tool → launch path | `packages/core/src/data/catalog/tool-ui-metadata.ts` |
 | tool → stage, Questionnaire, licensing | `ig/input/fsh/` (derived in `tools.ts`) |
 

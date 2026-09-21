@@ -10,6 +10,7 @@ import {
 } from '@spier/core/lib/handoffs'
 import { displayFor } from '@spier/core/lib/codedOption'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
+import { useRecorderNotice } from '../lib/useRecorderNotice'
 import { todayLocalIso, isoDay } from '../lib/dates'
 import { Button } from '@spier/ui/Button'
 
@@ -44,7 +45,7 @@ export function SharingConsentView() {
   const [date, setDate] = useState(todayLocalIso())
   const [expiry, setExpiry] = useState(oneYearOut())
   const [deniedActor, setDeniedActor] = useState('')
-  const [notice, setNotice] = useState<string | null>(null)
+  const { notice, written, report } = useRecorderNotice()
 
   const current = useMemo(() => currentSharingConsent(consents), [consents])
 
@@ -64,18 +65,17 @@ export function SharingConsentView() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    addArtifact(
-      buildSharingConsent({
-        id: `consent-${makeId()}`,
-        patientId: activePatientId,
-        dateTime: `${date}T12:00:00Z`,
-        decision,
-        recipient,
-        expiry: expiry || undefined,
-        deniedActor: deniedActor.trim() || undefined,
-      }),
-    )
-    setNotice('Information-sharing consent recorded.')
+    const consent = buildSharingConsent({
+      id: `consent-${makeId()}`,
+      patientId: activePatientId,
+      dateTime: `${date}T12:00:00Z`,
+      decision,
+      recipient,
+      expiry: expiry || undefined,
+      deniedActor: deniedActor.trim() || undefined,
+    })
+    addArtifact(consent)
+    report('Information-sharing consent recorded.', consent)
   }
 
   return (
@@ -102,6 +102,7 @@ export function SharingConsentView() {
       draft={draft}
       draftTitle="Live FHIR Consent"
       notice={notice}
+      justRecorded={written}
       recorded={
         <>
           {consents.length > 1 && (

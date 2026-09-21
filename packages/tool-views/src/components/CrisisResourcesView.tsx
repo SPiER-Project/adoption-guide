@@ -11,6 +11,7 @@ import {
 } from '@spier/core/lib/crisisResources'
 import { displayFor } from '@spier/core/lib/codedOption'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
+import { useRecorderNotice } from '../lib/useRecorderNotice'
 import { nowLocalIso, toIsoOrNow, isoDay } from '../lib/dates'
 import { Button } from '@spier/ui/Button'
 
@@ -48,7 +49,7 @@ export function CrisisResourcesView() {
   const [codes, setCodes] = useState<string[]>(DEFAULT_CRISIS_RESOURCES)
   const [localLine, setLocalLine] = useState('')
   const [note, setNote] = useState('')
-  const [notice, setNotice] = useState<string | null>(null)
+  const { notice, written, report } = useRecorderNotice()
 
   const needsLocalLine = codes.some(c => c === 'local-crisis-line' || c === 'warmline')
 
@@ -74,8 +75,12 @@ export function CrisisResourcesView() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (codes.length === 0) return
-    addArtifact(buildCrisisResourcesShared({ id: `crisis-resources-${makeId()}`, ...params }))
-    setNotice(`Recorded ${codes.length} crisis resource${codes.length === 1 ? '' : 's'} shared with the patient.`)
+    const shared = buildCrisisResourcesShared({ id: `crisis-resources-${makeId()}`, ...params })
+    addArtifact(shared)
+    report(
+      `Recorded ${codes.length} crisis resource${codes.length === 1 ? '' : 's'} shared with the patient.`,
+      shared,
+    )
     setNote('')
   }
 
@@ -104,6 +109,7 @@ export function CrisisResourcesView() {
       draft={draft}
       draftTitle="Live FHIR Communication (crisis resources shared)"
       notice={notice}
+      justRecorded={written}
       recorded={
         shares.length > 0 ? (
           <RecordedList title="Crisis resources shared on this chart">

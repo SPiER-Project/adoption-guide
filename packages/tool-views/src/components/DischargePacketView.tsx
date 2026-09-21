@@ -17,6 +17,7 @@ import { displayFor } from '@spier/core/lib/codedOption'
 import type { SharingDecision } from '@spier/core/lib/handoffs'
 import type { ConsentResource } from '@spier/core/types/fhir'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
+import { useRecorderNotice } from '../lib/useRecorderNotice'
 import { todayLocalIso, isoDay } from '../lib/dates'
 import { Button } from '@spier/ui/Button'
 
@@ -240,7 +241,7 @@ export function DischargePacketView() {
   const [contentCodes, setContentCodes] = useState<string[]>(DEFAULT_CONTENT)
   const [related, setRelated] = useState<string[]>([])
   const [note, setNote] = useState('')
-  const [notice, setNotice] = useState<string | null>(null)
+  const { notice, written, report } = useRecorderNotice()
   // `null` until the user types: the recipient defaults to whoever the patient
   // already named on their consent, which is where the packet is usually going.
   const [recipientInput, setRecipientInput] = useState<string | null>(null)
@@ -290,13 +291,15 @@ export function DischargePacketView() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    addArtifact(buildDischargePacket({ id: `packet-${makeId()}`, ...packetParams }))
-    setNotice(
+    const packet = buildDischargePacket({ id: `packet-${makeId()}`, ...packetParams })
+    addArtifact(packet)
+    report(
       decision.withheld.length > 0
         ? `Discharge safety packet recorded — ${decision.withheld.length} item${
             decision.withheld.length === 1 ? '' : 's'
           } withheld per the patient's sharing preference.`
         : 'Discharge safety packet recorded.',
+      packet,
     )
   }
 
@@ -328,6 +331,7 @@ export function DischargePacketView() {
       draft={draft}
       draftTitle="Live FHIR DocumentReference"
       notice={notice}
+      justRecorded={written}
       recorded={
         <>
           {documentReferences.length > 0 && (

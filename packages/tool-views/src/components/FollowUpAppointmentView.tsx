@@ -14,6 +14,7 @@ import { displayFor } from '@spier/core/lib/codedOption'
 import { deriveAppointmentTracking } from '@spier/core/lib/followUp'
 import type { AppointmentResource } from '@spier/core/types/fhir'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
+import { useRecorderNotice } from '../lib/useRecorderNotice'
 import { toIsoOrNow } from '../lib/dates'
 import { Button } from '@spier/ui/Button'
 
@@ -51,7 +52,7 @@ export function FollowUpAppointmentView() {
   const [description, setDescription] = useState('Post-discharge behavioral health follow-up')
   const [duration, setDuration] = useState('45')
   const [note, setNote] = useState('')
-  const [notice, setNotice] = useState<string | null>(null)
+  const { notice, written, report } = useRecorderNotice()
 
   const tracking = useMemo(() => deriveAppointmentTracking(appointments), [appointments])
 
@@ -76,25 +77,25 @@ export function FollowUpAppointmentView() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    addArtifact(
-      buildFollowUpAppointment({
-        id: `appointment-${makeId()}`,
-        patientId: activePatientId,
-        status: 'booked',
-        start: startIso,
-        durationMinutes: Number(duration) || undefined,
-        provider,
-        description,
-        note: note.trim() || undefined,
-      }),
-    )
-    setNotice('Follow-up appointment booked.')
+    const appointment = buildFollowUpAppointment({
+      id: `appointment-${makeId()}`,
+      patientId: activePatientId,
+      status: 'booked',
+      start: startIso,
+      durationMinutes: Number(duration) || undefined,
+      provider,
+      description,
+      note: note.trim() || undefined,
+    })
+    addArtifact(appointment)
+    report('Follow-up appointment booked.', appointment)
     setNote('')
   }
 
   function updateStatus(appointment: AppointmentResource, status: string) {
-    addArtifact(setAppointmentStatus(appointment, status))
-    setNotice(`Appointment marked ${displayFor(APPOINTMENT_STATUSES, status).toLowerCase()}.`)
+    const updated = setAppointmentStatus(appointment, status)
+    addArtifact(updated)
+    report(`Appointment marked ${displayFor(APPOINTMENT_STATUSES, status).toLowerCase()}.`, updated)
   }
 
   const sorted = useMemo(
@@ -127,6 +128,7 @@ export function FollowUpAppointmentView() {
       draft={draft}
       draftTitle="Live FHIR Appointment"
       notice={notice}
+      justRecorded={written}
       recorded={
         <>
           {sorted.length > 0 && (

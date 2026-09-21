@@ -6,9 +6,67 @@ caseload, the measures), the shared chrome in `packages/app-shell/`, the shared
 views in `packages/tool-views/`, and the mock EHR that launches them
 (`services/mock-ehr/`).
 
-**Status:** PRs 1 through 5 have shipped; PRs 6 and 7 have not started. §7 records
+**Status:** PRs 1 through 6 have shipped; PR 7 has not started. §7 records
 the decisions Brad made on 2026-09-21; the briefs to run PRs 5–7 each in a
 fresh session are in [`clinical-app-redesign-briefs.md`](clinical-app-redesign-briefs.md).
+
+**Status 2026-09-21 (PR 6):** the forms keep their frame and fix their beats —
+§1.8, §4.6 and rule 6.
+
+**The notice that was false.** `WorkflowForm` asked *"is there an id in the
+URL"* and reported the answer as *"no patient selected — this will be recorded
+in the scratch chart"*, which under a live launch is wrong twice: the launch
+patient IS in context, and `SmartDataSource` was already writing to their
+chart. It now asks which chart a submit lands in, and there are three answers,
+not two — a session with a patient says nothing, a session with NO patient (a
+worklist launch, which has a server and no chart) says the write has nowhere to
+land, and only the local no-patient case is a scratch chart. Verified live:
+Sarah Patel's chart framed by the mock EHR, the crisis-resources recorder open
+in the panel, no notice, and the host's own *"1 record was added to this chart"*
+line confirming the write landed on the server.
+
+**One next action, from the same evaluator the chart reads.** A filler's
+post-submit summary offered the mapper's `suggestedAction` and *View in chart*
+side by side; a recorder's notice offered *View in chart* and, on the risk
+episode, a second link. All of it is now one `NextStep` — the risk summary, then
+the first step of the published pathway this record has not satisfied, then
+*Back to chart*. The mapper's suggestion is not deleted and is not rendered: it
+rides on the `RiskAlert`, which is part of the record the evaluator reads. Two
+things fell out. The care-plan branch had NO beat at all — a Stanley-Brown
+submit rendered the plan and stopped — and now has the same one. And *Back to
+chart* means the LANDING SCREEN (`chartHref` → `/patient/record`), not *What's
+on file*: what a clinician wants after recording something is the next
+instruction with the pathway visibly advanced, not the row proving it saved.
+
+**The safety plan stops claiming nothing was sent.** `CarePlanDisplay` asserted
+*"Nothing about this patient has been sent anywhere or saved to any server"* on
+the screen that follows a submit which had just written the plan to a connected
+EHR. The claim is now per session, and it is about where a completed plan GOES
+rather than about whether one write landed — that is the data source's to
+report. A fourth implementer-facing thing in the same component went behind
+`useInspect()` with the other three: the concept id rendered beside each step as
+`LOINC: 96782-8`, which `check:jargon` cannot see because the code is a runtime
+value and the word beside it carries no digits.
+
+**Proved red.** Seven plants, each run and reverted, and two of them are the
+ORIGINAL defect restored verbatim rather than a synthetic one: the URL-keyed
+notice (§1.8) and the "nothing has been sent" sentence. ⚠️ **One plant passed
+and is why the suite is larger than it was** — rewiring the beat to prefer the
+mapper's hint, which is the exact defect §4.6 removes, left every assertion
+green, because the fixture was an empty chart and an empty chart carries no
+`RiskAlert` at all. A test for "A and not B" has to run where A and B disagree.
+
+**Deliberately not done.** *About this instrument* is unchanged — its closed
+drawer and the reason it is not a `Disclosure` are both already recorded
+(`InstrumentHeader.tsx`, `Disclosure.tsx`), and item 4 of the brief asked for
+them to be re-read rather than replaced. The renderer's combobox-per-item is
+still the renderer's decision. Two things this PR found and left: the risk
+summary's chips render LOINC displays verbatim, axis suffix and all
+(*"…in last 2 weeks [Reported.PHQ]"*), which is §1.9's class on data rather than
+on a literal and belongs to a copy pass over all eighteen mappers; and the PHQ-9
+mapper's `detail` still ends *"The pathway's next step is the C-SSRS Screener
+with Triage Points"*, one line above a beat that now says the same thing — it
+is also rendered by the caseload's alerts panel, which PR 7 owns.
 
 **Status 2026-09-21 (PR 5):** the rail and the record are pages a clinician
 opens on purpose, and nothing on the clinical surface names a resource type —
@@ -905,7 +963,7 @@ Each PR is mergeable on its own and leaves every gate green.
 | **3** | Shipped (#576) | The pathway evaluator in core (§4.5): one primary from the published pathway, satisfied steps retire, act-titled cards, product defaults stop recommending; the CDS service inherits. Grew four things the evaluator exposed: the CAMS mapper emits the coded overall risk its published crosswalk was waiting for, the demo's story for that chart stops naming the wrong number, the caseload's risk column reads the harmonized tier, and `unknown` stops rendering as `none` | §1.4, §1.5, rules 3–4 |
 | **4** | Shipped | The landing screen and *Why this?*: §4.1, §4.2, the narrow-panel strip, the two chromes converging on it. The rail keeps only the guidance cards; `PanelShell` loses its footnote links; the identity strip gains the patient's age | §1.6, §1.7, rule 5 |
 | **5** | Shipped | *Where this patient is* and *What's on file*: the rail and the record sections become pages; the stage definitions become clinician sentences in core; the walkthrough leaves the clinical build; the protocol page leads in plain words; the clinical jargon scan and the clinical word budgets, both proved red — and the first deny list excused the very row it was written beside | §1.9, §1.10, rules 1–2 |
-| **6** | — | Fillers and recorders: the scratch-chart notice, the confirmation beat, one next action | §1.8, rule 6 |
+| **6** | Shipped | Fillers and recorders: the scratch-chart notice keys on the patient in CONTEXT; the confirmation beat is one next action from the pathway evaluator plus one way back, on the fillers, the recorders and the care-plan branch that had none; the safety plan's demo caveat stops claiming nothing was sent. Grew two things it exposed: the concept id beside each safety-plan step, and a plant that passed on an empty chart | §1.8, §4.6, rule 6 |
 | **7** | — | The caseload and measures: an audit section first, by this method, then the worklist leads, settings leaves the panel's navigation, the framed summary's request count. ⚠️ Two of its findings landed early in PR 3 — the risk column and the `none`/`unknown` split — so its audit section starts from a page that already ranks on the tier | §1.10, §1.11, §1.12 |
 
 PR 3 before PR 4 on purpose: the landing screen renders the policy's primary

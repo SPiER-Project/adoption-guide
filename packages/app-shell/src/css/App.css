@@ -158,12 +158,6 @@
   color: var(--text-strong);
 }
 
-.submit-result-actions {
-  display: flex;
-  gap: var(--space-3);
-  align-items: center;
-}
-
 /* ===========================
    Formbox Button Overrides
    =========================== */

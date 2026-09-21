@@ -15,9 +15,22 @@
  * `WorkflowField`), any gate hints (`WorkflowHint`), the "on this chart" list
  * (`RecordedList`, passed as `recorded` so it sits BELOW the success notice —
  * the order every view had), and the FHIR draft. What the frame owns: the page header
- * (eyebrow, back link), the card-beside-drawer layout, the scratch-chart hint
- * when no patient is active, the success notice with its "View in chart"
- * link, and the code drawer showing the draft.
+ * (eyebrow, back link), the card-beside-drawer layout, the hint about which
+ * chart this will land in, the success notice with the confirmation beat
+ * inside it, and the code drawer showing the draft.
+ *
+ * ── The two beats, both settled by the clinical-app audit (2026-09-21) ──────
+ *
+ * ⚠️ **Before a submit, the hint says which chart this lands in — and it is
+ * "no patient in CONTEXT", not "no id in the URL".** §1.8: under a live launch
+ * every recorder opened by telling the clinician no patient was selected while
+ * the write was attaching correctly to the launch patient. See the branch below.
+ *
+ * ⚠️ **After a submit, there is ONE next action and it is the pathway's.**
+ * §4.6: the notice offered "View in chart" and, on one recorder, a second link
+ * beside it, and a filler offered its mapper's per-instrument suggestion next
+ * to that — three answers to "and now what". `NextStep` is the one answer,
+ * from the same `evaluatePathway` the chart's landing card renders.
  *
  * `check:template` treats a file that renders <WorkflowForm> as a recorder
  * view: it must not ALSO render <PageHeader> or the form layout classes,
@@ -40,16 +53,75 @@
  * moves to where the resource already is. `check:fhir-render` RULE 3 enforces
  * it by parsing this file's callers and reading their JSX text.
  */
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
 import { useSurfaceLinks } from '../context/SurfaceLinksContext'
 import { usePageHeaderOwner } from '../context/PageHeaderOwnerContext'
 import { CodeDrawer } from './CodeDrawer'
 import { FhirJsonViewer } from './FhirJsonViewer'
+import { NextStep } from './NextStep'
 import { PageHeader } from '@spier/ui/PageHeader'
 import { Notice } from '@spier/ui/Notice'
+import type { PathwayRecord } from '@spier/core/lib/pathwayEvaluation'
+import type {
+  CarePlanResource,
+  CommunicationResource,
+  EpisodeOfCareResource,
+  FhirResource,
+  ObservationResource,
+  ProcedureResource,
+  QuestionnaireResponseResource,
+} from '@spier/core/types/fhir'
 import '../css/WorkflowForm.css'
+
+/**
+ * What a recorder just wrote, as the record the pathway evaluator reads.
+ *
+ * Only the buckets `evaluatePathway` consults are routed — a ServiceRequest, a
+ * Consent or a Task changes nothing it asks, so folding them in would be
+ * ceremony. Every recorder passes what it wrote all the same: which resource
+ * kinds the protocol reads is the EVALUATOR's business and it has already
+ * changed once, and a recorder that opted out on today's answer is a recorder
+ * that silently shows the wrong next step the day the answer moves.
+ */
+function pendingRecord(written: FhirResource[]): PathwayRecord | undefined {
+  if (written.length === 0) return undefined
+  const record: PathwayRecord = {}
+  for (const resource of written) {
+    switch (resource.resourceType) {
+      case 'QuestionnaireResponse':
+        record.responses = [
+          ...(record.responses ?? []),
+          {
+            id: String(resource.id ?? ''),
+            questionnaireName: '',
+            completedAt: new Date().toISOString(),
+            resource: resource as QuestionnaireResponseResource,
+          },
+        ]
+        break
+      case 'Observation':
+        record.observations = [...(record.observations ?? []), resource as ObservationResource]
+        break
+      case 'CarePlan':
+        record.carePlans = [...(record.carePlans ?? []), resource as CarePlanResource]
+        break
+      case 'Communication':
+        record.communications = [...(record.communications ?? []), resource as CommunicationResource]
+        break
+      case 'Procedure':
+        record.procedures = [...(record.procedures ?? []), resource as ProcedureResource]
+        break
+      case 'EpisodeOfCare':
+        record.episodes = [...(record.episodes ?? []), resource as EpisodeOfCareResource]
+        break
+      default:
+        break
+    }
+  }
+  return record
+}
 
 export function WorkflowForm({
   title,
@@ -58,7 +130,7 @@ export function WorkflowForm({
   draft,
   draftTitle,
   notice,
-  noticeExtra,
+  justRecorded,
   recorded,
   children,
 }: {
@@ -81,15 +153,43 @@ export function WorkflowForm({
   draft: unknown
   /** The drawer's caption — "Live FHIR Communication". */
   draftTitle: string
-  /** Set after a successful submit; rendered with a "View in chart" link. */
+  /**
+   * Set after a successful submit; rendered above the confirmation beat — one
+   * next action and one way back (`NextStep`, clinical-app audit §4.6).
+   */
   notice?: ReactNode
-  /** A second link after "View in chart", for the one recorder that has somewhere else to go. */
-  noticeExtra?: ReactNode
+  /**
+   * The resources this recorder just wrote, so the beat's next action is
+   * computed from the chart INCLUDING them rather than from the chart as it
+   * was a round trip ago. See `pendingRecord` above for why every recorder
+   * passes this and not only the three whose output the protocol reads today.
+   */
+  justRecorded?: FhirResource[]
   /** What is already on the chart — a `RecordedList` or two — rendered after the notice. */
   recorded?: ReactNode
   children: ReactNode
 }) {
-  const { activePatientId } = usePatient()
+  // ⚠️ **"No patient in context", not "no id in the URL".** Under a SMART
+  // launch the chart is the launch patient's and `activePatientId` — which is
+  // read off the route — is null, so this frame opened every recorder with
+  // *"No patient selected — this will be recorded in the scratch chart"* while
+  // `SmartDataSource` was correctly resolving the launch patient and writing to
+  // their chart (clinical-app audit §1.8). The notice was false, not the data.
+  //
+  // The three cases, and only the first is a scratch chart:
+  //
+  //   no session, no id     the demo's "play with the forms" state — the write
+  //                         lands in the scratch chart, which is what this says
+  //   a session with a      the launch patient IS the patient in context; the
+  //   patient               write attaches to them and there is nothing to say
+  //   a session with NO     a worklist launch, which has a server and no chart:
+  //   patient               the write has nowhere to land and will fail, so the
+  //                         honest line is that one rather than the scratch one
+  const { activePatientId, isSmartSession, isSmartConnected } = usePatient()
+  const patientState = isSmartSession
+    ? (isSmartConnected ? 'in-context' : 'launch-without-patient')
+    : (activePatientId === null ? 'scratch' : 'in-context')
+  const pending = useMemo(() => pendingRecord(justRecorded ?? []), [justRecorded])
   // The chart, the caseload and this page's parent are the SURFACE's routes,
   // not this frame's: the clinical app has all three, the guide has only the
   // parent (Tools). See SurfaceLinksContext for the dead links this replaced.
@@ -108,7 +208,7 @@ export function WorkflowForm({
       <div className="form-wrapper">
         <div className="form-card">
           {!ownsHeader && <p className="workflow-form__lede">{lede}</p>}
-          {activePatientId === null && (
+          {patientState === 'scratch' && (
             <WorkflowHint>
               No patient selected — this will be recorded in the scratch chart.
               {links.registryHref && (
@@ -120,24 +220,23 @@ export function WorkflowForm({
               )}
             </WorkflowHint>
           )}
+          {patientState === 'launch-without-patient' && (
+            <WorkflowHint>
+              This session was opened without a patient, so there is no chart to record against.
+              Open a patient first.
+            </WorkflowHint>
+          )}
 
           {children}
 
+          {/* ⚠️ **One action, and it is the pathway's.** The notice used to
+              carry "View in chart" and, on one recorder, a second link beside
+              it; §4.6 makes the beat after a submit the same shape everywhere —
+              what was recorded, then one next step and one way back. */}
           {notice && (
             <WorkflowNotice>
               {notice}
-              {links.chartHref && (
-                <>
-                  {' '}
-                  <Link to={links.chartHref}>View in chart</Link>
-                </>
-              )}
-              {noticeExtra && (
-                <>
-                  {links.chartHref ? ' · ' : ' '}
-                  {noticeExtra}
-                </>
-              )}
+              <NextStep pending={pending} />
             </WorkflowNotice>
           )}
 

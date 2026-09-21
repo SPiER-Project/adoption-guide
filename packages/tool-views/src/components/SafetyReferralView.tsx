@@ -12,6 +12,7 @@ import {
 import { displayFor } from '@spier/core/lib/codedOption'
 import type { ServiceRequestResource } from '@spier/core/types/fhir'
 import { WorkflowForm, WorkflowField, RecordedList } from './WorkflowForm'
+import { useRecorderNotice } from '../lib/useRecorderNotice'
 import { isoDay } from '../lib/dates'
 import { Button } from '@spier/ui/Button'
 
@@ -44,7 +45,7 @@ export function SafetyReferralView() {
   // sending it. `draft` stays available for a referral being prepared.
   const [status, setStatus] = useState('active')
   const [note, setNote] = useState('')
-  const [notice, setNotice] = useState<string | null>(null)
+  const { notice, written, report } = useRecorderNotice()
 
   const openReferrals = useMemo(() => serviceRequests.filter(isReferralOpen), [serviceRequests])
 
@@ -65,27 +66,27 @@ export function SafetyReferralView() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    addArtifact(
-      buildSafetyReferral({
-        id: `referral-${makeId()}`,
-        patientId: activePatientId,
-        status,
-        reason,
-        performer,
-        authoredOn: nowIso(),
-        serviceText,
-        note: note.trim() || undefined,
-      }),
-    )
-    setNotice('Referral recorded.')
+    const referral = buildSafetyReferral({
+      id: `referral-${makeId()}`,
+      patientId: activePatientId,
+      status,
+      reason,
+      performer,
+      authoredOn: nowIso(),
+      serviceText,
+      note: note.trim() || undefined,
+    })
+    addArtifact(referral)
+    report('Referral recorded.', referral)
     setNote('')
   }
 
   function advance(referral: ServiceRequestResource, next: string) {
     // Same id ⇒ the store upserts, so the referral moves through its lifecycle
     // instead of leaving a stale "sent" copy behind it.
-    addArtifact(setReferralStatus(referral, next))
-    setNotice(`Referral marked ${displayFor(REFERRAL_STATUSES, next).toLowerCase()}.`)
+    const advanced = setReferralStatus(referral, next)
+    addArtifact(advanced)
+    report(`Referral marked ${displayFor(REFERRAL_STATUSES, next).toLowerCase()}.`, advanced)
   }
 
   return (
@@ -111,6 +112,7 @@ export function SafetyReferralView() {
       draft={draft}
       draftTitle="Live FHIR ServiceRequest"
       notice={notice}
+      justRecorded={written}
       recorded={
         <>
           {serviceRequests.length > 0 && (

@@ -13,6 +13,7 @@ import {
   MEANS_SAFETY_ACTIONS,
 } from '@spier/core/lib/lethalMeans'
 import { WorkflowForm, WorkflowField, RecordedList } from './WorkflowForm'
+import { useRecorderNotice } from '../lib/useRecorderNotice'
 import { nowLocalIso, toIsoOrNow, isoDay } from '../lib/dates'
 import { Button } from '@spier/ui/Button'
 
@@ -57,7 +58,7 @@ export function LethalMeansCounselingView() {
   const [protocolText, setProtocolText] = useState(COUNSELING_TEXT)
   const [note, setNote] = useState('')
   const [rows, setRows] = useState<Record<string, MeansRow>>({})
-  const [notice, setNotice] = useState<string | null>(null)
+  const { notice, written, report } = useRecorderNotice()
 
   const recorded = useMemo(() => meansSafetyActions(observations), [observations])
 
@@ -111,34 +112,34 @@ export function LethalMeansCounselingView() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const batch = makeId()
-    addArtifact(
-      buildLethalMeansCounseling({
-        id: `counseling-${batch}`,
+    const counseling = buildLethalMeansCounseling({
+      id: `counseling-${batch}`,
+      patientId: activePatientId,
+      performed: performedIso,
+      text: protocolText,
+      note: note.trim() || undefined,
+    })
+    addArtifact(counseling)
+    const actions = selectedMethods.map(m =>
+      buildMeansSafetyAction({
+        id: `means-action-${batch}-${m.code}`,
         patientId: activePatientId,
-        performed: performedIso,
-        text: protocolText,
-        note: note.trim() || undefined,
+        effective: performedIso,
+        method: m.code,
+        action: rows[m.code].action,
+        completed: rows[m.code].completed,
+        note: rows[m.code].note.trim() || undefined,
       }),
     )
-    for (const m of selectedMethods) {
-      addArtifact(
-        buildMeansSafetyAction({
-          id: `means-action-${batch}-${m.code}`,
-          patientId: activePatientId,
-          effective: performedIso,
-          method: m.code,
-          action: rows[m.code].action,
-          completed: rows[m.code].completed,
-          note: rows[m.code].note.trim() || undefined,
-        }),
-      )
-    }
-    setNotice(
+    for (const action of actions) addArtifact(action)
+    report(
       selectedMethods.length === 0
         ? 'Counseling recorded — no means-safety actions were documented.'
         : `Counseling recorded with ${selectedMethods.length} means-safety action${
             selectedMethods.length === 1 ? '' : 's'
           }.`,
+      counseling,
+      ...actions,
     )
     setNote('')
     setRows({})
@@ -169,6 +170,7 @@ export function LethalMeansCounselingView() {
       draft={draft}
       draftTitle={`Live FHIR — Procedure + ${selectedMethods.length} action Observation${selectedMethods.length === 1 ? '' : 's'}`}
       notice={notice}
+      justRecorded={written}
       recorded={
         <>
           {procedures.length > 0 && (

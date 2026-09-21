@@ -10,6 +10,7 @@ import {
   HANDOFF_CONTENT_ITEMS,
 } from '@spier/core/lib/handoffs'
 import { WorkflowForm, WorkflowField, WorkflowHint, RecordedList } from './WorkflowForm'
+import { useRecorderNotice } from '../lib/useRecorderNotice'
 import { nowLocalIso, toIsoOrNow, isoDay } from '../lib/dates'
 import { Button } from '@spier/ui/Button'
 
@@ -60,7 +61,7 @@ export function SafetyHandoffView() {
   const [contentCodes, setContentCodes] = useState<string[]>(DEFAULT_CONTENT)
   const [summary, setSummary] = useState('')
   const [note, setNote] = useState('')
-  const [notice, setNotice] = useState<string | null>(null)
+  const { notice, written, report } = useRecorderNotice()
 
   const params = useMemo(
     () => ({
@@ -82,8 +83,9 @@ export function SafetyHandoffView() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    addArtifact(buildSafetyHandoff({ id: `safety-handoff-${makeId()}`, ...params }))
-    setNotice('Handoff recorded. It is now the index transition for the follow-up measures.')
+    const handoff = buildSafetyHandoff({ id: `safety-handoff-${makeId()}`, ...params })
+    addArtifact(handoff)
+    report('Handoff recorded. It is now the index transition for the follow-up measures.', handoff)
     setNote('')
   }
 
@@ -116,6 +118,7 @@ export function SafetyHandoffView() {
       draft={draft}
       draftTitle="Live FHIR Communication (safety handoff)"
       notice={notice}
+      justRecorded={written}
       recorded={
         handoffs.length > 0 ? (
           <RecordedList title="Handoffs on this chart">

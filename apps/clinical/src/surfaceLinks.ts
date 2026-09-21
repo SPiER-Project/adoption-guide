@@ -28,11 +28,15 @@ for (const tool of TOOLS) {
 
 export const CLINICAL_SURFACE_LINKS: SurfaceLinks = {
   parent: { label: 'Patient Chart', href: '/patient/record' },
-  // "View in chart", after a filler or a recorder saves. It was
-  // `/patient/record#activity` — an anchor on the rail, which is where the
-  // thing just recorded was NOT. *What's on file* is the page that lists it
-  // (clinical-app audit §4.4).
-  chartHref: '/patient/on-file',
+  // "Back to chart", the second half of a form's confirmation beat. It has
+  // pointed at three things in two days and the third is the settled one:
+  // `/patient/record#activity` (an anchor on the rail, which is where the
+  // thing just recorded was NOT), then *What's on file* in PR 5, and now the
+  // LANDING SCREEN — because what a clinician wants after recording something
+  // is not the row proving it saved but the next instruction, with the pathway
+  // visibly advanced past the step they just satisfied (audit §4.6). *What's
+  // on file* is one tap from there, which is what it is for.
+  chartHref: '/patient/record',
   registryHref: '/population/caseload',
   launchHref: (slug) => LAUNCH_PATH_BY_SLUG.get(slug) ?? null,
 }

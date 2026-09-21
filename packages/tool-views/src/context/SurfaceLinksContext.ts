@@ -53,7 +53,11 @@ export interface SurfaceLinks {
    * surface; "Tools" → `/guide/tools` on the guide.
    */
   parent: { label: string; href: string }
-  /** Where a saved response can be seen afterwards, or `null` when this surface has no chart. */
+  /**
+   * The chart's landing screen — where a form's confirmation beat sends a
+   * clinician back to, with the pathway advanced past what they just recorded.
+   * `null` on a surface with no chart, where the beat offers no way back.
+   */
   chartHref: string | null
   /** The caseload / risk registry, or `null` when this surface has none. */
   registryHref: string | null
