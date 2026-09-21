@@ -242,7 +242,7 @@ export const CONCEPTS: Concept[] = [
     code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
     valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs',
     description:
-      'The instrument-agnostic, ordered risk tier — the one value a consumer can act on without knowing which tool produced it. Five instruments reach it by five different routes: C-SSRS through cssrs-risk-level, ASQ through asq-screening-result, BSSA through bssa-disposition, PSS-3 through pss3-result, and SAFE-T by binding the shared tier directly with no per-instrument crosswalk at all. CAMS is deliberately absent: a CAMSOverallRiskToRiskTier map is published, but nothing emits a cams-ssf-overall-risk code for it to translate, so CAMS has no route here today (#436). All five carry LOINC 93374-7 as Observation.code, which is why the flat dictionary rendered one concept as five unrelated rows. A sixth binding carries the same tier in a different slot: the episode’s current-risk-tier extension, which has no Observation.code at all. How lossy each route is — a widening, a related-to, or an exact match — is recorded in each ConceptMap and is not surfaced here yet; that is #264.',
+      'The instrument-agnostic, ordered risk tier — the one value a consumer can act on without knowing which tool produced it. Six instruments reach it by six different routes: C-SSRS through cssrs-risk-level, ASQ through asq-screening-result, BSSA through bssa-disposition, PSS-3 through pss3-result, CAMS through cams-ssf-overall-risk, and SAFE-T by binding the shared tier directly with no per-instrument crosswalk at all. CAMS was absent until 2026-09-21: the CAMSOverallRiskToRiskTier map was published and nothing emitted a code for it to translate, because the SSF-5 recorded its overall-risk rating as a plain integer (#436). All six carry LOINC 93374-7 as Observation.code, which is why the flat dictionary rendered one concept as several unrelated rows. A sixth binding carries the same tier in a different slot: the episode’s current-risk-tier extension, which has no Observation.code at all. How lossy each route is — a widening, a related-to, or an exact match — is recorded in each ConceptMap and is not surfaced here yet; that is #264.',
   },
 ]
 
@@ -328,21 +328,23 @@ export const BINDINGS: Binding[] = [
     value: { system: 'http://thespierproject.org/fhir/CodeSystem/cssrs-risk-level', valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs' },
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueCodeableConcept',
-    // Cross-cutting: derived from C-SSRS (Screener, Full, Since Last Visit, Pediatric) and reused as CAMS overall risk.
+    // Cross-cutting: derived from C-SSRS (Screener, Full, Since Last Visit, Pediatric).
     /**
-     * ⚠️ **CAMS was on this list and should not have been (#436).** The four
-     * entries are C-SSRS variants — Screener, Full, Since Last Contact,
-     * Pediatric — and all four genuinely emit `cssrs-risk-level`. The CAMS SSF-5
-     * did not: its mappers emit the overall-risk rating as
-     * `Observation.valueInteger` with an H/N/L interpretation and never a coding,
-     * so listing it here attributed C-SSRS's crosswalk fidelity to CAMS. Per
-     * #93 every row of the CAMS map is `wider` — the lossiest of the six — and
-     * it deliberately reaches no `imminent` tier, so a reader comparing routes
-     * would have concluded the opposite of the truth. CAMS has no route into the
-     * concept layer until something produces `cams-ssf-overall-risk`.
+     * ⚠️ **CAMS was on this list and should not have been (#436), and it still
+     * is not — it has a row of its own now.** The four entries are C-SSRS
+     * variants — Screener, Full, Since Last Contact, Pediatric — and all four
+     * genuinely emit `cssrs-risk-level`. The CAMS SSF-5 did not: its mapper
+     * emitted the overall-risk rating as `Observation.valueInteger` with an
+     * H/N/L interpretation and never a coding, so listing it here attributed
+     * C-SSRS's crosswalk fidelity to CAMS. Per #93 every row of the CAMS map is
+     * `wider` — the lossiest of the six — and it deliberately reaches no
+     * `imminent` tier, so a reader comparing routes would have concluded the
+     * opposite of the truth. Since 2026-09-21 the mapper emits
+     * `cams-ssf-overall-risk` and CAMS does reach the concept layer; it reaches
+     * it by its OWN route, which is `cams-overall-risk-level` below.
      */
     usedBy: [...TOOLS_CSSRS, 'TL-019', 'TL-027'],
-    description: 'Derived risk level, per the published C-SSRS Screener with Triage Points: Low (Q1–2), Moderate (Q3, or Q6 lifetime-only), High (Q4, Q5, or Q6 within the past three months). Shared by the C-SSRS Screener, Full, Since Last Visit, and Pediatric versions; reused as CAMS overall risk. Value = SPiER-local cssrs-risk-level tier; crosswalked to the common suicide-risk tier.',
+    description: 'Derived risk level, per the published C-SSRS Screener with Triage Points: Low (Q1–2), Moderate (Q3, or Q6 lifetime-only), High (Q4, Q5, or Q6 within the past three months). Shared by the C-SSRS Screener, Full, Since Last Visit, and Pediatric versions. Value = SPiER-local cssrs-risk-level tier; crosswalked to the common suicide-risk tier.',
   },
   {
     id: 'cssrs-actual-lethality',
@@ -847,7 +849,18 @@ export const BINDINGS: Binding[] = [
     fhirResource: 'Observation',
     fhirPath: 'Observation.valueInteger',
     usedBy: TOOLS_CAMS_SSF,
-    description: 'Patient-rated overall risk on 1–5 scale. Tracked longitudinally across sessions.',
+    description: 'Patient-rated overall risk on 1–5 scale. Tracked longitudinally across sessions. The same rating is also emitted coded, as the row below, so it can be read by a consumer that does not know the SSF.',
+  },
+  {
+    id: 'cams-overall-risk-level',
+    conceptId: 'suicide-risk-tier',
+    name: 'Overall Risk Rating (coded)',
+    code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
+    value: { system: 'http://thespierproject.org/fhir/CodeSystem/cams-ssf-overall-risk', valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs' },
+    fhirResource: 'Observation',
+    fhirPath: 'Observation.valueCodeableConcept',
+    usedBy: TOOLS_CAMS_SSF,
+    description: 'The SSF overall-risk rating re-coded onto LOINC 93374-7 as an ordinal 1–5 code, which is CAMS\u2019s route into the shared suicide-risk tier via ConceptMap/CAMSOverallRiskToRiskTier. The rating beside it stays an integer, because SPiERCAMSSSFVital requires one. Every row of the CAMS map is `wider` \u2014 the lossiest of the six routes \u2014 and it reaches no imminent tier.',
   },
 
   // ── CAMS Section B - Drivers ──

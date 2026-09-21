@@ -935,7 +935,16 @@
         "reference": "Encounter/p001-enc-index"
       },
       "effectiveDateTime": "2026-08-01T11:00:00.000Z",
-      "valueInteger": 3,
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "http://thespierproject.org/fhir/CodeSystem/cams-ssf-overall-risk",
+            "code": "3",
+            "display": "3 — Moderate risk"
+          }
+        ],
+        "text": "3 — Moderate risk"
+      },
       "interpretation": [
         {
           "coding": [

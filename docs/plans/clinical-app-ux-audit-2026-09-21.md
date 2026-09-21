@@ -34,15 +34,34 @@ own C-SSRS administrations record their result in the instrument's native
 vocabulary and a rule that read only the harmonized value could not tell
 moderate from high for the one assessment the pathway names.
 
-Three things the evaluator surfaced rather than fixed. **No demo scenario
-records crisis resources at all**, so every patient with a tier now leads with
-*Share patient-facing crisis resources* — a true reading of the fixtures and a
-gap in them. **patient-006's CAMS overall risk is a bare integer on LOINC
-93374-7**, so the published CAMS crosswalk has nothing to translate and her
-chart says an assessment is on file that records no risk level; the mapper, not
-the evaluator, is where that is fixed. And **Maria Alvarez is not "finished"** —
-her chart holds no crisis resources and her reassessment is seven weeks overdue
-— so the demo host's narration for her was corrected in the same change.
+Two things the evaluator surfaced rather than fixed. **No demo scenario records
+crisis resources at all**, so every patient with a tier now leads with *Share
+patient-facing crisis resources* — a true reading of the fixtures and a gap in
+them. And **Maria Alvarez is not "finished"** — her chart holds no crisis
+resources and her reassessment is seven weeks overdue — so the demo host's
+narration for her was corrected in the same change.
+
+A third was surfaced and then fixed in the same PR. **The CAMS SSF-5 recorded
+its overall-risk rating as a bare integer on LOINC 93374-7**, so
+`ConceptMap/CAMSOverallRiskToRiskTier` — published, and translating codes — had
+nothing to translate, and patient-006's chart could state no risk tier at all.
+`cams.fsh` had anticipated exactly this and said on the CodeSystem that "a
+producer maps valueInteger n to the like-numbered code before translating";
+nothing was that producer. The mapper now is, so her chart reads *Complete a
+collaborative safety plan — CAMS SSF-5 on Aug 6: moderate risk*. The six SSF
+vitals still carry integers, because `SPiERCAMSSSFVital` requires them. The
+crosswalk gate's `NO_MAPPER_REASON` entry for this source is deleted rather than
+reworded, so the map is now really checked.
+
+⚠️ **That closes the narrow half of the gap and not the recorded worry about
+it.** `docs/best-practices/concept-harmonization.md` had flagged in advance that
+letting CAMS reach the shared tier puts one *patient self-rating* beside five
+clinician-determined routes. On the wire nothing is conflated — SPiER emits the
+CAMS-native vocabulary and never a harmonized-tier value — but in the
+application it now is: the evaluator translates the self-rating and then obliges
+a safety plan and a reassessment cadence from it exactly as it would from a
+clinician's C-SSRS. That doc records what changed; whether the two provenances
+should drive the same obligations is a clinical decision, not a mapper one.
 
 **Deliberately not done in PR 3.** No page layout: the landing screen, "Why
 this?" and the narrow-panel identity strip are PR 4's, and the also-due

@@ -261,10 +261,29 @@ describe('what a tier owes, and what retires it', () => {
     expect(alsoDue.map(o => o.kind)).not.toContain('reassess')
   })
 
+  it('reads a CAMS chart through the CAMS crosswalk', () => {
+    // ⚠️ **This case read `tier: null` until the CAMS mapper was fixed.** Her
+    // SSF overall-risk rating sat on LOINC 93374-7 as a bare integer, so
+    // `ConceptMap/CAMSOverallRiskToRiskTier` — published, and translating
+    // codes — had nothing to translate, and a documented CAMS patient's chart
+    // could state no tier at all.
+    const { primary, alsoDue, tier } = evaluate(recordFor('patient-006'))
+    expect(tier?.code).toBe('moderate')
+    expect(primary?.kind).toBe('safety-plan')
+    expect(primary?.reason).toBe('CAMS SSF-5 on Aug 6: moderate risk.')
+    expect(alsoDue.map(o => o.kind)).toEqual(['crisis-resources', 'reassess'])
+  })
+
   it('says so when an assessment records no risk level, rather than "no risk"', () => {
-    // patient-006's CAMS overall risk is a bare integer on LOINC 93374-7, so
-    // the published CAMS crosswalk has nothing to translate.
-    const { primary, reason, tier } = evaluate(recordFor('patient-006'))
+    // The branch still matters and no demo patient reaches it any more, so the
+    // case is built: an assessment on file whose result carries no tier at all
+    // is NOT a negative assessment, and printing "no risk identified" about
+    // one would be a clinical claim nobody made.
+    const base = recordFor('patient-006')
+    const untiered = (base.observations ?? []).map(o =>
+      o.id === 'p006-cams-risk' ? { ...o, valueCodeableConcept: undefined, valueInteger: 3 } : o,
+    )
+    const { primary, reason, tier } = evaluate({ ...base, observations: untiered })
     expect(tier).toBeNull()
     expect(primary).toBeNull()
     expect(reason).toContain('records no suicide-risk level')
