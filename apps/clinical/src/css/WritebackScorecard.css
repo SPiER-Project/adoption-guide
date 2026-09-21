@@ -90,14 +90,7 @@
   color: var(--text-faint);
 }
 
-/* The tier and resource type, under the plain-language rung label. Kept
-   visible because the scorecard also feeds the adoption rubric, where the tier
-   is the point; demoted because a clinician who just submitted a form is not
-   its audience. */
-.writeback-scorecard__rung-tier {
-  display: block;
-  font-size: var(--font-size-2xs);
-  font-weight: 500;
-  letter-spacing: normal;
-  color: var(--text-faint);
-}
+/* `.writeback-scorecard__rung-tier` drew the tier and the resource type under
+   the plain-language label, on the argument that the scorecard also feeds the
+   adoption rubric. It does not — the rubric reads `WritebackReport` — so the
+   row went (clinical-app audit §1.9) and its rule went with it. */

@@ -9,9 +9,12 @@
  * make this a *different page* rather than a duplicate, each of which is a rule
  * from the plan that a later edit could quietly undo:
  *
- *  1. **Provenance leads.** The demo claim inside an EHR is that the app carried
- *     a published artifact in with it, so the canonical URL and version have to
- *     be the first thing on the page, not a closing footnote.
+ *  1. **The protocol is in words, and the provenance strip is not on this
+ *     surface at all.** The demo claim inside an EHR is that the app carried a
+ *     published artifact in with it — which is the INTEGRATION LEAD's question,
+ *     and they read it on the guide. A clinician met a canonical URL in
+ *     monospace before the protocol (clinical-app audit §1.9), so the strip is
+ *     `useInspect()`-gated and this page never provides inspection.
  *  2. **No patient-contextual rendering.** The embedded surface has patient
  *     context available and this view deliberately does not use it. Asserted
  *     from the outside — the page renders with no patient provider at all, so a
@@ -67,36 +70,29 @@ describe('PathwayProtocol — the pathway in the embedded panel', () => {
     expect(document.querySelector('.pathway-spine')!.textContent).not.toContain(
       'http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs',
     )
-    // ...while the provenance strip, which IS the point of this page, keeps its canonical.
-    expect(screen.getByText(CANONICAL)).toBeDefined()
+    // ...and the canonical is nowhere on the page either: the provenance strip
+    // is the implementer's, and it renders under inspection only.
+    expect(screen.queryByText(CANONICAL)).toBeNull()
   })
 
-  it('leads with the provenance strip — the canonical URL before the protocol', () => {
+  it('names no canonical URL, version or publication status without inspection', () => {
+    // ⚠️ This asserted the OPPOSITE until 2026-09-21, and the change is the
+    // decision rather than a relaxation — see the header. The strip still
+    // exists and `/guide/pathway/protocol` still leads with it.
     renderPage()
-    const canonical = screen.getByText(CANONICAL)
-    expect(canonical).toBeDefined()
-    expect(canonical.closest('.pathway-provenance--lead')).not.toBeNull()
-
-    // "Before" as the DOM sees it, not as a comment claims: the provenance
-    // section must precede the spine in document order.
-    const provenance = document.querySelector('.pathway-provenance')
-    const spine = document.querySelector('.pathway-spine')
-    expect(provenance).not.toBeNull()
-    expect(spine).not.toBeNull()
-    expect(
-      provenance!.compareDocumentPosition(spine!) & Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy()
-
-    // The version is stated, not implied — it is half of what makes a canonical
-    // URL checkable.
-    expect(screen.getByText('Version')).toBeDefined()
+    expect(document.querySelector('.pathway-provenance')).toBeNull()
+    const text = document.body.textContent ?? ''
+    expect(text).not.toContain('thespierproject.org')
+    expect(text).not.toMatch(/experimental/)
+    // The protocol itself is still the page.
+    expect(document.querySelector('.pathway-spine')).not.toBeNull()
   })
 
-  it('says it is the definition and points at the chart for the patient', () => {
+  it('says it is the definition and points at the rail for the patient', () => {
     renderPage()
-    expect(screen.getByText(/This is the definition, not this patient/)).toBeDefined()
-    const back = screen.getByRole('link', { name: /pathway rail on the chart/ })
-    expect(back.getAttribute('href')).toBe('/patient/record#activity')
+    expect(screen.getByText(/not where this patient/)).toBeDefined()
+    const back = screen.getByRole('link', { name: /where this patient is/ })
+    expect(back.getAttribute('href')).toBe('/patient/where')
   })
 
   it('offers a way back out — the only one the panel has', () => {

@@ -40,9 +40,18 @@ import { Button } from '@spier/ui/Button'
 import { Card } from '@spier/ui/Card'
 import '../css/ChartLanding.css'
 
-/** The in-page anchors the two links land on. PR 5 makes them pages. */
-export const WHERE_ANCHOR = 'activity'
-export const ON_FILE_ANCHOR = 'on-file'
+/**
+ * The two pages the links land on. They were in-page anchors until PR 5
+ * (`jumpTo(WHERE_ANCHOR)`), which is what made the chart a long scroll with the
+ * answer at the top of it; §4.3 and §4.4 made them routes, so what is below the
+ * card is a link and not a destination.
+ *
+ * ⚠️ Neither carries the patient id, like `/patient/why` beside them: the active
+ * patient travels in `PatientContext` across every non-chart route, and a second
+ * copy in the URL is a second thing that can be wrong.
+ */
+export const WHERE_PATH = '/patient/where'
+export const ON_FILE_PATH = '/patient/on-file'
 
 /**
  * The card's heading is "Nothing is due", and the evaluator's own sentence for
@@ -64,15 +73,12 @@ export function ChartLanding({
   isToolEnabled,
   stepLabel,
   recordCount,
-  onJump,
 }: {
   evaluation: PathwayEvaluation
   isToolEnabled: (id: string) => boolean
   /** Where the patient is, as the rail's link says it: "Step 3 of 8". */
   stepLabel: string
   recordCount: number
-  /** Scrolls to an in-page anchor without losing the route's patient id. */
-  onJump: (anchor: string) => void
 }) {
   const { primary, alsoDue, reason } = evaluation
   const tool = primary?.tool ?? null
@@ -128,15 +134,11 @@ export function ChartLanding({
 
       <p className="chart-landing__ways">
         <span className="chart-landing__way">
-          <Button variant="link" onClick={() => onJump(WHERE_ANCHOR)}>
-            Where this patient is
-          </Button>
+          <Link to={WHERE_PATH}>Where this patient is</Link>
           <span className="chart-landing__fact">{stepLabel}</span>
         </span>
         <span className="chart-landing__way">
-          <Button variant="link" onClick={() => onJump(ON_FILE_ANCHOR)}>
-            What&rsquo;s on file
-          </Button>
+          <Link to={ON_FILE_PATH}>What&rsquo;s on file</Link>
           <span className="chart-landing__fact">
             {recordCount} {recordCount === 1 ? 'record' : 'records'}
           </span>

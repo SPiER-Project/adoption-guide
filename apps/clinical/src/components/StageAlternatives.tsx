@@ -27,6 +27,7 @@ import { Link } from 'react-router-dom'
 import { Button } from '@spier/ui/Button'
 import { Card } from '@spier/ui/Card'
 import { stageAlternativeTools } from '@spier/core/lib/pathwaySelection'
+import { toolPurposeLine } from '../lib/toolCopy'
 import type { Tool } from '@spier/core/data/catalog/tools'
 import '../css/PathwayStage.css'
 
@@ -70,7 +71,7 @@ export function StageAlternatives({
       {available.map(tool => (
         <Card key={tool.id} padding="compact">
           <h4 className="pathway-stage__tool-name">{tool.name}</h4>
-          <p className="pathway-stage__tool-purpose">{tool.purpose}</p>
+          <p className="pathway-stage__tool-purpose">{toolPurposeLine(tool)}</p>
           <ToolActions tool={tool} />
         </Card>
       ))}

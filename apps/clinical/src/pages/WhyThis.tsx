@@ -30,9 +30,9 @@
  * no recommendation to explain, so the page returns to the chart rather than
  * rendering an empty argument.
  *
- * ⚠️ **The trigger link lands on the chart's record anchor, not on a record
- * PAGE.** *What's on file* becomes a page in PR 5 (§4.4); until then the honest
- * destination is the section it is made from.
+ * ⚠️ **The trigger link lands on *What's on file*, which is a page since PR 5**
+ * (§4.4). It pointed at an anchor part-way down the chart until then, above the
+ * three sections that page replaced.
  */
 import { useMemo } from 'react'
 import { Link, Navigate } from 'react-router-dom'
@@ -47,7 +47,7 @@ import { reassessmentStatusLabel } from '@spier/core/lib/reassessment'
 import { useToolConfig } from '../context/ToolConfigContext'
 import { toolEnablementFor } from '../lib/toolEnablement'
 import { StageAlternatives } from '../components/StageAlternatives'
-import { ON_FILE_ANCHOR } from '../components/ChartLanding'
+import { ON_FILE_PATH } from '../components/ChartLanding'
 import '../css/WhyThis.css'
 
 export function WhyThis() {
@@ -95,7 +95,7 @@ export function WhyThis() {
       <Card>
         <p className="why-this__prose">{primary.reason}</p>
         <p className="why-this__more">
-          <Link to={`/patient/record#${ON_FILE_ANCHOR}`}>See it in what&rsquo;s on file</Link>
+          <Link to={ON_FILE_PATH}>See it in what&rsquo;s on file</Link>
         </p>
       </Card>
 

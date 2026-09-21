@@ -48,36 +48,10 @@
   text-decoration: underline;
 }
 
-/* ===========================
-   Filters
-   ---------------------------
-   Stage and Risk are filtered from their own column headers (see
-   .caseload-filter-* below), so this page no longer renders a chip toolbar.
-   `.filter-chip` survives because PatientChart's document filters still use it
-   and never had rules of their own — deleting it here breaks that page.
-   =========================== */
-.filter-chip {
-  background: var(--surface-card);
-  border: 1px solid var(--border-default);
-  color: var(--text-body);
-  padding: var(--space-1) var(--space-3);
-  font-size: var(--font-size-base);
-  font-weight: 500;
-  border-radius: var(--radius-pill);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.filter-chip:hover {
-  background: var(--surface-muted);
-  border-color: var(--border-strong);
-}
-
-.filter-chip--active {
-  background: var(--accent-info);
-  border-color: var(--accent-info);
-  color: var(--text-on-brand);
-}
+/* `.filter-chip` lived here with no caller of its own: the caseload filters
+   from its column headers (see `.caseload-filter-*` below), and the rules were
+   kept because *Patient Documents* on the chart still rendered the chips. That
+   section is gone (clinical-app audit §4.4), and with it the last caller. */
 
 /* Only rendered while the table overflows its wrapper — see the ResizeObserver
    in PopulationView.tsx. Borrows the <th> label treatment so the two triggers

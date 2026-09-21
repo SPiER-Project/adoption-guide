@@ -23,50 +23,48 @@ import { Notice } from '@spier/ui/Notice'
 import { Card } from '@spier/ui/Card'
 
 /**
- * The ladder's rungs, in ascending tier order (see writeback/types.ts).
+ * What a completed form can leave behind on the EHR, in the order it is tried.
  *
- * `label` says what the rung IS in plain words — what was, or was not, saved to
- * the EHR; `tierLabel` carries the tier number and resource type underneath it.
- * "Tier 0 — Document" was the label, and "tier", "rung" and "floor" are
- * SPiER-internal words: a clinician reading the panel after submitting a form
- * needs to know their form was saved and its score was not, not which rung of
- * which ladder that corresponds to. The tier stays visible because the
- * scorecard also feeds the adoption rubric, where the tier is the point.
+ * ── The copy rule this is written to (2026-09-21) ─────────────────────────
+ *
+ * `label` and `blurb` say what was, or was not, saved, in words a clinician
+ * uses. The tier number and the resource type are **gone**, not gated
+ * (clinical-app audit §1.9's fourth row).
+ *
+ * "Tier 0 — Document" was the label once, and it was already recognised then
+ * that "tier", "rung" and "floor" are SPiER's own words. What survived that
+ * pass was the row underneath — `Tier 0 · DocumentReference` — on the argument
+ * that the scorecard also feeds the adoption rubric, where the tier is the
+ * point. It does not: the rubric reads `WritebackReport`, not this component,
+ * and this component renders on the clinical surface only, where `useInspect()`
+ * is always false.
+ *
+ * ⚠️ **So the first fix was to put it behind `useInspect()`, and that was
+ * wrong** — inspection is never on here, so the gated branch was dead code that
+ * existed only to be excused by an exemption in the gate that would otherwise
+ * have failed it. Deleted instead. The tier lives in `WritebackReport`, which
+ * is what the rubric reads.
  */
-const RUNGS: Array<{
-  tier: WriteTier
-  resourceType: string
-  label: string
-  tierLabel: string
-  blurb: string
-}> = [
+const RUNGS: Array<{ tier: WriteTier; label: string; blurb: string }> = [
   {
     tier: 0,
-    resourceType: 'DocumentReference',
     label: 'A readable copy of the completed form',
-    tierLabel: 'Tier 0 · DocumentReference',
-    blurb: 'The universal floor: a readable rendering plus the raw QuestionnaireResponse as recoverable FHIR JSON.',
+    blurb: 'Every EHR can hold this one: the form as it was filled in, readable in the chart.',
   },
   {
     tier: 1,
-    resourceType: 'QuestionnaireResponse',
     label: 'The completed form itself',
-    tierLabel: 'Tier 1 · QuestionnaireResponse',
-    blurb: 'The discrete capture, and the resource every higher rung references.',
+    blurb: 'Each answer as its own field, so the EHR can search and report on them.',
   },
   {
     tier: 2,
-    resourceType: 'Observation',
     label: 'Its scores and risk level',
-    tierLabel: 'Tier 2 · Observation',
-    blurb: 'Scored and harmonized results, immediately computable by the EHR.',
+    blurb: 'The total, the item scores and the risk level, as numbers the EHR can act on.',
   },
   {
     tier: 3,
-    resourceType: 'Condition',
     label: 'A problem-list proposal',
-    tierLabel: 'Tier 3 · Condition',
-    blurb: 'Opt-in only. A screening-derived Condition is never written without explicit clinician confirmation.',
+    blurb: 'Opt-in only, and never added to the problem list without a clinician confirming it.',
   },
 ]
 
@@ -88,7 +86,7 @@ function absenceReason(tier: WriteTier, report: WritebackReport): string {
       : 'Off by design. Enabling it requires an explicit clinician confirmation step.'
   }
   if (tier === 2) {
-    return 'This instrument produced no Observations to write (some tools produce a care plan instead).'
+    return 'This form has no score of its own to save — some record a plan instead.'
   }
   return 'Not attempted.'
 }
@@ -109,8 +107,8 @@ export function WritebackScorecard({ report }: { report: WritebackReport | null 
         title="Saved to the EHR"
         meta={
           <>
-            {written.length} of {report.result.steps.length} attempted{' '}
-            {report.result.steps.length === 1 ? 'tier' : 'tiers'} written back
+            {written.length} of {report.result.steps.length}{' '}
+            {report.result.steps.length === 1 ? 'part' : 'parts'} saved
             {failed.length > 0 ? `, ${failed.length} failed` : ''}.
           </>
         }
@@ -134,10 +132,7 @@ export function WritebackScorecard({ report }: { report: WritebackReport | null 
               key={rung.tier}
             >
               <div className="writeback-scorecard__rung-head">
-                <span className="writeback-scorecard__rung-label">
-                  {rung.label}
-                  <span className="writeback-scorecard__rung-tier">{rung.tierLabel}</span>
-                </span>
+                <span className="writeback-scorecard__rung-label">{rung.label}</span>
                 <span className="writeback-scorecard__badge">
                   {step ? outcomeLabel(step.outcome) : 'Not applicable'}
                 </span>
@@ -147,8 +142,7 @@ export function WritebackScorecard({ report }: { report: WritebackReport | null 
                 <p className="writeback-scorecard__detail">
                   {step.outcome === 'written' ? (
                     <>
-                      Created as <code>{rung.resourceType}</code>
-                      {step.id ? <> / <code>{step.id}</code></> : null}
+                      Saved to this patient&rsquo;s chart
                       {step.reason ? ` — ${step.reason}` : ''}
                     </>
                   ) : (
@@ -164,8 +158,9 @@ export function WritebackScorecard({ report }: { report: WritebackReport | null 
       </ol>
 
       <p className="writeback-scorecard__foot">
-        Written back browser-direct to the connected EHR — SPiER&rsquo;s own infrastructure never
-        receives this data. An incomplete ladder is shown on purpose: it is the readiness signal.
+        Saved straight from this browser to the EHR &mdash; SPiER&rsquo;s own servers never receive
+        this patient&rsquo;s data. A part that did not save is shown on purpose: it says what this
+        EHR cannot yet accept.
       </p>
     </Card>
   )

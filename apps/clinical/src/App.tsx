@@ -54,6 +54,8 @@ import { TOOL_VIEWS } from '@spier/tool-views/data/toolViews'
 const ToolConfiguration = lazy(() => import('./pages/ToolConfiguration').then(m => ({ default: m.ToolConfiguration })))
 const PatientChart = lazy(() => import('./pages/PatientChart').then(m => ({ default: m.PatientChart })))
 const PathwayProtocol = lazy(() => import('./pages/PathwayProtocol').then(m => ({ default: m.PathwayProtocol })))
+const PatientWhere = lazy(() => import('./pages/PatientWhere').then(m => ({ default: m.PatientWhere })))
+const PatientOnFile = lazy(() => import('./pages/PatientOnFile').then(m => ({ default: m.PatientOnFile })))
 const WhyThis = lazy(() => import('./pages/WhyThis').then(m => ({ default: m.WhyThis })))
 const PathwayStage = lazy(() => import('./pages/PathwayStage').then(m => ({ default: m.PathwayStage })))
 const PopulationView = lazy(() => import('./pages/PopulationView').then(m => ({ default: m.PopulationView })))
@@ -121,6 +123,14 @@ function AppRoutes() {
               active patient persists across non-chart routes exactly as it does
               for /patient/pathway/:stageId beside it. */}
           <Route path="why" element={<WhyThis />} />
+          {/* The two pages the landing screen's two links open (audit §4.3,
+              §4.4). They were anchors on the chart until 2026-09-21, which is
+              what made the chart a scroll with its own answer at the top of it:
+              the rail and the record are things a clinician opens on purpose.
+              Like `why` above they take no patient in their path — the active
+              patient travels in context. */}
+          <Route path="where" element={<PatientWhere />} />
+          <Route path="on-file" element={<PatientOnFile />} />
           {/* The published protocol, beside the chart rather than in the guide
               (Phase 4 of docs/plans/suicide-safer-care-pathway.md). This is the
               route the embedded SMART panel reaches from the chart's pathway
@@ -179,8 +189,12 @@ function AppRoutes() {
           {/* Stage 4 — Document Safety Actions */}
           <Route path="workflow/lethal-means" element={TOOL_VIEWS['lethal-means']} />
           <Route path="workflow/crisis-resources" element={TOOL_VIEWS['crisis-resources']} />
-          <Route path="care-plans" element={<Navigate to="/patient/record#care-plans" replace />} />
-          <Route path="encounters" element={<Navigate to="/patient/record#encounters" replace />} />
+          {/* ⚠️ Two published paths kept alive. They pointed at chart anchors
+              (`#care-plans`, `#encounters`) that the record sections carried;
+              those sections are `on-file` now, and an anchor nothing renders
+              scrolls nowhere and says nothing. */}
+          <Route path="care-plans" element={<Navigate to="/patient/on-file" replace />} />
+          <Route path="encounters" element={<Navigate to="/patient/on-file" replace />} />
         </Route>
 
         {/* The population-level app: the caseload and the measures over it. */}

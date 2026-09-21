@@ -28,7 +28,11 @@ for (const tool of TOOLS) {
 
 export const CLINICAL_SURFACE_LINKS: SurfaceLinks = {
   parent: { label: 'Patient Chart', href: '/patient/record' },
-  chartHref: '/patient/record#activity',
+  // "View in chart", after a filler or a recorder saves. It was
+  // `/patient/record#activity` — an anchor on the rail, which is where the
+  // thing just recorded was NOT. *What's on file* is the page that lists it
+  // (clinical-app audit §4.4).
+  chartHref: '/patient/on-file',
   registryHref: '/population/caseload',
   launchHref: (slug) => LAUNCH_PATH_BY_SLUG.get(slug) ?? null,
 }

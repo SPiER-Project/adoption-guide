@@ -6,9 +6,95 @@ caseload, the measures), the shared chrome in `packages/app-shell/`, the shared
 views in `packages/tool-views/`, and the mock EHR that launches them
 (`services/mock-ehr/`).
 
-**Status:** PRs 1, 2, 3 and 4 have shipped; PRs 5–7 have not started. §7 records
+**Status:** PRs 1 through 5 have shipped; PRs 6 and 7 have not started. §7 records
 the decisions Brad made on 2026-09-21; the briefs to run PRs 5–7 each in a
 fresh session are in [`clinical-app-redesign-briefs.md`](clinical-app-redesign-briefs.md).
+
+**Status 2026-09-21 (PR 5):** the rail and the record are pages a clinician
+opens on purpose, and nothing on the clinical surface names a resource type —
+§1.9, §1.10, §4.3, §4.4 and rules 1–2.
+
+**Two pages.** `apps/clinical/src/pages/PatientWhere.tsx` (`/patient/where`) is
+the eight-stage rail: markers and collapsed rows unchanged, and three things
+gone. The stage CodeSystem definitions, which begin "The EHR supports…" and are
+written to a vendor, are replaced by one clinician sentence per stage in
+`packages/core/src/data/catalog/stageBlurbs.ts`, typed `Record<StageId, string>`
+so a stage renamed in the FSH is a compile error rather than a blank row. The
+*Tools that satisfy this stage* chips are gone — that list is the stage page's —
+and every row now links to its stage page, which is where *Open this stage →*
+had been living inside a block that only rendered when the node carried no
+card. A stage the pathway owes something at says **1 due** on its row, counted
+from the same `evaluatePathway` the landing screen reads rather than from the
+cards beside it, which are guidance.
+
+`pages/PatientOnFile.tsx` (`/patient/on-file`) is one list where there were
+three — *Episode record*, *Patient Documents* and *Other activity*, between them
+showing a clinician each artifact up to three times in three vocabularies. A row
+is what was recorded, when, and by which instrument; the resource type and the
+emoji standing in for it are gone, and so are the *Episode record*'s FHIR R4
+explanations and the documents filter chips. Grouping is still
+`groupByEpisode`'s reference walk, and an artifact it cannot reach still says so
+— in one heading rather than in three paragraphs about `.encounter`.
+
+**The walkthrough has left the clinical build.** `EncountersTimeline` rendered
+fixture narration — *"Narrative steps, not FHIR resources … tracked in issue
+#52"* — under a live launch against a server that has no such thing, which is
+measurable: on a SMART session the bucket is always empty, so the section never
+rendered anything but was still shipped. The presenter's copy is the mock EHR's
+own chart page.
+
+**The copy pass.** *Recorded here* rows say what was recorded, how it stands and
+when, with the lifecycle code in the clinician's word for it (`lifecycleWord`) —
+a referral still open and one completed are different facts and only the
+spelling was the wire's. *Saved to the EHR* lost `Tier 0 · DocumentReference` and
+*Created as QuestionnaireResponse / srv-1* outright. `/patient/pathway` leads
+with the claim in plain words and renders the provenance strip — canonical URL,
+version, `draft · experimental` — under `useInspect()`, which is on inside
+`/guide` and off here. The stage page and the *Why this?* drawer render the
+FIRST SENTENCE of a tool's published `purpose` (`lib/toolCopy.ts`), so *"Belongs
+to the Define the Risk Picture stage of the SPiER pathway"* stops being shown to
+a clinician without anything being edited in the IG.
+
+**Two gates, both proved red.** `check:jargon` grows a second scan over
+`apps/clinical/src` and `packages/tool-views/src` — 1,118 strings across 74
+modules — with a clinical rule set: no FHIR resource type as a word, no element
+path, no LOINC or SNOMED code, no canonical URL, no issue number, no tier or
+rung. `apps/clinical/src/pages/pageLength.test.tsx` is the guide's budget
+mechanism applied to the clinical pages with the panel as the measured chrome.
+
+⚠️ **The deny list in the new scan was written beside the code it had to
+judge, and excused it.** `wireLabel` and `tierLabel` went onto the
+"positions a reader never sees" list while `WritebackScorecard` was open in the
+next window — so restoring §1.9's own fourth row verbatim as a plant went
+GREEN. The names came off, and the answer turned out not to be a gated branch
+either: inspection is never on on this surface, so `{inspect && …}` around the
+tier was dead code whose only purpose was to be excused. It is deleted.
+
+⚠️ **Eight resource types are exempt from the clinical scan by name** —
+`Appointment`, `Task`, `Consent`, `Procedure`, `Encounter`, `Flag`, `Condition`,
+`Questionnaire` — because *Next Appointment & Follow-Up Tracking* is a form
+title and *Task type* is a field label. `check:fhir-render` RULE 3 keeps the
+full list over the eleven recorders' prose, so "Records a Consent" in a lede
+still fails; the same sentence in `apps/clinical` would not.
+
+⚠️ **Two modules are deferred with a reason, not fixed:**
+`lib/measureGaps.ts` and `lib/populationAlerts.ts` still carry profile names and
+resource types in what a care manager reads. They are §1.9's last three rows and
+belong to PR 7, which audits the caseload before editing it.
+
+**Measured, live launch against the mock EHR.** The chart is 39 words and 812px
+at 375×812 where it was 208 and 1,589px (Sarah Patel), 42 and 812px where it was
+173 and 1,458px (Jane Doe, 18 records) — no scroll at either width, on either
+chart. *Where this patient is* is 142 words / 927px and *What's on file* 156 /
+1,088px for the fullest chart in the population; at 470×900 all three fit
+without scrolling. The protocol page is 1,675 words / 6,527px, from 1,884 /
+7,674px.
+
+**Deliberately not done.** The caseload and the measures, and `/settings`,
+which is §1.10's other half and PR 7's. `/patient/pathway`'s LENGTH: the audit's
+finding about it is that a clinician was sent there from the panel's own
+navigation, which PR 4 fixed by removing the links; its budget is today's
+measurement, set to stop the page growing prose rather than to demand a rewrite.
 
 **Status 2026-09-21 (PR 4):** the chart opens on one instruction — §1.6, §1.7,
 §4.1, §4.2, §4.7 and rule 5. `apps/clinical/src/components/ChartLanding.tsx` is
@@ -818,7 +904,7 @@ Each PR is mergeable on its own and leaves every gate green.
 | **2** | Shipped (#575) | Demo host hygiene: `mock-ehr` job in `deploy.yml`; prefetch on the host's CDS call; `embed=0` on top-level launches; the "written since" line on the chart page; nightly reset of written data | §1.1, §1.3, §1.13, §1.14, rule 7 |
 | **3** | Shipped (#576) | The pathway evaluator in core (§4.5): one primary from the published pathway, satisfied steps retire, act-titled cards, product defaults stop recommending; the CDS service inherits. Grew four things the evaluator exposed: the CAMS mapper emits the coded overall risk its published crosswalk was waiting for, the demo's story for that chart stops naming the wrong number, the caseload's risk column reads the harmonized tier, and `unknown` stops rendering as `none` | §1.4, §1.5, rules 3–4 |
 | **4** | Shipped | The landing screen and *Why this?*: §4.1, §4.2, the narrow-panel strip, the two chromes converging on it. The rail keeps only the guidance cards; `PanelShell` loses its footnote links; the identity strip gains the patient's age | §1.6, §1.7, rule 5 |
-| **5** | — | *Where this patient is* and *What's on file*: the rail and record sections become pages; the walkthrough leaves the clinical build; the protocol page in plain words; clinical word budgets and the clinical jargon scan | §1.9, §1.10, rules 1–2 |
+| **5** | Shipped | *Where this patient is* and *What's on file*: the rail and the record sections become pages; the stage definitions become clinician sentences in core; the walkthrough leaves the clinical build; the protocol page leads in plain words; the clinical jargon scan and the clinical word budgets, both proved red — and the first deny list excused the very row it was written beside | §1.9, §1.10, rules 1–2 |
 | **6** | — | Fillers and recorders: the scratch-chart notice, the confirmation beat, one next action | §1.8, rule 6 |
 | **7** | — | The caseload and measures: an audit section first, by this method, then the worklist leads, settings leaves the panel's navigation, the framed summary's request count. ⚠️ Two of its findings landed early in PR 3 — the risk column and the `none`/`unknown` split — so its audit section starts from a page that already ranks on the tier | §1.10, §1.11, §1.12 |
 

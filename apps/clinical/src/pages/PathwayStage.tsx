@@ -46,11 +46,13 @@ import { SectionHeader } from '@spier/ui/SectionHeader'
 import { Card } from '@spier/ui/Card'
 import { EmptyState } from '@spier/ui/EmptyState'
 import { stageLeadTools } from '@spier/core/lib/pathwaySelection'
+import { stageBlurb } from '@spier/core/data/catalog/stageBlurbs'
 import { stageById } from '@spier/core/data/catalog/stages'
 import type { Tool } from '@spier/core/data/catalog/tools'
 import { useToolConfig } from '../context/ToolConfigContext'
 import { usePresentation } from '@spier/tool-views/context/PresentationContext'
 import { toolEnablementFor } from '../lib/toolEnablement'
+import { toolPurposeLine } from '../lib/toolCopy'
 import { StageAlternatives, ToolActions } from '../components/StageAlternatives'
 import '../css/PathwayStage.css'
 
@@ -76,12 +78,15 @@ export function PathwayStage() {
 
   return (
     <div className="pathway-stage">
+      {/* `lede` is the clinician's sentence for the stage, not the CodeSystem's
+          "The EHR supports…" definition — see
+          `packages/core/src/data/catalog/stageBlurbs.ts`. */}
       <PageHeader
         eyebrow="Patient Chart"
         up="/patient/record"
         eyebrowStyle="pill"
         title={stage.title}
-        lede={stage.description}
+        lede={stageBlurb(stage.id)}
       />
 
       <SectionHeader title="What to do here" />
@@ -91,7 +96,7 @@ export function PathwayStage() {
         lead.map(tool => (
           <Card key={tool.id} accent>
             <h4 className="pathway-stage__tool-name">{tool.name}</h4>
-            <p className="pathway-stage__tool-purpose">{tool.purpose}</p>
+            <p className="pathway-stage__tool-purpose">{toolPurposeLine(tool)}</p>
             <ToolActions tool={tool} />
           </Card>
         ))
