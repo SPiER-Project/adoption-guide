@@ -17,8 +17,9 @@ import { createContext, useContext } from 'react'
  *
  * **Inspection is ON inside `/guide`, and OFF everywhere else.** The default is
  * `false`, so a surface that says nothing gets the production view; only the
- * guide layout turns it on (see `App.tsx`), and the guide's "try it" routes
- * inherit it by sitting under that layout.
+ * guide layout turns it on (see `App.tsx`), and the guide's tool pages — which
+ * sit BESIDE that layout because they draw their own header — provide it
+ * themselves, in the same file as that header.
  *
  * That is why this is a context rather than a prop on the views. A handful of
  * components render FHIR — `CodeDrawer` and `FhirJsonViewer` plus the ones that
@@ -30,7 +31,7 @@ import { createContext, useContext } from 'react'
  *
  * ⚠️ **Which is also why `check:fhir-render` is a FILE-LOCAL rule and not a
  * reachability walk.** Those three, and `FhirJsonViewer` itself, are reached
- * from the clinician's routes and from `/guide/tools/:slug/try` alike: the
+ * from the clinician's routes and from the guide's tool pages alike: the
  * audience is a property of the render, not of the module graph. The gate can
  * only ask whether a file consulted this hook — see
  * `scripts/check-fhir-render.mjs` and `docs/internals/tool-views.md` §3.

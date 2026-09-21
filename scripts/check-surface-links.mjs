@@ -86,10 +86,12 @@
  * ── What it cannot see ────────────────────────────────────────────────────
  *
  * ⚠️ **A computed target.** `navigate(somePath)`, `` to={`/patient/${id}`} ``
- * and the guide's `launchHref: (slug) => `/guide/tools/${slug}/try`` carry no
- * literal to check. The try route exists and `check:tool-view-routes` pins the
- * slugs, which is an argument rather than a fact this gate establishes. A
- * literal is the common case and the one that regressed, twice.
+ * and the guide's forty tool links (`/guide/tools/${tool.id}`, built in
+ * `apps/guide/src/data/toolForms.ts`) carry no literal to check. The tool
+ * route exists, `check:tool-view-routes` pins the form slugs and
+ * `PatientJourney.test.tsx` asserts one link per catalogued tool — an argument
+ * rather than a fact this gate establishes. A literal is the common case and
+ * the one that regressed, twice.
  *
  * ⚠️ **A relative target** (`to="caseload"`) resolves against the rendering
  * route, which is not knowable from the file. Skipped deliberately, and counted

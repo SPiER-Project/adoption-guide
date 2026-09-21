@@ -202,12 +202,28 @@ export const GUIDE_SECTIONS: GuideSection[] = [
   // so it belongs under the thing it is a view of. It was a top-level
   // 'Evaluate' section until 2026-09-17. `/guide/adoption-readiness` still
   // redirects, and so does `/guide/roadmap`, which pointed at it.
+  //
+  // ⚠️ **The tool page is a PARAMETERISED subsection, and it is declared for
+  // the gates alone.** `/guide/tools/TL-0NN` (pages/ToolPage.tsx, 2026-09-20)
+  // is one page per catalogued tool — the form in front, the detail behind —
+  // registered as a SIBLING of the guide layout because it draws its own
+  // header. Naming it here with its full sub-path is what makes it CHECKED:
+  // check:guide-boundary resolves the component through the route table and
+  // walks its imports, and check:catalog asserts the route pattern is
+  // registered. Both gates accept the sibling's absolute `/guide/…` form.
+  // `resolveGuidePath` never matches a `:param` literally and falls back to
+  // this section for `/guide/tools/TL-003`, which is right — but the tool
+  // page is outside the layout and never asks. The label is a placeholder for
+  // the same reason: nothing renders it.
   {
     path: 'tools',
     label: 'Tools',
     group: 'standard',
     width: 'wide',
-    subsections: [{ path: 'tools/readiness', label: 'Adoption Readiness' }],
+    subsections: [
+      { path: 'tools/readiness', label: 'Adoption Readiness' },
+      { path: 'tools/:toolRef', label: 'Tool' },
+    ],
   },
   // `wide`: four tables, the widest being the per-concept routes table whose
   // whole purpose is comparing routes side by side.
@@ -317,7 +333,8 @@ export function resolveGuidePath(
     }
   }
   // A section matches on its FIRST segment, so a deep link the guide does not
-  // know about (`tools/TL-003`, a stage anchor) still renders its section's
+  // know about (a stage anchor) — or a parameterised subsection, which the
+  // literal comparison above can never match — still renders its section's
   // chrome rather than falling back to the first section in the list.
   const segment = rest.split('/')[0]
   const section = GUIDE_SECTIONS.find(s => s.path === segment)

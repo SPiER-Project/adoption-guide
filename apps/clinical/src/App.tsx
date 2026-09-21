@@ -47,8 +47,8 @@ import { FhircastListener } from '@spier/app-shell/components/FhircastListener'
 
 // Every instrument filler and workflow recorder, defined ONCE and rendered by
 // two route families: the clinician's /patient/* paths below, and the guide's
-// /guide/tools/:slug/try in apps/guide. See packages/tool-views for why they
-// must be one definition rather than two.
+// tool pages (/guide/tools/TL-0NN) in apps/guide. See packages/tool-views for
+// why they must be one definition rather than two.
 import { TOOL_VIEWS } from '@spier/tool-views/data/toolViews'
 
 const ToolConfiguration = lazy(() => import('./pages/ToolConfiguration').then(m => ({ default: m.ToolConfiguration })))

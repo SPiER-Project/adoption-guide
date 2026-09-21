@@ -50,7 +50,10 @@ consulted the package's `exports` map.
 
 ⚠️ **A guide page must be declared in `data/guideSections.ts`.** Both
 `check:guide-boundary` and `check:catalog` derive the guide's page set from that
-file; a route under `/guide` it does not name is walked by nothing.
-`/guide/tools/:slug/try` is the deliberate exception — it renders recorders that
-write to patient context, so it is not a guide page and the boundary gate's
-premise does not hold for it.
+file; a route under `/guide` it does not name is walked by nothing. A page that
+is a SIBLING of the guide layout rather than a child — the tool page,
+`/guide/tools/:toolRef`, which draws its own header — is declared as a
+`subsections` entry with its full parameterised sub-path, and both gates accept
+the sibling's absolute `/guide/…` route form. There is no undeclared exception
+any more: the try route that was one (`/guide/tools/:slug/try`) redirects to the
+tool page since 2026-09-20.

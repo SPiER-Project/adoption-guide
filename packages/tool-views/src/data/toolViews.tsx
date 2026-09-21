@@ -9,7 +9,7 @@
  * There are now two:
  *
  *   /patient/assessments/asq    the clinician's route — no FHIR view
- *   /guide/tools/asq/try        the implementer's route — FHIR view on
+ *   /guide/tools/TL-001         the implementer's route — the tool's page, FHIR view on
  *
  * They must render *the same thing*, because the guide's claim is that what an
  * implementer inspects is what a clinician uses. Two copies of a
@@ -24,8 +24,9 @@
  * `assessments/asq`. The clinician's route keeps its `assessments/` and
  * `workflow/` grouping because those paths are published — the catalog's 36
  * `launchActions`, every CDS card's `type: "smart"` link and every SMART
- * `intent` resolve to them. The guide's route has no such history and reads
- * better flat. `SLUG_IS_UNIQUE` below is what makes one key serve both.
+ * `intent` resolve to them. The guide's tool page resolves a tool's launch
+ * path to this key with `launchSlug` (`apps/guide/src/data/toolForms.ts`),
+ * which is what makes one key serve both.
  *
  * ⚠️ **The lazy() calls live here, not in App.tsx, and that is deliberate.**
  * Moving the element definitions without moving the components would have made
@@ -66,8 +67,9 @@ const LethalMeansCounselingView = lazy(() => import('../components/LethalMeansCo
  *
  * ⚠️ Every key must match the LAST segment of that tool's clinician route in
  * `App.tsx`, because the two are read together: the route renders
- * `TOOL_VIEWS['asq']` and the guide's try route resolves `:slug` against the
- * same map. `toolViews.test.ts` pins that they agree.
+ * `TOOL_VIEWS['asq']` and the guide's tool page resolves the catalog launch
+ * path's last segment against the same map. `check:tool-view-routes` pins
+ * that they agree.
  */
 export const TOOL_VIEWS: Record<string, ReactNode> = {
   // ── Instrument fillers (clinician route: /patient/assessments/<slug>) ────

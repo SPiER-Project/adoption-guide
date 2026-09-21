@@ -6,7 +6,8 @@
  *
  * The 18 instrument fillers and 11 workflow recorders are ONE definition
  * rendered by two route families: the clinician's `/patient/assessments/*` and
- * `/patient/workflow/*` paths, and the guide's `/guide/tools/:slug/try`.
+ * `/patient/workflow/*` paths, and the guide's tool pages (`/guide/tools/TL-0NN`,
+ * which resolve a tool's launch-path slug against the same map).
  * CLAUDE.md states the rule and why — *"two copies drift on a `persistName` and
  * the guide then documents a resource the app does not write."*
  *
@@ -104,11 +105,12 @@ for (const root of APP_ROOTS) {
     if (!definedSet.has(r.key)) {
       fail(`${root.source}/App.tsx routes "${r.path}" to TOOL_VIEWS['${r.key}'], which ${rel(MAP)} does not define — that route renders a blank page`)
     }
-    // The guide's try route is /guide/tools/<slug>/try, and <slug> is this
-    // segment. A key that did not match its route's last segment would give the
-    // clinician a working form and the implementer "no such tool".
+    // The guide resolves a tool's form by the LAST SEGMENT of its catalog launch
+    // path (`launchSlug`), and this segment is it. A key that did not match its
+    // route's last segment would give the clinician a working form and the
+    // implementer a tool page saying "no form to try yet".
     if (r.path.split('/')[1] !== r.key) {
-      fail(`${root.source}/App.tsx routes "${r.path}" to TOOL_VIEWS['${r.key}'] — the key must equal the route's last segment, or /guide/tools/${r.path.split('/')[1]}/try finds no such tool`)
+      fail(`${root.source}/App.tsx routes "${r.path}" to TOOL_VIEWS['${r.key}'] — the key must equal the route's last segment, or the guide's tool page for "${r.path.split('/')[1]}" finds no form`)
     }
   }
 }
@@ -124,7 +126,7 @@ if (dupes.length) fail(`${rel(MAP)} defines these keys more than once: ${[...new
 
 // ── The guard that makes a slug from the URL safe to look up ────────────────
 if (!mapSrc.includes('Object.prototype.hasOwnProperty.call(TOOL_VIEWS, slug)')) {
-  fail(`${rel(MAP)}: isToolViewSlug must use Object.prototype.hasOwnProperty.call — a bare \`slug in TOOL_VIEWS\` answers yes for 'toString' and hands ToolTryIt a function to render`)
+  fail(`${rel(MAP)}: isToolViewSlug must use Object.prototype.hasOwnProperty.call — a bare \`slug in TOOL_VIEWS\` answers yes for 'toString' and hands the tool page a function to render`)
 }
 if (/return\s+slug\s+in\s+TOOL_VIEWS/.test(mapSrc)) {
   fail(`${rel(MAP)}: isToolViewSlug uses \`slug in TOOL_VIEWS\`, which is true for inherited Object properties`)

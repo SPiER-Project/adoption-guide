@@ -42,14 +42,27 @@ subsection rules below.
 reachable but should not be a sidebar row or a pager step is declared as a
 **`subsections` entry** on its owning section, whose `path` is the FULL
 sub-path (`tools/readiness`, never `readiness`) because both gates build
-`/guide/${path}`. Two exist. Adoption Readiness renders one row per catalogued
+`/guide/${path}`. Three exist. Adoption Readiness renders one row per catalogued
 instrument entirely from the catalog, so it is a view of Tools rather than a
 peer of it; The published protocol (`pathway/protocol`, 2026-09-20) is the
 Care Pathway's artifact rendered in full — spine, gates, provenance, JSON — for
 the implementer, while `/guide/pathway` itself explains what a pathway does and
-lets a reader try one (adoption-guide UX audit §4.2). A subsection gets the
-drill-in header from `resolveGuidePath`, which checks subsections BEFORE
-sections because both prefix-match.
+lets a reader try one (adoption-guide UX audit §4.2); and the tool page
+(`tools/:toolRef`, 2026-09-20, audit §4.3) is one page per catalogued tool with
+its form in front. A subsection gets the drill-in header from
+`resolveGuidePath`, which checks subsections BEFORE sections because both
+prefix-match.
+
+⚠️ **A subsection may be PARAMETERISED, and it may be a SIBLING of the layout.**
+The tool page is both: `/guide/tools/TL-0NN` draws its own `PageHeader` naming
+the tool, so it cannot sit under the layout that would draw a second one, and
+it is registered as `<Route path="/guide/tools/:toolRef">` beside the layout.
+`check:guide-boundary` and `check:surface` resolve a declared path's component
+by matching the route tag, so both accept an optional `/guide/` prefix; without
+that, a sibling declared in the file was reported as "no route element found" —
+the right failure for an undeclared page and the wrong one for a declared
+sibling. `resolveGuidePath` never matches a `:param` literally and falls back
+to the owning section, which the tool page never asks anyway.
 
 ## The guide explains and hosts; the mock EHR holds and launches (2026-09-09)
 
@@ -87,13 +100,15 @@ page, the chart, the registry and a slug → route function; `apps/clinical`
 provides its own (`apps/clinical/src/surfaceLinks.ts`, routes read from the
 catalog's launch paths) and the guide provides its own
 (`apps/guide/src/data/surfaceLinks.ts`: Tools as parent, no chart, no registry,
-`/guide/tools/<slug>/try` for a tool). The hook **throws** outside a provider —
+and for a tool the page of the tool that launches it — `/guide/tools/TL-0NN`,
+resolved by `data/toolForms.ts`, with `?form=` where a tool has several). The
+hook **throws** outside a provider —
 a default would have to name one surface's routes, which is the defect in a
 different file. A recorder links another view with `<LaunchLink slug="…">`,
 and renders plain text where the surface has no route for it.
 
-- On the guide, "launch" means the guide's own try route; the clinician's
-  launch is the Demo EHR's to offer, and the Tools page says so with one
+- On the guide, "launch" means the guide's own tool page; the clinician's
+  launch is the Demo EHR's to offer, and every tool page says so with one
   outbound button.
 - A published path whose home is now the other app is a **cross-origin hop**
   (`apps/guide/src/components/ClinicalRedirect.tsx`, origin from
@@ -101,8 +116,9 @@ and renders plain text where the surface has no route for it.
   another origin, and a `<Navigate>` into it resolves to the catch-all.
 - `check:surface-links` walks **both** apps against their own tables and reads
   the `…href:`/`…Href:` property form, which is where each app's `SurfaceLinks`
-  literals sit. It cannot see a computed target, and the guide's try route is
-  one; `check:tool-view-routes` pins those slugs instead.
+  literals sit. It cannot see a computed target, and the guide's forty tool
+  links are; `check:tool-view-routes` pins the form slugs, and
+  `PatientJourney.test.tsx` asserts one link per catalogued tool.
 - ⚠️ **It also reads the content modules' inline link markup — the link text
   in square brackets, the route in parentheses — and that
   form was added because the links moved** (2026-09-20). The Overview's
@@ -117,14 +133,16 @@ and renders plain text where the surface has no route for it.
 
 One invariant, one gate point: `InspectContext`
 (`packages/tool-views/src/context/InspectContext.ts`) defaults to **false**,
-and only the `/guide` layout and `/guide/tools/:slug/try` turn it on.
+and only the `/guide` layout and the guide's tool pages turn it on.
 `FhirJsonViewer` and `CodeDrawer` return `null` without it, and the **three**
 call sites that would otherwise leave an empty wrapper behind check it too:
 `PatientDocuments`' disclosure row, `PatientPathway`'s `.cds-card-json`, and
 `CarePlanDisplay`'s JSON toggle and download. An empty wrapper is its own
 defect — a disclosure that opens onto nothing reads worse than no disclosure.
-`ToolDetail` is deliberately not on that list; [`tool-views.md`](tool-views.md)
-§3 says why it is safe where it renders and nowhere else. The six files that
+The tool page's "FHIR examples" drawer wraps the viewer too, and needs no check
+because the page PROVIDES inspection in the same file — the wrapper `ToolDetail`
+used to be, safe only by its one caller's route, is gone with the accordion
+([`tool-views.md`](tool-views.md) §3). The six files that
 check for themselves are `FhirJsonViewer`, `CodeDrawer`, the three above and
 `PathwayCodeDrawer` (the pathway's FHIRPath gates and canonical URLs, which
 used to print inline on the clinician's panel — 2026-09-20) —
@@ -147,18 +165,34 @@ have asked `useInspect()`. It covers the prose too ([`tool-views.md`](tool-views
 the rule is a boundary rather than a convention), rendered by two route
 families: the clinician's published `/patient/assessments/*` and
 `/patient/workflow/*` paths (the catalog's 36 launch paths, every CDS card's
-`type: "smart"` link, every SMART `intent`) and the guide's
-`/guide/tools/:slug/try`. They must stay one definition — two copies drift on a
-`persistName` and the guide then documents a resource the app does not write.
-**`npm run check:tool-view-routes`** pins that the map and every app's route
-lookups agree, by parsing both as text; `toolViews.test.ts` keeps only what is
-local to the map itself.
+`type: "smart"` link, every SMART `intent`) and the guide's tool pages
+(`/guide/tools/TL-0NN`, which resolve a tool's launch-path slug against the
+map — `apps/guide/src/data/toolForms.ts`). They must stay one definition — two
+copies drift on a `persistName` and the guide then documents a resource the app
+does not write. **`npm run check:tool-view-routes`** pins that the map and every
+app's route lookups agree, by parsing both as text; `toolViews.test.ts` keeps
+only what is local to the map itself; `toolForms.test.ts` pins that every view
+is reachable from some tool page, which is the property folding the try route
+into the tool pages could have lost.
 
-⚠️ `/guide/tools/:slug/try` is a SIBLING of the `/guide` layout, not a child:
-the views render their own `PageHeader`, and nesting would put two on a page.
-It is also deliberately not a `guideSections.ts` entry — it renders recorders
-that write to patient context, so it is not a guide page and
-`check:guide-boundary`'s premise does not hold for it.
+⚠️ **The tool page owns the header above the form, and the view is told so.**
+On the clinician's routes a view IS the page and draws its `PageHeader`; on
+`/guide/tools/TL-0NN` the page draws one naming the tool — which matters exactly
+where four tools share one recorder — and sets `PageHeaderOwnerContext` to
+`page` in the same file. Default `view`, so the clinical app is unchanged by the
+context existing. A recorder under `page` keeps its `lede` inside the card. This
+is a sixth axis beside inspection, chrome and surface links, for the reason each
+of those gives for its own. `ToolPage.test.tsx` counts the rendered headers,
+which is the thing `check:template`'s text scan cannot.
+
+⚠️ The tool page is a SIBLING of the `/guide` layout, not a child, and it IS a
+`guideSections.ts` entry (`tools/:toolRef`). The try route it replaced was not
+one, on the argument that a route rendering recorders that write to patient
+context is not a guide page; that argument confused patient CONTEXT with
+patient DATA. The guide's store is unseeded, the boundary gate permits context
+and forbids fixtures, and the gate already walked every view transitively
+through the guide's own `surfaceLinks.ts` — so declaring the page changed what
+is checked, not whether it passes.
 
 ## Two build surfaces, two route tables — no flag folds either way any more
 

@@ -7,7 +7,8 @@ import { useSurfaceLinks } from '../context/SurfaceLinksContext'
  *
  * A recorder's hint says "open a Suicide-Risk Episode first" and names the
  * view by its slug; the surface says where that view lives — the clinician's
- * `/patient/workflow/risk-episode`, the guide's `/guide/tools/risk-episode/try`.
+ * `/patient/workflow/risk-episode`, the guide's page for the tool that launches
+ * it (`/guide/tools/TL-038`).
  * Where the surface has no route for the slug the text renders plain, so a
  * hint never carries a link to nowhere. See `SurfaceLinksContext`.
  */

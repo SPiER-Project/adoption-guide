@@ -44,6 +44,7 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
 import { useSurfaceLinks } from '../context/SurfaceLinksContext'
+import { usePageHeaderOwner } from '../context/PageHeaderOwnerContext'
 import { CodeDrawer } from './CodeDrawer'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { PageHeader } from '@spier/ui/PageHeader'
@@ -93,12 +94,20 @@ export function WorkflowForm({
   // not this frame's: the clinical app has all three, the guide has only the
   // parent (Tools). See SurfaceLinksContext for the dead links this replaced.
   const links = useSurfaceLinks()
+  // On the clinician's routes this frame IS the page and draws the header. On
+  // the guide's tool page the page has drawn one naming the tool, so the frame
+  // draws none — and keeps the lede, which is the clinician's sentence about
+  // what the form records, inside the card instead (PageHeaderOwnerContext).
+  const ownsHeader = usePageHeaderOwner() === 'view'
   return (
     <div className="form-view">
-      <PageHeader eyebrowStyle="pill" eyebrow={[links.parent.label, 'Workflow']} up={links.parent.href} title={title} lede={lede} />
+      {ownsHeader && (
+        <PageHeader eyebrowStyle="pill" eyebrow={[links.parent.label, 'Workflow']} up={links.parent.href} title={title} lede={lede} />
+      )}
 
       <div className="form-wrapper">
         <div className="form-card">
+          {!ownsHeader && <p className="workflow-form__lede">{lede}</p>}
           {activePatientId === null && (
             <WorkflowHint>
               No patient selected — this will be recorded in the scratch chart.

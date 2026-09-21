@@ -17,6 +17,7 @@ import type { RendererProperties } from '@formbox/renderer'
 type RendererQuestionnaire = RendererProperties<'r4'>['questionnaire']
 import { usePatient } from '../context/PatientContext'
 import { useSurfaceLinks } from '../context/SurfaceLinksContext'
+import { usePageHeaderOwner } from '../context/PageHeaderOwnerContext'
 import { launchSlug } from '../lib/launchSlug'
 import { CodeDrawer } from './CodeDrawer'
 import { FhirJsonViewer } from './FhirJsonViewer'
@@ -83,9 +84,16 @@ export function QuestionnaireView({ title, questionnaireUrl, persistName, carePl
   const [searchParams] = useSearchParams()
   const { addResponse, addCarePlan, writebackReport } = usePatient()
   // Where this surface's chart and other tool views live — the clinician's
-  // routes in the clinical app, the try routes in the guide, and no chart at
+  // routes in the clinical app, the tool pages in the guide, and no chart at
   // all there. The literals are the app's, not this view's (SurfaceLinksContext).
   const links = useSurfaceLinks()
+  // Whether THIS view draws the page header. On the clinician's routes it is
+  // the page and does; on the guide's tool page the page has already drawn one
+  // naming the tool, and a second here would be two page titles (PageHeaderOwnerContext).
+  const ownsHeader = usePageHeaderOwner() === 'view'
+  const header = ownsHeader ? (
+    <PageHeader eyebrowStyle="pill" eyebrow={[links.parent.label, 'Assessment']} up={links.parent.href} title={title} />
+  ) : null
 
   function handleSubmit(submittedResponse: QuestionnaireResponseResource) {
     const base = submittedResponse || response
@@ -155,7 +163,7 @@ export function QuestionnaireView({ title, questionnaireUrl, persistName, carePl
     // route with a console error.
     return (
       <div className="form-view">
-        <PageHeader eyebrowStyle="pill" eyebrow={[links.parent.label, 'Assessment']} up={links.parent.href} title={title} />
+        {header}
         <EmptyState title="Instrument unavailable">
           This assessment is not part of the current build.
         </EmptyState>
@@ -165,7 +173,7 @@ export function QuestionnaireView({ title, questionnaireUrl, persistName, carePl
 
   return (
     <div className="form-view">
-      <PageHeader eyebrowStyle="pill" eyebrow={[links.parent.label, 'Assessment']} up={links.parent.href} title={title} />
+      {header}
 
       <div className="form-wrapper">
         <div className="form-card">

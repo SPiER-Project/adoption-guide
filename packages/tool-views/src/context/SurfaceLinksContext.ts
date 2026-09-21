@@ -7,8 +7,8 @@ import { createContext, useContext } from 'react'
  *
  * The 18 fillers and 11 recorders are one element definition rendered by two
  * apps: the clinician's `/patient/assessments/*` and `/patient/workflow/*`
- * routes in `apps/clinical`, and the implementer's `/guide/tools/:slug/try` in
- * `apps/guide`. Until 2026-09-20 the views hardcoded the clinician's routes —
+ * routes in `apps/clinical`, and the implementer's tool pages
+ * (`/guide/tools/TL-0NN`) in `apps/guide`. Until 2026-09-20 the views hardcoded the clinician's routes —
  * "View in chart" was `to="/patient/record#activity"`, a recorder's hint linked
  * `to="/patient/workflow/outreach"`, and the page header's up-link went to the
  * chart. On the guide none of those routes exist, so every one of them fell to
@@ -25,7 +25,8 @@ import { createContext, useContext } from 'react'
  * **A shared view holds no route literal. The app that owns the route provides
  * it.** `apps/clinical/src/surfaceLinks.ts` says the chart is `/patient/record`
  * and a tool view lives at its catalog launch path; `apps/guide/src/data/surfaceLinks.ts`
- * says there is no chart and a tool view lives at `/guide/tools/<slug>/try`.
+ * says there is no chart and a tool view lives on the page of the tool that
+ * launches it (`/guide/tools/TL-0NN`, `data/toolForms.ts`).
  * Each literal then sits in the tree of the app whose route table it must
  * resolve against, which is where `check:surface-links` (now walking both
  * apps) can check it.
@@ -42,7 +43,8 @@ import { createContext, useContext } from 'react'
  * inspection on), and conflating them would make "a clinician's surface that
  * inspects" or "an implementer's surface with a chart" impossible to express.
  * Same argument `PresentationContext` and `InspectContext` each make for their
- * own axis.
+ * own axis — and `PageHeaderOwnerContext` for a sixth: whether the view or the
+ * page above it draws the header those links sit in.
  */
 export interface SurfaceLinks {
   /**
