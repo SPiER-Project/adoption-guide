@@ -42,6 +42,9 @@ import {
 // is no cycle.
 import { RISK_CONCEPT_LOINC } from './measures'
 import { reassessmentState, type ReassessmentState } from './reassessment'
+// One definition of "when was this recorded", shared with the pathway evaluator.
+import { bestArtifactDate } from './artifactDate'
+import { pathwayNextStep } from './pathwayEvaluation'
 import type { PatientSlice } from '../types/fhir'
 
 /** Just enough of an Observation to find the risk-concept ones. */
@@ -117,52 +120,19 @@ export interface DerivedRegistryRow extends RegistryPatient {
   /** Date of the most recent risk-concept Observation, or null. */
   lastAssessment: string | null
   reassessment: ReassessmentState
+  /**
+   * What the published pathway says to do next for this patient, or null when
+   * nothing is due.
+   *
+   * ⚠️ **The same expression the chart's leading card uses**
+   * (`lib/pathwayEvaluation.ts`). The caseload used to derive this column from
+   * the patient's active STAGE while the chart derived its card from the stage's
+   * lead tool plus a live alert — two derivations, and they disagreed, which is
+   * exactly what the caseload page claims cannot happen.
+   */
+  nextStep: { label: string; rationale: string } | null
 }
 
-function bestArtifactDate(resource: FhirResourceLike): string | undefined {
-  const r = resource as {
-    authored?: string
-    effectiveDateTime?: string
-    issued?: string
-    sent?: string
-    // Stage-7: Task carries authoredOn; EpisodeOfCare/Flag carry period.start.
-    // Without these the feed would fall back to the local `_savedAt` stamp,
-    // which is the save time rather than the clinical time (and is absent
-    // entirely on resources read back from a SMART server).
-    authoredOn?: string
-    // Stage-5: DocumentReference carries `date`, Consent `dateTime`, and
-    // Appointment `start` (its clinical time is the visit, not the booking).
-    date?: string
-    dateTime?: string
-    start?: string
-    period?: { start?: string; end?: string }
-    // CarePlan's own record-time field, and the FHIR home of what the demo
-    // fixtures used to keep in `_savedAt`. It sits beside `_savedAt` rather than
-    // up with the clinical fields because both answer "when was this written
-    // down", not "when did it happen".
-    created?: string
-    _savedAt?: string
-    meta?: { lastUpdated?: string }
-  }
-  return (
-    r.authored ??
-    r.effectiveDateTime ??
-    r.issued ??
-    r.sent ??
-    r.authoredOn ??
-    r.date ??
-    r.dateTime ??
-    r.start ??
-    // An episode that has closed is most meaningfully dated by its end.
-    r.period?.end ??
-    r.period?.start ??
-    r.created ??
-    r._savedAt ??
-    // Resources read back from a SMART server carry no `_savedAt`; the server's
-    // own stamp is the last resort before the row goes undated.
-    r.meta?.lastUpdated
-  )
-}
 
 /**
  * When an appointment counts as *activity*.
@@ -486,5 +456,17 @@ export function deriveRegistryRow(
     ...deriveEpisodeRollup(slice, now),
     ...deriveFollowUpRollup(slice, now),
     ...deriveReassessmentRollup(slice, currentRiskLevel, now),
+    nextStep: pathwayNextStep(
+      {
+        responses: slice.responses,
+        observations: slice.observations,
+        carePlans: slice.carePlans,
+        communications: slice.communications ?? [],
+        procedures: slice.procedures ?? [],
+        episodes: slice.episodes ?? [],
+        riskAlerts: slice.riskAlerts,
+      },
+      { now },
+    ),
   }
 }

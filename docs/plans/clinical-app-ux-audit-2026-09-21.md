@@ -6,9 +6,56 @@ caseload, the measures), the shared chrome in `packages/app-shell/`, the shared
 views in `packages/tool-views/`, and the mock EHR that launches them
 (`services/mock-ehr/`).
 
-**Status:** PRs 1 and 2 have shipped; PRs 3–7 have not started. §7 records the
-decisions Brad made on 2026-09-21; the briefs to run PRs 3–7 each in a fresh
-session are in [`clinical-app-redesign-briefs.md`](clinical-app-redesign-briefs.md).
+**Status:** PRs 1, 2 and 3 have shipped; PRs 4–7 have not started. §7 records
+the decisions Brad made on 2026-09-21; the briefs to run PRs 4–7 each in a
+fresh session are in [`clinical-app-redesign-briefs.md`](clinical-app-redesign-briefs.md).
+
+**Status 2026-09-21 (PR 3):** the chart stops answering "what do I do" three
+times — §1.4, §1.5, §4.5 and rules 3 and 4. A new evaluator in
+`packages/core/src/lib/pathwayEvaluation.ts` walks
+`PlanDefinition/SPiERSuicideSaferCarePathway` against the patient's record and
+returns one primary obligation, the also-due list, and one sentence naming the
+trigger; `buildCdsCards` is rewritten over it and decides nothing itself. A
+step is retired by an artifact of the right kind recorded after its trigger, so
+Sarah Patel's chart no longer says *Start C-SSRS Screener* on a step that holds
+one, and `PATHWAY_STAGE_DEFAULTS` produces no cards at all — it still says what
+a stage OFFERS and no longer what anything RECOMMENDS. Exactly one card carries
+`spier-primary`. Measured in the panel at 375×812, Sarah goes from 3 cards /
+318 words / 2,358px to 1 card / 164 words / 1,217px, with her one button at
+437px instead of ~520px: above the fold for the first time.
+
+Two readings the table in §4.5 did not spell out, both recorded in the
+evaluator: the published pathway states the tier's obligations but does **not**
+rank them (no `action.priority`, no `selectionBehavior`), so the ranking that
+puts the safety plan above crisis resources comes from §4.5 and decision §7.2
+and is declared in TypeScript; and the tier is read through the published
+crosswalk ConceptMaps as well as a `SPiERSuicideRiskTier` value, because SPiER's
+own C-SSRS administrations record their result in the instrument's native
+vocabulary and a rule that read only the harmonized value could not tell
+moderate from high for the one assessment the pathway names.
+
+Three things the evaluator surfaced rather than fixed. **No demo scenario
+records crisis resources at all**, so every patient with a tier now leads with
+*Share patient-facing crisis resources* — a true reading of the fixtures and a
+gap in them. **patient-006's CAMS overall risk is a bare integer on LOINC
+93374-7**, so the published CAMS crosswalk has nothing to translate and her
+chart says an assessment is on file that records no risk level; the mapper, not
+the evaluator, is where that is fixed. And **Maria Alvarez is not "finished"** —
+her chart holds no crisis resources and her reassessment is seven weeks overdue
+— so the demo host's narration for her was corrected in the same change.
+
+**Deliberately not done in PR 3.** No page layout: the landing screen, "Why
+this?" and the narrow-panel identity strip are PR 4's, and the also-due
+obligations therefore still render as cards on the rail rather than as text
+under the primary. Because the rail groups cards by `spier-stage-id`, the
+primary is first in the card list but not always first on screen — a patient
+whose primary sits at a later stage than the problem-list prompt sees the
+prompt above it. That is the landing screen's job, not the builder's, and it is
+why Maria's chart is longer than before (391 words at 470px against 296): three
+obligations are genuinely outstanding where the old chart said little.
+`high-missed-appointment-outreach` is a published high-risk obligation this
+evaluator never emits, because it is gated on a missed appointment rather than
+on the tier.
 
 **Status 2026-09-21 (PR 2):** the demo host stops drifting from `main` and
 stops contradicting itself — §1.1, §1.3, §1.13, §1.14 and §4.11.

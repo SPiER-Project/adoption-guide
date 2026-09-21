@@ -5,12 +5,12 @@
  * hosted endpoint and the in-app Patient Chart derive the same cards from the
  * same pipeline:
  *
- *   QuestionnaireResponse(s) → observationMappers → RiskAlert[] + Observation[]
- *                            → derivePathwayStatus → activeStageId
- *                            → buildCdsCards → CDS Hooks 2.0 Card[]
+ *   QuestionnaireResponse(s) → observationMappers → Observation[]
+ *                            → the pathway evaluator, over the published
+ *                              protocol → buildCdsCards → CDS Hooks 2.0 Card[]
  *
- * The Observations are what the tier-driven guidance cards read (the harmonized
- * concept, LOINC 93374-7) — see packages/core/src/lib/cdsHooks/problemListCard.ts.
+ * The Observations are what both the tier branch and the tier-driven guidance
+ * card read (the harmonized concept, LOINC 93374-7).
  *
  * Two input paths:
  *   1. Live path — the CDS client prefetched the patient's QuestionnaireResponses.
@@ -18,6 +18,13 @@
  *   2. Fallback path — no prefetch (e.g. testing from sandbox.cds-hooks.org with
  *      a bundled patient id). We serve one of the app's population scenarios so
  *      the service is demonstrable without a connected FHIR server.
+ *
+ * ⚠️ **Neither path serves a curated recommendation any more.** The fallback
+ * used to surface the bundled patient's hand-written `recommendedNextStep`,
+ * which is editorial text no FHIR chart carries; decision §7.1 of the
+ * clinical-app audit settles that the card states what the RECORD implies, and
+ * with nothing on file that is screening. The two paths now differ only in
+ * where the record comes from.
  *
  * ⚠️ One thing differs between here and the app on purpose: with
  * `smartLaunchUrl` set, this endpoint emits `type: "smart"` card links so a host
@@ -27,15 +34,8 @@
  */
 import { buildCdsCards } from '@spier/core/lib/cdsHooks'
 import type { Card, CdsServiceResponse } from '@spier/core/lib/cdsHooks/types'
-import {
-  derivePathwayStatus,
-  type PatientArtifacts,
-  type QuestionnaireResponseLike,
-  type StoredResponseLike,
-} from '@spier/core/lib/patientPathway'
 import { mapResponseToObservations, type RiskAlert } from '@spier/core/lib/observationMappers'
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
-import patientsJson from '@spier/demo-population/patients.json'
 import type { ObservationResource, QuestionnaireResponseResource } from '@spier/core/types/fhir'
 import type { CdsHookRequest, CdsServiceDefinition } from './types'
 
@@ -58,18 +58,6 @@ export const PATIENT_VIEW_SERVICE: CdsServiceDefinition = {
       'QuestionnaireResponse?patient={{context.patientId}}&status=completed&_sort=-authored',
   },
 }
-
-interface RecommendedNextStep {
-  stageId: string
-  label: string
-  rationale: string
-}
-
-const RECOMMENDED_BY_PATIENT: Record<string, RecommendedNextStep> = Object.fromEntries(
-  (patientsJson as Array<{ id: string; recommendedNextStep?: RecommendedNextStep }>)
-    .filter((p) => p.recommendedNextStep)
-    .map((p) => [p.id, p.recommendedNextStep as RecommendedNextStep]),
-)
 
 /**
  * Pull every QuestionnaireResponse out of a prefetch value. CDS clients return
@@ -173,40 +161,42 @@ export function buildPatientViewResponse(
 
   let cards: Card[]
   if (prefetched.length > 0) {
-    const responses: StoredResponseLike[] = prefetched.map((resource) => ({
-      resource: resource as QuestionnaireResponseLike,
-    }))
-    const artifacts: PatientArtifacts = { responses }
     cards = buildCdsCards({
-      activeStageId: derivePathwayStatus(artifacts).activeStageId,
-      riskAlerts: riskAlertsFor(prefetched),
+      record: {
+        responses: prefetched.map((resource, i) => ({
+          // The evaluator resolves an Observation back to the instrument that
+          // produced it through `derivedFrom` → `StoredResponse.id`, so a
+          // prefetched response needs an id the derived Observations share.
+          id: (resource as { id?: string }).id ?? `prefetched-${i}`,
+          questionnaireName: (resource as { questionnaire?: string }).questionnaire ?? 'Questionnaire',
+          completedAt: (resource as { authored?: string }).authored ?? '',
+          resource,
+        })),
+        observations: derivedObservationsFor(prefetched),
+        riskAlerts: riskAlertsFor(prefetched),
+      },
       // Every catalogued tool. The embedded panel applies the SAME rule in panel
-      // chrome (web/src/lib/toolEnablement.ts) — it used to apply the adoption
-      // guide's default preset instead, and the host page and the panel then
-      // disagreed about patient-006's cards. Change one, change both.
+      // chrome (apps/clinical/src/lib/toolEnablement.ts) — it used to apply the
+      // adoption guide's default preset instead, and the host page and the panel
+      // then disagreed about patient-006's cards. Change one, change both.
       isToolEnabled: () => true,
-      recommendedNextStep: null,
-      isSmartConnected: true,
       smartLaunch,
-      observations: derivedObservationsFor(prefetched),
     })
   } else {
     const scenario = patientId ? POPULATION_SCENARIOS[patientId] : undefined
     if (!scenario) return { cards: [] }
-    const artifacts: PatientArtifacts = {
-      responses: scenario.responses,
-      carePlans: scenario.carePlans,
-      observations: scenario.observations,
-      communications: scenario.communications ?? [],
-    }
     cards = buildCdsCards({
-      activeStageId: derivePathwayStatus(artifacts).activeStageId,
-      riskAlerts: scenario.riskAlerts,
+      record: {
+        responses: scenario.responses,
+        observations: scenario.observations,
+        carePlans: scenario.carePlans,
+        communications: scenario.communications ?? [],
+        procedures: scenario.procedures ?? [],
+        episodes: scenario.episodes ?? [],
+        riskAlerts: scenario.riskAlerts,
+      },
       isToolEnabled: () => true, // see the live path above — must match the panel
-      recommendedNextStep: (patientId && RECOMMENDED_BY_PATIENT[patientId]) || null,
-      isSmartConnected: false,
       smartLaunch,
-      observations: scenario.observations,
     })
   }
 

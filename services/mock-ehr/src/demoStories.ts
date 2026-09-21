@@ -87,7 +87,7 @@ export const DEMO_STORIES: Record<string, DemoStory> = {
     story: 'A complete ED episode, from screen to handoff to follow-up.',
     tryIt: {
       why: 'The whole pathway, filled in. Screened positive in the ED, assessed, safety-planned, handed off and followed up.',
-      watch: 'Every stage on the rail is complete and each one shows what was recorded there. Nothing is left to do; this is what a finished episode looks like.',
+      watch: 'Every stage on the rail is complete and each one shows what was recorded there. What is still open is what the protocol keeps asking for at high risk: crisis resources were never recorded, and the reassessment is long past due.',
     },
   },
   'patient-012': {

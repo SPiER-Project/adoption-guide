@@ -142,12 +142,31 @@ export function reassessmentState(
   lastAssessment: string | null,
   now: Date = new Date(),
 ): ReassessmentState {
-  const intervalDays = intervalDaysForLevel(level)
+  return reassessmentStateForTier(tierCodeForLevel(level), lastAssessment, now)
+}
+
+/**
+ * The same, from a harmonized tier code rather than an app risk level.
+ *
+ * ⚠️ **The tier is what the published schedule is keyed on**, and the pathway
+ * evaluator reads a tier off the record (a `SPiERSuicideRiskTier` Observation
+ * or the episode's cached tier) rather than off an instrument's `RiskAlert`.
+ * Translating that back into a `RiskAlert.level` just to call the function
+ * above would round-trip through the one vocabulary the concept layer exists to
+ * replace — so the tier-shaped entry point is the real one and
+ * `reassessmentState` delegates to it.
+ */
+export function reassessmentStateForTier(
+  tierCode: string,
+  lastAssessment: string | null,
+  now: Date = new Date(),
+): ReassessmentState {
+  const intervalDays = REASSESSMENT_INTERVAL_DAYS[tierCode] ?? null
   if (intervalDays === null) {
     return {
       kind: 'no-cadence',
       reason:
-        NO_CADENCE_REASON[tierCodeForLevel(level)] ??
+        NO_CADENCE_REASON[tierCode] ??
         'No reassessment interval is published for this tier.',
     }
   }

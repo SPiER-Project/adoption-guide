@@ -243,6 +243,10 @@ export function buildProblemListGuidanceCard(observations: ObservationResource[]
     // would be an offer to create a Condition from a screen.
     extension: {
       'spier-card-id': PROBLEM_LIST_CARD_ID,
+      // Nothing to launch and nothing a site could enable to change that — the
+      // work happens in the host's own problem-list workflow. Without this the
+      // chart offered "configure tools" under a card that has no tool.
+      'spier-narrative-only': true,
       ...(group.stage ? { 'spier-stage-id': group.stage.code } : {}),
     },
   }

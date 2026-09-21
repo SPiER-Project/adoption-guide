@@ -7,9 +7,9 @@
  *
  * ⚠️ **`recommendedNextStep` is `null` and cannot be otherwise.** It is
  * hand-curated per patient in `patients.json` and no FHIR element carries it, so
- * a server-backed row derives its next step from the pathway instead — see
- * `derivedNextStep` in `lib/cdsHooks/cards.ts`, which the caseload column falls
- * back to.
+ * a server-backed row derives its next step from the published pathway instead
+ * — `DerivedRegistryRow.nextStep`, which the caseload column falls back to and
+ * which the patient's own chart leads with (`lib/pathwayEvaluation.ts`).
  *
  * ⚠️ **`gender` is title-cased on purpose.** FHIR's `administrative-gender`
  * codes are lowercase (`female`); `patients.json` carries `Female`, and the

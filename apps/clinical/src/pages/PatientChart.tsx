@@ -41,7 +41,6 @@ export function PatientChart() {
     flags,
     tasks,
     activePatientId,
-    populationPatient,
     isSmartConnected,
     walkthrough,
     isSliceLoading,
@@ -129,25 +128,32 @@ export function PatientChart() {
     observations.length > 0 ||
     communications.length > 0 ||
     workflowArtifacts.length > 0
-  const { statuses, activeStageId } = useMemo(
+  const { statuses } = useMemo(
     () => derivePathwayStatus(artifacts),
     [artifacts],
   )
   const stageGroups = useMemo(() => groupArtifactsByStage(artifacts), [artifacts])
   const unstaged = useMemo(() => unstagedArtifacts(artifacts), [artifacts])
+  // ⚠️ The cards are what the PUBLISHED PATHWAY owes this record — not the
+  // active stage's lead tool, and not the patient's curated `recommendedNextStep`
+  // (clinical-app audit §1.5, decision §7.1). The builder evaluates the protocol
+  // itself, so the chart, the embedded panel and the hosted service all answer
+  // the same question the same way.
   const cdsCards = useMemo(
     () =>
       buildCdsCards({
-        activeStageId,
-        riskAlerts,
+        record: {
+          responses,
+          observations,
+          carePlans,
+          communications,
+          procedures,
+          episodes,
+          riskAlerts,
+        },
         isToolEnabled,
-        recommendedNextStep: populationPatient?.recommendedNextStep ?? null,
-        isSmartConnected,
-        // Feeds the tier-driven problem-list guidance card, which gates on the
-        // harmonized concept Observation rather than on a risk alert.
-        observations,
       }),
-    [activeStageId, riskAlerts, isToolEnabled, populationPatient, isSmartConnected, observations],
+    [responses, observations, carePlans, communications, procedures, episodes, riskAlerts, isToolEnabled],
   )
 
   return (

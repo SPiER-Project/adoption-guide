@@ -67,8 +67,24 @@ export interface SpierCardExtension {
   /** Pathway stage this card is about (mirrors `source.topic.code`). */
   'spier-stage-id'?: string
   /**
-   * True when the card's summary/detail already convey a curated next step, so
-   * the UI should suppress the "no tools enabled" fallback. Omitted when false.
+   * The one thing to do now.
+   *
+   * Exactly one card in a response carries it, and only when the published
+   * pathway has an unsatisfied step for this patient. Set so that every
+   * renderer — the chart, the embedded panel and a host EHR's own card list —
+   * agrees which recommendation leads, instead of each deciding from position
+   * or from its own ranking (clinical-app audit §4.5). Omitted when false.
+   */
+  'spier-primary'?: true
+  /**
+   * True when the card has nothing to launch AND nothing a site could enable to
+   * change that — a standing instruction, or a documentation prompt. The UI
+   * suppresses its "no tools enabled for this stage" fallback, which would
+   * otherwise send a clinician to a settings page that cannot help.
+   *
+   * ⚠️ Not the same as a card whose tool is merely turned off. That one
+   * deliberately does NOT carry this, because "configure tools" is exactly the
+   * right thing to say about it.
    */
   'spier-narrative-only'?: boolean
   /**

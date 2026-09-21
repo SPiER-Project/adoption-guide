@@ -110,7 +110,7 @@ function env(policy: CdsJwtEnv) {
 const invokeBody = JSON.stringify({
   hook: 'patient-view',
   hookInstance: 'test',
-  context: { patientId: 'patient-006' },
+  context: { patientId: 'patient-003' },
 })
 
 function invoke(headers: Record<string, string>, policy: CdsJwtEnv) {

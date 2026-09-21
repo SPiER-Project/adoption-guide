@@ -120,7 +120,7 @@ function invoke(token: string, policy?: CdsJwtEnv) {
       body: JSON.stringify({
         hook: 'patient-view',
         hookInstance: crypto.randomUUID(),
-        context: { patientId: 'patient-006' },
+        context: { patientId: 'patient-003' },
       }),
     },
     env(policy),

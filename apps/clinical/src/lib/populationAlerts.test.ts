@@ -16,6 +16,7 @@ function row(over: Partial<DerivedRegistryRow> = {}): DerivedRegistryRow {
     mrn: '1',
     gender: 'Female',
     recommendedNextStep: { stageId: 's', label: 'l', rationale: 'r' },
+    nextStep: null,
     currentStage: null,
     completedStages: [],
     currentRiskLevel: 'moderate',

@@ -63,7 +63,7 @@ describe('POST /cds-services/spier-patient-view', () => {
       body: JSON.stringify({
         hook: 'patient-view',
         hookInstance: 'test',
-        context: { patientId: 'patient-006' },
+        context: { patientId: 'patient-003' },
       }),
     }, NO_AUTH)
     expect(res.status).toBe(200)
@@ -148,7 +148,7 @@ describe('SMART launch links come from configuration, not the request origin', (
       body: JSON.stringify({
         hook: 'patient-view',
         hookInstance: 'test',
-        context: { patientId: 'patient-006' },
+        context: { patientId: 'patient-003' },
       }),
     }, NO_AUTH)
     const body = (await res.json()) as CdsServiceResponse

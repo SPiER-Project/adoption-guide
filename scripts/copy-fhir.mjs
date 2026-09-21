@@ -558,7 +558,7 @@ function writeInstrumentItemCodes() {
  * `copyResources()` above by the time this runs).
  *
  * Why: several hand-authored TypeScript tables key or value on a stage id
- * (`CAREPLAN_PROFILE_STAGES`, `STAGE_BLURB`, `StageTrigger.fromStageId` /
+ * (`CAREPLAN_PROFILE_STAGES`, `PATHWAY_STAGE_DEFAULTS`, `StageTrigger.fromStageId` /
  * `toStageId`, `Tool.stageId`) and were typed as bare `string`, so a typo in
  * one of them was invisible at compile time. This is the same fix as
  * `writeCarePlanProfileTypes()` above, one level over: a generated union lets
