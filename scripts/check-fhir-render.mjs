@@ -85,6 +85,8 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, relative, resolve } from 'node:path'
 import ts from 'typescript'
+
+import { RESOURCE_TYPES } from './lib/fhir-vocabulary.mjs'
 import { stripComments } from './lib/jsx-comments.mjs'
 import { reportFloors } from './lib/floors.mjs'
 import { appRootFloors } from './lib/app-roots.mjs'
@@ -196,18 +198,18 @@ for (const rel of files) {
 // ── RULE 3 — a recorder's prose describes the act, not the resource ────────
 
 /**
- * The words that mean "this is the wire format". Resource types SPiER actually
- * writes or reads, plus the two shapes a clinician has no use for: a
- * `SPiER…`-prefixed profile name and an `Element.path`.
+ * The two shapes a clinician has no use for beyond the resource types
+ * themselves: a `SPiER…`-prefixed profile name and an `Element.path`.
+ *
+ * ⚠️ **`RESOURCE_TYPES` moved to `lib/fhir-vocabulary.mjs` on 2026-09-21**, when
+ * `check:jargon` grew a clinical scan that needs the same list over the whole
+ * app rather than over the eleven recorders. Two copies would have meant a
+ * resource type banned from a recorder's lede and allowed on the chart row
+ * beside it.
  *
  * ⚠️ Matched against JSXText ONLY, so `AppointmentResource` and
  * `` `Appointment/${id}` `` never reach this list. See the header.
  */
-const RESOURCE_TYPES = [
-  'Communication', 'ServiceRequest', 'DocumentReference', 'Appointment', 'Consent',
-  'Task', 'Procedure', 'Observation', 'EpisodeOfCare', 'Flag', 'CarePlan',
-  'QuestionnaireResponse', 'Questionnaire', 'Encounter', 'DiagnosticReport',
-]
 const PROSE_PATTERNS = [
   { name: 'a FHIR resource type', re: new RegExp(`\\b(${RESOURCE_TYPES.join('|')})\\b`, 'g') },
   { name: 'a SPiER profile name', re: /\bSPiER[A-Z]\w+/g },

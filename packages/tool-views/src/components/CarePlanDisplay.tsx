@@ -48,8 +48,9 @@ export function CarePlanDisplay({ carePlan }: { carePlan: GeneratedCarePlan }) {
       </div>
 
       <Notice tone="warning">
-        <strong>Demo Only</strong> — This CarePlan was generated client-side for demonstration purposes.
-        No patient data has been stored, transmitted, or persisted to any server. All data remains in your browser's localStorage.
+        <strong>Demo Only</strong> — This safety plan was built in your browser for demonstration
+        purposes. Nothing about this patient has been sent anywhere or saved to any server; it
+        stays on this device until you close the demo.
       </Notice>
 
       <div className="careplan-steps">

@@ -389,8 +389,13 @@ function artifactPhrase(
  * A QuestionnaireResponse names its own Questionnaire; a derived Observation
  * carries `derivedFrom` back to the response it came from, which is the hop the
  * mappers leave for readers rather than restating the tool on every resource.
+ *
+ * Exported since 2026-09-21 because *What’s on file* asks the same question of
+ * every row it renders, and `check:dupes` fails the paste. Its one heuristic
+ * branch is why it is shared rather than reimplemented: a second copy would
+ * name a different instrument on the same artifact the day either was tuned.
  */
-function instrumentName(resource: FhirResourceLike, slice: PatientSlice): string | null {
+export function instrumentName(resource: FhirResourceLike, slice: PatientSlice): string | null {
   if (resource.resourceType === 'QuestionnaireResponse') {
     const tool = toolForResponse(resource)
     if (tool) return tool.shortName ?? tool.name

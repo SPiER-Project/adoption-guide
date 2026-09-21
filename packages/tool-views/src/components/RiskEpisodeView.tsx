@@ -247,7 +247,7 @@ export function RiskEpisodeView() {
           {triggerMissing && (
             <p className="workflow-field-help">
               {triggerCandidates.length === 0
-                ? 'This patient has no screening Observation on file, so a positive screen cannot be evidenced. Choose a different reason for entry.'
+                ? 'This patient has no screening result on file, so a positive screen cannot be evidenced. Choose a different reason for entry.'
                 : 'Select the screening artifact before opening the episode.'}
             </p>
           )}

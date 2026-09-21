@@ -1,5 +1,5 @@
 /**
- * The patient chart's vertical pathway rail.
+ * The eight-stage rail: where this patient is.
  *
  * Replaces what used to be three parallel retellings of the same eight stages —
  * a horizontal stepper, a detached "Recommendations" stack, and a vertical
@@ -7,19 +7,37 @@
  * say to do next* had to join a recommendation at the top of the page to the
  * stage row several hundred pixels below it.
  *
- * Now there is one rail. Each stage is a node carrying, in order: what the stage
- * is for, what to do here (the CDS Hooks cards that target it), what has already
- * been recorded (its FHIR artifacts), and — for stages not yet reached — which
- * tools would satisfy it. Nodes that need attention are open; everything else
- * collapses to one scannable line.
+ * ── It is a page now, not the top of the chart (2026-09-21) ────────────────
+ *
+ * Clinical-app audit §4.3: the rail is a good answer to a question the landing
+ * screen no longer asks, so it moved to `pages/PatientWhere.tsx` and a clinician
+ * opens it on purpose. Three things left with the move:
+ *
+ *   - **The stage CodeSystem definitions.** Every one begins "The EHR supports…"
+ *     — written to a vendor, and the chart used them as stage descriptions
+ *     (§1.9). The node now carries `stageBlurb`, one clinician sentence held in
+ *     `packages/core` beside the stage ids.
+ *   - **"Tools that satisfy this stage".** That list is the stage page's, and
+ *     the row links there. ⚠️ Deleting the block is the MEASURED part of §4.3,
+ *     not a tidy-up: with the pathway's obligations off the rail (PR 4) every
+ *     stage that used to carry a card fell into that branch instead, and one
+ *     chart grew 372px because of it.
+ *   - **Its own title and progress line.** The page's `PageHeader` carries
+ *     both, so the rail draws no header in either chrome and `inPanel` stopped
+ *     being a thing this component reads.
+ *
+ * What a node carries now: the stage in one clinician sentence, the guidance
+ * cards that target it, and what has already been recorded there. A stage the
+ * pathway owes something at says how many on its row; the obligations
+ * themselves are the landing screen's, and rendering them here too is §1.5
+ * rebuilt one layer down.
  */
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Check, ChevronDown, ChevronUp } from 'lucide-react'
-import { STAGES, TOOLS, stageById } from '@spier/core/data/catalog'
+import { STAGES, stageBlurb, stageById } from '@spier/core/data/catalog'
 import type { Card, CdsIndicator } from '@spier/core/lib/cdsHooks'
 import type { StageArtifacts, StageStatus } from '@spier/core/lib/patientPathway'
-import { orderByPathwayRealization } from '@spier/core/lib/pathwayRealizations'
 import { FhirJsonViewer } from '@spier/tool-views/components/FhirJsonViewer'
 import { useInspect } from '@spier/tool-views/context/InspectContext'
 import { usePresentation } from '@spier/tool-views/context/PresentationContext'
@@ -180,18 +198,19 @@ function StageNode({
   group,
   status,
   cards,
+  dueCount,
   open,
   onToggle,
-  isToolEnabled,
   anchorId,
 }: {
   index: number
   group: StageArtifacts
   status: StageStatus
   cards: Card[]
+  /** How many of the pathway's outstanding obligations sit at this stage. */
+  dueCount: number
   open: boolean
   onToggle: () => void
-  isToolEnabled: (id: string) => boolean
   /** Extra in-page anchor hosted by this node (the sidebar's #recommendations). */
   anchorId?: string
 }) {
@@ -199,46 +218,18 @@ function StageNode({
   const count = artifactCount(group)
   const state = nodeStateOf(status, count > 0)
   const scoreSummary = scoreSummaryOf(group.observations)
-  // A recommendation on the stage the patient is on, or one they have not
-  // reached, is a to-do. The same card on a COMPLETED stage is guidance — the
-  // problem-list card sits on a finished "Define the Risk Picture" by design —
-  // and labelling it "Do now" beside a "Complete" pill was the rail
-  // contradicting itself on three nodes at once. The node still opens for it
-  // (see `autoOpen`); it just stops claiming the stage is outstanding.
+  // ⚠️ **"Due" is the PATHWAY's count, not the card count**, and that is the
+  // whole difference from the rule this replaced. Until PR 4 the rail held the
+  // obligations themselves, so "a card is here" and "something is owed here"
+  // were the same fact; now the obligations are the landing screen's and every
+  // card the rail still draws is guidance. A guidance card that set this flag
+  // would tell a clinician a finished stage was outstanding — which is what
+  // "four labels for one state" (§1.6) was, one layer down.
   const hasCards = cards.length > 0
-  const needsAttention = hasCards && (state === 'active' || state === 'upcoming')
-  const isGuidance = hasCards && !needsAttention
-  // The "Do now" flag is for a to-do on a stage the patient has NOT reached —
-  // there it is the only thing saying the row is actionable. On the active
-  // stage it sat beside "You are here", above a red "Urgent" pill, beside a
-  // card titled "Next step": four labels for one state, and a reader could not
-  // tell an emergency from the ordinary next thing. The active node keeps its
-  // one status pill; the open card underneath is what says what to do.
-  const showTodoFlag = needsAttention && state === 'upcoming'
-
-  // "Potential actions" at this stage: the tools that would satisfy it. This is
-  // what makes the rail readable as a *rule set* rather than only as a history —
-  // you can see the whole pathway's options without launching anything.
-  //
-  // Every stage has launchable tools in the catalog, but most implementations
-  // enable only a few, so both halves matter: what you can do here now, and what
-  // the pathway offers that you haven't turned on.
-  const { enabled: enabledTools, disabledCount } = useMemo(() => {
-    // The pathway's named realization first, like the CDS card (cards.ts).
-    const all = orderByPathwayRealization(
-      TOOLS.filter(t => t.stageId === group.stageId && t.launchActions.length > 0),
-    )
-    const enabled = all.filter(t => isToolEnabled(t.id))
-    return { enabled, disabledCount: all.length - enabled.length }
-  }, [group.stageId, isToolEnabled])
-
-  // Collapsed one-liner: the single most useful fact about this stage.
+  const needsAttention = dueCount > 0
+  // Collapsed one-liner: the scores if there are any, else how much is here.
   const summary =
-    scoreSummary ||
-    (count > 0 ? `${count} ${count === 1 ? 'record' : 'records'}` : '') ||
-    (state === 'upcoming' && enabledTools.length > 0
-      ? `${enabledTools.length} ${enabledTools.length === 1 ? 'tool' : 'tools'} available`
-      : '')
+    scoreSummary || (count > 0 ? `${count} ${count === 1 ? 'record' : 'records'}` : '')
 
   return (
     <li
@@ -252,40 +243,55 @@ function StageNode({
       </span>
       <div className="pathway-node-card">
         {anchorId && <span id={anchorId} className="pathway-node-anchor" />}
+        {/* ⚠️ **Two controls, not one, and the split is audit §4.3's "each row
+            links to its stage page".** The title is a LINK — the row's primary
+            action is "what do I do here", which is the stage page — and the
+            summary, the pills and the chevron are a separate toggle for "what
+            is already recorded here". One control could only have been one of
+            those two, and a `<Link>` nested inside the `<button>` the whole row
+            used to be is not valid markup in the first place. */}
         <h4 className="pathway-node-heading">
-          <button
-            type="button"
-            className="pathway-node-toggle"
-            onClick={onToggle}
-            aria-expanded={open}
-          >
-            <span className="pathway-node-main">
-              <span className="pathway-node-step">Step {index + 1}</span>
-              <span className="pathway-node-title">{stage?.title}</span>
-              {summary && !open && <span className="pathway-node-summary">{summary}</span>}
-            </span>
-            <span className="pathway-node-aside">
-              {showTodoFlag && (
-                <Pill tone="brand">{cards.length === 1 ? 'Do now' : `${cards.length} to do`}</Pill>
-              )}
-              {isGuidance && (
-                <Pill tone="neutral">Guidance</Pill>
-              )}
-              <Pill className={`pathway-node-status--${state}`}>{NODE_STATE_LABEL[state]}</Pill>
+          <Link className="pathway-node-open" to={`/patient/pathway/${group.stageId}`}>
+            <span className="pathway-node-step">Step {index + 1}</span>
+            <span className="pathway-node-title">{stage?.title}</span>
+          </Link>
+          <span className="pathway-node-aside">
+            {dueCount > 0 && (
+              <Pill tone="brand">{dueCount === 1 ? '1 due' : `${dueCount} due`}</Pill>
+            )}
+            {hasCards && <Pill tone="neutral">Guidance</Pill>}
+            <Pill className={`pathway-node-status--${state}`}>{NODE_STATE_LABEL[state]}</Pill>
+            <button
+              type="button"
+              className="pathway-node-toggle"
+              onClick={onToggle}
+              aria-expanded={open}
+              aria-label={
+                open
+                  ? `Hide what is recorded at ${stage?.title}`
+                  : `Show what is recorded at ${stage?.title}`
+              }
+            >
               <span className="pathway-node-chevron" aria-hidden>
                 {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               </span>
-            </span>
-          </button>
+            </button>
+          </span>
         </h4>
+
+        {/* ⚠️ The one useful fact about a collapsed stage sits on its OWN line,
+            not beside the pills. Inside the aside it cost the title most of a
+            375px row and wrapped "Identify Possible Risk" onto three lines. */}
+        {!open && summary && <p className="pathway-node-summary">{summary}</p>}
 
         {open && (
           <div className="pathway-node-body">
-            <p className="pathway-node-desc">{stage?.description}</p>
+            {/* The clinician's sentence, not the CodeSystem's definition — see
+                the module header and `packages/core/src/data/catalog/stageBlurbs.ts`. */}
+            <p className="pathway-node-desc">{stageBlurb(group.stageId)}</p>
 
-            {cards.length > 0 && (
+            {hasCards && (
               <div className="pathway-node-actions">
-                <h5 className="pathway-node-section-title">What to do here</h5>
                 <div className="pathway-node-cards">
                   {cards.map(card => (
                     <CdsCardView
@@ -300,7 +306,7 @@ function StageNode({
             {count > 0 && (
               <div className="pathway-node-records">
                 <h5 className="pathway-node-section-title">
-                  Recorded here{scoreSummary && ` · ${scoreSummary}`}
+                  Recorded here{scoreSummary && ` \u00b7 ${scoreSummary}`}
                 </h5>
                 <ArtifactCards
                   responses={group.responses}
@@ -312,64 +318,12 @@ function StageNode({
               </div>
             )}
 
-            {count === 0 && cards.length === 0 && (
+            {count === 0 && !hasCards && (
               <EmptyState>
                 {state === 'passed'
                   ? 'The pathway moved past this stage without anything being recorded here.'
                   : 'Nothing recorded at this stage yet.'}
               </EmptyState>
-            )}
-
-            {/* Only offer the tool list where it answers "what could happen
-                here" — a stage with live recommendations already shows its
-                actions above, and repeating them reads as a second, weaker set. */}
-            {cards.length === 0 && (
-              <div className="pathway-node-tools">
-                <h5 className="pathway-node-section-title">Tools that satisfy this stage</h5>
-                {enabledTools.length > 0 && (
-                  <div className="pathway-node-tool-chips">
-                    {enabledTools.flatMap(tool =>
-                      tool.launchActions.map(action => (
-                        <Link
-                          key={`${tool.id}-${action.path}`}
-                          to={action.path}
-                          className="pathway-tool-chip"
-                        >
-                          {tool.launchActions.length > 1
-                            ? `${tool.shortName ?? tool.name}: ${action.label}`
-                            : action.label}
-                        </Link>
-                      )),
-                    )}
-                  </div>
-                )}
-                {disabledCount > 0 && (
-                  <p className="pathway-node-tools-note">
-                    {enabledTools.length > 0
-                      ? `${disabledCount} more `
-                      : `${disabledCount} ${disabledCount === 1 ? 'tool' : 'tools'} `}
-                    {disabledCount === 1 ? 'is' : 'are'} catalogued for this stage but not enabled
-                    in your implementation.{' '}
-                    <Link to="/settings">Configure tools</Link>.
-                  </p>
-                )}
-                {enabledTools.length === 0 && disabledCount === 0 && (
-                  <EmptyState>
-                    SPiER has no launchable tool for this stage yet.
-                  </EmptyState>
-                )}
-                {/* The way into the stage's own page. The rail answers "where is
-                    this patient"; the page answers "what do I do here", with the
-                    instrument the published pathway names already chosen. This
-                    link is the ONLY way in — `check:catalog` validates declared
-                    navigation targets, and a route nothing links to is dead code
-                    no gate would notice. */}
-                <p className="pathway-node-tools-note">
-                  <Link to={`/patient/pathway/${group.stageId}`}>
-                    Open this stage &rarr;
-                  </Link>
-                </p>
-              </div>
             )}
           </div>
         )}
@@ -436,12 +390,17 @@ export function PatientPathway({
   stageGroups,
   statuses,
   cards,
-  isToolEnabled,
+  dueByStage,
 }: {
   stageGroups: StageArtifacts[]
   statuses: Record<string, StageStatus>
   cards: Card[]
-  isToolEnabled: (id: string) => boolean
+  /**
+   * Stage id → how many of the pathway's outstanding obligations sit there.
+   * Supplied by the page from the same `evaluatePathway` the landing screen
+   * reads, so the two cannot disagree about what is owed.
+   */
+  dueByStage?: Record<string, number>
 }) {
   // Cards target a stage through the `spier-stage-id` extension the builder
   // already stamps. A card whose stage doesn't resolve would otherwise vanish
@@ -494,48 +453,17 @@ export function PatientPathway({
       return next
     })
 
-  // The panel's vertical budget is the whole reason PanelShell exists, and this
-  // header spent five lines of it on meta before the first stage. In panel chrome
-  // the rail renders NO header and NO progress line of its own: the chart's
-  // PageHeader carries the title and `PathwayProgress` as its lede (see
-  // PatientChart.tsx), and the subtitle lines become one footnote under the
-  // rail — the links survive because in the panel the protocol link is the ONLY
-  // way into the published pathway.
-  const inPanel = usePresentation().chromeMode === 'panel'
-  const actionCount = cards.length
   // First stage carrying a recommendation — where #recommendations should land.
   const recommendationsHost = STAGES.find(s => (byStage.get(s.id)?.length ?? 0) > 0)?.id
 
   return (
     <section id="activity" className="pathway">
-      {!inPanel && <header className="pathway-header">
-        <h3 className="pathway-title">Suicide-safer care pathway</h3>
-        <span className="pathway-subtitle">
-          {/* ⚠️ **The "also served over the wire" line is GONE, not moved.** It
-              linked to `/guide/cds-service`, which this app does not register,
-              so on a real launch it bounced the clinician back to the chart.
-              It was also implementer prose on a clinician's primary screen —
-              "real CDS Hooks 2.0 cards", "over the wire" name the wire format,
-              which is the thing this surface exists not to do. An implementer
-              reads it in the guide, where it belongs. */}
-          {/* The way into the published protocol, and in the embedded SMART
-              panel the ONLY one: the panel has no sidebar, so the chart — its
-              overview — is where the definition has to be reachable from.
-              Deliberately not /guide/pathway, which is the implementer's
-              framing, pager into Tools and all. See pages/PathwayProtocol.tsx. */}
-          <span className="pathway-subtitle__line">
-            This rail is <strong>this patient</strong> &middot;{' '}
-            <Link to="/patient/pathway">see the published protocol</Link>
-          </span>
-        </span>
-      </header>}
-
-      {!inPanel && (
-        <p className="pathway-progress">
-          <PathwayProgress statuses={statuses} actionCount={actionCount} />
-        </p>
-      )}
-
+      {/* ⚠️ **No header and no progress line in EITHER chrome since 2026-09-21.**
+          The rail is a page now and `pages/PatientWhere.tsx` owns its header —
+          title, up-link and `PathwayProgress` as the lede. It drew its own in a
+          standalone tab while the panel suppressed them, which is exactly the
+          "one owner per page" rule `docs/internals/css-and-page-template.md`
+          states; the rail simply stopped being the thing that owns it. */}
       {orphans.length > 0 && (
         <div className="pathway-orphan-cards">
           {orphans.map(card => (
@@ -557,23 +485,13 @@ export function PatientPathway({
             group={group}
             status={statuses[group.stageId]}
             cards={byStage.get(group.stageId) ?? []}
+            dueCount={dueByStage?.[group.stageId] ?? 0}
             open={open.has(group.stageId)}
             onToggle={() => toggle(group.stageId)}
-            isToolEnabled={isToolEnabled}
             anchorId={group.stageId === recommendationsHost ? 'recommendations' : undefined}
           />
         ))}
       </ol>
-
-      {/* ⚠️ **The panel's footnote links are GONE, not moved** (clinical-app
-          audit §4.7, PR 4). They were *The published protocol* and *Tools this
-          deployment offers*, and they were the panel's only navigation — which
-          was the argument for them and is now the argument against: the panel
-          has a landing screen, the protocol is reached through *Why this?*, and
-          the settings page has never had any effect in panel chrome anyway
-          (`lib/toolEnablement.ts` has the four reasons). Putting a deployment
-          setting in a clinician's host chart, one tap from a suicide-risk
-          recommendation, is what §4.9 is for. */}
     </section>
   )
 }

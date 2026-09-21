@@ -1,48 +1,43 @@
 /**
  * @vitest-environment jsdom
  *
- * The record sections start collapsed in the embedded panel and open in the
- * full shell, and the header is the control either way. Exercised through
- * PatientDocuments — the smallest of the three sections that use it — because
- * the property that matters is the section's, not the header's: the BODY is
- * absent when collapsed, not merely hidden behind a class.
+ * A collapsible section: the header is the control, and the property that
+ * matters is the section's rather than the header's — the BODY is absent when
+ * collapsed, not merely hidden behind a class.
+ *
+ * ⚠️ **Exercised through `PopulationSummary` since 2026-09-21.** It used to be
+ * `PatientDocuments`, "the smallest of the three sections that use it"; those
+ * three sections became one page with one list (clinical-app audit §4.4) and
+ * none of them is collapsible, so the caseload's summary is the last real
+ * caller and the one this rule has to hold for.
  */
 import { describe, it, expect, afterEach } from 'vitest'
 import { render, cleanup, fireEvent, screen } from '@testing-library/react'
-import { PatientDocuments } from './PatientDocuments'
+import { PopulationSummary } from './PopulationSummary'
 
 afterEach(cleanup)
 
-function renderDocs(defaultCollapsed: boolean) {
-  return render(
-    <PatientDocuments
-      responses={[]}
-      carePlans={[]}
-      observations={[]}
-      defaultCollapsed={defaultCollapsed}
-    />,
-  )
+function renderSummary() {
+  return render(<PopulationSummary tiles={[]} census={[]} total={0} />)
 }
 
-describe('a collapsible chart section', () => {
-  it('opens by default in the full shell, with the body rendered', () => {
-    const { container } = renderDocs(false)
-    expect(container.querySelector('#documents-body')).not.toBeNull()
-    expect(screen.getByRole('button', { name: /Patient Documents/ }).getAttribute('aria-expanded')).toBe('true')
+describe('a collapsible section', () => {
+  it('opens by default, with the body rendered', () => {
+    const { container } = renderSummary()
+    expect(container.querySelector('#pop-summary-body')).not.toBeNull()
+    expect(screen.getByRole('button', { name: /Summary/ }).getAttribute('aria-expanded')).toBe(
+      'true',
+    )
   })
 
-  it('starts collapsed when asked, and the count still says what is inside', () => {
-    const { container } = renderDocs(true)
-    expect(container.querySelector('#documents-body')).toBeNull()
-    expect(container.querySelector('.section-header__meta')?.textContent).toBe('0 total')
-    expect(screen.getByRole('button', { name: /Patient Documents/ }).getAttribute('aria-expanded')).toBe('false')
-  })
-
-  it('toggles from the title', () => {
-    const { container } = renderDocs(true)
-    fireEvent.click(screen.getByRole('button', { name: /Patient Documents/ }))
-    expect(container.querySelector('#documents-body')).not.toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: /Patient Documents/ }))
-    expect(container.querySelector('#documents-body')).toBeNull()
+  it('toggles from the title, and the body is absent when closed', () => {
+    const { container } = renderSummary()
+    fireEvent.click(screen.getByRole('button', { name: /Summary/ }))
+    expect(container.querySelector('#pop-summary-body')).toBeNull()
+    expect(screen.getByRole('button', { name: /Summary/ }).getAttribute('aria-expanded')).toBe(
+      'false',
+    )
+    fireEvent.click(screen.getByRole('button', { name: /Summary/ }))
+    expect(container.querySelector('#pop-summary-body')).not.toBeNull()
   })
 })

@@ -109,7 +109,7 @@ describe('WritebackScorecard', () => {
     }
     const text = textOf(report([qrWritten, failed]))
     expect(text).toMatch(/HTTP 422/)
-    expect(text).toMatch(/1 of 2 attempted tiers written back, 1 failed/i)
+    expect(text).toMatch(/1 of 2 parts saved, 1 failed/i)
   })
 
   it('explains an unsupported tier as the server not accepting it', () => {
@@ -124,10 +124,21 @@ describe('WritebackScorecard', () => {
   })
 
   it('explains a missing Tier 2 as an instrument property, not a server failure', () => {
-    expect(textOf(report([qrWritten]))).toMatch(/produced no Observations/i)
+    expect(textOf(report([qrWritten]))).toMatch(/no score of its own to save/i)
+  })
+
+  it('names no tier and no resource type without inspection', () => {
+    // ⚠️ The clinical surface never inspects (`context/InspectContext.ts`), so
+    // this is what a clinician reads after submitting a form. The row used to
+    // carry `Tier 1 · QuestionnaireResponse` under its label and "Created as
+    // QuestionnaireResponse / srv-1" under that (clinical-app audit §1.9).
+    const text = textOf(report([qrWritten]))
+    expect(text).not.toMatch(/Tier \d/)
+    expect(text).not.toMatch(/QuestionnaireResponse|DocumentReference|Observation\b|Condition\b/)
+    expect(text).toMatch(/Saved to this patient/i)
   })
 
   it('names the browser-direct constraint, since it is a governance claim', () => {
-    expect(textOf(report([qrWritten]))).toMatch(/never receives this data/i)
+    expect(textOf(report([qrWritten]))).toMatch(/never receive this patient.s data/i)
   })
 })

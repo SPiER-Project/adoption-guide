@@ -122,6 +122,14 @@ const LENSES = {
   // is the one drill-in from the chart's landing card, so its `up` is the way
   // back, and in the panel it is the only way.
   'WhyThis.tsx': 'the reasoning behind the chart’s one recommendation; a drill-in from the landing card, and its `up` is the way back',
+  // Added 2026-09-21 with the clinical-app audit's two pages (§4.3, §4.4). The
+  // rail and the record were SECTIONS of the chart, under its one header;
+  // making them routes a clinician opens on purpose is the whole change, and a
+  // route of the Patient lens has no layout above it to draw a header — the
+  // same shape as PathwayStage and WhyThis, and the same extra reason: in the
+  // panel each page's `up` is the only way back to the chart.
+  'PatientWhere.tsx': 'the eight-stage rail as a page; a drill-in from the landing card, and its `up` is the way back',
+  'PatientOnFile.tsx': 'everything recorded for the patient as a page; a drill-in from the landing card, and its `up` is the way back',
 }
 
 const errors = []

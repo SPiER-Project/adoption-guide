@@ -1,32 +1,31 @@
 import { useMemo } from 'react'
-import { useScrollToHash } from '@spier/app-shell/hooks/useScrollToHash'
 import { STAGES } from '@spier/core/data/catalog'
 import { usePatient } from '@spier/tool-views/context/PatientContext'
 import { useToolConfig } from '../context/ToolConfigContext'
 import { PageHeader } from '@spier/ui/PageHeader'
 import { usePresentation } from '@spier/tool-views/context/PresentationContext'
-import { PatientPathway } from '../components/PatientPathway'
-import { ChartLanding, ON_FILE_ANCHOR } from '../components/ChartLanding'
-import { EpisodeRecordView } from '../components/EpisodeRecordView'
+import { ChartLanding } from '../components/ChartLanding'
 import { WritebackScorecard } from '../components/WritebackScorecard'
-import { OtherActivitySection } from '../components/OtherActivitySection'
-import { EncountersTimeline } from '../components/EncountersTimeline'
-import { PatientDocuments } from '../components/PatientDocuments'
-import { buildWalkthroughRefIndex } from '../lib/chartDisplay'
 import { toolEnablementFor } from '../lib/toolEnablement'
-import {
-  derivePathwayStatus,
-  groupArtifactsByStage,
-  unstagedArtifacts,
-} from '@spier/core/lib/patientPathway'
+import { derivePathwayStatus } from '@spier/core/lib/patientPathway'
 import { workflowArtifactsOf } from '@spier/core/lib/registry'
-import { buildCdsCards, isPathwayObligationCard } from '@spier/core/lib/cdsHooks'
 import { evaluatePathway } from '@spier/core/lib/pathwayEvaluation'
-// This page is where `PatientChart.css` is imported for the whole chart — every
-// section component it composes relies on that rather than importing its own.
+// This page is where `PatientChart.css` is imported for the whole chart — the
+// rail on `/patient/where` relies on that too rather than importing its own.
 import '../css/PatientChart.css'
 import { Notice } from '@spier/ui/Notice'
 
+/**
+ * The chart: one instruction, and two ways off it.
+ *
+ * ⚠️ **This page is the landing screen and nothing else since 2026-09-21.** It
+ * used to compose the landing screen, the eight-stage rail and three record
+ * sections — the rail and the record are pages now
+ * (`PatientWhere.tsx`, `PatientOnFile.tsx`, clinical-app audit §4.3 and §4.4),
+ * reached from the landing screen's two links. What is left here is the
+ * evaluation the landing card renders, the two facts those links carry, and the
+ * SMART-session feedback that belongs above everything.
+ */
 export function PatientChart() {
   const {
     carePlans,
@@ -40,28 +39,18 @@ export function PatientChart() {
     consents,
     procedures,
     episodes,
-    encounters,
-    flags,
-    tasks,
     activePatientId,
     isSmartConnected,
-    walkthrough,
     isSliceLoading,
     dataSourceError,
     writebackReport,
   } = usePatient()
   const { isToolEnabled: siteToolEnabled } = useToolConfig()
-  // `jumpTo` rather than a <Link> for the landing screen's two in-page links:
-  // it updates the hash on the CURRENT path, so a chart opened as
-  // /patient/record/patient-005 does not lose its patient id on the way to its
-  // own record section.
-  const { jumpTo } = useScrollToHash()
 
-  // Panel chrome changes three things on this page: the header is the rail's
-  // title + status line, the record sections start collapsed (see below), and
-  // every catalogued tool is offered — the rule the CDS Hooks service applies,
-  // so the host's cards and this rail agree about the patient. lib/toolEnablement
-  // has the measured case.
+  // Panel chrome changes one thing on this page now: every catalogued tool is
+  // offered, which is the rule the CDS Hooks service applies, so the host's
+  // cards and this screen agree about the patient. lib/toolEnablement has the
+  // measured case.
   const { chromeMode } = usePresentation()
   const inPanel = chromeMode === 'panel'
   const isToolEnabled = useMemo(
@@ -69,58 +58,8 @@ export function PatientChart() {
     [chromeMode, siteToolEnabled],
   )
 
-  // `Type/id` → display for every artifact a walkthrough step can reference
-  // (#263 phase 5b). Built from all the buckets rather than just responses and
-  // CarePlans, which is all the retired string matching could reach.
-  const walkthroughRefIndex = useMemo(
-    () =>
-      buildWalkthroughRefIndex({
-        responses,
-        carePlans,
-        observations,
-        communications: communications ?? [],
-        // Flags, Tasks and Encounters are indexed here but deliberately NOT in
-        // `workflowArtifactsOf` below — that feeds pathway derivation, and a
-        // precaution Flag is not a stage artifact. This index only answers
-        // "can a walkthrough step link to it", and the ED exception branches
-        // (patient-013, patient-014) reference all three.
-        //
-        // Procedures (#324) and Consents (#341) were both missing here, and
-        // both were found the same way: a ref this index cannot resolve
-        // renders no link at all, and walkthroughRefs.test.ts caught it.
-        workflowArtifacts: [
-          ...(documentReferences ?? []),
-          ...(serviceRequests ?? []),
-          ...(appointments ?? []),
-          ...(flags ?? []),
-          ...(tasks ?? []),
-          ...(encounters ?? []),
-          ...(procedures ?? []),
-          ...(consents ?? []),
-        ],
-      }),
-    [
-      responses,
-      carePlans,
-      observations,
-      communications,
-      documentReferences,
-      serviceRequests,
-      appointments,
-      flags,
-      tasks,
-      encounters,
-      procedures,
-      consents,
-    ],
-  )
-
   // Stage-5 artifacts all stage themselves through meta.tag, so they travel as
   // one bucket rather than a named field per resource type — see PatientArtifacts.
-  // In panel chrome the record sections below the rail start collapsed: the
-  // panel's budget is vertical, and a 17-artifact episode record plus a 10-row
-  // document list expanded under the rail put the thing a clinician came for in
-  // the top few percent of a very long scroll. See ChartSectionHeader.
   const workflowArtifacts = useMemo(
     () => workflowArtifactsOf({ documentReferences, serviceRequests, appointments, consents, procedures }),
     [documentReferences, serviceRequests, appointments, consents, procedures],
@@ -135,35 +74,17 @@ export function PatientChart() {
     observations.length > 0 ||
     communications.length > 0 ||
     workflowArtifacts.length > 0
-  const { statuses } = useMemo(
-    () => derivePathwayStatus(artifacts),
-    [artifacts],
-  )
-  const stageGroups = useMemo(() => groupArtifactsByStage(artifacts), [artifacts])
-  const unstaged = useMemo(() => unstagedArtifacts(artifacts), [artifacts])
-  // ⚠️ The cards are what the PUBLISHED PATHWAY owes this record — not the
-  // active stage's lead tool, and not the patient's curated `recommendedNextStep`
-  // (clinical-app audit §1.5, decision §7.1). The builder evaluates the protocol
-  // itself, so the chart, the embedded panel and the hosted service all answer
-  // the same question the same way.
+  const { statuses } = useMemo(() => derivePathwayStatus(artifacts), [artifacts])
+  // ⚠️ The recommendation is what the PUBLISHED PATHWAY owes this record — not
+  // the active stage's lead tool, and not the patient's curated
+  // `recommendedNextStep` (clinical-app audit §1.5, decision §7.1). The same
+  // evaluator backs `buildCdsCards`, so the chart, the embedded panel and the
+  // hosted service all answer the same question the same way.
   const record = useMemo(
     () => ({ responses, observations, carePlans, communications, procedures, episodes, riskAlerts }),
     [responses, observations, carePlans, communications, procedures, episodes, riskAlerts],
   )
-  // What the landing screen says. The SAME answer the cards below are built
-  // from — `buildCdsCards` calls this evaluator and decides nothing itself — so
-  // the screen and the wire format cannot disagree about what is due.
   const evaluation = useMemo(() => evaluatePathway(record), [record])
-  const cdsCards = useMemo(
-    () => buildCdsCards({ record, isToolEnabled }),
-    [record, isToolEnabled],
-  )
-  // ⚠️ The rail keeps the GUIDANCE cards and nothing else. The pathway's
-  // obligations are the landing screen's, and rendering them in both places is
-  // the "three answers to what do I do" defect (§1.5) rebuilt one layer down.
-  // "Guidance is not an action" is audit §4.5's own rule, and it belongs on
-  // *Where this patient is* rather than at the top of the chart.
-  const guidanceCards = useMemo(() => cdsCards.filter(c => !isPathwayObligationCard(c)), [cdsCards])
 
   // The facts the landing screen's two links carry.
   const activeIndex = STAGES.findIndex(s => statuses[s.id] === 'active')
@@ -206,14 +127,12 @@ export function PatientChart() {
 
       {/* The landing screen: one instruction, and two ways off it. First on the
           page in both chromes, under the identity the chrome itself draws
-          (audit §4.1, §4.7). Everything below it — the rail, the record — is
-          something a clinician opens on purpose. */}
+          (audit §4.1, §4.7). */}
       <ChartLanding
         evaluation={evaluation}
         isToolEnabled={isToolEnabled}
         stepLabel={stepLabel}
         recordCount={recordCount}
-        onJump={jumpTo}
       />
 
       {/* ⚠️ **Below the landing card since 2026-09-21, not above it.** The
@@ -225,58 +144,13 @@ export function PatientChart() {
         <Notice title="This chart is empty.">
           <p>
             {isSmartConnected
-              ? 'No SPiER artifacts on the connected EHR for this patient yet. Anything recorded from here is written back.'
+              ? 'No screening or safety records on the connected EHR for this patient yet. Anything recorded from here is written back.'
               : activePatientId === null
                 ? 'Nothing is recorded for anyone yet — start from the recommendation above, or pick a patient from the Population view.'
-                : 'No artifacts yet for this patient. Start from the recommendation above.'}
+                : 'Nothing recorded for this patient yet. Start from the recommendation above.'}
           </p>
         </Notice>
       )}
-
-      <PatientPathway
-        stageGroups={stageGroups}
-        statuses={statuses}
-        cards={guidanceCards}
-        isToolEnabled={isToolEnabled}
-      />
-
-      {/* Everything on file, under one anchor — the landing screen's second
-          link lands here. PR 5 (§4.4) makes these three sections one page with
-          one list; until then the honest destination for "what's on file" is
-          the top of the three. */}
-      <div id={ON_FILE_ANCHOR} className="chart-record">
-      <OtherActivitySection
-        responses={unstaged.responses}
-        carePlans={unstaged.carePlans}
-        observations={unstaged.observations}
-        communications={unstaged.communications}
-        workflowArtifacts={unstaged.workflowArtifacts}
-      />
-
-      <EpisodeRecordView
-        episodes={episodes}
-        encounters={encounters}
-        responses={responses}
-        observations={observations}
-        carePlans={carePlans}
-        communications={communications}
-        serviceRequests={serviceRequests}
-        procedures={procedures}
-        documentReferences={documentReferences}
-        appointments={appointments}
-        consents={consents}
-        defaultCollapsed={inPanel}
-      />
-
-      <EncountersTimeline walkthrough={walkthrough} refIndex={walkthroughRefIndex} defaultCollapsed={inPanel} />
-
-      <PatientDocuments
-        responses={responses}
-        carePlans={carePlans}
-        observations={observations}
-        defaultCollapsed={inPanel}
-      />
-      </div>
     </div>
   )
 }

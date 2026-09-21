@@ -1,0 +1,86 @@
+/* ===========================
+   "What's on file" — one list, grouped by episode where the references allow.
+
+   `Card` owns every surface here; what is below is the row grid and the
+   typographic weight that separates what was recorded from when. The page root
+   takes the prose width: this is a list to read down, not a table to scan
+   across, and the three sections it replaced were all wide enough to need a
+   horizontal scroll on a phone.
+   =========================== */
+
+.patient-on-file {
+  max-width: var(--page-width-prose);
+}
+
+.on-file {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.on-file__group-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.on-file__group-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.on-file__group-when {
+  margin: var(--space-0-5) 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.on-file__rows {
+  list-style: none;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+}
+
+.on-file__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--border-default);
+}
+
+.on-file__row:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.on-file__name {
+  font-size: var(--font-size-base);
+  color: var(--text-body);
+  min-width: 0;
+}
+
+/* The instrument and the date read as one trailing fact, and on a phone they
+   wrap under the name rather than squeezing it to two words a line. */
+.on-file__meta {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.on-file__instrument {
+  font-weight: 600;
+  color: var(--text-body);
+}
+
+.on-file__when {
+  white-space: nowrap;
+}

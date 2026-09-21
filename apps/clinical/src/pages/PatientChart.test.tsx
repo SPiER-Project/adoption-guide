@@ -13,8 +13,15 @@
  *
  * ⚠️ **And the order.** "The landing screen answers one question" (§4.1) is a
  * claim about what is FIRST, so the test asserts document order rather than
- * mere presence: a landing card rendered under the rail would satisfy every
- * other assertion in this repo.
+ * mere presence: a landing card rendered under anything else would satisfy
+ * every other assertion in this repo.
+ *
+ * ⚠️ **The rail and the record are not on this page at all since 2026-09-21**
+ * (audit §4.3, §4.4) — they are `/patient/where` and `/patient/on-file`, and
+ * this page carries the two links to them. Three assertions here used to name
+ * `.pathway` and `#on-file`; they name the links now, because "the rail is
+ * below the card" and "the rail is a page" are different claims and only the
+ * second one is true.
  */
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { render, cleanup } from '@testing-library/react'
@@ -93,7 +100,7 @@ describe('the chart opens on one instruction', () => {
     expect(container.querySelectorAll('h2')).toHaveLength(0)
     const landing = container.querySelector('.chart-landing')!
     expect(landing).not.toBeNull()
-    expect(precedes(landing, container.querySelector('.pathway')!)).toBe(true)
+    expect(landing).toBe(container.querySelector('.patient-chart > *'))
   })
 
   it('draws exactly one page header in a standalone tab, above the landing card', () => {
@@ -103,7 +110,6 @@ describe('the chart opens on one instruction', () => {
     const header = container.querySelector('.page-header')!
     const landing = container.querySelector('.chart-landing')!
     expect(precedes(header, landing)).toBe(true)
-    expect(precedes(landing, container.querySelector('.pathway')!)).toBe(true)
   })
 
   it('names one act, and it is the only one on the page', () => {
@@ -111,24 +117,33 @@ describe('the chart opens on one instruction', () => {
     expect(container.querySelectorAll('.chart-landing__act')).toHaveLength(1)
   })
 
-  it('leaves the pathway’s obligations off the rail entirely', () => {
-    // ⚠️ The duplicate this PR exists to stop. Every card the rail still draws
-    // is GUIDANCE — audit §4.5's own rule — so none of them may carry the
-    // primary marker, and none may repeat the act above.
-    const { container } = renderChart('panel')
-    const act = container.querySelector('.chart-landing__act')!.textContent
-    for (const title of container.querySelectorAll('.cds-card-title')) {
-      expect(title.textContent).not.toBe(act)
-    }
-    expect(container.querySelectorAll('.pathway-node-actions .cds-card').length).toBeLessThan(
-      container.querySelectorAll('.pathway-node').length,
-    )
+  it('holds neither the rail nor the record — they are pages', () => {
+    // ⚠️ The measured half of §4.3/§4.4. The chart carried the rail, three
+    // record sections and the landing card; what is left is the card and two
+    // links, so "what do I do" is the whole screen rather than its first inch.
+    const { container } = renderChart('ehr')
+    expect(container.querySelector('.pathway')).toBeNull()
+    expect(container.querySelector('#on-file')).toBeNull()
+    expect(container.querySelector('.episode-record-section')).toBeNull()
+    expect(container.querySelector('.documents-section')).toBeNull()
   })
 
-  it('puts everything on file under one anchor, below the rail', () => {
+  it('links to both of them, with the fact each carries', () => {
+    const { container } = renderChart('panel')
+    const where = container.querySelector('a[href="/patient/where"]')
+    const onFile = container.querySelector('a[href="/patient/on-file"]')
+    expect(where?.textContent).toBe('Where this patient is')
+    expect(onFile?.textContent).toBe('What\u2019s on file')
+    const facts = [...container.querySelectorAll('.chart-landing__fact')].map(f => f.textContent)
+    expect(facts[0]).toMatch(/^Step \d of 8$/)
+    expect(facts[1]).toMatch(/^\d+ records?$/)
+  })
+
+  it('carries no scenario walkthrough — it is demo narration, not a chart', () => {
+    // ⚠️ It rendered under a LIVE launch against a server that has no such
+    // thing (§4.4). The presenter's copy is the mock EHR's own chart page.
     const { container } = renderChart('ehr')
-    const onFile = container.querySelector('#on-file')!
-    expect(onFile).not.toBeNull()
-    expect(precedes(container.querySelector('.pathway')!, onFile)).toBe(true)
+    expect(container.querySelector('.encounters-timeline-section')).toBeNull()
+    expect(container.textContent).not.toContain('Scenario walkthrough')
   })
 })

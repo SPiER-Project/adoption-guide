@@ -51,8 +51,7 @@ function renderLanding(id: string, isToolEnabled: (toolId: string) => boolean = 
         isToolEnabled={isToolEnabled}
         stepLabel="Step 3 of 8"
         recordCount={14}
-        onJump={() => {}}
-      />
+        />
     </MemoryRouter>,
   )
   return { ...view, evaluation }

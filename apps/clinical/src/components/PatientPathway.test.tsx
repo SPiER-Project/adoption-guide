@@ -1,30 +1,28 @@
 /**
  * @vitest-environment jsdom
  *
- * The rail's copy in the embedded panel — the four things a user review found
- * (2026-09-01) and the fix for each:
+ * The rail, which is *Where this patient is* since 2026-09-21 (clinical-app
+ * audit §4.3). What is gated here:
  *
- *  1. "Do now" beside "Complete" on the same node. A card on a completed stage
- *     is guidance, not a to-do; only a stage the patient has not reached gets
- *     the to-do flag. (2026-09-02: the ACTIVE stage lost it too — "Do now" beside
- *     "You are here" above an "Urgent" card titled "Next step" was four labels
- *     for one state. The active node keeps its one status pill.)
- *  2. Five lines of meta before the first stage. In panel chrome the subtitle
- *     lines become a footnote under the rail, and the protocol link survives —
- *     in the panel it is the only way into the published pathway. (2026-09-02:
- *     the rail's title and progress line left the panel too — the chart's
- *     PageHeader carries them as title + lede, via `PathwayProgress`.)
- *  3. A 200-word card first. Long detail clips behind "Show more".
- *  4. "Configure tools in your implementation", addressed to someone who is not
+ *  1. **"N due" is the pathway's count, never the card count.** A card on the
+ *     rail is guidance — the obligations are the landing screen's — and a
+ *     guidance card that flagged its stage as outstanding would be the "four
+ *     labels for one state" defect (§1.6) one layer down.
+ *  2. **The rail draws no header in either chrome.** It used to draw a title, a
+ *     subtitle and a progress line in a standalone tab and suppress them in the
+ *     panel; the page owns all three now, so there is one owner instead of two.
+ *  3. **Every row links to its stage page**, collapsed or open, and the tool
+ *     chips that were the only route there are gone.
+ *  4. **The stage's sentence is the clinician's**, not the CodeSystem
+ *     definition written to an EHR vendor (§1.9).
+ *  5. A 200-word card first: long detail clips behind "Show more".
+ *  6. "Configure tools in your implementation", addressed to someone who is not
  *     in a host chart. Hidden in panel chrome.
- *
- * The full app shell keeps its behaviour in every case, and that is asserted
- * too: this pass was about the panel, not about the chart.
  */
 import { describe, it, expect, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { STAGES } from '@spier/core/data/catalog'
+import { STAGES, stageBlurb } from '@spier/core/data/catalog'
 import type { Card } from '@spier/core/lib/cdsHooks'
 import type { StageArtifacts, StageStatus } from '@spier/core/lib/patientPathway'
 import { PresentationProvider } from '@spier/tool-views/context/PresentationProvider'
@@ -59,7 +57,7 @@ function card(stageIndex: number, overrides: Partial<Card> = {}): Card {
   }
 }
 
-function renderRail(mode: ChromeMode, cards: Card[]) {
+function renderRail(mode: ChromeMode, cards: Card[], dueByStage: Record<string, number> = {}) {
   return render(
     <MemoryRouter>
       <PresentationProvider initialMode={mode}>
@@ -67,7 +65,7 @@ function renderRail(mode: ChromeMode, cards: Card[]) {
           stageGroups={emptyGroups}
           statuses={statuses}
           cards={cards}
-          isToolEnabled={() => false}
+          dueByStage={dueByStage}
         />
       </PresentationProvider>
     </MemoryRouter>,
@@ -87,70 +85,81 @@ function flagsOf(el: HTMLElement): HTMLElement[] {
   )
 }
 
-describe('PatientPathway — to-do versus guidance', () => {
-  it('flags a card on an UPCOMING stage "Do now", and leaves the active stage to its one pill', () => {
-    const { container } = renderRail('ehr', [card(3), card(5)])
-    // Upcoming: the flag is the only thing saying this row is actionable.
-    expect(flagsOf(node(container, 5))[0]?.textContent).toBe('Do now')
-    // Active: "You are here" is the one label; the open card says what to do.
-    expect(flagsOf(node(container, 3))).toHaveLength(0)
-    expect(node(container, 3).querySelector('[class*="pathway-node-status--"]')?.textContent).toBe('You are here')
-    expect(node(container, 3).querySelector('.cds-card')).not.toBeNull()
-    // …and the node still reads as needing attention (border), just not twice.
+describe('PatientPathway — what is due versus what is guidance', () => {
+  it('says "1 due" on the stage the PATHWAY owes something at', () => {
+    const { container } = renderRail('ehr', [], { [STAGES[3].id]: 1 })
+    expect(flagsOf(node(container, 3))[0]?.textContent).toBe('1 due')
     expect(node(container, 3).classList.contains('pathway-node--attention')).toBe(true)
+    // …and nowhere else on the rail.
+    expect(flagsOf(node(container, 5))).toHaveLength(0)
   })
 
-  it('labels a card on a COMPLETED stage "Guidance", never "Do now"', () => {
-    // The problem-list card sits on a finished "Define the Risk Picture" by
-    // design. The old rule flagged every stage with a card, so three completed
-    // nodes read "DO NOW  COMPLETE" at once.
+  it('counts more than one', () => {
+    const { container } = renderRail('ehr', [], { [STAGES[3].id]: 3 })
+    expect(flagsOf(node(container, 3))[0]?.textContent).toBe('3 due')
+  })
+
+  it('labels a card "Guidance" and never lets it claim the stage is outstanding', () => {
+    // ⚠️ The rule this file exists for. The problem-list card sits on a
+    // finished "Define the Risk Picture" by design; the obligations are the
+    // landing screen's, so a card here is never a to-do.
     const { container } = renderRail('ehr', [card(0)])
     const flags = flagsOf(node(container, 0))
     expect(flags).toHaveLength(1)
     expect(flags[0].textContent).toBe('Guidance')
-    // Guidance is the quiet pill; "Do now" is the brand-coloured one.
     expect(flags[0].classList.contains('pill--neutral')).toBe(true)
-    expect(node(container, 0).textContent).not.toContain('Do now')
+    expect(node(container, 0).textContent).not.toContain('due')
+    expect(node(container, 0).classList.contains('pathway-node--attention')).toBe(false)
     // …and the node still opens for it, because the card is the point.
     expect(node(container, 0).querySelector('.cds-card')).not.toBeNull()
   })
 })
 
-describe('PatientPathway — the header in panel chrome', () => {
-  it('keeps the subtitle lines in the full shell', () => {
+describe('PatientPathway — the row is a way into the stage', () => {
+  it('links every row to its stage page, open or collapsed', () => {
     const { container } = renderRail('ehr', [])
-    expect(container.querySelector('.pathway-subtitle')).not.toBeNull()
-    expect(container.querySelector('.pathway-footnote')).toBeNull()
+    for (const [i, stage] of STAGES.entries()) {
+      const link = node(container, i).querySelector('.pathway-node-open')
+      expect(link?.getAttribute('href'), stage.id).toBe(`/patient/pathway/${stage.id}`)
+    }
+    // ⚠️ `Open this stage →` used to live inside a block that rendered only
+    // when the node had NO cards, which made the stage page unreachable from a
+    // stage that had one. It is the row now.
+    expect(container.querySelectorAll('.pathway-node-open')).toHaveLength(STAGES.length)
   })
 
-  it('draws no footnote strip in the panel at all', () => {
-    // ⚠️ This test asserted the OPPOSITE until 2026-09-21, and the change is
-    // the point rather than a relaxation. The strip was the panel's only
-    // chrome-level navigation, which was the argument for it; the landing
-    // screen (`ChartLanding`) is that navigation now — *Why this?* is where the
-    // published protocol is reached from, and a deployment's tool settings do
-    // not belong one tap from a clinician's suicide-risk recommendation
-    // (clinical-app audit §4.7).
-    const { container } = renderRail('panel', [])
-    expect(container.querySelector('.pathway-subtitle')).toBeNull()
-    expect(container.querySelector('.pathway-footnote')).toBeNull()
-    expect(container.querySelector('a[href="/patient/pathway"]')).toBeNull()
-    // The rail's own title and progress line are NOT rendered in the panel
-    // either: the chart draws the landing screen above it, so the panel shows
-    // one instruction rather than three headings.
-    expect(container.querySelector('.pathway-title')).toBeNull()
-    expect(container.querySelector('.pathway-progress')).toBeNull()
+  it('offers no tool chips — that list is the stage page\u2019s', () => {
+    const { container } = renderRail('ehr', [])
+    expect(container.querySelector('.pathway-node-tools')).toBeNull()
+    expect(container.querySelector('.pathway-tool-chip')).toBeNull()
   })
 
-  it('keeps the title and progress line in the full shell', () => {
-    const { container } = renderRail('ehr', [card(3)])
-    expect(container.querySelector('.pathway-title')?.textContent).toBe('Suicide-safer care pathway')
-    expect(container.querySelector('.pathway-progress')?.textContent).toContain('Now at step 4 of 8')
-    expect(container.querySelector('.pathway-progress')?.textContent).toContain('stages with activity')
+  it('describes a stage to the clinician, not to an EHR vendor', () => {
+    const { container } = renderRail('ehr', [])
+    const desc = node(container, 3).querySelector('.pathway-node-desc')?.textContent ?? ''
+    expect(desc.length).toBeGreaterThan(10)
+    expect(desc).not.toMatch(/The EHR /)
+    expect(desc).toBe(stageBlurb(STAGES[3].id))
   })
 })
 
-describe('PathwayProgress — the one-line status the chart header carries in the panel', () => {
+describe('PatientPathway — the header belongs to the page', () => {
+  it('draws no title, subtitle or progress line in EITHER chrome', () => {
+    // ⚠️ The shell half asserted the OPPOSITE until 2026-09-21. The rail is a
+    // page now and `PatientWhere` owns its header; two owners for one page
+    // title is what `docs/internals/css-and-page-template.md` rules out.
+    for (const mode of ['ehr', 'panel'] as ChromeMode[]) {
+      const { container } = renderRail(mode, [])
+      expect(container.querySelector('.pathway-title'), mode).toBeNull()
+      expect(container.querySelector('.pathway-subtitle'), mode).toBeNull()
+      expect(container.querySelector('.pathway-progress'), mode).toBeNull()
+      expect(container.querySelector('.pathway-footnote'), mode).toBeNull()
+      cleanup()
+    }
+  })
+})
+
+describe('PathwayProgress — the one-line status the page header carries', () => {
   it('compact form: step, stage title and action count, without the activity clause', () => {
     const { container } = render(<p><PathwayProgress statuses={statuses} actionCount={1} compact /></p>)
     const text = container.textContent ?? ''
@@ -211,7 +220,7 @@ describe('CdsCardView — long detail and the configure link', () => {
     expect(panel.container.textContent).toContain('No tool is enabled for this step.')
   })
 
-  it('offers the settings nowhere in the panel, and the shell does not need it here', () => {
+  it('offers the settings nowhere in the panel', () => {
     // The other half of the rule above. The rail used to carry a settings link
     // in a panel-only footnote, on the argument that PanelShell has no nav and
     // the page would otherwise be unreachable inside a host chart. It is now
@@ -220,9 +229,5 @@ describe('CdsCardView — long detail and the configure link', () => {
     // not deliver, and §4.9 is where an operator's page belongs.
     const panel = renderRail('panel', [card(3)])
     expect(panel.container.querySelector('a[href="/settings"]')).toBeNull()
-    cleanup()
-    // The shell has a sidebar and a full header; the footnote never existed there.
-    const shell = renderRail('ehr', [card(3)])
-    expect(shell.container.querySelector('.pathway-footnote')).toBeNull()
   })
 })
