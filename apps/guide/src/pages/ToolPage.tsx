@@ -56,7 +56,7 @@
  * drawer and the examples, never in the prose. `ToolPage.test.tsx` pins the
  * word cap above the form and the single header.
  */
-import { Fragment, Suspense, type ReactNode } from 'react'
+import { Fragment, Suspense } from 'react'
 import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   bindingsUsedByTool,
@@ -79,6 +79,7 @@ import { EmptyState } from '@spier/ui/EmptyState'
 import { Notice } from '@spier/ui/Notice'
 import { PageHeader } from '@spier/ui/PageHeader'
 import { Pill } from '@spier/ui/Pill'
+import { Disclosure } from '@spier/ui/Disclosure'
 import { LicensingBadge } from '../components/LicensingBadge'
 import { LICENSING_BLURB, LICENSING_LABELS } from '../data/licensing'
 import { GUIDE_SURFACE_LINKS } from '../data/surfaceLinks'
@@ -86,29 +87,10 @@ import { MOCK_EHR_LABEL, MOCK_EHR_URL } from '../data/surfaces'
 import { guideToolHref, toolForFormSlug, toolForms, toolsSharingForm } from '../data/toolForms'
 import '../css/ToolPage.css'
 
-/**
- * One closed disclosure in the "About this tool" set. Native `<details>`, as
- * the guide's other drawers are (the pathway's code drawer, the readiness
- * legend): the catalogue detail is present and findable, and costs one line
- * until asked for — the mock-EHR rule, task first and the reference one click
- * down.
- */
-function Drawer({ summary, hint, children }: { summary: string; hint?: ReactNode; children: ReactNode }) {
-  return (
-    <details className="tool-page__drawer">
-      <summary className="tool-page__drawer-summary">
-        <span className="tool-page__drawer-label">{summary}</span>
-        {hint !== undefined && <span className="tool-page__drawer-hint">{hint}</span>}
-      </summary>
-      <div className="tool-page__drawer-body">{children}</div>
-    </details>
-  )
-}
-
 /** The catalogue's record of what a tool is for: its description, the settings it belongs in, its tags. */
 function AboutDrawer({ tool }: { tool: Tool }) {
   return (
-    <Drawer summary="What it is for" hint={tool.settings.join(' · ')}>
+    <Disclosure summary="What it is for" hint={tool.settings.join(' · ')}>
       {tool.description && <p className="tool-page__desc">{tool.description}</p>}
       {tool.settings.length > 0 && (
         <div className="tool-page__chips">
@@ -126,7 +108,7 @@ function AboutDrawer({ tool }: { tool: Tool }) {
           ))}
         </div>
       )}
-    </Drawer>
+    </Disclosure>
   )
 }
 
@@ -135,7 +117,7 @@ function RecordsDrawer({ tool }: { tool: Tool }) {
   const pattern = tool.recordingPattern
   if (!pattern) return null
   return (
-    <Drawer summary="What it records" hint={`${pattern.resources.length} resource${pattern.resources.length === 1 ? '' : 's'}`}>
+    <Disclosure summary="What it records" hint={`${pattern.resources.length} resource${pattern.resources.length === 1 ? '' : 's'}`}>
       <DataTable tableClassName="tool-page__table">
         <thead>
           <tr>
@@ -159,7 +141,7 @@ function RecordsDrawer({ tool }: { tool: Tool }) {
           <strong>Workflow trigger:</strong> {pattern.workflowTrigger}
         </p>
       )}
-    </Drawer>
+    </Disclosure>
   )
 }
 
@@ -168,7 +150,7 @@ function ElementsDrawer({ tool }: { tool: Tool }) {
   const bindings = bindingsUsedByTool(tool.id)
   if (bindings.length === 0) return null
   return (
-    <Drawer summary="Data elements" hint={bindings.length}>
+    <Disclosure summary="Data elements" hint={bindings.length}>
       <ul className="tool-page__elements">
         {bindings.map((b) => (
           <li key={b.id}>
@@ -187,7 +169,7 @@ function ElementsDrawer({ tool }: { tool: Tool }) {
           </li>
         ))}
       </ul>
-    </Drawer>
+    </Disclosure>
   )
 }
 
@@ -202,13 +184,13 @@ function ExamplesDrawer({ tool }: { tool: Tool }) {
   const examples = tool.fhirExamples ?? []
   if (examples.length === 0) return null
   return (
-    <Drawer summary="FHIR examples" hint={examples.length}>
+    <Disclosure summary="FHIR examples" hint={examples.length}>
       <div className="tool-page__examples">
         {examples.map((ex) => (
           <FhirJsonViewer key={ex.title} title={ex.title} data={ex.resource} />
         ))}
       </div>
-    </Drawer>
+    </Disclosure>
   )
 }
 
@@ -216,13 +198,13 @@ function ExamplesDrawer({ tool }: { tool: Tool }) {
 function LicensingDrawer({ tool }: { tool: Tool }) {
   if (!tool.licensing) return null
   return (
-    <Drawer summary="Licensing" hint={LICENSING_LABELS[tool.licensing]}>
+    <Disclosure summary="Licensing" hint={LICENSING_LABELS[tool.licensing]}>
       <div className="tool-page__chips">
         <LicensingBadge licensing={tool.licensing} />
         <span className="tool-page__licence-blurb">{LICENSING_BLURB[tool.licensing]}</span>
       </div>
       {tool.copyright && <p className="tool-page__licence">{tool.copyright}</p>}
-    </Drawer>
+    </Disclosure>
   )
 }
 

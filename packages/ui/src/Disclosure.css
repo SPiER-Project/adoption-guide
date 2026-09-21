@@ -1,0 +1,97 @@
+/* ===========================
+   Disclosure — the one closed drawer. See Disclosure.tsx for why it is the
+   ninth surface owner and which three `<details>` deliberately are not one.
+
+   No width and no margin of its own: where a drawer sits is the page's
+   decision, taken with a `className` or by the stack it is placed in.
+   =========================== */
+.disclosure__summary {
+  cursor: pointer;
+}
+
+/* The body stacks what it is given. One owner of the spacing between a
+   drawer's paragraphs, lists and tables — the alternative is every page
+   reaching past the component to space its own children. */
+.disclosure__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* ── rule: a hairline above, a body-size label ───────────────────────────── */
+
+.disclosure--rule {
+  border-top: 1px solid var(--border-default);
+}
+
+.disclosure--rule > .disclosure__summary {
+  padding: var(--space-3) 0;
+}
+
+.disclosure--rule > .disclosure__summary > .disclosure__label {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.disclosure--rule > .disclosure__summary > .disclosure__hint {
+  margin-left: var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.disclosure--rule > .disclosure__body {
+  padding: 0 0 var(--space-4);
+}
+
+/* ── boxed: a bordered block with a tinted summary ───────────────────────── */
+
+.disclosure--boxed {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+}
+
+.disclosure--boxed > .disclosure__summary {
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface-page);
+}
+
+.disclosure--boxed > .disclosure__summary:hover {
+  background: var(--surface-muted);
+}
+
+.disclosure--boxed > .disclosure__summary > .disclosure__label {
+  font-size: var(--font-size-base);
+  color: var(--border-emphasis);
+}
+
+.disclosure--boxed > .disclosure__summary > .disclosure__hint {
+  margin-left: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.disclosure--boxed > .disclosure__body {
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+}
+
+/* ── quiet: small and muted, a secondary aside inside something else ─────── */
+
+.disclosure--quiet > .disclosure__summary > .disclosure__label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.disclosure--quiet > .disclosure__summary > .disclosure__hint {
+  margin-left: var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.disclosure--quiet > .disclosure__body {
+  padding: var(--space-3) 0 0;
+}

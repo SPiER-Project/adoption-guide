@@ -1,7 +1,15 @@
-/* The guide's prose pages — `ProviderAppGuide` and `PopulationDashboardGuide`,
-   which explain SPiER's clinical apps, and `WhySpier`, which makes the case for
-   the whole thing. One stylesheet, because they are the same kind of page:
-   paragraphs and lists with links out, and no table or grid to lay out.
+/* The guide's prose pages — the three "see it running" explainers
+   (`ProviderAppGuide`, `PopulationDashboardGuide`, `CdsServiceGuide`) and
+   `WhySpier`, which makes the case for the whole thing. One stylesheet, because
+   they are the same kind of page: paragraphs and lists with links out, and no
+   table or grid to lay out.
+
+   ⚠️ `CdsServiceGuide` joined on 2026-09-20 (adoption-guide audit §4.4). It had
+   a second copy of these intro / section / `h3` / list rules at the same tokens
+   under its own prefix; three rules that really were its own — a `<pre>` for a
+   shell command, a wrapping URL link, a fetch-status line — are all that is
+   left in `CdsServiceGuide.css`. `.surface-guide__section p` is now what the
+   `check:prose` gate's MAX was measured against.
 
    `.surface-guide` sets NO width. Both render inside the /guide layout, which
    already owns one; a sub-page that restates it is the double ownership
@@ -77,10 +85,20 @@
   list-style: decimal;
 }
 
-/* A note is quieter than the prose around it; a warning is not. The warning
-   keeps body-weight text and an accent rule because the panel plan requires the
-   pages to SAY what they do not prove — a caveat set in small grey type is a
-   caveat the reader is being invited to skip. */
+/* The two closed drawers every "see it running" page ends with: *How it
+   decides* and *What this does and does not prove*. They are `Disclosure`s, so
+   this sets only where they sit — a tighter stack than the page's sections,
+   because consecutive `rule` drawers read as one list of rules rather than as
+   separate blocks.
+
+   ⚠️ The caveats used to be open `Notice`s inline, at the same weight as the
+   instruction. Closed is the audit's instruction (§3: task first, caveats
+   demoted into closed drawers, NEVER deleted) — not permission to shorten one.
+   The interoperability claim is stated in full on `/guide/dashboard` and in a
+   sentence, linked, on the other two. */
+.surface-guide__drawers {
+  gap: 0;
+}
 
 /* The eight pathway stages, on WhySpier. Rendered from the pathway-stage
    CodeSystem (see data/catalog/stages.ts), not typed out, so the vocabulary

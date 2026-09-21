@@ -90,31 +90,6 @@
   margin-bottom: var(--space-8);
 }
 
-.ar-legend-block {
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-2xl);
-  overflow: hidden;
-}
-
-.ar-legend-summary {
-  padding: var(--space-2) var(--space-4);
-  font-size: var(--font-size-base);
-  color: var(--border-emphasis);
-  cursor: pointer;
-  background: var(--surface-page);
-}
-
-.ar-legend-summary:hover {
-  background: var(--surface-muted);
-}
-
-.ar-legend-body {
-  padding: var(--space-2) var(--space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
 .ar-legend-row {
   display: flex;
   align-items: baseline;

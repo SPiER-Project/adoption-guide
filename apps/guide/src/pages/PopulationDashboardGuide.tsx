@@ -2,6 +2,15 @@
  * PopulationDashboardGuide — what the population dashboard is for, and the
  * honest state of the live one.
  *
+ * ── The shape ──────────────────────────────────────────────────────────────
+ *
+ * The same one screen and the same two drawers as its two siblings
+ * (`ProviderAppGuide`, `CdsServiceGuide`) — adoption-guide audit §4.4, applied
+ * 2026-09-20. At 462 words this page was already the closest to the right
+ * length ("the one page near the right length"), so what changed here is the
+ * pattern rather than the volume: the mechanism and the caveat are one line
+ * each until opened.
+ *
  * ── Why this page exists ────────────────────────────────────────────────────
  *
  * `/population` used to be the caseload table itself, on a guide URL, computed
@@ -31,12 +40,20 @@
  *     so none of this is evidence of interoperability.**
  *
  * That last claim does not expire with a phase. Do not delete it.
+ *
+ * ⚠️ **It now lives in a closed drawer, and that is the audit's instruction,
+ * not a softening.** §4.4: one drawer *What this does and does not prove* for
+ * the caveat; §3: "task first, caveats demoted into closed drawers, never
+ * deleted". This page remains the ONE place the claim is stated in full — its
+ * two siblings state it in a sentence and link here — which is audit §5 rule 2,
+ * a caveat stated once per site. `data/surfaces.ts` names this page as one of
+ * the three places a reader meets it; that comment is updated to say drawer.
  */
 import { Link } from 'react-router-dom'
 import { MOCK_EHR_URL } from '../data/surfaces'
 import '../css/SurfaceGuide.css'
-import { Notice } from '@spier/ui/Notice'
 import { Button } from '@spier/ui/Button'
+import { Disclosure } from '@spier/ui/Disclosure'
 
 const ISSUE_401_URL = 'https://github.com/SPiER-Project/adoption-guide/issues/401'
 
@@ -70,9 +87,8 @@ export function PopulationDashboardGuide() {
           </li>
           <li>
             <strong>A next step per patient</strong> &mdash; the same recommendation the{' '}
-            <Link to="/guide/provider-app">Provider App</Link> would show in that
-            person&rsquo;s chart, from the same derivation, so a caseload and a chart cannot
-            disagree.
+            <Link to="/guide/provider-app">Provider App</Link> would show in that person&rsquo;s
+            chart, from the same derivation, so a caseload and a chart cannot disagree.
           </li>
           <li>
             <strong>Pathway measures</strong> &mdash; the Stage-8 measures scored over the panel for
@@ -82,52 +98,62 @@ export function PopulationDashboardGuide() {
       </section>
 
       <section className="surface-guide__section">
-        <h3 className="surface-guide__h3">How it decides an action is owed</h3>
-        <p>
-          Per patient, the same four inputs the chart uses &mdash; the published{' '}
-          <Link to="/guide/pathway">pathway</Link>, the{' '}
-          <Link to="/guide/tools">tool catalog</Link>, that patient&rsquo;s record, and what the
-          site has enabled in its Settings &mdash; then grouped rather
-          than rendered one at a time.
-        </p>
-        <p>
-          The one rule that only matters at panel scale is <strong>cadence</strong>: the pathway
-          gives each risk tier a reassessment interval, so a patient with nothing outstanding today
-          can still be owed a review. That interval is published in the same{' '}
-          <code>PlanDefinition</code> the pathway page renders, and a repo gate checks the app, the
-          artifact and the CQL still agree on it.
-        </p>
-      </section>
-
-      <section className="surface-guide__section">
         <h3 className="surface-guide__h3">See it running</h3>
         <p>
           The mock EHR offers it the way a vendor hangs a worklist activity &mdash; a button beside
-          its patient list, which mints the launch and opens the app:
+          its patient list, which mints the launch and opens the app.
         </p>
         <p>
           <Button href={MOCK_EHR_URL} target="_blank" rel="noopener noreferrer" accent arrow>
             Open the Demo EHR
           </Button>
         </p>
-        <Notice tone="brand">
-          <strong>A real SMART launch, and still not evidence of interoperability.</strong> The
-          authorization is genuine &mdash; a user-scoped grant with no patient in context, so the
-          app may read across the panel and is refused if it tries to write to anyone &mdash; and
-          the roster and every chart read come from that server over FHIR. What it does not show is
-          portability: <strong>the host is written and run by the same project as the app</strong>,
-          so a handshake succeeding here says the app behaves correctly as a guest, not that it
-          works against a server nobody here controls. That claim needs a third-party sandbox.
-          Background in{' '}
-          <a href={ISSUE_401_URL} target="_blank" rel="noopener noreferrer">
-            issue #401
-          </a>
-          .
-        </Notice>
-        <p>
-          There is no caseload to browse without a host: the roster comes from the server the launch
-          connects to, and this guide holds no patients.
-        </p>
+      </section>
+
+      <section className="surface-guide__section surface-guide__drawers">
+        <Disclosure summary="How it decides an action is owed" hint="the chart's four inputs, plus cadence">
+          <p>
+            Per patient, the same four inputs the chart uses &mdash; the published{' '}
+            <Link to="/guide/pathway">pathway</Link>, the{' '}
+            <Link to="/guide/tools">tool catalog</Link>, that patient&rsquo;s record, and what the
+            site has enabled in its Settings &mdash; then grouped rather than rendered one at a
+            time.
+          </p>
+          <p>
+            The one rule that only matters at panel scale is <strong>cadence</strong>: the pathway
+            gives each risk tier a reassessment interval, so a patient with nothing outstanding
+            today can still be owed a review. That interval is published in the same{' '}
+            <code>PlanDefinition</code> the pathway page renders, and the app, the artifact and the
+            measure logic are checked against each other on it.
+          </p>
+        </Disclosure>
+
+        {/* ⚠️ The full statement of §1 guardrail 3, and the only one on the site.
+            Its two siblings say it in a sentence and link here. Closed, per the
+            audit; never shorter, never softer. */}
+        <Disclosure summary="What this does and does not prove" hint="a real SMART launch, and still not interoperability">
+          <p>
+            <strong>The authorization is genuine</strong> &mdash; a user-scoped grant with no
+            patient in context, so the app may read across the panel and is refused if it tries to
+            write to anyone &mdash; and the roster and every chart read come from that server over
+            FHIR.
+          </p>
+          <p>
+            What it does not show is portability:{' '}
+            <strong>the host is written and run by the same project as the app</strong>, so a
+            handshake succeeding here says the app behaves correctly as a guest, not that it works
+            against a server nobody here controls. That claim needs a third-party sandbox.
+            Background in{' '}
+            <a href={ISSUE_401_URL} target="_blank" rel="noopener noreferrer">
+              issue #401
+            </a>
+            .
+          </p>
+          <p>
+            There is also no caseload to browse without a host: the roster comes from the server the
+            launch connects to, and this guide holds no patients.
+          </p>
+        </Disclosure>
       </section>
     </div>
   )

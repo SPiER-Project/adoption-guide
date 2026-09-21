@@ -8,6 +8,7 @@ import { Pill, type PillTone } from '@spier/ui/Pill'
 import { SCALE_TONES } from '../lib/scaleTones'
 import { Card } from '@spier/ui/Card'
 import { DataTable } from '@spier/ui/DataTable'
+import { Disclosure } from '@spier/ui/Disclosure'
 import { LicensingBadge } from '../components/LicensingBadge'
 import { LICENSING_BLURB, LICENSING_LABELS } from '../data/licensing'
 import { guideToolHref, toolForms } from '../data/toolForms'
@@ -216,20 +217,24 @@ export function AdoptionReadiness() {
 
       {/* Legend */}
       <div className="ar-legend">
-        <details className="ar-legend-block">
-          <summary className="ar-legend-summary"><strong>Readiness tiers</strong> — build lifecycle + available adoption assets</summary>
-          <div className="ar-legend-body">
+        <Disclosure
+          variant="boxed"
+          summary={<><strong>Readiness tiers</strong> — build lifecycle + available adoption assets</>}
+        >
+          <>
             {(Object.keys(READINESS_LABELS) as ReadinessTier[]).map((tier) => (
               <div key={tier} className="ar-legend-row">
                 <ReadinessBadge tier={tier} />
                 <span className="ar-legend-text">{READINESS_BLURB[tier]}</span>
               </div>
             ))}
-          </div>
-        </details>
-        <details className="ar-legend-block">
-          <summary className="ar-legend-summary"><strong>Target integration depth</strong> — three dimensions, each 0–3</summary>
-          <div className="ar-legend-body">
+          </>
+        </Disclosure>
+        <Disclosure
+          variant="boxed"
+          summary={<><strong>Target integration depth</strong> — three dimensions, each 0–3</>}
+        >
+          <>
             {MATURITY_DIMENSIONS.map((d) => (
               <div key={d.key} className="ar-legend-row">
                 <span className="ar-legend-dim">{d.label}</span>
@@ -243,11 +248,13 @@ export function AdoptionReadiness() {
                 </span>
               ))}
             </div>
-          </div>
-        </details>
-        <details className="ar-legend-block">
-          <summary className="ar-legend-summary"><strong>Licensing</strong> — what you're allowed to deploy, and where fees or attribution apply</summary>
-          <div className="ar-legend-body">
+          </>
+        </Disclosure>
+        <Disclosure
+          variant="boxed"
+          summary={<><strong>Licensing</strong> — what you&rsquo;re allowed to deploy, and where fees or attribution apply</>}
+        >
+          <>
             {(Object.keys(LICENSING_LABELS) as Licensing[]).map((lic) => (
               <div key={lic} className="ar-legend-row">
                 <LicensingBadge licensing={lic} />
@@ -262,8 +269,8 @@ export function AdoptionReadiness() {
                 build if one is missing.
               </span>
             </div>
-          </div>
-        </details>
+          </>
+        </Disclosure>
       </div>
 
       {/* Matrix, grouped by pathway stage */}

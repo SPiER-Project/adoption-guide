@@ -1,6 +1,43 @@
 # Adoption Guide — copy, layout and UX audit
 
-**Date:** 2026-09-20 · **Branch audited:** `main` at `5262c1b` · **Status:** PR 1 (§1.1 dead links and their gate, §1.2 stale statements), PR 2 (§4.1 the Overview rewrite), PR 3 (§4.2 the Care Pathway split, §1.3 the artifact's documentation strings) and PR 4 (§4.3 Tools as pages) applied; §4.4–§4.6 and the §5 gates remain recommendations
+**Date:** 2026-09-20 · **Branch audited:** `main` at `5262c1b` · **Status:** PR 1 (§1.1 dead links and their gate, §1.2 stale statements), PR 2 (§4.1 the Overview rewrite), PR 3 (§4.2 the Care Pathway split, §1.3 the artifact's documentation strings), PR 4 (§4.3 Tools as pages) and PR 5 (§4.4 the three "see it running" pages) applied; §4.5–§4.6 and the §5 gates remain recommendations
+
+**Status 2026-09-20 (PR 5):** the three "see it running" pages are one screen
+each on one pattern, to §4.4 — what it is in two sentences, what you see in
+four bullets, the button, then two closed drawers, *How it decides…* and *What
+this does and does not prove*. The Provider App went from 981 words in 2.9
+screens with four `Notice`s to **253 words visible** before anything is opened;
+the Population Dashboard from 462 to 237; the CDS Service from 730 to 276. No
+caveat was deleted: all four of the Provider App's Notices are drawer content,
+and §1 guardrail 3 is now stated **in full on `/guide/dashboard` only** — its
+two siblings say it in a sentence and link there, which is §5 rule 2 and the
+end of the phrase appearing on four pages. The Tool Configuration exception
+(§1.2's last row, deferred out of PR 1) moved into *How it decides*, because it
+explains what the panel offers rather than what the demo proves. The CDS page
+keeps **both** curl blocks, out of the drawers and un-hidden — §4.4's "four"
+was a miscount, the page has two — loses `observationMappers`,
+`derivePathwayStatus`, `buildCdsCards`, the package path and the npm script
+(§1.3) while keeping the claim they carried, states enforcement once as
+`require`, and now renders through `.surface-guide` rather than a second copy
+of that stylesheet's intro/section/`h3`/list rules under its own prefix.
+
+The open decision was answered **yes, a ninth surface owner**: `Disclosure` in
+`packages/ui`, three variants (`rule`, `boxed`, `quiet`). The case was measured
+rather than stylistic — the same object had been hand-rolled six times, and two
+of the six (`.ar-legend-block`, `.rubric-legend-criterion`) were byte-identical
+CSS in two stylesheets that `check:dupes` cannot see because it reads functions.
+Four guide call sites adopted it and their CSS is deleted: both legends, the
+tools index's hand-off drawer and `ToolPage`'s in-file `Drawer`. Three
+`<details>` on the CLINICIAN's surfaces deliberately did not —
+`PopulationAlertsPanel` (its summary is a scannable data row, not a label), and
+`InstrumentHeader` and `PathwayStage`, which carry recorded judgements about
+their weight inside a clinician's form; adopting those two is a follow-up to be
+judged in the clinical chrome rather than inherited from a guide copy change.
+Two new test files, 22 assertions, each family proved red against a planted
+defect. Deliberately not done: Adoption Readiness's licensing legend still
+names `npm run check:catalog` in reader copy — a live §5 rule 3 defect on a
+page §4.5 does not otherwise touch, and exactly what PR 6's rule-3 gate is for.
+PR 6 remains.
 
 **Status 2026-09-20 (PR 4):** Tools is a list and every tool is a page, to
 §4.3. `/guide/tools` is one line per tool — its name as the link, a status
@@ -338,8 +375,10 @@ sentences), what you see (four bullets), how to see it (the button), one drawer
 prove* for the caveat. The Provider App page today is 981 words with four
 Notices; the Population Dashboard page at 462 words is the model.
 
-The CDS page loses its function names, keeps its four curl blocks, and the
-Honesty notes section is corrected and folded into the caveat drawer.
+The CDS page loses its function names, keeps its curl blocks, and the
+Honesty notes section is corrected and folded into the caveat drawer. ⚠️ This
+said "four curl blocks" when it was written; the page has **two**, and PR 5
+kept both.
 
 ### 4.5 Reference
 
@@ -398,7 +437,7 @@ Each is one PR against `main`, none stacked.
 | 2 | **Overview rewrite** (§4.1). Applied — see the status note at the top. Larger than the S estimated here: the essays moved to a new guide section rather than being dropped, which added a route, a sidebar group and a pager step. | S | Answered: three doors replace the lens cards, and the essays move to `/guide/why-spier` under Reference. |
 | 3 | **Care Pathway split** (§4.2): explainer + `/guide/pathway/protocol` subsection; tier table; FSH documentation rewrite; code drawer for gates and URLs. Applied — see the status note at the top. | M | Answered: the tier table replaces the three columns on the clinical surface too (one artifact, one rendering), and the section stays `wide` with the explainer's prose capped at the reading measure rather than the width model changing. |
 | 4 | **Tools as pages** (§4.3): list + `/guide/tools/:slug` with the form inline; retire the accordion; fold the try route in. Applied — see the status note at the top. Keyed by tool id rather than form slug, because the relation is many-to-many. | M–L | Answered: it WRAPS the form — the page owns the header (`PageHeaderOwnerContext`), so a tool's page is titled after the tool and not after a recorder four tools share. |
-| 5 | **See it running** (§4.4): trim three pages, drawers for mechanism and caveat, CDS corrections. | S | No. |
+| 5 | **See it running** (§4.4): trim three pages, drawers for mechanism and caveat, CDS corrections. Applied — see the status note at the top. Larger than the S estimated here: the drawers wanted a design-system component, which is a ninth surface owner and four call sites swept onto it. | S | Answered: yes to `Disclosure` in `packages/ui`, three variants; the clinician's three `<details>` deliberately stay hand-rolled. |
 | 6 | **Sidebar labels + Reference group** (§4.6), and the two gates in §5. | S | Yes: the labels. |
 
 PR 1 should land first regardless of anything else in this document. Everything

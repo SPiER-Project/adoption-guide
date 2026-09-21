@@ -51,6 +51,7 @@
 import { Link } from 'react-router-dom'
 import { STAGES, TOOLS, groupToolsByStage, triggersFromStage, type StageTrigger, type Tool } from '@spier/core/data/catalog'
 import { useScrollToHash } from '@spier/app-shell/hooks/useScrollToHash'
+import { Disclosure } from '@spier/ui/Disclosure'
 import { EmptyState } from '@spier/ui/EmptyState'
 import { Pill, type PillTone } from '@spier/ui/Pill'
 import { guideHref } from '../data/guideSections'
@@ -162,11 +163,12 @@ export function PatientJourney() {
             )}
 
             {(handoffs.length > 0 || ongoing.length > 0) && (
-              <details className="tools-index__handoff">
-                <summary className="tools-index__handoff-summary">
-                  How this stage hands off
-                  <span className="tools-index__handoff-count">{triggers.length}</span>
-                </summary>
+              <Disclosure
+                className="tools-index__handoff"
+                variant="quiet"
+                summary="How this stage hands off"
+                hint={triggers.length}
+              >
                 {handoffs.length > 0 && next && (
                   <>
                     <p className="tools-index__trigger-group">To {next.title}</p>
@@ -179,7 +181,7 @@ export function PatientJourney() {
                     <TriggerRows triggers={ongoing} />
                   </>
                 )}
-              </details>
+              </Disclosure>
             )}
           </section>
         )

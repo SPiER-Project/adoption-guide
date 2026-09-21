@@ -187,20 +187,6 @@
   margin: var(--space-3) 0 0 calc(2rem + var(--space-3));
 }
 
-/* `display: list-item` kept for the native marker — see ToolPage.css. */
-.tools-index__handoff-summary {
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  color: var(--text-muted);
-  cursor: pointer;
-}
-
-.tools-index__handoff-count {
-  margin-left: var(--space-2);
-  font-size: var(--font-size-xs);
-  font-weight: 400;
-}
-
 .tools-index__trigger-group {
   margin: var(--space-3) 0 0;
   font-size: var(--font-size-xs);
