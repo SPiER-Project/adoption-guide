@@ -124,7 +124,8 @@ export interface GuideSection {
    * registered route. A page under `/guide` that is NOT named here is
    * unchecked by both — CLAUDE.md flags exactly that hole ("a hand-rolled
    * route outside the list would be unchecked"). So a subsection is declared
-   * even though nothing renders this array.
+   * even though nothing renders this array. `resolveGuidePath` does read it,
+   * to give the page its drill-in header.
    *
    * ⚠️ `path` is the FULL sub-path under `/guide`, e.g. `tools/readiness` and
    * never `readiness`. Both gates build `/guide/${path}`, so a bare segment
@@ -162,12 +163,34 @@ export const GUIDE_SECTIONS: GuideSection[] = [
   // ⚠️ `pathway` is a REPURPOSED path, not a new one. It served the tool
   // catalogue until Phase 3 of docs/plans/suicide-safer-care-pathway.md; the
   // catalogue moved to `tools` and `/guide/pathway#stage-…` deep links are
-  // forwarded there by CarePathway.tsx.
-  // `wide`: the branch grid is an auto-fit multi-column layout and three of
-  // its panels scroll horizontally on their own. It is also the same rendered
-  // protocol as /patient/pathway (PathwayProtocol.tsx), which is `wide` as its
-  // own route — one artifact should not change measure with the chrome.
-  { path: 'pathway', label: 'Care Pathway', group: 'standard', width: 'wide' },
+  // forwarded there by CarePathway.tsx. Since 2026-09-20 the path is the
+  // EXPLAINER — what a pathway does, plus the simulator — and the rendered
+  // artifact is its subsection below.
+  // `wide`: the tier table is four columns at a 44rem floor and scrolls in
+  // its own box below that. It is also the same rendered protocol as
+  // /patient/pathway (PathwayProtocol.tsx), which is `wide` as its own route —
+  // one artifact should not change measure with the chrome. The explainer at
+  // /guide/pathway is prose, and caps every run at the reading measure instead
+  // (2026-09-20, adoption-guide UX audit §4.2 decision (b): keep the section
+  // wide rather than make the protocol page a sidebar row or let a
+  // subsection choose its own width — the only option that touched neither
+  // the sidebar nor check:template RULE 5a).
+  //
+  // ⚠️ **The published protocol is a SUBSECTION here, for the same reason
+  // Adoption Readiness is one under Tools.** /guide/pathway says what a
+  // suicide-safer care pathway does and lets a reader try one against the
+  // tier table; /guide/pathway/protocol is the same artifact rendered in full
+  // — spine, gates, pending definitions, provenance, JSON — for the
+  // implementer. A second view of one section, reached by one link from the
+  // explainer and not a pager step. It is the one page in the guide that says
+  // "rendered from the published PlanDefinition" (audit §5 rule 5).
+  {
+    path: 'pathway',
+    label: 'Care Pathway',
+    group: 'standard',
+    width: 'wide',
+    subsections: [{ path: 'pathway/protocol', label: 'The published protocol' }],
+  },
   // `wide`: two catalogue tables.
   //
   // ⚠️ **Adoption Readiness is a SUBSECTION here, not a sibling, and that is

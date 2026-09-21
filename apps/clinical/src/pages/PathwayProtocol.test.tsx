@@ -47,13 +47,28 @@ describe('PathwayProtocol — the pathway in the embedded panel', () => {
     expect(screen.getByText('Screen for suicide risk')).toBeDefined()
     expect(screen.getByText('Assess suicide risk after a positive screen')).toBeDefined()
     expect(screen.getByText(/Apply the obligations for the patient.s current risk tier/)).toBeDefined()
-    // All three tier columns, none of them selected: nothing here derives a
-    // tier, so nothing may be highlighted as though something did.
+    // All three tiers in one table, no column selected: nothing here derives
+    // a tier, so nothing may be highlighted as though something did.
     expect(screen.getByText('Low risk')).toBeDefined()
     expect(screen.getByText('Moderate risk')).toBeDefined()
     expect(screen.getByText('High risk')).toBeDefined()
-    expect(document.querySelector('.pathway-tier--active')).toBeNull()
-    expect(document.querySelector('.pathway-tier--dimmed')).toBeNull()
+    expect(document.querySelector('.pathway-matrix')).not.toBeNull()
+    expect(document.querySelector('.pathway-matrix__cell--active')).toBeNull()
+    expect(document.querySelector('.pathway-matrix__cell--dimmed')).toBeNull()
+  })
+
+  it('shows the protocol in words — no FHIRPath, no canonical URL, no drawer', () => {
+    renderPage()
+    // The gates and canonicals render only in the guide's PathwayCodeDrawer,
+    // which returns null without inspection, and this page never provides it.
+    // A clinician reads what the tier IS, not the expression that computes it.
+    expect(document.querySelector('details')).toBeNull()
+    expect(document.body.textContent).not.toMatch(/%episode|%phq9Item9Observation/)
+    expect(document.querySelector('.pathway-spine')!.textContent).not.toContain(
+      'http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs',
+    )
+    // ...while the provenance strip, which IS the point of this page, keeps its canonical.
+    expect(screen.getByText(CANONICAL)).toBeDefined()
   })
 
   it('leads with the provenance strip — the canonical URL before the protocol', () => {

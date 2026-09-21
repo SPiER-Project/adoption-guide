@@ -5,8 +5,16 @@
  * Pattern A (decision 2) means the artifact is *already* in the bundle, so
  * putting the protocol in front of a clinician inside a host chart is a route
  * and a reframing rather than a build. There is no second renderer — the spine,
- * the tier columns and the provenance block are `components/PathwayView.tsx`,
- * the same ones `/guide/pathway` composes.
+ * the tier table and the provenance block are `components/PathwayView.tsx`,
+ * the same ones the guide's `/guide/pathway/protocol` composes.
+ *
+ * ── What the clinician does NOT see here (2026-09-20) ─────────
+ *
+ * The tier branch is one table, obligation × tier, with no column lit: nothing
+ * on this page derives a tier, so nothing may be highlighted as though it did.
+ * The FHIRPath gates, triggers and canonical URLs render only in the guide's
+ * `PathwayCodeDrawer`, which returns null without inspection — the protocol is
+ * in words here, and the test beside this file asserts no expression leaks.
  *
  * ── Why provenance LEADS here ─────────────────────────────────
  *

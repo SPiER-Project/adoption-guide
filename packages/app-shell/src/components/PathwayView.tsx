@@ -3,20 +3,44 @@
  *
  * Extracted in Phase 4 of docs/plans/suicide-safer-care-pathway.md, when the
  * protocol had to appear in a second place: the SMART panel embedded in a host
- * chart. The two surfaces frame it differently and deliberately so —
+ * chart. Three pages compose it now, and frame it differently on purpose —
  *
- *  - `pages/CarePathway.tsx` (`/guide/pathway`) is the implementer's page: a
- *    lede, the C-SSRS simulator, the whole spine, the pending-definition strip,
- *    provenance last.
- *  - `pages/PathwayProtocol.tsx` (`/patient/pathway`) is the clinician's, and is
- *    what the embedded panel shows. **Provenance leads**, because in an EHR the
- *    claim being made is that the app carried a published artifact in with it.
+ *  - `apps/guide` `/guide/pathway` (pages/CarePathway.tsx) is the explainer: what
+ *    a suicide-safer care pathway does, the C-SSRS simulator, and the tier
+ *    TABLE lit by the simulator's result. No spine, no provenance.
+ *  - `apps/guide` `/guide/pathway/protocol` (pages/CarePathwayProtocol.tsx) is
+ *    the implementer's page: the whole spine, the pending-definition strip, the
+ *    gates and canonicals in a drawer, provenance and the JSON last.
+ *  - `apps/clinical` `/patient/pathway` (pages/PathwayProtocol.tsx) is the
+ *    clinician's, and is what the embedded panel shows. **Provenance leads**,
+ *    because in an EHR the claim being made is that the app carried a published
+ *    artifact in with it.
  *
- * — but neither may re-implement the rendering. A second copy of the spine is
- * how the two would come to disagree about what the artifact says, which is the
+ * — but none may re-implement the rendering. A second copy of the spine is how
+ * two of them would come to disagree about what the artifact says, which is the
  * one thing this whole feature exists to make impossible. So everything that
- * draws a step, a gate, an obligation, a tier column or the provenance facts
- * lives here, once, and each page composes it.
+ * draws a step, an obligation, the tier table or the provenance facts lives
+ * here, once, and each page composes it.
+ *
+ * ── The tier branch is a TABLE, not three columns (2026-09-20) ────
+ *
+ * The branch used to render one column per tier, each listing that tier's
+ * obligations in full — so "share crisis resources" and "reassess on cadence"
+ * appeared three times, and the FHIRPath gate three times under them. The
+ * source diagram draws the same thing as a matrix, obligation × tier, with a
+ * row spanning every tier it applies to. `PathwayTierTable` draws that, from
+ * `@spier/core/lib/pathwayMatrix`, on every surface; the guide's explainer
+ * lights the column its simulator produced.
+ *
+ * ── No FHIRPath and no canonical URL in the spine ─────────────────
+ *
+ * The applicability expressions, the triggers and the `documentation.resource`
+ * canonicals are the implementer's half. They render in `PathwayCodeDrawer`,
+ * which returns null without inspection — so the clinician's panel shows the
+ * protocol in words, and the guide's protocol page shows the words with the
+ * wire format one disclosure away. A step's `definitionCanonical` keeps its
+ * short label (`ActivityDefinition/AdministerPHQ9`) here, because that names
+ * the realization rather than quoting a URL.
  *
  * ⚠️ **No patient data, in either direction.** The guide page's boundary is
  * gated (`npm run check:guide-boundary` walks its imports transitively, and it
@@ -33,10 +57,12 @@ import {
   type PathwayDocumentation,
   type PathwayModel,
 } from '@spier/core/lib/pathway'
+import { buildTierMatrix } from '@spier/core/lib/pathwayMatrix'
 import '../css/CarePathway.css'
 import { cx } from '@spier/ui/cx'
 import { Notice } from '@spier/ui/Notice'
 import { Card } from '@spier/ui/Card'
+import { DataTable } from '@spier/ui/DataTable'
 
 /* ─── Loading ────────────────────────────────────────────────── */
 
@@ -58,11 +84,19 @@ export function PathwayLoadError({ error }: { error: string | null }) {
 
 /* ─── Small presentational pieces ────────────────────────────── */
 
+/**
+ * The notes the artifact attaches to a step, in words: label, text and an
+ * external link. A note's `resource` — a canonical URL of another SPiER
+ * artifact — is not drawn here; it is listed in `PathwayCodeDrawer`. A note
+ * that carries only a resource is therefore skipped, since it would render as
+ * a label over nothing.
+ */
 function DocumentationNotes({ docs }: { docs: PathwayDocumentation[] }) {
-  if (docs.length === 0) return null
+  const shown = docs.filter(doc => doc.display || doc.url)
+  if (shown.length === 0) return null
   return (
     <ul className="pathway-notes">
-      {docs.map((doc, i) => (
+      {shown.map((doc, i) => (
         <li key={i} className="pathway-notes__item">
           {doc.label && <span className="pathway-notes__label">{doc.label}</span>}
           {doc.display && <span className="pathway-notes__text">{doc.display}</span>}
@@ -71,40 +105,19 @@ function DocumentationNotes({ docs }: { docs: PathwayDocumentation[] }) {
               {doc.url}
             </a>
           )}
-          {doc.resource && <code className="pathway-notes__canonical">{doc.resource}</code>}
         </li>
       ))}
     </ul>
   )
 }
 
-function Conditions({ action }: { action: PathwayAction }) {
-  if (action.conditions.length === 0 && action.triggers.length === 0) return null
-  return (
-    <div className="pathway-gate">
-      {action.triggers.map((trigger, i) => (
-        <p key={`t${i}`} className="pathway-gate__row">
-          <span className="pathway-gate__kind">on {trigger.type}</span>
-          <code className="pathway-gate__expr">{trigger.data.join('  |  ')}</code>
-        </p>
-      ))}
-      {action.conditions.map((condition, i) => (
-        <p key={`c${i}`} className="pathway-gate__row">
-          <span className="pathway-gate__kind">{condition.kind}</span>
-          <code className="pathway-gate__expr">{condition.expression}</code>
-        </p>
-      ))}
-    </div>
-  )
-}
-
-function Realization({ action }: { action: PathwayAction }) {
-  if (!action.definitionCanonical) {
+function Realization({ canonical, label }: { canonical?: string; label?: string }) {
+  if (!canonical) {
     return <span className="pathway-obligation__protocol">Protocol only — no activity definition</span>
   }
   return (
-    <span className="pathway-obligation__def" title={action.definitionCanonical}>
-      {action.definitionLabel}
+    <span className="pathway-obligation__def" title={canonical}>
+      {label}
     </span>
   )
 }
@@ -116,10 +129,116 @@ function Obligation({ action }: { action: PathwayAction }) {
       {action.description && <p className="pathway-obligation__desc">{action.description}</p>}
       <p className="pathway-obligation__meta">
         {action.stage && <span className="pathway-stage-chip">{action.stage.display ?? action.stage.code}</span>}
-        <Realization action={action} />
+        <Realization canonical={action.definitionCanonical} label={action.definitionLabel} />
       </p>
       <DocumentationNotes docs={action.documentation} />
     </li>
+  )
+}
+
+/* ─── The tier table ─────────────────────────────────────────── */
+
+export interface PathwayTierTableProps {
+  /** The tier groups, in the order the artifact states them. */
+  tiers: PathwayAction[]
+  /**
+   * The tier to light up, when a surface has one to show. The guide's
+   * explainer passes its simulator's derived tier; the protocol pages pass
+   * nothing, because they render the definition and nothing about a patient
+   * (Phase 4's hard rule).
+   *
+   * `undefined` means "no tier is selected", and every column then renders at
+   * full strength — a dimmed column implies a choice was made.
+   */
+  activeTierCode?: string
+  /** Draw the table in its own frame (outside a Card) rather than bare (inside one). */
+  framed?: boolean
+}
+
+/**
+ * Obligation × tier. A cell spanning several tiers is one obligation those
+ * tiers state identically; a dash is a tier that does not owe it. The first
+ * body row is each tier's gate, in the artifact's own words.
+ */
+export function PathwayTierTable({ tiers, activeTierCode, framed }: PathwayTierTableProps) {
+  const rows = buildTierMatrix(tiers)
+  const selecting = activeTierCode !== undefined
+  const state = (tierCodes: string[]) =>
+    !selecting ? undefined
+      : tierCodes.includes(activeTierCode) ? 'pathway-matrix__cell--active'
+      : 'pathway-matrix__cell--dimmed'
+
+  return (
+    <DataTable framed={framed} tableClassName="pathway-matrix">
+      <thead>
+        <tr>
+          <th scope="col" className="pathway-matrix__corner">Obligation</th>
+          {tiers.map(tier => {
+            const code = tier.tier?.code ?? 'unknown'
+            const active = selecting && code === activeTierCode
+            return (
+              <th
+                key={tier.id}
+                scope="col"
+                className={cx('pathway-matrix__tier', `pathway-matrix__tier--${code}`, state([code]))}
+                aria-current={active ? 'true' : undefined}
+              >
+                <span className="pathway-matrix__swatch" aria-hidden="true" />
+                {tier.title}
+                {active && <span className="pathway-matrix__flag">simulated result</span>}
+              </th>
+            )
+          })}
+        </tr>
+      </thead>
+      <tbody>
+        {/* The gate row: what puts a patient in each column, from the tier
+            group's own description. The FHIRPath that a CDS engine evaluates
+            for the same question is in the code drawer. */}
+        <tr className="pathway-matrix__gate">
+          <th scope="row" className="pathway-matrix__obligation">
+            <p className="pathway-obligation__title">Applies when</p>
+          </th>
+          {tiers.map(tier => (
+            <td key={tier.id} className={cx('pathway-matrix__cell', state([tier.tier?.code ?? 'unknown']))}>
+              <p className="pathway-matrix__desc">{tier.description}</p>
+            </td>
+          ))}
+        </tr>
+        {rows.map(row => (
+          <tr key={row.title}>
+            <th scope="row" className="pathway-matrix__obligation">
+              <p className="pathway-obligation__title">{row.title}</p>
+              {row.description && <p className="pathway-obligation__desc">{row.description}</p>}
+              <p className="pathway-obligation__meta">
+                {row.stage && <span className="pathway-stage-chip">{row.stage.display ?? row.stage.code}</span>}
+                <Realization canonical={row.definitionCanonical} label={row.definitionLabel} />
+              </p>
+            </th>
+            {row.cells.map(cell =>
+              cell.kind === 'owed' ? (
+                <td
+                  key={cell.tierCodes.join('+')}
+                  colSpan={cell.span}
+                  className={cx('pathway-matrix__cell', 'pathway-matrix__cell--owed', state(cell.tierCodes))}
+                >
+                  <span className="pathway-matrix__mark">Owed</span>
+                  <DocumentationNotes docs={cell.action.documentation} />
+                </td>
+              ) : (
+                <td
+                  key={cell.tierCode}
+                  className={cx('pathway-matrix__cell', 'pathway-matrix__cell--none', state([cell.tierCode]))}
+                >
+                  <span aria-hidden="true">—</span>
+                  <span className="pathway-matrix__hidden">Not owed at this tier</span>
+                </td>
+              ),
+            )}
+          </tr>
+        ))}
+      </tbody>
+    </DataTable>
   )
 }
 
@@ -127,25 +246,19 @@ function Obligation({ action }: { action: PathwayAction }) {
 
 export interface PathwaySpineProps {
   model: PathwayModel
-  /**
-   * The tier to light up, when a surface has one to show. The guide page passes
-   * its simulator's derived tier; the embedded view passes nothing, because it
-   * renders the definition and nothing about a patient (Phase 4's hard rule).
-   *
-   * `undefined` means "no tier is selected", and every column then renders at
-   * full strength — a dimmed column implies a choice was made.
-   */
+  /** Passed through to the tier table — see `PathwayTierTableProps`. */
   activeTierCode?: string
-  /** Rendered under the branch when the active tier is the pathway's exit. */
+  /** Rendered under the tier table when the active tier is the pathway's exit. */
   exitNote?: ReactNode
 }
 
 /**
- * The whole protocol: the ordered steps, with the tier branch expanded in place.
+ * The whole protocol: the ordered steps, with the tier branch expanded in place
+ * as the tier table.
  *
  * Every tier at once, on purpose. The branch is the shape of the protocol, so
  * hiding two-thirds of it behind tabs would hide the thing the page exists to
- * show; wide content scrolls in its own container instead.
+ * show; the table scrolls in its own container where it is wider than the page.
  */
 export function PathwaySpine({ model, activeTierCode, exitNote }: PathwaySpineProps) {
   const { group: branch, tiers } = model.tierBranch
@@ -165,7 +278,6 @@ export function PathwaySpine({ model, activeTierCode, exitNote }: PathwaySpinePr
         <h4 className="pathway-step__title">{step.title}</h4>
       </div>
       {step.description && <p className="pathway-step__desc">{step.description}</p>}
-      <Conditions action={step} />
       <DocumentationNotes docs={step.documentation} />
       {step.children.length > 0 && (
         <ul className="pathway-obligations">
@@ -192,37 +304,8 @@ export function PathwaySpine({ model, activeTierCode, exitNote }: PathwaySpinePr
         {branch.description && <p className="pathway-step__desc">{branch.description}</p>}
         <DocumentationNotes docs={branch.documentation} />
 
-        <div className="pathway-branch__scroll">
-          <div className="pathway-branch">
-            {tiers.map(tier => {
-              const code = tier.tier?.code ?? 'unknown'
-              const active = activeTierCode !== undefined && code === activeTierCode
-              const dimmed = activeTierCode !== undefined && !active
-              return (
-                <section
-                  key={tier.id}
-                  className={
-                    `pathway-tier pathway-tier--${code}` +
-                    (active ? ' pathway-tier--active' : '') +
-                    (dimmed ? ' pathway-tier--dimmed' : '')
-                  }
-                  aria-current={active ? 'true' : undefined}
-                >
-                  <header className="pathway-tier__head">
-                    <h5 className="pathway-tier__title">{tier.title}</h5>
-                    {active && <span className="pathway-tier__flag">simulated result</span>}
-                  </header>
-                  {tier.description && <p className="pathway-tier__desc">{tier.description}</p>}
-                  <Conditions action={tier} />
-                  <ul className="pathway-obligations">
-                    {tier.children.map(child => (
-                      <Obligation key={child.id} action={child} />
-                    ))}
-                  </ul>
-                </section>
-              )
-            })}
-          </div>
+        <div className="pathway-branch">
+          <PathwayTierTable tiers={tiers} activeTierCode={activeTierCode} />
         </div>
 
         {exitNote}
@@ -289,8 +372,8 @@ export function PathwayPending() {
 export interface PathwayProvenanceProps {
   model: PathwayModel
   /**
-   * `footer` — the guide page's closing section: "here is the artifact this page
-   * was drawn from", after the thing it explains.
+   * `footer` — the guide's protocol page's closing section: "here is the
+   * artifact this page was drawn from", after the thing it explains.
    *
    * `lead` — the embedded panel's opening claim, and the reason Phase 4 exists.
    * Inside an EHR, "the app carried this published artifact in with it" IS the

@@ -223,6 +223,21 @@ Usage: #definition
 // low / moderate / high ONLY. `imminent` and `no-risk` are out for the reasons
 // risk-episode.fsh records; `historical` does not exist as a tier at all. See
 // the header.
+//
+// ⚠️ The three obligations every tier repeats — crisis resources, the safety
+// plan, the reassessment — carry IDENTICAL title, description and documentation
+// in every tier group, on purpose. Both apps draw this branch as one
+// obligation × tier table (PathwayView.tsx) and span a row across the tiers
+// whose cells agree, which is how the source diagram draws it; a tier-specific
+// sentence splits that row into two cells. That is a legitimate rendering when
+// it is meant, and packages/core/src/lib/pathwayMatrix.test.ts pins today's
+// state so a divergence is a decision rather than a drift. Say a thing once
+// and repeat it verbatim, or say it on the tier group's own documentation.
+//
+// ⚠️ `documentation[=].display` is PUBLISHED prose — a partner reads it in the
+// IG and both apps render it. It names the clinical claim and nothing about
+// this repo: no gate, script, file or doc path (adoption-guide UX audit §1.3,
+// 2026-09-20). The `//` comments in this file are the place for those.
 
 * action[+]
   * id = "tier-branch"
@@ -256,7 +271,7 @@ Usage: #definition
       * documentation[+].type = #documentation
       * documentation[=].label = "Emotional Fire Safety Plan"
       * documentation[=].url = "https://www.nowmattersnow.org/wp-content/uploads/2018/10/0.-NowMattersNow.org-Safety-Plan-Website-Version.pdf"
-      * documentation[=].display = "The diagram names the NowMattersNow Emotional Fire Safety Plan at every tier. It is third-party patient-education material, not a SPiER instrument, so it is referenced here as documentation rather than modeled as an activity."
+      * documentation[=].display = "The diagram names the NowMattersNow Emotional Fire Safety Plan at every tier, alongside the Stanley-Brown plan from the moderate tier upward. It is third-party patient-education material, not a SPiER instrument, so it is referenced here as documentation rather than modeled as an activity."
     * action[+]
       * id = "low-reassessment"
       * title = "Reassess on the published cadence for this tier"
@@ -265,7 +280,7 @@ Usage: #definition
       * definitionCanonical = "http://thespierproject.org/fhir/PlanDefinition/SPiERReassessmentSchedule"
       * documentation[+].type = #documentation
       * documentation[=].label = "One home for the cadence"
-      * documentation[=].display = "The per-tier interval lives in PlanDefinition/SPiERReassessmentSchedule and nowhere else. Restating it here would create a fourth copy of a rule that already has three, which is what npm run check:reassessment exists to prevent. Reassess more frequently when clinical judgment dictates."
+      * documentation[=].display = "The per-tier interval is published once, in PlanDefinition/SPiERReassessmentSchedule, and this pathway references it rather than restating it, so the two can never disagree about when a reassessment is due. Reassess more frequently when clinical judgment dictates."
 
   // ── Moderate ──
   * action[+]
@@ -285,11 +300,11 @@ Usage: #definition
       * definitionCanonical = "http://thespierproject.org/fhir/ActivityDefinition/ShareCrisisResources"
       * documentation[+].type = #documentation
       * documentation[=].label = "Every tier"
-      * documentation[=].display = "Crisis resources are owed at EVERY tier — the diagram states this as one row spanning all of them."
+      * documentation[=].display = "Crisis resources are owed at EVERY tier — the diagram states this as one row spanning all of them. Kept a standalone, composable step so a future non-suicide care path can include the same segment unchanged."
       * documentation[+].type = #documentation
       * documentation[=].label = "Emotional Fire Safety Plan"
       * documentation[=].url = "https://www.nowmattersnow.org/wp-content/uploads/2018/10/0.-NowMattersNow.org-Safety-Plan-Website-Version.pdf"
-      * documentation[=].display = "The diagram names the NowMattersNow Emotional Fire Safety Plan at every tier, alongside the Stanley-Brown plan from this tier upward."
+      * documentation[=].display = "The diagram names the NowMattersNow Emotional Fire Safety Plan at every tier, alongside the Stanley-Brown plan from the moderate tier upward. It is third-party patient-education material, not a SPiER instrument, so it is referenced here as documentation rather than modeled as an activity."
     * action[+]
       * id = "moderate-safety-plan"
       * title = "Complete a collaborative safety plan"
@@ -307,7 +322,7 @@ Usage: #definition
       * definitionCanonical = "http://thespierproject.org/fhir/PlanDefinition/SPiERReassessmentSchedule"
       * documentation[+].type = #documentation
       * documentation[=].label = "One home for the cadence"
-      * documentation[=].display = "The per-tier interval lives in PlanDefinition/SPiERReassessmentSchedule and nowhere else. Reassess more frequently when clinical judgment dictates."
+      * documentation[=].display = "The per-tier interval is published once, in PlanDefinition/SPiERReassessmentSchedule, and this pathway references it rather than restating it, so the two can never disagree about when a reassessment is due. Reassess more frequently when clinical judgment dictates."
 
   // ── High ──
   * action[+]
@@ -327,11 +342,11 @@ Usage: #definition
       * definitionCanonical = "http://thespierproject.org/fhir/ActivityDefinition/ShareCrisisResources"
       * documentation[+].type = #documentation
       * documentation[=].label = "Every tier"
-      * documentation[=].display = "Crisis resources are owed at EVERY tier — the diagram states this as one row spanning all of them."
+      * documentation[=].display = "Crisis resources are owed at EVERY tier — the diagram states this as one row spanning all of them. Kept a standalone, composable step so a future non-suicide care path can include the same segment unchanged."
       * documentation[+].type = #documentation
       * documentation[=].label = "Emotional Fire Safety Plan"
       * documentation[=].url = "https://www.nowmattersnow.org/wp-content/uploads/2018/10/0.-NowMattersNow.org-Safety-Plan-Website-Version.pdf"
-      * documentation[=].display = "The diagram names the NowMattersNow Emotional Fire Safety Plan at every tier, alongside the Stanley-Brown plan from the moderate tier upward."
+      * documentation[=].display = "The diagram names the NowMattersNow Emotional Fire Safety Plan at every tier, alongside the Stanley-Brown plan from the moderate tier upward. It is third-party patient-education material, not a SPiER instrument, so it is referenced here as documentation rather than modeled as an activity."
     * action[+]
       * id = "high-safety-plan"
       * title = "Complete a collaborative safety plan"
@@ -349,7 +364,7 @@ Usage: #definition
       * definitionCanonical = "http://thespierproject.org/fhir/PlanDefinition/SPiERReassessmentSchedule"
       * documentation[+].type = #documentation
       * documentation[=].label = "One home for the cadence"
-      * documentation[=].display = "The per-tier interval lives in PlanDefinition/SPiERReassessmentSchedule and nowhere else. Reassess more frequently when clinical judgment dictates."
+      * documentation[=].display = "The per-tier interval is published once, in PlanDefinition/SPiERReassessmentSchedule, and this pathway references it rather than restating it, so the two can never disagree about when a reassessment is due. Reassess more frequently when clinical judgment dictates."
     // ── High-risk-only protocol ──
     // Three items the diagram prints only in the High column. They are
     // documentation actions with no `definition[x]`: this is the FHIR shape for
@@ -402,7 +417,7 @@ Usage: #definition
     * description = "Where clinically warranted, add a suicide-related finding to the patient's problem list. SPiER surfaces the verified coding; the assertion is the clinician's."
     * documentation[+].type = #documentation
     * documentation[=].label = "SNOMED CT is primary"
-    * documentation[=].display = "US problem lists store SNOMED CT, so the primary coding comes from the SPiER Suicide-Related Problem value set — every member of which was verified against the publishing authority (see the header of suicide-related-conditions.fsh). For a patient on this pathway the usual entries are \"Suicidal thoughts\" (SNOMED CT 6471006) or \"At increased risk for suicide\" (SNOMED CT 225444004)."
+    * documentation[=].display = "US problem lists store SNOMED CT, so the primary coding comes from the SPiER Suicide-Related Problem value set — every member of which was verified against the publishing authority. For a patient on this pathway the usual entries are \"Suicidal thoughts\" (SNOMED CT 6471006) or \"At increased risk for suicide\" (SNOMED CT 225444004)."
     * documentation[=].resource = "http://thespierproject.org/fhir/ValueSet/spier-suicide-related-problem-vs"
     // ⚠️ ICD-10-CM literals. NO GATE CHECKS THESE — the nightly terminology
     // check covers LOINC, SNOMED and terminology.hl7.org only — so the
@@ -420,7 +435,7 @@ Usage: #definition
     // category but not billable at that specificity.
     * documentation[+].type = #documentation
     * documentation[=].label = "ICD-10-CM crosswalk (billing)"
-    * documentation[=].display = "Where a billable ICD-10-CM code is also required: R45.851 (Suicidal ideations) for current ideation, and Z91.51 (Personal history of suicidal behavior) — with Z91.52 (Personal history of nonsuicidal self-harm) as its sibling — for history. These codes are verified; see the pathway spec's ICD-10 correction section. SPiER surfaces them as guidance and never writes them."
+    * documentation[=].display = "Where a billable ICD-10-CM code is also required: R45.851 (Suicidal ideations) for current ideation, and Z91.51 (Personal history of suicidal behavior) — with Z91.52 (Personal history of nonsuicidal self-harm) as its sibling — for history. These codes are verified. SPiER surfaces them as guidance and never writes them."
   * action[+]
     * id = "contact-frequency"
     * title = "Maintain the tier's frequency of patient contact"
@@ -433,4 +448,4 @@ Usage: #definition
     // accident and put a fourth copy of an interval into the repo.
     * documentation[+].type = #documentation
     * documentation[=].label = "Not yet encoded as an interval"
-    * documentation[=].display = "The source diagram states a per-tier contact frequency as a row of its own, distinct from the reassessment cadence, with values that coincide at the higher tiers and diverge at the lower ones. Whether that is one rule or two is an open clinical question, so this pathway publishes the obligation without an interval: the per-tier values as drawn are transcribed in docs/reference/suicide-safer-care-pathway-spec.md. The one cadence SPiER does publish is PlanDefinition/SPiERReassessmentSchedule, and it is referenced by each tier group above rather than restated."
+    * documentation[=].display = "The source diagram states a per-tier contact frequency as a row of its own, distinct from the reassessment cadence, with values that coincide at the higher tiers and diverge at the lower ones. Whether that is one rule or two is an open clinical question, so this pathway publishes the obligation without an interval rather than settle that question by accident. The one cadence SPiER does publish is the reassessment schedule, PlanDefinition/SPiERReassessmentSchedule, which each tier group above references rather than restates."

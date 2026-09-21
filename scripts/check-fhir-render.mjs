@@ -319,7 +319,7 @@ const floorsHeld = reportFloors(
     ...appRootFloors(),
     { source: 'component trees', dimension: 'non-test .tsx scanned', actual: files.length, floor: 38 },
     { source: 'component trees', dimension: 'JSON.stringify site(s)', actual: counts['JSON.stringify'], floor: 2 },
-    { source: 'component trees', dimension: '<pre> site(s)', actual: counts['<pre>'], floor: 2 },
+    { source: 'component trees', dimension: '<pre> site(s)', actual: counts['<pre>'], floor: 4 },
     { source: 'recorder views', dimension: 'view(s) rendering <WorkflowForm>', actual: recorders.length, floor: 5 },
     { source: 'recorder views', dimension: 'JSX text run(s) read', actual: proseRuns, floor: 90 },
   ],
