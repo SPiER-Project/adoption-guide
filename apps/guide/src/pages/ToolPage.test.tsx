@@ -121,11 +121,11 @@ describe('ToolPage — a recorder (TL-010, caring contact)', () => {
   it('keeps the catalogue detail in closed drawers, and says little above the form', async () => {
     renderAt('/guide/tools/TL-010')
     await waitFor(() => expect(document.querySelector('.form-view')).not.toBeNull())
-    const summaries = [...document.querySelectorAll('.tool-page__drawer-label')].map((s) => s.textContent)
+    const summaries = [...document.querySelectorAll('.disclosure__label')].map((s) => s.textContent)
     expect(summaries[0]).toBe('What it is for')
     if (tool.recordingPattern) expect(summaries).toContain('What it records')
     if (tool.licensing) expect(summaries).toContain('Licensing')
-    for (const d of document.querySelectorAll('details.tool-page__drawer')) expect(d.hasAttribute('open')).toBe(false)
+    for (const d of document.querySelectorAll('details.disclosure')) expect(d.hasAttribute('open')).toBe(false)
     // §5 rule 4: a tool page's prose above the form is ≤ 150 words.
     const above = ['.page-header', '.tool-page__meta']
       .map((sel) => document.querySelector(sel)?.textContent ?? '')

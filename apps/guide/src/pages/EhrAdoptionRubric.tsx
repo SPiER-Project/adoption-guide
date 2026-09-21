@@ -4,6 +4,7 @@ import { useLocalStorage } from '@spier/app-shell/hooks/useLocalStorage'
 import '../css/EhrAdoptionRubric.css'
 import { cx } from '@spier/ui/cx'
 import { Pill } from '@spier/ui/Pill'
+import { Disclosure } from '@spier/ui/Disclosure'
 import { SCALE_TONES } from '../lib/scaleTones'
 import { Card } from '@spier/ui/Card'
 
@@ -128,19 +129,18 @@ export function EhrAdoptionRubric() {
       {/* Legend */}
       <div className="rubric-legend">
         {RUBRIC_CRITERIA.map(criterion => (
-          <details key={criterion.id} className="rubric-legend-criterion">
-            <summary className="rubric-legend-summary">
-              <strong>{criterion.name}</strong> &mdash; {criterion.description}
-            </summary>
-            <div className="rubric-legend-levels">
-              {criterion.levels.map(l => (
-                <div key={l.level} className="rubric-legend-level">
-                  <Pill variant="label" tone={SCALE_TONES[l.level]}>{l.level}</Pill>
-                  <strong>{l.label}</strong> &mdash; {l.description}
-                </div>
-              ))}
-            </div>
-          </details>
+          <Disclosure
+            key={criterion.id}
+            variant="boxed"
+            summary={<><strong>{criterion.name}</strong> &mdash; {criterion.description}</>}
+          >
+            {criterion.levels.map(l => (
+              <div key={l.level} className="rubric-legend-level">
+                <Pill variant="label" tone={SCALE_TONES[l.level]}>{l.level}</Pill>
+                <strong>{l.label}</strong> &mdash; {l.description}
+              </div>
+            ))}
+          </Disclosure>
         ))}
       </div>
 

@@ -281,18 +281,40 @@ inside `@media`: 640 / 768 / 1024, with `max-width` written as the complement
 (a table that fits at 1100, a title that wraps at 340) is a
 `stylelint-disable-next-line` naming why.
 
-### Eight components own the surfaces below the page header
+### Nine components own the surfaces below the page header
 
-Seven live in `packages/ui` (`@spier/ui/<name>`); `WorkflowForm` stays in
+Eight live in `packages/ui` (`@spier/ui/<name>`); `WorkflowForm` stays in
 `packages/tool-views` because it reads patient context. `SectionHeader` (the
 `<h3>` row), `Card` (a bordered panel), `Pill` (a small inline marker),
-`Notice` (a tinted message box), `EmptyState` ("nothing here"), `DataTable`
+`Notice` (a tinted message box), `Disclosure` (a labelled closed drawer),
+`EmptyState` ("nothing here"), `DataTable`
 (the table shell: wrapper, header type, cell padding, dividers),
 `WorkflowForm` (the recorder frame) and `Button` (the plum pill: `primary` /
 `secondary` / `link`, `accent` for a gradient label, `arrow` for one that
 navigates; renders a Link, an anchor or a button by which of `to` / `href` /
 neither it is given) each make one decision about padding, radius, type and
 colour, and a page never redeclares it.
+
+⚠️ **`Disclosure` is the ninth, added 2026-09-20 with the adoption-guide
+audit's §4.4, and it is the one addition since the audit that wrote this rule.**
+The case for it was measured, not stylistic: the same object had been
+hand-rolled six times, and two of the six — `.ar-legend-block` on Adoption
+Readiness and `.rubric-legend-criterion` on the Adoption Rubric — were
+**byte-identical CSS in two stylesheets**. `check:dupes` reads functions, so
+nothing was going to catch that pair; the ninth owner is what makes the next
+copy unnecessary rather than merely discouraged. It has three variants
+(`rule`, `boxed`, `quiet`), because three looks were already in use and a
+fourth is a decision someone has to write down. Its `<summary>` stays
+`display: list-item` — a summary set to `flex` loses its `::marker`, and a
+drawer with no triangle does not read as one.
+
+Three `<details>` on the clinician's surfaces deliberately did **not** adopt it,
+each for a reason at its own call site and repeated in `Disclosure.tsx`:
+`PopulationAlertsPanel`'s alert rows (the summary is a scannable data row, not a
+label), and `InstrumentHeader`'s "About this instrument" and `PathwayStage`'s
+"Use a different instrument", which carry recorded judgements about their weight
+inside a clinician's form. Adopting those two is a follow-up to be judged in the
+clinical chrome, not inherited from a guide copy change.
 
 ⚠️ The formbox renderer's submit is vendor DOM and copies `Button`'s decisions
 by token in `App.css` — move one, move both.
@@ -302,7 +324,7 @@ card sits, the colour of a FHIR resource type's pill — never a radius, padding
 border or background. Before these existed 76 card surfaces used 29
 padding/radius combinations and ~40 pills 12 paddings; the gates check that a
 value is on the token scale, not which value a role gets, so only a component
-can hold that. Reach for one of the eight before writing a new class; if none
+can hold that. Reach for one of the nine before writing a new class; if none
 fits, `docs/plans/maintainability-audit-2026-09-15.md` §2.4 says how a variant
 is added (a named prop, never a ninth look).
 

@@ -55,35 +55,10 @@
   color: var(--brand-primary);
 }
 
-.tool-page__drawer {
-  border-top: 1px solid var(--border-default);
-}
-
-/* Left as `display: list-item`, deliberately: a summary set to flex loses its
-   ::marker, and a drawer with no triangle does not read as one. */
-.tool-page__drawer-summary {
-  padding: var(--space-3) 0;
-  cursor: pointer;
-}
-
-.tool-page__drawer-label {
-  font-size: var(--font-size-md);
-  font-weight: 600;
-  color: var(--text-strong);
-}
-
-.tool-page__drawer-hint {
-  margin-left: var(--space-3);
-  font-size: var(--font-size-xs);
-  color: var(--text-muted);
-}
-
-.tool-page__drawer-body {
-  padding: 0 0 var(--space-4);
-}
-
+/* No margin: `Disclosure`'s body is a flex column and owns the gap between a
+   drawer's children. A margin here would be a second opinion about it. */
 .tool-page__desc {
-  margin: 0 0 var(--space-3);
+  margin: 0;
   max-width: var(--measure-prose);
   font-size: var(--font-size-md);
   line-height: 1.55;
@@ -95,7 +70,6 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-1-5);
-  margin-top: var(--space-2);
   font-size: var(--font-size-sm);
 }
 
@@ -122,7 +96,7 @@
 }
 
 .tool-page__trigger {
-  margin: var(--space-3) 0 0;
+  margin: 0;
   padding: var(--space-2) var(--space-3);
   border-left: 3px solid var(--accent-warning-edge);
   border-radius: var(--radius-sm);

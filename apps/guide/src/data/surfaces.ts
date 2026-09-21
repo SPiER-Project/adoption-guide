@@ -23,8 +23,14 @@ import { DEPLOY_ORIGINS } from '@spier/core/lib/deployOrigins'
  *   - the host's own front page, which must say *"This host is not SPiER"* and
  *     must say it after the instruction — asserted in `chartPage.test.ts`, with
  *     `DISCLAIMER` on every page it serves;
- *   - `/guide/dashboard`'s warning box, which the panel plan requires: the host
- *     is written and run by the same project as the app;
+ *   - `/guide/dashboard`'s *What this does and does not prove* drawer, which the
+ *     panel plan requires: the host is written and run by the same project as
+ *     the app. ⚠️ It was an open warning box until 2026-09-20, when the
+ *     adoption-guide audit (§3, §4.4) demoted every caveat on the three "see it
+ *     running" pages into a closed drawer — **task first, caveats closed, never
+ *     deleted**. That page is now the one place the claim is stated IN FULL;
+ *     `/guide/provider-app` and `/guide/cds-service` state it in a sentence and
+ *     link there, which is §5 rule 2 (a caveat stated once per site);
  *   - `chartPage.ts`'s "Under the hood" drawer, which says it in full.
  *
  * ⚠️ **So this is not permission to soften those three.** "Demo EHR" is a name;

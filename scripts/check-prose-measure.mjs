@@ -101,8 +101,10 @@ import { reportFloors } from './lib/floors.mjs'
  * narrow glyphs fits more) is what makes the ceiling empirical rather than
  * arithmetic.
  *
- * MAX is 41 because 42 was measured at 91 characters on
- * `.cds-service-guide__section p` — the widest-measuring run in the app. MIN is
+ * MAX is 41 because 42 was measured at 91 characters on the CDS service page's
+ * body run — `.cds-service-guide__section p` when that was measured, and
+ * `.surface-guide__section p` since the three "see it running" pages became one
+ * stylesheet on 2026-09-20. Same token, same `font-size`, same number. MIN is
  * 24 because below that the widest-measuring content drops under 45, the bottom
  * of the comfortable band, where a measure starts costing more in eye returns
  * than it saves in line length.
@@ -310,7 +312,7 @@ if (tokenDefs.length === 0) {
         `\`--measure-prose\` is \`${value}\` at ${file}:${line}, outside the ${MEASURE_MIN_EM}-${MEASURE_MAX_EM}em band.\n` +
         `    Characters ≈ 2 × the em value for this app's type, so ${n}em is roughly ${Math.round(n * 1.9)}-${Math.round(n * 2.17)}\n` +
         '    characters, and the comfortable band is 45-90. The ceiling is empirical: 42em measured 91\n' +
-        '    characters on `.cds-service-guide__section p`. Measure the affected runs in the browser\n' +
+        '    characters on `.surface-guide__section p`. Measure the affected runs in the browser\n' +
         '    rather than moving the band to fit the number.',
       )
     }
