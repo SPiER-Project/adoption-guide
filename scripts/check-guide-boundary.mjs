@@ -51,10 +51,19 @@ function guideEntryPoints() {
   }
   // Section path → component, read off App.tsx's own route table rather than a
   // second hand-kept mapping.
+  //
+  // ⚠️ Two spellings of a guide route, both accepted. A section and most
+  // subsections nest under the `/guide` layout as `path="tools/readiness"`;
+  // the tool page (`tools/:toolRef`, 2026-09-20) is a SIBLING of the layout
+  // because it draws its own header, so it is `path="/guide/tools/:toolRef"`.
+  // A regex that read only the relative form reported "no route element found"
+  // for it — which is the right failure for an undeclared page and the wrong
+  // one for a declared sibling — so the optional `/guide/` prefix is what lets
+  // a sibling be declared here and WALKED rather than left off the list.
   const appSrc = readFileSync(join(SRC, 'App.tsx'), 'utf8')
   const entries = ['pages/AdoptionGuide.tsx']
   for (const p of paths) {
-    const m = appSrc.match(new RegExp(`<Route path="${p}" element=\\{<(\\w+)\\s*/>\\}`))
+    const m = appSrc.match(new RegExp(`<Route path="(?:/guide/)?${p}" element=\\{<(\\w+)\\s*/>\\}`))
     if (!m) {
       fail(`App.tsx: no route element found for guide section "${p}" — this gate reads the route table to find the section's component`)
       continue

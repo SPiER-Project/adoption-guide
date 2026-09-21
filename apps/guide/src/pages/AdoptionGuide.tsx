@@ -35,9 +35,9 @@ export function AdoptionGuide() {
   return (
     /* ⚠️ **This provider is where "the guide shows the wire format" stops being
        a convention and becomes a fact about the tree.** Everything under
-       /guide — including the /guide/tools/:slug/try routes, which render the
-       same instrument views the clinician's app does — may show raw FHIR;
-       nothing outside it may, because the context defaults to false. See
+       /guide may show raw FHIR; nothing outside it may, because the context
+       defaults to false. The tool pages (/guide/tools/TL-0NN) sit BESIDE this
+       layout rather than under it and provide the same value themselves. See
        context/InspectContext.ts for why this is a fourth axis and not chrome
        mode, build surface or data source. */
     <InspectContext.Provider value>

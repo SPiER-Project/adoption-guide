@@ -1,19 +1,61 @@
-import { useState } from 'react'
+/**
+ * Tools — the catalogue, as a list.
+ *
+ * Every instrument and workflow step SPiER models, grouped by the pathway
+ * stage it belongs to, one line per tool: its name as a link to the tool's own
+ * page, its status, its purpose. Forty links in about two screens.
+ *
+ * ── What this replaced (2026-09-20) ─────────────────────────────────────────
+ *
+ * Forty accordion cards, one line each; expanding one added five sections and
+ * 1,600px, expanding another collapsed the first, and the form a reader would
+ * actually try was a secondary button at the BOTTOM of the expanded detail,
+ * after the FHIR examples. On a phone the page was seventeen screens with
+ * nothing expanded, and its stage progress bar overflowed sideways with no
+ * affordance (adoption-guide UX audit §2, §3, §4.3). The detail is now each
+ * tool's page (`ToolPage.tsx`), with the form first; this page is the list.
+ *
+ * What the accordion carried that the list keeps, one click down rather than
+ * deleted (the mock-EHR rule: task first, the rest in closed drawers):
+ *
+ *   - the stage-to-stage TRIGGERS, as a "how this stage hands off" drawer
+ *     under each stage's list — they are catalogue prose about transitions the
+ *     IG has not yet machine-encoded, and nowhere else says them;
+ *   - the Zero Suicide alignment, as a closing paragraph rather than a tinted
+ *     callout above the list — it is context, not a caveat, and it was pushing
+ *     the first tool below the fold.
+ *
+ * ── Rules this page is written against ──────────────────────────────────────
+ *
+ * ⚠️ A GUIDE SUB-PAGE: it renders inside AdoptionGuide's header, so no
+ * PageHeader and no page title of its own, no padding and no width on the root
+ * (`npm run check:template`). The section is `wide` (it was for the accordion
+ * grid; the list keeps it so the tool page beside it does not change measure
+ * with the chrome), so every run of prose caps itself at the reading measure.
+ *
+ * ⚠️ The stage anchors are `#stage-<stage id>` and stay so: `/guide/pathway`
+ * forwards them here (it served this catalogue before it was the pathway), and
+ * the stage list at the top links them. `useScrollToHash` scrolls a cold deep
+ * link on mount.
+ *
+ * ⚠️ The two links into other guide sections are route LITERALS so that
+ * `check:surface-links` can read them; the forty tool links are computed from
+ * the catalog, which that gate cannot see — `PatientJourney.test.tsx` asserts
+ * one per tool instead. The reader is named in the first sentence, and the
+ * prose before the first stage heading stays under the audit's cap (§5).
+ *
+ * The component keeps its historical name: the file is linked by path from
+ * two plan documents, and the route table and three gates read it by that
+ * name. It is the Tools catalogue.
+ */
 import { Link } from 'react-router-dom'
-import {
-  STAGES,
-  toolsByStage,
-  triggersFromStage,
-  type Tool,
-} from '@spier/core/data/catalog'
-import { ToolDetail } from '../components/ToolDetail'
+import { STAGES, TOOLS, groupToolsByStage, triggersFromStage, type StageTrigger, type Tool } from '@spier/core/data/catalog'
 import { useScrollToHash } from '@spier/app-shell/hooks/useScrollToHash'
-import { guideHref } from '../data/guideSections'
-import '../css/PatientJourney.css'
-import { cx } from '@spier/ui/cx'
-import { Notice } from '@spier/ui/Notice'
+import { EmptyState } from '@spier/ui/EmptyState'
 import { Pill, type PillTone } from '@spier/ui/Pill'
-import { Card } from '@spier/ui/Card'
+import { guideHref } from '../data/guideSections'
+import { guideToolHref, toolForms } from '../data/toolForms'
+import '../css/PatientJourney.css'
 
 const STATUS_LABELS: Record<Tool['inclusionStatus'], string> = {
   core: 'Core',
@@ -21,148 +63,136 @@ const STATUS_LABELS: Record<Tool['inclusionStatus'], string> = {
   future: 'Future',
 }
 
-const STAGE_TOOL_TONE: Record<string, PillTone> = { core: 'success', optional: 'info', future: 'neutral' }
+const STATUS_TONE: Record<Tool['inclusionStatus'], PillTone> = { core: 'success', optional: 'info', future: 'neutral' }
+
+/**
+ * The first sentence of a tool's purpose. The catalogue's purposes run to two
+ * sentences, and the second usually restates the stage — "Belongs to the
+ * Identify Possible Risk stage" — which the heading above the row already says.
+ * The whole purpose is the tool page's lede.
+ */
+function firstSentence(text: string): string {
+  const m = /^(.*?[.!?])(?:\s|$)/.exec(text)
+  return m ? m[1] : text
+}
+
+function TriggerRows({ triggers }: { triggers: StageTrigger[] }) {
+  return (
+    <ul className="tools-index__triggers">
+      {triggers.map((t) => (
+        <li key={t.id} className="tools-index__trigger">
+          <span className="tools-index__trigger-event">{t.event}</span>
+          <span className="tools-index__trigger-condition">{t.condition}</span>
+          <span className="tools-index__trigger-action">{t.action}</span>
+        </li>
+      ))}
+    </ul>
+  )
+}
 
 export function PatientJourney() {
-  const [expandedToolId, setExpandedToolId] = useState<string | null>(null)
   // Scroll to a #stage-… section on mount (cold deep-link) and on hash change.
   useScrollToHash()
-
-  const toggleTool = (toolId: string) => {
-    setExpandedToolId(prev => (prev === toolId ? null : toolId))
-  }
+  const groups = groupToolsByStage(TOOLS)
 
   return (
-    <div className="patient-journey">
-      <p className="journey-description">
-        Every instrument and recorder SPiER models, grouped by the care stage it belongs to &mdash; from
-        flagging risk through measuring and sharing pathway activity. Click a tool to see its specification,
-        implementation details, data elements, and launch options. For the clinical protocol these tools
-        serve &mdash; screen, gate, assess, branch by risk tier &mdash; see the{' '}
-        <Link to={guideHref('pathway')}>Care Pathway</Link>.
+    <div className="tools-index">
+      <p className="tools-index__lede">
+        If you are wiring SPiER into an EHR, this is every instrument and workflow step it models:{' '}
+        {TOOLS.length} tools across the {STAGES.length} stages of the pathway. Each is a page of its own, with
+        the form in front and what it writes behind.
       </p>
-      <p className="journey-description">
-        For the same catalogue scored rather than described &mdash; where each instrument is in the
-        build, how strongly it is recommended, and how deeply it integrates &mdash; see{' '}
-        <Link to={guideHref('tools/readiness')}>Adoption Readiness</Link>.
+      <p className="tools-index__aside">
+        For the same catalogue scored &mdash; where each tool is in the build, and how deeply it integrates
+        &mdash; see <Link to="/guide/tools/readiness">Adoption Readiness</Link>. For the protocol these tools
+        serve, see the <Link to="/guide/pathway">Care Pathway</Link>.
       </p>
 
-      <Notice as="aside" tone="info">
-        <strong>Aligned with Zero Suicide.</strong>{' '}
-        SPiER's 8 technical stages are a FHIR-native instantiation of the workflow layers of the{' '}
-        <a href="https://zerosuicide.edc.org/" target="_blank" rel="noopener noreferrer">Zero Suicide</a>{' '}
-        framework. Stages 1&ndash;3 model <em>Identify</em>; stage 4 models <em>Engage</em>;
-        stages 5&ndash;6 model <em>Transition</em>; stage 7 models <em>Treat</em>;
-        stage 8 models <em>Improve</em>. The organizational layers (<em>Lead</em>, <em>Train</em>)
-        are out of SPiER's EHR-pathway scope.
-      </Notice>
+      <nav aria-label="Stages">
+        <ol className="tools-index__stage-list">
+          {STAGES.map((stage, idx) => (
+            <li key={stage.id}>
+              <a href={`#${guideHref('tools')}#stage-${stage.id}`} className="tools-index__stage-link">
+                <span className="tools-index__stage-n" aria-hidden="true">{idx + 1}</span>
+                {stage.title}
+              </a>
+            </li>
+          ))}
+        </ol>
+      </nav>
 
-      {/* Horizontal progress bar */}
-      <Card className="journey-progress">
-        {STAGES.map((stage, idx) => (
-          <div key={stage.id} className="journey-progress-step">
-            <a href={`#${guideHref('tools')}#stage-${stage.id}`} className="journey-progress-dot">
-              {idx + 1}
-            </a>
-            <span className="journey-progress-label">{stage.title}</span>
-            {idx < STAGES.length - 1 && <div className="journey-progress-line" />}
-          </div>
-        ))}
-      </Card>
-
-      {/* Stage detail sections */}
-      <div className="journey-stages">
-        {STAGES.map((stage, idx) => {
-          const stageTools = toolsByStage(stage.id)
-          const stageTriggers = triggersFromStage(stage.id)
-          const nextStage = STAGES[idx + 1]
-          const crossStageTriggers = stageTriggers.filter(t => t.toStageId && t.toStageId !== stage.id)
-          const ongoingTriggers = stageTriggers.filter(t => !t.toStageId)
-
-          return (
-            <div key={stage.id} id={`stage-${stage.id}`} className="journey-stage">
-              <div className="stage-header">
-                <span className="stage-number">{idx + 1}</span>
-                <div>
-                  <h3 className="stage-title">{stage.title}</h3>
-                  <p className="stage-description">{stage.description}</p>
-                </div>
+      {groups.map(({ stage, tools }, idx) => {
+        const triggers = triggersFromStage(stage.id)
+        const handoffs = triggers.filter((t) => t.toStageId && t.toStageId !== stage.id)
+        const ongoing = triggers.filter((t) => !t.toStageId)
+        const next = STAGES[idx + 1]
+        return (
+          <section
+            key={stage.id}
+            id={`stage-${stage.id}`}
+            className="tools-index__stage"
+            aria-labelledby={`stage-${stage.id}-title`}
+          >
+            <div className="tools-index__stage-head">
+              <span className="tools-index__stage-number" aria-hidden="true">{idx + 1}</span>
+              <div>
+                <h3 id={`stage-${stage.id}-title`} className="tools-index__stage-title">{stage.title}</h3>
+                <p className="tools-index__stage-desc">{stage.description}</p>
               </div>
-
-              {stageTools.length > 0 && (
-                <div className="stage-tools">
-                  {stageTools.map(tool => {
-                    const isExpanded = expandedToolId === tool.id
-                    return (
-                      <div
-                        key={tool.id}
-                        className={cx('stage-tool-card', `stage-tool-card--${tool.inclusionStatus}`, isExpanded && 'stage-tool-card--expanded')}
-                      >
-                        <button
-                          type="button"
-                          className="stage-tool-summary"
-                          onClick={() => toggleTool(tool.id)}
-                          aria-expanded={isExpanded}
-                        >
-                          <div className="stage-tool-header">
-                            <span className="stage-tool-name">{tool.name}</span>
-                            <Pill size="sm" tone={STAGE_TOOL_TONE[tool.inclusionStatus]}>
-                              {STATUS_LABELS[tool.inclusionStatus]}
-                            </Pill>
-                          </div>
-                          <p className="stage-tool-purpose">{tool.purpose}</p>
-                          {tool.settings.length > 0 && (
-                            <p className="stage-tool-settings">{tool.settings.join(', ')}</p>
-                          )}
-                          <span className="stage-tool-expand-hint">
-                            {isExpanded ? 'Hide details \u2191' : 'Show details \u2193'}
-                          </span>
-                        </button>
-                        {isExpanded && <ToolDetail tool={tool} />}
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-
-              {/* Triggers → next stage */}
-              {crossStageTriggers.length > 0 && nextStage && (
-                <div className="stage-triggers">
-                  <div className="triggers-label">
-                    Triggers &rarr; {nextStage.title}
-                  </div>
-                  {crossStageTriggers.map(trigger => (
-                    <div key={trigger.id} className="trigger-item">
-                      <span className="trigger-event">{trigger.event}</span>
-                      <span className="trigger-condition">{trigger.condition}</span>
-                      <span className="trigger-action">{trigger.action}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {ongoingTriggers.length > 0 && (
-                <div className="stage-triggers">
-                  <div className="triggers-label">Ongoing Triggers</div>
-                  {ongoingTriggers.map(trigger => (
-                    <div key={trigger.id} className="trigger-item">
-                      <span className="trigger-event">{trigger.event}</span>
-                      <span className="trigger-condition">{trigger.condition}</span>
-                      <span className="trigger-action">{trigger.action}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {idx < STAGES.length - 1 && (
-                <div className="stage-connector">
-                  <div className="stage-connector-arrow">&darr;</div>
-                </div>
-              )}
             </div>
-          )
-        })}
-      </div>
+
+            {tools.length > 0 ? (
+              <ul className="tools-index__list">
+                {tools.map((tool) => (
+                  <li key={tool.id} className={`tools-index__row tools-index__row--${tool.inclusionStatus}`}>
+                    <Link to={guideToolHref(tool.id)} className="tools-index__name">{tool.name}</Link>
+                    <span className="tools-index__badges">
+                      <Pill size="sm" tone={STATUS_TONE[tool.inclusionStatus]}>{STATUS_LABELS[tool.inclusionStatus]}</Pill>
+                      {/* Which rows have a form to fill in — 32 of 40, sharing
+                          29 forms — so a reader who came to try one is not sent
+                          to a page that says "no form yet". */}
+                      {toolForms(tool).length > 0 && <Pill size="sm" variant="label" tone="sky">Form</Pill>}
+                    </span>
+                    <span className="tools-index__purpose">{firstSentence(tool.purpose)}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <EmptyState>No tools are catalogued at this stage yet.</EmptyState>
+            )}
+
+            {(handoffs.length > 0 || ongoing.length > 0) && (
+              <details className="tools-index__handoff">
+                <summary className="tools-index__handoff-summary">
+                  How this stage hands off
+                  <span className="tools-index__handoff-count">{triggers.length}</span>
+                </summary>
+                {handoffs.length > 0 && next && (
+                  <>
+                    <p className="tools-index__trigger-group">To {next.title}</p>
+                    <TriggerRows triggers={handoffs} />
+                  </>
+                )}
+                {ongoing.length > 0 && (
+                  <>
+                    <p className="tools-index__trigger-group">Ongoing</p>
+                    <TriggerRows triggers={ongoing} />
+                  </>
+                )}
+              </details>
+            )}
+          </section>
+        )
+      })}
+
+      <p className="tools-index__zero-suicide">
+        SPiER&rsquo;s {STAGES.length} technical stages are a FHIR-native instantiation of the workflow layers
+        of the{' '}
+        <a href="https://zerosuicide.edc.org/" target="_blank" rel="noopener noreferrer">Zero Suicide</a>{' '}
+        framework: stages 1&ndash;3 model <em>Identify</em>, stage 4 <em>Engage</em>, stages 5&ndash;6{' '}
+        <em>Transition</em>, stage 7 <em>Treat</em> and stage 8 <em>Improve</em>. Its organizational layers
+        (<em>Lead</em>, <em>Train</em>) are outside an EHR pathway&rsquo;s scope.
+      </p>
     </div>
   )
 }

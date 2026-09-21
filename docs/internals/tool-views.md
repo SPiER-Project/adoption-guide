@@ -3,7 +3,8 @@
 `packages/tool-views/src/data/toolViews.tsx` is the whole entry surface — every instrument a
 clinician fills in and every workflow step they record, one element per tool
 slug, rendered by both the clinician's `/patient/*` routes and the guide's
-`/guide/tools/:slug/try`.
+tool pages (`/guide/tools/TL-0NN`, which resolve a tool's launch-path slug
+against the map; `apps/guide/src/data/toolForms.ts`).
 
 Written 2026-09-17, after the clean-clinical-surface work
 ([`docs/plans/archive/production-clinical-surface.md`](../plans/archive/production-clinical-surface.md))
@@ -166,8 +167,8 @@ walks the guide's, and fail on a dump in anything reachable without a
 `useInspect()` — **cannot be made to work**, and the reason is the same one that
 made `InspectContext` a context instead of a prop. `QuestionnaireView`,
 `WorkflowForm`, `CarePlanDisplay` and `FhirJsonViewer` itself are **one
-implementation each**, reached from `/patient/assessments/*` and from
-`/guide/tools/:slug/try` alike. A walk from the clinician's routes reaches all
+implementation each**, reached from `/patient/assessments/*` and from the
+guide's tool pages alike. A walk from the clinician's routes reaches all
 four, including the leaf whose entire job is the dump. The audience is a
 property of the render, not of the module graph.
 
@@ -207,20 +208,22 @@ the answer is used.
    `Object.entries(resource)`, a `<code>` holding a coding, a syntax
    highlighter fed a resource. All read as raw FHIR to a clinician; none match
    either pattern.
-4. **An unguarded wrapper around `FhirJsonViewer`.** ⚠️ This one has a live
-   instance. The leaf returns `null` on its own, so a call site that renders it
-   bare is correct and needs no `useInspect()` — but a call site that wraps it
-   in chrome leaves the chrome behind when the leaf disappears.
-   `PatientDocuments`, `PatientPathway` and `CarePlanDisplay` each check for
-   that reason. **`ToolDetail` does not, and it wraps its examples in a
-   `<section>` with an "FHIR Examples" heading** — so outside the guide it would
-   render a heading over nothing. It is safe only because `PatientJourney` is
-   its one caller and that page is inside the guide (corrected in CLAUDE.md by
+4. **An unguarded wrapper around `FhirJsonViewer`.** The leaf returns `null`
+   on its own, so a call site that renders it bare is correct and needs no
+   `useInspect()` — but a call site that wraps it in chrome leaves the chrome
+   behind when the leaf disappears. `PatientDocuments`, `PatientPathway` and
+   `CarePlanDisplay` each check for that reason. ⚠️ **This had a live instance
+   until 2026-09-20: `ToolDetail` wrapped its examples in a `<section>` with an
+   "FHIR Examples" heading and called nothing**, safe only because its one
+   caller was the Tools page inside the guide layout (corrected in CLAUDE.md by
    #527, which is also where the "four self-gating call sites" claim was fixed
-   to three). Neither RULE 1 nor RULE 2 can see it: `ToolDetail` neither
-   serializes nor renders a `<pre>`. A rule for it would have to ask whether a
-   `<FhirJsonViewer>` has a *sibling or ancestor inside the same conditional* —
-   answerable with the RULE 3 parser, and not attempted here.
+   to three). The accordion is gone; the tool page's "FHIR examples" drawer
+   wraps the viewer the same way but PROVIDES `InspectContext` itself, in the
+   same file, so the leaf cannot disappear under it. Neither RULE 1 nor RULE 2
+   could see the old instance, and neither would see a new one: a wrapper
+   neither serializes nor renders a `<pre>`. A rule for it would have to ask
+   whether a `<FhirJsonViewer>` has a *sibling or ancestor inside the same
+   conditional* — answerable with the RULE 3 parser, and not attempted here.
 4. **Prose.** Which is §4.
 
 ---
@@ -254,7 +257,7 @@ JSON was found by grepping for a *mechanism*, and prose has none.
 extension id or an `Element.path` may not appear in anything a clinician reads.
 
 The implementer's half is not deleted, because the argument is worth keeping and
-`/guide/tools/:slug/try` exists to show it — it moves to a new `fhirNote` prop on
+the guide's tool pages exist to show it — it moves to a new `fhirNote` prop on
 `WorkflowForm`, rendered **inside the `CodeDrawer`**, which is already gated by
 `useInspect()` along with the draft. So "a ServiceRequest, because `status`
 models `draft → active → completed | revoked` natively and a Communication

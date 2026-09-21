@@ -1,0 +1,14 @@
+/* ===========================
+   LicensingBadge — the colour of each licensing status, and nothing else: the
+   pill's shape is Pill's. Moved out of AdoptionReadiness.css when the tool page
+   started rendering the same badge (components/LicensingBadge.tsx).
+   =========================== */
+.licensing-badge--public-domain  { background: var(--accent-info-soft);      color: var(--accent-info-text-deep); }
+.licensing-badge--registration   { background: var(--accent-warning-bg);     color: var(--accent-warning-text); }
+.licensing-badge--commercial     { background: var(--tint-sand);            color: var(--brand-primary); }
+.licensing-badge--spier-authored { background: var(--surface-muted);         color: var(--text-muted); }
+
+/* `unknown` means the #64 audit has not established the terms — an open
+   question, not a neutral one. Styled to read as a caution rather than as the
+   absence of a claim. */
+.licensing-badge--unknown        { background: var(--risk-high-soft-bg);     color: var(--risk-high-soft-text); }

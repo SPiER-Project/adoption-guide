@@ -27,8 +27,8 @@
  * same reason `InspectContext` is a context rather than a prop. The components
  * that render FHIR are reached from BOTH surfaces: `QuestionnaireView`,
  * `WorkflowForm`, `CarePlanDisplay` and `FhirJsonViewer` itself are one
- * implementation each, rendered by `/patient/assessments/*` and by
- * `/guide/tools/:slug/try`. A reachability walk from the clinician routes
+ * implementation each, rendered by `/patient/assessments/*` and by the guide's
+ * tool pages (`/guide/tools/TL-0NN`). A reachability walk from the clinician routes
  * reaches every one of them, including the leaf whose whole job is the dump. It
  * cannot separate the two audiences, because the audience is not a property of
  * the module graph — it is a property of the render, which is exactly what the

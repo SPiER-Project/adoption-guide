@@ -39,7 +39,7 @@
  * is on inside `/guide` and off everywhere else — see
  * `context/InspectContext.ts`. A clinician launching an instrument from a chart,
  * from a CDS card, or by browsing `/patient/record` gets the form and nothing
- * else; the guide's `/guide/tools/:slug/try` routes render the same three views
+ * else; the guide's tool pages (`/guide/tools/TL-0NN`) render the same views
  * with the drawer.
  *
  * The gate is HERE as well as on `FhirJsonViewer` because this component draws

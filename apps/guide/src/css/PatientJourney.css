@@ -1,274 +1,262 @@
-/* `.patient-journey` sets no width, and there is deliberately no rule here to.
-   This page renders inside the /guide layout, and `.implementation-guide`
-   already set one; a sub-page that restates its width is the same
-   double-ownership that gave the guide its 24px indent. Seven sub-pages did
-   it, at five different widths (820 / 900 / 960 / 1040 / 1200), so the
-   section pager changed measure as you paged through one document.
-   `npm run check:template` now forbids it. Prose that needs a narrower
-   measure caps the text run with `--measure-prose`, not the page. */
+/* ===========================
+   Tools — the catalogue as a list (pages/PatientJourney.tsx): the lede, the
+   stage jump list, one section per stage with one row per tool, a closed
+   hand-off drawer per stage, and the Zero Suicide alignment last.
+   ---------------------------
+   `.tools-index` sets no width, deliberately. This page renders inside the
+   /guide layout, and `.implementation-guide` already set one; a sub-page that
+   restates its width is the double-ownership that gave the guide five widths
+   in seven sections (`npm run check:template` RULE 5a). Prose that needs a
+   narrower measure caps the text run with `--measure-prose`, not the page.
+   =========================== */
 
-.journey-description {
-  color: var(--text-muted);
+.tools-index__lede {
+  margin: 0 0 var(--space-3);
+  max-width: var(--measure-prose);
   font-size: var(--font-size-lg);
   line-height: 1.6;
-  margin: 0 0 var(--space-8) 0;
+  color: var(--text-body);
+}
+
+.tools-index__aside {
+  margin: 0 0 var(--space-5);
   max-width: var(--measure-prose);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  color: var(--text-muted);
 }
 
-/* ── Progress Bar ── */
-.journey-progress {
+/* ── The stage jump list ──
+   Eight small pills that wrap. The progress bar this replaced was a fixed
+   row of numbered circles that overflowed sideways on a phone with nothing
+   to say it could scroll. */
+.tools-index__stage-list {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: var(--space-8);
-  overflow-x: auto;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-6);
+  padding: 0;
+  list-style: none;
 }
 
-.journey-progress-step {
-  display: flex;
-  flex-direction: column;
+.tools-index__stage-link {
+  display: inline-flex;
   align-items: center;
-  position: relative;
-  flex: 1;
-  min-width: 80px;
-}
-
-.journey-progress-dot {
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: var(--radius-circle);
-  background: var(--brand-primary);
-  color: white;
-  font-weight: 700;
-  font-size: var(--font-size-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  transition: background 0.15s, transform 0.15s;
-  z-index: 1;
-}
-
-.journey-progress-dot:hover {
-  background: var(--brand-primary);
-  transform: scale(1.1);
-}
-
-.journey-progress-label {
-  margin-top: var(--space-1-5);
+  gap: var(--space-1-5);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-pill);
+  background: var(--surface-card);
   font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--text-body);
-  text-align: center;
+  text-decoration: none;
+  transition: border-color 0.15s, color 0.15s;
 }
 
-.journey-progress-line {
-  position: absolute;
-  top: 1.125rem;
-  left: calc(50% + 1.125rem);
-  right: calc(-50% + 1.125rem);
-  height: 2px;
-  background: var(--border-strong);
+.tools-index__stage-link:hover {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
 }
 
-/* ── Stage Sections ── */
-.journey-stages {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
+.tools-index__stage-n {
+  color: var(--brand-terracotta-text);
 }
 
-.journey-stage {
-  position: relative;
+/* ── One stage ── */
+.tools-index__stage {
+  padding: var(--space-5) 0 var(--space-4);
+  border-top: 1px solid var(--border-default);
+  /* Honoured by useScrollToHash, which reads it — a deep link lands with the
+     heading clear of the viewport edge rather than flush against it. */
+  scroll-margin-top: var(--space-4);
 }
 
-.stage-header {
+.tools-index__stage-head {
   display: flex;
   align-items: flex-start;
   gap: var(--space-3);
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-3);
 }
 
-.stage-number {
+.tools-index__stage-number {
   flex-shrink: 0;
-  width: 2rem;
-  height: 2rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 2rem;
+  height: 2rem;
   border-radius: var(--radius-circle);
   background: var(--brand-primary);
-  color: white;
-  font-weight: 700;
+  color: var(--text-on-brand);
   font-size: var(--font-size-md);
+  font-weight: 700;
 }
 
-.stage-title {
+.tools-index__stage-title {
   margin: 0;
   font-size: var(--font-size-2xl);
   font-weight: 700;
   color: var(--text-strong);
 }
 
-.stage-description {
-  margin: var(--space-1) 0 0 0;
-  font-size: var(--font-size-base);
-  color: var(--text-muted);
-  line-height: 1.4;
+.tools-index__stage-desc {
+  margin: var(--space-1) 0 0;
   max-width: var(--measure-prose);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  color: var(--text-muted);
 }
 
-/* ── Tool Cards ── */
-.stage-tools {
+/* ── The rows ──
+   Aligned to the left edge of the stage title: past `.tools-index__stage-number`
+   (2rem) and the head's own gap. Derived rather than typed, so it tracks the gap. */
+.tools-index__list {
+  display: flex;
+  flex-direction: column;
+  margin: 0 0 0 calc(2rem + var(--space-3));
+  padding: 0;
+  list-style: none;
+}
+
+.tools-index__row {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: var(--space-3);
-  /* Aligns to the left edge of the stage title: past `.stage-number` (2rem) and
-     the stage header's own gap. Derived rather than typed, so it tracks the gap. */
-  margin-left: calc(2rem + var(--space-3));
-  margin-bottom: var(--space-3);
+  grid-template-columns: minmax(0, 18rem) auto minmax(0, 1fr);
+  column-gap: var(--space-3);
+  row-gap: var(--space-1);
+  align-items: baseline;
+  padding: var(--space-2) 0;
+  border-top: 1px dashed var(--border-default);
 }
 
-.stage-tool-card {
-  background: white;
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-2xl);
-  transition: border-color 0.15s, box-shadow 0.15s;
-  overflow: hidden;
+.tools-index__row:first-child {
+  border-top: none;
 }
 
-.stage-tool-card--expanded {
-  border-color: var(--brand-primary);
-  box-shadow: var(--shadow-brand-glow);
-  grid-column: 1 / -1;
-}
-
-.stage-tool-summary {
-  display: block;
-  width: 100%;
-  padding: var(--space-4);
-  background: transparent;
-  border: none;
-  text-align: left;
-  cursor: pointer;
-  font: inherit;
-}
-
-.stage-tool-summary:hover {
-  background: var(--surface-page);
-}
-
-.stage-tool-expand-hint {
-  display: inline-block;
-  margin-top: var(--space-2);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  color: var(--brand-link);
-}
-
-.stage-tool-card--core {
-  border-left: 3px solid var(--accent-success);
-}
-
-.stage-tool-card--optional {
-  border-left: 3px solid var(--accent-info-mid);
-}
-
-.stage-tool-card--future {
-  border-left: 3px solid var(--border-strong);
+.tools-index__row--future {
   opacity: 0.7;
 }
 
-.stage-tool-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-1-5);
-  gap: var(--space-2);
-}
-
-.stage-tool-name {
-  font-weight: 600;
+.tools-index__name {
   font-size: var(--font-size-md);
-  color: var(--text-strong);
+  font-weight: 600;
+  color: var(--brand-link);
+  text-decoration: none;
 }
 
-.stage-tool-purpose {
+.tools-index__name:hover {
+  color: var(--brand-link-hover);
+  text-decoration: underline;
+}
+
+.tools-index__badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-1-5);
+}
+
+.tools-index__purpose {
   font-size: var(--font-size-base);
-  color: var(--border-emphasis);
   line-height: 1.4;
-  margin: 0 0 var(--space-1) 0;
+  color: var(--text-muted);
 }
 
-.stage-tool-settings {
+/* Three columns want about 1100px of content; below that — the desktop pane
+   beside the sidebar at a 1024px viewport, and every phone — the name and its
+   badges share the first line and the purpose takes the second, full width,
+   rather than wrapping into a sliver beside them. */
+@media (max-width: 1023px) {
+  .tools-index__row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .tools-index__purpose {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 767px) {
+  .tools-index__list,
+  .tools-index__handoff {
+    margin-left: 0;
+  }
+}
+
+/* ── The hand-off drawer: the stage's triggers, closed until asked for ── */
+.tools-index__handoff {
+  margin: var(--space-3) 0 0 calc(2rem + var(--space-3));
+}
+
+/* `display: list-item` kept for the native marker — see ToolPage.css. */
+.tools-index__handoff-summary {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.tools-index__handoff-count {
+  margin-left: var(--space-2);
   font-size: var(--font-size-xs);
-  color: var(--text-faint);
-  margin: 0 0 var(--space-2) 0;
-  font-style: italic;
+  font-weight: 400;
 }
 
-/* ── Triggers ── */
-.stage-triggers {
-  /* Aligns to the left edge of the stage title: past `.stage-number` (2rem) and
-     the stage header's own gap. Derived rather than typed, so it tracks the gap. */
-  margin-left: calc(2rem + var(--space-3));
-  margin-bottom: var(--space-3);
+.tools-index__trigger-group {
+  margin: var(--space-3) 0 0;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.tools-index__triggers {
+  margin: var(--space-2) 0 0;
+  padding: 0;
   border: 1px dashed var(--border-strong);
   border-radius: var(--radius-lg);
+  list-style: none;
   overflow: hidden;
 }
 
-.triggers-label {
-  padding: var(--space-2) var(--space-4);
-  font-size: var(--font-size-sm);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps);
-  color: var(--text-body);
-  background: var(--surface-page);
-  border-bottom: 1px dashed var(--border-default);
-}
-
-.trigger-item {
+.tools-index__trigger {
   display: grid;
   grid-template-columns: 1fr 1fr 1.5fr;
   gap: var(--space-3);
   padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--surface-muted);
   font-size: var(--font-size-base);
-  border-bottom: 1px solid var(--surface-muted);
 }
 
-.trigger-item:last-child {
-  border-bottom: none;
+.tools-index__trigger:first-child {
+  border-top: none;
 }
 
-.trigger-event {
+.tools-index__trigger-event {
   font-weight: 600;
   color: var(--text-strong);
 }
 
-.trigger-condition {
+.tools-index__trigger-condition {
   color: var(--text-muted);
 }
 
-.trigger-action {
-  color: var(--border-emphasis);
+.tools-index__trigger-action {
+  color: var(--text-body);
 }
 
-/* ── Connector ── */
-.stage-connector {
-  display: flex;
-  justify-content: center;
-  padding: var(--space-2) 0;
-  /* Aligns to the left edge of the stage title: past `.stage-number` (2rem) and
-     the stage header's own gap. Derived rather than typed, so it tracks the gap. */
-  margin-left: calc(2rem + var(--space-3));
+@media (max-width: 639px) {
+  .tools-index__trigger {
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
+  }
 }
 
-.stage-connector-arrow {
-  font-size: var(--font-size-2xl);
-  color: var(--border-strong);
-  line-height: 1;
+/* ── Zero Suicide alignment, last: context rather than a caveat ── */
+.tools-index__zero-suicide {
+  margin: var(--space-7) 0 0;
+  max-width: var(--measure-prose);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  color: var(--text-muted);
 }
-
-/* Zero Suicide alignment callout (Pathway page top) */

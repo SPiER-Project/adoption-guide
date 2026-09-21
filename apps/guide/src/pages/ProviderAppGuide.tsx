@@ -188,10 +188,9 @@ export function ProviderAppGuide() {
           none of it &mdash; not beside an instrument, not on a recorder, not under a document in
           the chart. That is what makes it something a health system could adopt into its own
           SMART on FHIR application rather than a demo with the scaffolding left up. The wire
-          format lives here in the guide instead: each tool in{' '}
-          <Link to="/guide/tools">Tools</Link> has a <em>Try it with the FHIR view</em> link that
-          opens the same recorder with its Questionnaire, its QuestionnaireResponse and its
-          writeback report, and the{' '}
+          format lives here in the guide instead: each tool&rsquo;s page in{' '}
+          <Link to="/guide/tools">Tools</Link> opens the same recorder with its Questionnaire, its
+          QuestionnaireResponse and its writeback report beside it, and the{' '}
           <Link to="/guide/data-dictionary">Data Dictionary</Link> holds the contract.
         </Notice>
       </section>

@@ -63,13 +63,25 @@ const PopulationDashboardGuide = lazy(() => import('./pages/PopulationDashboardG
 const EhrAdoptionRubric = lazy(() => import('./pages/EhrAdoptionRubric').then(m => ({ default: m.EhrAdoptionRubric })))
 const AdoptionReadiness = lazy(() => import('./pages/AdoptionReadiness').then(m => ({ default: m.AdoptionReadiness })))
 const WhySpier = lazy(() => import('./pages/WhySpier').then(m => ({ default: m.WhySpier })))
-const ToolTryIt = lazy(() => import('./pages/ToolTryIt').then(m => ({ default: m.ToolTryIt })))
+const ToolPage = lazy(() => import('./pages/ToolPage').then(m => ({ default: m.ToolPage })))
 
 function LegacyWorkflowRedirect() {
   const { slug } = useParams<{ slug: string }>()
   // These pointed at the tool catalogue, which moved from /guide/pathway to
-  // /guide/tools in Phase 3 of docs/plans/suicide-safer-care-pathway.md.
-  return <Navigate to={slug ? `/guide/tools/${slug}/plan` : '/guide/tools'} replace />
+  // /guide/tools in Phase 3 of docs/plans/suicide-safer-care-pathway.md. The
+  // slug lands on that tool's own page since 2026-09-20 (ToolPage resolves a
+  // tool id or a form slug); it used to go to `/guide/tools/<slug>/plan`,
+  // which no route answered.
+  return <Navigate to={slug ? `/guide/tools/${slug}` : '/guide/tools'} replace />
+}
+
+// /guide/tools/:slug/try was the implementer's view of one instrument until
+// 2026-09-20, keyed by the form's slug. A tool is a page now, keyed by its id,
+// and ToolPage canonicalises a form slug to the owning tool's page — so the
+// published path keeps working with the slug carried across.
+function LegacyTryRedirect() {
+  const { slug } = useParams<{ slug: string }>()
+  return <Navigate to={slug ? `/guide/tools/${slug}` : '/guide/tools'} replace />
 }
 
 // The Adoption Guide lens lived at /adoption-guide (and, before that,
@@ -190,16 +202,24 @@ function AppRoutes() {
             <Route path="roadmap" element={<Navigate to="/guide/tools/readiness" replace />} />
           </Route>
 
-          {/* The implementer's view of an instrument: the same recorder the
-              clinician's /patient/* route renders, with the FHIR opened up.
+          {/* One catalogued tool as a page: its name and purpose, the same
+              form the clinician's /patient/* route renders with the FHIR opened
+              up, and the catalogue detail below (adoption-guide audit §4.3,
+              2026-09-20). Keyed by tool id; a form slug redirects to its owner.
               ⚠️ A SIBLING of the /guide layout above, not a child of it — the
-              recorders render their own PageHeader, and nesting them inside
+              page renders its own PageHeader, and nesting it inside
               AdoptionGuide would put two on one page (check:template forbids
-              it). ToolTryIt provides InspectContext itself for the same reason.
-              ⚠️ Also deliberately not a guideSections entry; see the note at the
-              top of pages/ToolTryIt.tsx for why a route that writes to patient
-              context must not be declared a guide page. */}
-          <Route path="/guide/tools/:slug/try" element={<ToolTryIt />} />
+              it). It provides InspectContext itself for the same reason.
+              ⚠️ Declared in guideSections.ts `subsections` as `tools/:toolRef`
+              — the FULL parameterised sub-path — so check:guide-boundary walks
+              it and check:catalog asserts the route; both gates accept this
+              absolute form for a sibling. The form writes to the guide's
+              UNSEEDED patient context, which is context and not data, so the
+              boundary gate's premise holds (see the page's header comment). */}
+          <Route path="/guide/tools/:toolRef" element={<ToolPage />} />
+          {/* The retired try route, kept as a redirect because it was published
+              and linked from the catalogue, Adoption Readiness and the docs. */}
+          <Route path="/guide/tools/:slug/try" element={<LegacyTryRedirect />} />
 
           {/* Legacy /chart/* redirects — keep for one cycle. The first six meant
               the chart, which is apps/clinical's, so they hop origins; the rest

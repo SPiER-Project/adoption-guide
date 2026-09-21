@@ -2,14 +2,15 @@ import { useMemo } from 'react'
 import { InclusionBadge } from '@spier/tool-views/components/InclusionBadge'
 import { Link } from 'react-router-dom'
 import { TOOLS, groupToolsByStage, type Licensing, type MaturityLevel, type Tool } from '@spier/core/data/catalog'
-import { LICENSING_ICON, READINESS_TIER_ICON } from '@spier/tool-views/lib/statusIcons'
+import { READINESS_TIER_ICON } from '@spier/tool-views/lib/statusIcons'
 import '../css/AdoptionReadiness.css'
-import { EmptyState } from '@spier/ui/EmptyState'
 import { Pill, type PillTone } from '@spier/ui/Pill'
 import { SCALE_TONES } from '../lib/scaleTones'
 import { Card } from '@spier/ui/Card'
 import { DataTable } from '@spier/ui/DataTable'
-import { guideTryHref } from '../data/surfaceLinks'
+import { LicensingBadge } from '../components/LicensingBadge'
+import { LICENSING_BLURB, LICENSING_LABELS } from '../data/licensing'
+import { guideToolHref, toolForms } from '../data/toolForms'
 
 // ─────────────────────────────────────────────────────────────
 // Adoption Readiness matrix
@@ -77,25 +78,10 @@ const MATURITY_DIMENSIONS = [
 
 const MATURITY_LEVEL_LABELS = ['None', 'Basic', 'Partial', 'Full'] as const
 
-// Both maps mirror the codes in ig/input/fsh/instrument-licensing.fsh, which is
-// where a tool's status is actually set. The pill is the summary; the full
-// notice — including where the claim comes from — is `tool.copyright`, shown on
-// hover and read straight from ActivityDefinition.copyright.
-const LICENSING_LABELS: Record<Licensing, string> = {
-  'public-domain': 'Public domain',
-  registration: 'Registration',
-  commercial: 'Commercial',
-  'spier-authored': 'SPiER-authored',
-  unknown: 'Unknown',
-}
-
-const LICENSING_BLURB: Record<Licensing, string> = {
-  'public-domain': 'Free to use and embed without permission or fees (e.g. ASQ, PHQ-9, BSSA). Attribution still good practice.',
-  registration: 'Free but gated — requires registering with the rights holder, obtaining written permission, and/or training before deployment (e.g. C-SSRS, Stanley-Brown).',
-  commercial: 'Requires a paid license, a purchased instrument, or a negotiated agreement with the rights holder (e.g. CAMS). Confirm terms before deploying.',
-  'spier-authored': 'No third-party instrument is reproduced — SPiER workflow content, published with the IG under CC0-1.0. Anything you substitute into the step carries its own terms.',
-  unknown: 'Not established by the licensing audit (#64). Confirm terms with the rights holder before deploying — this is an open question, not a green light.',
-}
+// The licensing labels and blurbs are `data/licensing.ts` and the pill is
+// `components/LicensingBadge.tsx`, both shared with the tool page since 2026-09-20. The pill is the summary; the
+// full notice — including where the claim comes from — is `tool.copyright`,
+// shown on hover and read straight from ActivityDefinition.copyright.
 
 interface ReadinessRow {
   tool: Tool
@@ -104,12 +90,13 @@ interface ReadinessRow {
   /** Sum of the three target-maturity dimensions, 0–9. */
   depthScore: number
   /**
-   * The guide's own route for the tool's form, or null when nothing here
-   * renders it. ⚠️ Not the catalog's launch path: that is the clinical app's
-   * route, on another origin since the apps split, and linking it from this
-   * table sent 34 rows to the Overview.
+   * Whether the tool's page renders a form to fill in. Every tool has a page
+   * (`/guide/tools/<id>`); 32 of 40 have a form on it. ⚠️ The link is the
+   * guide's own route, never the catalog's launch path: that is the clinical
+   * app's route, on another origin since the apps split, and linking it from
+   * this table sent 34 rows to the Overview.
    */
-  tryHref: string | null
+  hasForm: boolean
 }
 
 /**
@@ -126,15 +113,6 @@ function buildStatusFor(tool: Tool): { status: BuildStatus } {
 
 function readinessTier(buildStatus: BuildStatus): ReadinessTier {
   return buildStatus === 'built' ? 'built' : 'in-progress'
-}
-
-/** Licensing keeps a page-owned palette (five statuses, one of them violet) — colour only, see AdoptionReadiness.css. */
-function LicensingBadge({ licensing, title }: { licensing: Licensing; title?: string }) {
-  return (
-    <Pill size="sm" variant="label" className={`ar-lic--${licensing}`} icon={LICENSING_ICON[licensing]} title={title}>
-      {LICENSING_LABELS[licensing]}
-    </Pill>
-  )
 }
 
 const READINESS_TONE: Record<ReadinessTier, PillTone> = { built: 'soft-low', 'in-progress': 'warning' }
@@ -170,7 +148,7 @@ export function AdoptionReadiness() {
         buildStatus: status,
         tier: readinessTier(status),
         depthScore: m.electronic + m.writeback + m.triggering,
-        tryHref: tool.launchActions[0] ? guideTryHref(tool.launchActions[0].path) : null,
+        hasForm: toolForms(tool).length > 0,
       }
     }
 
@@ -306,10 +284,10 @@ export function AdoptionReadiness() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map(({ tool, buildStatus, tier, tryHref }) => (
+                {rows.map(({ tool, buildStatus, tier, hasForm }) => (
                   <tr key={tool.id}>
                     <td className="ar-col-tool">
-                      <span className="ar-tool-name">{tool.shortName ?? tool.name}</span>
+                      <Link className="ar-tool-name" to={guideToolHref(tool.id)}>{tool.shortName ?? tool.name}</Link>
                       <span className="ar-tool-id">{tool.id}</span>
                     </td>
                     <td>
@@ -333,13 +311,11 @@ export function AdoptionReadiness() {
                     <td className="ar-col-mat"><MaturityChip level={tool.targetMaturity.triggering} dimension="Workflow triggering" /></td>
                     <td className="ar-col-resources">
                       <div className="ar-resources">
-                        {tryHref ? (
-                          <Link className="ar-res-link" to={tryHref}>
-                            Try it
-                          </Link>
-                        ) : (
-                          <EmptyState as="span">—</EmptyState>
-                        )}
+                        {/* The tool's page either way; the label says what a
+                            reader finds there. */}
+                        <Link className="ar-res-link" to={guideToolHref(tool.id)}>
+                          {hasForm ? 'Try the form' : 'Details'}
+                        </Link>
                       </div>
                     </td>
                   </tr>

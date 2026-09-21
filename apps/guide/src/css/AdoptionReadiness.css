@@ -192,15 +192,6 @@
 
 /* ── Licensing pills ── */
 
-.ar-lic--public-domain  { background: var(--accent-info-soft);      color: var(--accent-info-text-deep); }
-.ar-lic--registration   { background: var(--accent-warning-bg);     color: var(--accent-warning-text); }
-.ar-lic--commercial     { background: var(--tint-sand);            color: var(--brand-primary); }
-.ar-lic--spier-authored { background: var(--surface-muted);         color: var(--text-muted); }
-
-/* `unknown` means the #64 audit has not established the terms — an open
-   question, not a neutral one. Styled to read as a caution rather than as the
-   faint "nothing here" dash below it. */
-.ar-lic--unknown        { background: var(--risk-high-soft-bg);     color: var(--risk-high-soft-text); }
 .ar-lic--not-recorded   { background: transparent;                  color: var(--text-faint); font-weight: 600; }
 
 /* ── Resources ── */

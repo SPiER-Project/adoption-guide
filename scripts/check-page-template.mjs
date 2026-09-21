@@ -108,6 +108,14 @@ const LENSES = {
   // extra reason: it is a drill-in from the chart's stage rail, so its `up` is
   // how a clinician gets back, and in the panel it is the only way.
   'PathwayStage.tsx': 'one pathway stage as a page; a drill-in from the chart’s rail, and its `up` is the way back',
+  // Added 2026-09-20 with the adoption-guide audit's "Tools as pages" (§4.3):
+  // one catalogued tool per page, its form in the foreground. It hosts a form
+  // view that would otherwise draw the header — the view is told not to through
+  // PageHeaderOwnerContext — and it is a SIBLING of the guide layout for the
+  // same reason the try route it replaced was, so no layout above it draws one.
+  // Its `up` is the way back to Tools; its title names the tool, which matters
+  // exactly where four tools share one recorder.
+  'ToolPage.tsx': 'the guide’s page for one catalogued tool; a sibling of the /guide layout that owns the header above a shared form view',
 }
 
 const errors = []

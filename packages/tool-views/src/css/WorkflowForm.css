@@ -13,6 +13,18 @@
   color: var(--text-strong);
 }
 
+/* The recorder's lede when the PAGE owns the header (the guide's tool page,
+   PageHeaderOwnerContext): the same sentence PageHeader would have carried,
+   at the same lede size, capped at the reading measure and sitting first in
+   the card so the form is still introduced before it is asked. */
+.workflow-form__lede {
+  margin: 0 0 var(--space-4) 0;
+  max-width: var(--measure-prose);
+  font-size: var(--font-size-lg);
+  line-height: 1.6;
+  color: var(--text-body);
+}
+
 .workflow-form {
   display: flex;
   flex-direction: column;

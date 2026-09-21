@@ -54,6 +54,14 @@ describe('GUIDE_SECTIONS', () => {
     }
   })
 
+  it('declares the tool page as a parameterised subsection of Tools, for the gates', () => {
+    // check:guide-boundary and check:catalog both derive the guide's page set
+    // from this file, and the tool page is a sibling route they would otherwise
+    // never see. The label is a placeholder: nothing renders it.
+    const tools = GUIDE_SECTIONS.find(s => s.path === 'tools')
+    expect(tools?.subsections?.map(x => x.path)).toContain('tools/:toolRef')
+  })
+
   it('has no duplicate paths across sections and subsections', () => {
     const all = GUIDE_SECTIONS.flatMap(s => [s.path, ...(s.subsections ?? []).map(x => x.path)])
     expect(new Set(all).size).toBe(all.length)

@@ -23,9 +23,8 @@
  * children flow, a state modifier — never for what it looks like. No radius,
  * padding, border or background belongs in that class.
  *
- * Not a Card: an interactive tile that selects or expands (`.preset-card`,
- * `.stage-tool-card`) — those are controls, and get their affordances from
- * their own rules.
+ * Not a Card: an interactive tile that selects or expands (`.preset-card`) —
+ * that is a control, and gets its affordances from its own rules.
  */
 import type { ReactNode } from 'react'
 import { cx } from './cx'

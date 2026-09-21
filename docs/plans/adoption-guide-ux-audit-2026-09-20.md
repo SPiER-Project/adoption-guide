@@ -1,6 +1,35 @@
 # Adoption Guide — copy, layout and UX audit
 
-**Date:** 2026-09-20 · **Branch audited:** `main` at `5262c1b` · **Status:** PR 1 (§1.1 dead links and their gate, §1.2 stale statements), PR 2 (§4.1 the Overview rewrite) and PR 3 (§4.2 the Care Pathway split, §1.3 the artifact's documentation strings) applied; §4.3–§4.6 and the §5 gates remain recommendations
+**Date:** 2026-09-20 · **Branch audited:** `main` at `5262c1b` · **Status:** PR 1 (§1.1 dead links and their gate, §1.2 stale statements), PR 2 (§4.1 the Overview rewrite), PR 3 (§4.2 the Care Pathway split, §1.3 the artifact's documentation strings) and PR 4 (§4.3 Tools as pages) applied; §4.4–§4.6 and the §5 gates remain recommendations
+
+**Status 2026-09-20 (PR 4):** Tools is a list and every tool is a page, to
+§4.3. `/guide/tools` is one line per tool — its name as the link, a status
+pill, a "Form" marker on the 32 that have one, the first sentence of its
+purpose — under eight numbered stage headings with a wrapping jump list where
+the overflowing progress bar was; the accordion, its 40 "Show details" buttons
+and `ToolDetail` are gone. The stage triggers survive as a closed "how this
+stage hands off" drawer per stage, and the Zero Suicide callout became a
+closing paragraph. `/guide/tools/TL-0NN` is the tool page: the tool's name and
+purpose as the header, the same form the clinician's route renders with the
+FHIR aside beside it, the catalogue detail (what it is for, what it records,
+data elements, FHIR examples, licensing — the last new to the guide's tool
+view) in closed drawers below, and one outbound button to the Demo EHR. The
+open decision was answered **wraps**: the page owns the header and tells the
+shared view not to draw its own through a sixth context,
+`PageHeaderOwnerContext` (default `view`, so the clinical app is unchanged),
+because "IS the try route" would have titled four tools' pages after the one
+recorder they share and given the CAMS SSF-5 three addresses. Keyed by the
+published tool id because the tool↔form relation is many-to-many; a form slug
+in the URL redirects to its owner, so `/guide/tools/:slug/try` keeps working
+and one tool has one address. The page is a sibling of the guide layout and
+IS a `guideSections.ts` entry (`tools/:toolRef`), which `check:guide-boundary`
+and `check:surface` now resolve through the sibling's absolute route form —
+the try route's "not a guide page" argument had confused patient context with
+patient data. Adoption Readiness links every row to its page. Three new test
+files pin one link per tool, one header per page, the three kinds of tool and
+the redirect. Deliberately not done: the Data Dictionary's tool chips do not
+yet link to the pages (§4.5 is untouched), and the list keeps the section
+`wide`. PRs 5–6 remain.
 
 **Status 2026-09-20 (PR 3):** the Care Pathway is split to §4.2.
 `/guide/pathway` is the explainer — a named reader, the five things a pathway
@@ -368,7 +397,7 @@ Each is one PR against `main`, none stacked.
 | 1 | **Fix the broken class and gate it** (§1.1): primary tool button → try route, launch → outbound Demo EHR; shared views' "View in chart" and cross-links hidden or redirected under inspect; try-page eyebrow; guide walk in `check-surface-links.mjs`; dead redirects; dead `PatientBanner` branch. Plus the five copy defects in §1.2. | S–M | No. Mechanical, and every change is a defect today. |
 | 2 | **Overview rewrite** (§4.1). Applied — see the status note at the top. Larger than the S estimated here: the essays moved to a new guide section rather than being dropped, which added a route, a sidebar group and a pager step. | S | Answered: three doors replace the lens cards, and the essays move to `/guide/why-spier` under Reference. |
 | 3 | **Care Pathway split** (§4.2): explainer + `/guide/pathway/protocol` subsection; tier table; FSH documentation rewrite; code drawer for gates and URLs. Applied — see the status note at the top. | M | Answered: the tier table replaces the three columns on the clinical surface too (one artifact, one rendering), and the section stays `wide` with the explainer's prose capped at the reading measure rather than the width model changing. |
-| 4 | **Tools as pages** (§4.3): list + `/guide/tools/:slug` with the form inline; retire the accordion; fold the try route in. Touches `check:tool-view-routes` and `check:guide-boundary` expectations. | M–L | Yes: whether the tool page IS the try route or wraps it. |
+| 4 | **Tools as pages** (§4.3): list + `/guide/tools/:slug` with the form inline; retire the accordion; fold the try route in. Applied — see the status note at the top. Keyed by tool id rather than form slug, because the relation is many-to-many. | M–L | Answered: it WRAPS the form — the page owns the header (`PageHeaderOwnerContext`), so a tool's page is titled after the tool and not after a recorder four tools share. |
 | 5 | **See it running** (§4.4): trim three pages, drawers for mechanism and caveat, CDS corrections. | S | No. |
 | 6 | **Sidebar labels + Reference group** (§4.6), and the two gates in §5. | S | Yes: the labels. |
 

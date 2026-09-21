@@ -1,0 +1,207 @@
+/* ===========================
+   ToolPage — one catalogued tool as a page: the header, the form with the FHIR
+   beside it, the catalogue detail in closed drawers, one way to the Demo EHR.
+   ---------------------------
+   It renders its own PageHeader, so it owns its width (check:template RULE 5b):
+   `wide`, because the form frame it hosts is a row — the card beside the FHIR
+   aside — and `.form-view` inside it is wide for the same reason. No padding
+   and no centring on the root: .app-shell__body owns both.
+   =========================== */
+.tool-page {
+  max-width: var(--page-width-wide);
+}
+
+/* Block flow with sibling margins, as the Overview does: PageHeader carries its
+   own margin-bottom, and in a flex container that would add to a gap. */
+.tool-page > * + * {
+  margin-top: var(--space-6);
+}
+
+/* ── The meta row under the header: status, category, licensing, id ── */
+.tool-page__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.tool-page__id {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  color: var(--text-faint);
+}
+
+/* ── The form ── */
+.tool-page__forms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.tool-page__siblings {
+  margin: var(--space-4) 0 0;
+  max-width: var(--measure-prose);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* ── About this tool: a muted Card holding the drawer set ── */
+.tool-page__about-title {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-xl);
+  color: var(--brand-primary);
+}
+
+.tool-page__drawer {
+  border-top: 1px solid var(--border-default);
+}
+
+/* Left as `display: list-item`, deliberately: a summary set to flex loses its
+   ::marker, and a drawer with no triangle does not read as one. */
+.tool-page__drawer-summary {
+  padding: var(--space-3) 0;
+  cursor: pointer;
+}
+
+.tool-page__drawer-label {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.tool-page__drawer-hint {
+  margin-left: var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.tool-page__drawer-body {
+  padding: 0 0 var(--space-4);
+}
+
+.tool-page__desc {
+  margin: 0 0 var(--space-3);
+  max-width: var(--measure-prose);
+  font-size: var(--font-size-md);
+  line-height: 1.55;
+  color: var(--text-body);
+}
+
+.tool-page__chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1-5);
+  margin-top: var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+.tool-page__chips-label {
+  margin-right: var(--space-1);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* The implementation table's resource-type cell: a dark chip, as the data
+   dictionary draws a resource type. */
+.tool-page__table code {
+  padding: var(--space-0-5) var(--space-1-5);
+  border-radius: var(--radius-sm);
+  background: var(--text-strong);
+  color: var(--border-default);
+  font-size: var(--font-size-sm);
+}
+
+.tool-page__when {
+  color: var(--text-muted);
+  font-style: italic;
+  white-space: nowrap;
+}
+
+.tool-page__trigger {
+  margin: var(--space-3) 0 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--accent-warning-edge);
+  border-radius: var(--radius-sm);
+  background: var(--accent-warning-bg);
+  font-size: var(--font-size-base);
+  color: var(--accent-warning-text-deep);
+}
+
+.tool-page__elements {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tool-page__elements li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: var(--space-1-5) var(--space-2);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  font-size: var(--font-size-base);
+}
+
+.tool-page__element-name {
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.tool-page__element-code {
+  padding: var(--space-0-5) var(--space-1-5);
+  border-radius: var(--radius-xs);
+  background: var(--border-default);
+  color: var(--border-emphasis);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+}
+
+.tool-page__element-path {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.tool-page__examples {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.tool-page__licence-blurb {
+  color: var(--text-muted);
+}
+
+.tool-page__licence {
+  margin: var(--space-3) 0 0;
+  max-width: var(--measure-prose);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  color: var(--text-body);
+}
+
+/* ── One way onward ── */
+.tool-page__ehr {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.tool-page__ehr-note {
+  margin: 0;
+  max-width: var(--measure-prose);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  color: var(--text-muted);
+}

@@ -83,7 +83,7 @@ npm run check:fhir-render # the clinician-facing app shows no raw FHIR. `Inspect
                        # walks the guide's reaches `QuestionnaireView`, `WorkflowForm`,
                        # `CarePlanDisplay` and `FhirJsonViewer` itself — all four are ONE
                        # implementation rendered by both `/patient/assessments/*` and
-                       # `/guide/tools/:slug/try`. The audience is a property of the render,
+                       # the guide's tool pages. The audience is a property of the render,
                        # not of the module graph, which is the same reason `InspectContext` is
                        # a context and not a prop.
                        # ⚠️ Three things it cannot see, one of them proved by planting:
@@ -93,10 +93,11 @@ npm run check:fhir-render # the clinician-facing app shows no raw FHIR. `Inspect
                        # and rendered by a `.tsx` that never writes `JSON.stringify`; and a
                        # resource rendered without being serialized at all — a table over
                        # `Object.entries(resource)`, a `<code>` holding a coding; and an
-                       # UNGUARDED WRAPPER around FhirJsonViewer, which has a live instance:
-                       # ToolDetail wraps its examples in a <section> with a heading and calls
-                       # no useInspect(), so outside the guide it would render a heading over
-                       # nothing. Safe only because its one caller is a guide page (#527).
+                       # UNGUARDED WRAPPER around FhirJsonViewer, which HAD a live instance
+                       # until 2026-09-20: ToolDetail wrapped its examples in a <section> with
+                       # a heading and called no useInspect(), safe only because its one
+                       # caller was a guide page (#527). The tool page that replaced it
+                       # provides InspectContext itself, in the same file as the wrapper.
                        # RULE 3 is the prose half, and it PARSES rather than scanning: a
                        # recorder describes the ACT, not the resource (Brad, 2026-09-17).
                        # ⚠️ A text scan cannot do it — `Appointment` is a resource type in
@@ -531,10 +532,10 @@ and that declaration cannot be quiet, because an undeclared app tree is already 
 hard failure.
 
 Five rules: a route's key is defined; the key equals the route's last segment (or
-`/guide/tools/<slug>/try` finds no such tool while the clinician's form works); no
-view goes unrouted by *every* app; no key defined twice; and `isToolViewSlug` uses
-`hasOwnProperty` rather than `in`, which answers yes for `toString` and hands
-`ToolTryIt` a function to render.
+the guide's tool page resolves a launch path to no form while the clinician's
+form works); no view goes unrouted by *every* app; no key defined twice; and
+`isToolViewSlug` uses `hasOwnProperty` rather than `in`, which answers yes for
+`toString` and hands the tool page a function to render.
 
 It reads both files as TEXT, for the reason `lib/route-table.mjs` documents:
 importing `toolViews.tsx` pulls in the questionnaire registry, the care-plan
@@ -546,7 +547,7 @@ could answer a purely structural question.
 | Plant | Result |
 |---|---|
 | a route looks up a key the map does not define | RED, naming the blank page |
-| a key that is not its route's last segment | RED, naming the `/try` URL that breaks |
+| a key that is not its route's last segment | RED, naming the launch-path segment the tool page cannot resolve |
 | a view no route renders | RED |
 | `hasOwnProperty` replaced by a bare `in` | RED |
 | the map reformatted so the key reader matches nothing | RED (29 keys "undefined") |

@@ -89,7 +89,13 @@ const appSrc = readFileSync(join(appRoot('apps/guide/src'), 'App.tsx'), 'utf8')
 const sectionsSrc = readFileSync(join(appRoot('apps/guide/src'), 'data/guideSections.ts'), 'utf8')
 const sectionPaths = [...sectionsSrc.matchAll(/\{\s*path:\s*'([^']+)'/g)].map((m) => m[1])
 if (sectionPaths.length < 5) fail(`only ${sectionPaths.length} guide section path(s) parsed from guideSections.ts (floor 5)`)
-const elementFor = (path) => appSrc.match(new RegExp(`<Route path="${path}" element=\\{<(\\w+)\\s*/>\\}`))?.[1]
+// ⚠️ Both spellings of a guide route: nested under the layout
+// (`path="tools/readiness"`) or a SIBLING of it with the absolute path
+// (`path="/guide/tools/:toolRef"`, the tool page — it draws its own header, so
+// it cannot sit inside the layout). Same optional prefix check:guide-boundary
+// reads; without it the tool page fell out of this list and was classified
+// clinical-only, failing both directions at once.
+const elementFor = (path) => appSrc.match(new RegExp(`<Route path="(?:/guide/)?${path}" element=\\{<(\\w+)\\s*/>\\}`))?.[1]
 const demoOnlyPages = [...new Set(
   [...sectionPaths.map(elementFor), elementFor('/overview'), elementFor('/guide')].filter(Boolean),
 )]
@@ -150,15 +156,13 @@ for (const r of guideRoots) {
 const pageFiles = readdirSync(join(appRoot('apps/clinical/src'), 'pages'))
   .filter((f) => f.endsWith('.tsx') && !f.includes('.test.'))
   .map((f) => f.replace(/\.tsx$/, ''))
-// ⚠️ `/guide/tools/:slug/try` is a guide page that is deliberately NOT a
-// guideSections entry — it renders recorders that write to patient context, so
-// it is a SIBLING of the guide layout (CLAUDE.md says why). It is demo-only all
-// the same, and without this it would be classified clinical-only and fail in
-// both directions at once.
-const EXTRA_DEMO_ONLY_PAGES = ['ToolTryIt']
-const clinicalOnlyPages = pageFiles.filter(
-  (p) => !demoOnlyPages.includes(p) && !EXTRA_DEMO_ONLY_PAGES.includes(p),
-)
+// ⚠️ There used to be an EXTRA_DEMO_ONLY_PAGES list here holding `ToolTryIt`,
+// the one guide page that was not a guideSections entry. The tool page that
+// replaced it (2026-09-20) IS declared there, as the parameterised subsection
+// `tools/:toolRef`, so it is derived above like every other guide page and the
+// side list is gone — a page the derivation cannot see is a page to declare,
+// not to hand-list here.
+const clinicalOnlyPages = pageFiles.filter((p) => !demoOnlyPages.includes(p))
 if (clinicalOnlyPages.length < 5) fail(`only ${clinicalOnlyPages.length} clinical-only page(s) derived from web/src/pages (floor 5)`)
 for (const page of clinicalOnlyPages) {
   const chunk = (b) => b.names.some((n) => new RegExp(`(^|/)${page}-[\\w-]+\\.js$`).test(n))
