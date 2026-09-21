@@ -760,3 +760,110 @@ the `ALLOWED` liveness rule checks.
 What it cannot see: a copy edited after copying (a fork — only a reader can
 tell a fork from a variant), a duplicated fragment inside a larger function,
 and an arrow assigned to an object property rather than a top-level binding.
+
+## `check:jargon` and the page budgets — the guide's two copy rules (2026-09-20)
+
+The adoption-guide UX audit
+([`docs/plans/adoption-guide-ux-audit-2026-09-20.md`](../plans/adoption-guide-ux-audit-2026-09-20.md))
+ends in five copy rules, and observes that two of them are cheap to enforce and
+*"both would have failed today"*. These are those two. PRs 1-4 fixed the
+instances; without these, the class comes back one paragraph at a time.
+
+### `check:jargon` — no repo vocabulary in reader copy
+
+`scripts/check-reader-jargon.mjs` reads two things a reader meets: every string
+under `apps/guide/src`, and every `documentation[…].label` and
+`documentation[…].display` in `ig/input/fsh/`. Seven rules — an npm script, a
+gate name, a repo path, a source file name, a repo identifier, an issue number,
+an ISO date — each written from a string that shipped.
+
+⚠️ **Three of the strings it was written from were in the ARTIFACT, not the
+app.** `documentation[=].display` on the pathway PlanDefinition said "which is
+what `npm run check:reassessment` exists to prevent", pointed at the header of a
+`.fsh` file, and cited a path under `docs/`. Those render on `/guide/pathway`
+*and* ship in the published IG, whose reader is an HL7 reviewer with no
+checkout. PR 3 rewrote them; this is what stops the next one.
+
+⚠️ **It parses, because grepping was tried and is wrong in both directions.** A
+line scan reads a comment quoting a gate name as reader copy (this repo's
+comments are full of them, deliberately), and the obvious way to find JSX text —
+blank every `{…}`, take what is between `>` and `<` — blanks every element
+returned from a `.map()` callback, which is most of the app. The walk is
+`ts.ScriptKind.TSX`, the shape `check:fhir-render` established, and the two
+gates are close relatives: that one asks whether a **recorder**'s words name a
+**resource type** on the **clinical** surface. Machinery is not the wire format
+and the guide is not a recorder, so every string above sat outside it by
+construction.
+
+⚠️ **The index excludes `node_modules` and generated trees, and that was a live
+defect its own output caught.** Each Worker under `services/` has its own
+install, so on a machine where they had been installed the index went from 454
+names to 976 — every camelCase export of every dependency, which would have
+banned `createRoot` from reader copy and meant nothing when it fired. It was
+visible only because the gate prints the count on every run and the floor
+flagged it as slack; otherwise the rule's strictness would have depended on
+whether someone had run `npm install` in a service.
+
+⚠️ **"A repo identifier" is checked against an index of the repo's own exports,
+file names and directory names — not against the camelCase SHAPE.** The shape
+rule was written first and was wrong both ways at once: it fired on
+`localStorage`, `hookInstance` and `patientId` — a browser API and two CDS Hooks
+wire fields, all legitimately shown to an implementer — while proving nothing
+about what it did catch. The index makes the rule mean what its name says and
+grows with the repo instead of with the gate.
+
+What it cannot see, stated so a green run is not read as more than it is:
+
+- **The 29 shared tool views.** `packages/tool-views` renders on guide tool
+  pages, so its strings reach a guide reader, and a scan of that tree finds five
+  issue numbers, a rename date and an identifier in drawer prose today. They are
+  out of scope because they are equally the CLINICIAN's copy, which has not had
+  the audit's pass — and because three of the nine hits there are `throw new
+  Error()` messages no reader meets. Widen this gate *after* that pass.
+- **The rest of the FSH.** `Description` and `copyright` are published too, and
+  cite the per-instrument licensing memos under `docs/instruments/`, a `web/src/…` path that has not
+  existed since #553, and `issue #64` about fifteen times. Those are provenance
+  for a licensing claim rather than an explanation of a page — a different
+  argument, and `documentation` is what the audit named.
+- **Prose that names no machinery and is still about the build.** "It was called
+  the Patient App until 2026-09-17" fails on the date; the same sentence without
+  one passes and is just as much about this repo.
+
+### The page budgets — `apps/guide/src/pages/pageLength.test.tsx`
+
+A test rather than a `check:*` script, because the audit's measurements are of
+*rendered* pages and the two biggest — Tools and the Data Dictionary — draw most
+of their words from the catalog, where a source scan would see almost nothing.
+Every section and subsection in `GUIDE_SECTIONS` must carry a budget or a
+declared exemption; the page list is derived from that file, so a new page
+cannot quietly arrive unmeasured.
+
+⚠️ **It counts the words a reader meets ON ARRIVAL, not `textContent`, and that
+is the whole design.** The audit's companion rule is *task first, caveats in a
+drawer* — a caveat is DEMOTED into a closed `<details>`, never deleted. A cap
+over `textContent` counts a closed drawer's body in full, so it would score
+demoting a caveat exactly the same as leaving it in the reader's way and reward
+deleting it instead: the opposite of the rule it serves. A closed `<details>`
+therefore contributes its `<summary>` and nothing else. A planted 70-word
+paragraph fails; the same 70 words inside a closed drawer do not, and that
+negative control is part of the proof.
+
+That the jsdom count is allowed to stand in for a browser one — where
+`check:prose` had to refuse the same trade — rests on it reproducing the audit's
+independent browser numbers: 2,001 words against 1,980 on the Data Dictionary,
+457 against 462 on the dashboard, 377 against 368 on the rubric.
+
+⚠️ **The three "see it running" pages share ONE budget**, because PR 5 made
+them one pattern — what it is, what you see, the button, two closed drawers —
+and brought them from 996 / 460 / 701 words to 268 / 241 / 290 without deleting
+a caveat. A number per page would let one of the three drift back into an essay
+while the pattern still looked intact, which is how they became 2.9 screens the
+first time. Raising a cap to turn a red run green is the one edit that makes
+this file decorative.
+
+What it cannot see: **screens**, which is what a reader actually experiences —
+words are a proxy, jsdom computes no layout, and a page that doubles its height
+with cards and whitespace passes untouched. The audit measured both and they
+moved together; if they stop, re-measure heights in a browser. It also cannot
+see the layout's own chrome (each page is mounted alone), or whether the words
+are in paragraphs a person can follow.

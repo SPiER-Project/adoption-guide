@@ -143,9 +143,9 @@ export function PopulationDashboardGuide() {
             <strong>the host is written and run by the same project as the app</strong>, so a
             handshake succeeding here says the app behaves correctly as a guest, not that it works
             against a server nobody here controls. That claim needs a third-party sandbox.
-            Background in{' '}
+            That question is{' '}
             <a href={ISSUE_401_URL} target="_blank" rel="noopener noreferrer">
-              issue #401
+              tracked in the open
             </a>
             .
           </p>

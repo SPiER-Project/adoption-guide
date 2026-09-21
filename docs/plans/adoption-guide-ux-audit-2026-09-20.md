@@ -1,6 +1,61 @@
 # Adoption Guide — copy, layout and UX audit
 
-**Date:** 2026-09-20 · **Branch audited:** `main` at `5262c1b` · **Status:** PR 1 (§1.1 dead links and their gate, §1.2 stale statements), PR 2 (§4.1 the Overview rewrite), PR 3 (§4.2 the Care Pathway split, §1.3 the artifact's documentation strings), PR 4 (§4.3 Tools as pages) and PR 5 (§4.4 the three "see it running" pages) applied; §4.5–§4.6 and the §5 gates remain recommendations
+**Date:** 2026-09-20 · **Branch audited:** `main` at `5262c1b` · **Status:** PR 1 (§1.1 dead links and their gate, §1.2 stale statements), PR 2 (§4.1 the Overview rewrite), PR 3 (§4.2 the Care Pathway split, §1.3 the artifact's documentation strings), PR 4 (§4.3 Tools as pages), PR 5 (§4.4 the three "see it running" pages) and PR 6 (§4.6 the sidebar, and the two §5 gates) applied — every PR in §6 is in. §4.5, the Data Dictionary's navigation, is the one recommendation left open.
+
+**Status 2026-09-20 (PR 6):** the sidebar is relabelled to §4.6 and both §5
+gates exist. The three groups are **Understand** (Care Pathway, Tools), **See
+it running** (Provider App, Population Dashboard, CDS Service) and
+**Reference** (Data Dictionary, Adoption Readiness, Adoption Rubric, Why
+SPiER) — the audit's recommended option, not the single unheaded list. Three
+rows moved into Reference along with the labels: the `evaluate` group is gone
+rather than renamed (it held the rubric alone), and the Data Dictionary left
+the first group because it is looked up rather than read through. Adoption
+Readiness is a sidebar row again and **kept its path**, `/guide/tools/readiness`
+— it is still a scored view of the catalogue, two other paths already redirect
+to it, and a Reference-shaped address would have been a fourth spelling of one
+page to move a row. That nesting put the subsection trap under sections, so
+`resolveGuidePath` now matches a full path before falling back to the first
+segment, and the sidebar's highlight comes from that function instead of
+`NavLink`'s prefix match — which lit Tools *and* Adoption Readiness, in two
+different groups, for one page.
+
+The two gates. **`check:jargon`** (`scripts/check-reader-jargon.mjs`, in
+`verify`) reads every string under `apps/guide/src` off the TypeScript AST and
+every `documentation[…].label`/`.display` in the FSH, against seven rules — an
+npm script, a gate name, a repo path, a source file, a repo identifier, an
+issue number, an ISO date. It found ten strings §1.3 had not: the CDS page's
+five, Adoption Readiness explaining a badge by naming the gate that prevents
+it, the licensing blurb's `(#64)`, the dashboard's `issue #401`, and the
+Provider App's two rename dates. All ten are rewritten. "A repo identifier"
+means one the repo defines, checked against an index of its own exports and
+file names — the camelCase SHAPE rule was written first and fired on
+`localStorage`, `hookInstance` and `patientId`. **The page budgets**
+(`apps/guide/src/pages/pageLength.test.tsx`) render every section and
+subsection and count the words a reader meets ON ARRIVAL: a closed `<details>`
+costs its `<summary>` and nothing more, so demoting a caveat into a drawer —
+§5 rule 2's remedy — is not punished as if it were leaving it in the way. The
+counts reproduce this audit's browser numbers to within ~1% (2,001 against
+1,980 on the Data Dictionary), which is what earns a jsdom measurement here.
+Both were proved red: seven planted defects for seven rules, the FSH half in
+both its string kinds, a dead parse, a narrowed tree, a dropped input, a page
+grown past budget, a new section with no budget, an empty render, and the
+sidebar reverted to prefix matching. The closed-drawer case was proved GREEN as
+a negative control.
+
+PR 5 landed while this was in flight, so the three "see it running" pages were
+rebased onto and re-measured: they share **one** budget of 330, because §4.4
+made them one pattern and a number per page would let one drift back into an
+essay while the pattern still looked intact. `Disclosure` renders a real
+`<details>`, so PR 5's drawers compose with the arrival rule unchanged — its
+three pages measure 268 / 241 / 290. The one §5 rule 3 defect PR 5 recorded as
+deliberately-not-done (Adoption Readiness naming a gate in its licensing
+legend) is fixed here, and `issue #401` survived that rewrite inside a drawer
+and is fixed too.
+
+Deliberately not done: the Data Dictionary's per-stage filter (§4.5), and the
+tool views' own copy — a scan of `packages/tool-views` finds five issue numbers
+and a rename date, out of scope because that copy is equally the clinician's
+and has not had this pass.
 
 **Status 2026-09-20 (PR 5):** the three "see it running" pages are one screen
 each on one pattern, to §4.4 — what it is in two sentences, what you see in
@@ -438,7 +493,7 @@ Each is one PR against `main`, none stacked.
 | 3 | **Care Pathway split** (§4.2): explainer + `/guide/pathway/protocol` subsection; tier table; FSH documentation rewrite; code drawer for gates and URLs. Applied — see the status note at the top. | M | Answered: the tier table replaces the three columns on the clinical surface too (one artifact, one rendering), and the section stays `wide` with the explainer's prose capped at the reading measure rather than the width model changing. |
 | 4 | **Tools as pages** (§4.3): list + `/guide/tools/:slug` with the form inline; retire the accordion; fold the try route in. Applied — see the status note at the top. Keyed by tool id rather than form slug, because the relation is many-to-many. | M–L | Answered: it WRAPS the form — the page owns the header (`PageHeaderOwnerContext`), so a tool's page is titled after the tool and not after a recorder four tools share. |
 | 5 | **See it running** (§4.4): trim three pages, drawers for mechanism and caveat, CDS corrections. Applied — see the status note at the top. Larger than the S estimated here: the drawers wanted a design-system component, which is a ninth surface owner and four call sites swept onto it. | S | Answered: yes to `Disclosure` in `packages/ui`, three variants; the clinician's three `<details>` deliberately stay hand-rolled. |
-| 6 | **Sidebar labels + Reference group** (§4.6), and the two gates in §5. | S | Yes: the labels. |
+| 6 | **Sidebar labels + Reference group** (§4.6), and the two gates in §5. Applied — see the status note at the top. | S | Answered: **Understand / See it running / Reference**, the audit's own recommendation. Adoption Readiness returns as a Reference row and keeps `/guide/tools/readiness`; the Data Dictionary and the Adoption Rubric move in beside it and the `evaluate` group is deleted rather than renamed. |
 
 PR 1 should land first regardless of anything else in this document. Everything
 after it is a design decision the user owns; the recommendation is PRs 2 → 3 →
