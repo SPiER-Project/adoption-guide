@@ -4,7 +4,7 @@
  *
  * ── What this is for ──────────────────────────────────────────────────────
  *
- * Every row on *Where this patient is* and *What's on file* said what was
+ * Every row on the care pathway's stages and on *What's on file* said what was
  * recorded, how it stood and when, and then stopped: a clinician could not see
  * the answers that were given, the score behind a result, or what a completed
  * form left on the chart. This is what an opened row shows.

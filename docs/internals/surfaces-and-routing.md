@@ -131,8 +131,8 @@ and renders plain text where the surface has no route for it.
 
 ## A record is a page, and it has one address (2026-09-22)
 
-Every row on *Where this patient is* and *What's on file* said what was
-recorded, how it stood and when — and nothing opened. A clinician could read
+Every row on the care pathway's stage rows and on *What's on file* said what
+was recorded, how it stood and when — and nothing opened. A clinician could read
 that a PHQ-9 was completed on Jul 31 and not one answer to it, not the score it
 came to, and not what it left on the chart. **`/patient/on-file/:recordKey`** is
 the row opened: the instrument's questions with the answers given to them, the
@@ -144,10 +144,15 @@ between a completed form and what it produced, in both directions.
   470px stage node pushes every stage under it off the screen. A deep link into
   *What's on file* was the third option and answers nothing: that page lists the
   same three columns.
-- **A CHILD of `/patient/on-file`, not a peer.** Its `up` is the list, its
-  eyebrow names the list, and the two cannot become rival answers to "what is on
-  file". A reader who arrived from the stage rail lands on the list on the way
-  back, which is where every record is.
+- **Its trail names both ancestors: Care pathway / What's on file.** It shipped
+  with a single `up` arrow at the list, and that was wrong twice over within the
+  day — the arrow form is what #581 retired (`up` is "a back button wearing a
+  trail's clothes"), and the stage rows moved onto the chart itself, so a reader
+  who opened a record from one was sent back to a list they had never visited. A
+  trail names where the record SITS instead of guessing which door was used, so
+  neither entry point gets the wrong answer. ⚠️ Dropping `up` is safe in the
+  panel because `.panel-shell .page-header__eyebrow:not(:has(a))` keys on a link
+  rather than on the back-arrow — checked, not assumed.
 - ⚠️ **One record, one address.** `apps/clinical/src/lib/recordKeys.ts` is the
   only thing that builds the path, and both lists call it — a second builder is
   the same record with two URLs and two histories. The key is `kind-id` and is
@@ -168,7 +173,7 @@ between a completed form and what it produced, in both directions.
   words on the measured record are the PHQ-9's nine questions and the nine
   answers to them, so a whole-page cap moves with whichever record is measured.
   `RECORD_CHROME_CAP` in `apps/clinical/src/pages/pageLength.test.tsx` counts
-  what is left — the eyebrow and the section headings, eight words — and says
+  what is left — the trail and the section headings, eleven words — and says
   the thing the page was built on: it frames the record and explains nothing.
   Same shape as the caseload's `CHROME_CAP`, and for the same reason.
 - ⚠️ **Its chunk carries the 18 Questionnaires**, because the question text
