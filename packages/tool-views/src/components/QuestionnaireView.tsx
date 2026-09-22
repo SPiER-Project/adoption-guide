@@ -35,6 +35,7 @@ import type { RiskAlert } from '@spier/core/lib/observationMappers'
 import type { PathwayRecord } from '@spier/core/lib/pathwayEvaluation'
 import type { FhirResource, ObservationResource, QuestionnaireResponseResource } from '@spier/core/types/fhir'
 import { Button } from '@spier/ui/Button'
+import { Disclosure } from '@spier/ui/Disclosure'
 import { EmptyState } from '@spier/ui/EmptyState'
 import { Notice } from '@spier/ui/Notice'
 import '../css/SubmitReview.css'
@@ -363,20 +364,42 @@ export function QuestionnaireView({ title, questionnaireUrl, persistName, carePl
                       <span className="submit-result-title">{result.riskAlert.summary}</span>
                     </div>
                     <p className="submit-result-detail">{result.riskAlert.detail}</p>
+                    {/* ⚠️ **A closed drawer, because this screen is a
+                        DECISION.** These were an open list until 2026-09-22,
+                        which was survivable while they sat under a form the
+                        clinician had already scrolled past — and is not, now
+                        that they sit between the risk level and the button
+                        that files it. Measured in the 470×900 panel the audit
+                        holds this surface to: six C-SSRS items are 315px of a
+                        468px panel, all of it the clinician's own answers of a
+                        moment ago restated in the concepts' published names,
+                        and they put *Save to the chart* 470px below the fold.
+                        The house rule decides the rest — task first, the
+                        detail one tap away, never deleted.
+
+                        ⚠️ **No count on the summary**, and the first attempt
+                        at one is why: a C-SSRS derives SEVEN values and this
+                        list renders six, because the seventh is the risk level
+                        that is already the headline above. A hint reading "7"
+                        over six rows is a small lie on the one screen that has
+                        to be trusted. The triangle says there is something
+                        inside. */}
                     {result.observations.length > 0 && (
-                      <div className="submit-result-obs">
-                        {result.observations.slice(0, 6).map((obs, idx) => (
-                          <span key={idx} className="submit-result-obs-chip">
-                            <span className="chip-label">{obs.code?.text || obs.code?.coding?.[0]?.display}:</span>
-                            <span className="chip-value">
-                              {obs.valueInteger !== undefined && obs.valueInteger}
-                              {obs.valueBoolean !== undefined && (obs.valueBoolean ? 'Yes' : 'No')}
-                              {obs.valueString !== undefined && obs.valueString}
-                              {obs.valueCodeableConcept && (obs.valueCodeableConcept.text || obs.valueCodeableConcept.coding?.[0]?.display)}
+                      <Disclosure variant="quiet" summary="What this is based on">
+                        <div className="submit-result-obs">
+                          {result.observations.slice(0, 6).map((obs, idx) => (
+                            <span key={idx} className="submit-result-obs-chip">
+                              <span className="chip-label">{obs.code?.text || obs.code?.coding?.[0]?.display}:</span>
+                              <span className="chip-value">
+                                {obs.valueInteger !== undefined && obs.valueInteger}
+                                {obs.valueBoolean !== undefined && (obs.valueBoolean ? 'Yes' : 'No')}
+                                {obs.valueString !== undefined && obs.valueString}
+                                {obs.valueCodeableConcept && (obs.valueCodeableConcept.text || obs.valueCodeableConcept.coding?.[0]?.display)}
+                              </span>
                             </span>
-                          </span>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      </Disclosure>
                     )}
                   </div>
                 )}
