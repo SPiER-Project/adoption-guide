@@ -34,7 +34,7 @@
  */
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Check, ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import { STAGES, stageBlurb, stageById } from '@spier/core/data/catalog'
 import type { Card, CdsIndicator } from '@spier/core/lib/cdsHooks'
 import type { StageArtifacts, StageStatus } from '@spier/core/lib/patientPathway'
@@ -238,9 +238,14 @@ function StageNode({
         needsAttention ? 'pathway-node--attention' : ''
       }`}
     >
-      <span className="pathway-node-marker" aria-hidden>
-        {state === 'done' ? <Check size={16} /> : index + 1}
-      </span>
+      {/* ⚠️ **No marker column and no spine since 2026-09-22.** The rail drew a
+          numbered circle (a check once the stage was done) with a connecting
+          line through it, beside a card whose title already reads "Step N" and
+          whose status pill already reads "Complete". Three encodings of the
+          same two facts, the outer one costing 1.75rem of a 470px panel and
+          carrying `aria-hidden` — so it was decoration that pushed the title
+          it duplicated into a narrower column. Order is the stacking; state is
+          the pill and the card's border. */}
       <div className="pathway-node-card">
         {anchorId && <span id={anchorId} className="pathway-node-anchor" />}
         {/* ⚠️ **Two controls, not one, and the split is audit §4.3's "each row
@@ -332,58 +337,6 @@ function StageNode({
   )
 }
 
-/* ---------- The one-line status ---------- */
-
-/**
- * Where the patient is on the pathway, in one line. Exported because in panel
- * chrome it is NOT rendered by the rail: the chart's `PageHeader` carries it as
- * the lede, so the panel shows one title and one status line instead of a page
- * title, a rail title and a two-line progress sentence stacked above the first
- * stage (112px of a 740px frame, measured 2026-09-02). `compact` drops the
- * "N of 8 stages with activity" clause, which the rail's markers already show.
- */
-export function PathwayProgress({
-  statuses,
-  actionCount,
-  compact = false,
-}: {
-  statuses: Record<string, StageStatus>
-  actionCount: number
-  compact?: boolean
-}) {
-  const withActivity = STAGES.filter(s => statuses[s.id] === 'complete').length
-  const activeStage = STAGES.find(s => statuses[s.id] === 'active')
-  return (
-    <>
-      {activeStage ? (
-        <>
-          <strong>
-            {compact ? 'Step' : 'Now at step'} {STAGES.indexOf(activeStage) + 1} of {STAGES.length}
-          </strong>
-          {' — '}
-          {activeStage.title}
-        </>
-      ) : (
-        <strong>All {STAGES.length} stages passed</strong>
-      )}
-      {!compact && (
-        <>
-          {' · '}
-          {withActivity} of {STAGES.length} stages with activity
-        </>
-      )}
-      {actionCount > 0 && (
-        <>
-          {' · '}
-          <span className="pathway-progress-actions">
-            {actionCount} recommended {actionCount === 1 ? 'action' : 'actions'}
-          </span>
-        </>
-      )}
-    </>
-  )
-}
-
 /* ---------- The rail ---------- */
 
 export function PatientPathway({
@@ -460,7 +413,7 @@ export function PatientPathway({
     <section id="activity" className="pathway">
       {/* ⚠️ **No header and no progress line in EITHER chrome since 2026-09-21.**
           The rail is a page now and `pages/PatientWhere.tsx` owns its header —
-          title, up-link and `PathwayProgress` as the lede. It drew its own in a
+          a title and an up-link, and since 2026-09-22 nothing else. It drew its own in a
           standalone tab while the panel suppressed them, which is exactly the
           "one owner per page" rule `docs/internals/css-and-page-template.md`
           states; the rail simply stopped being the thing that owns it. */}

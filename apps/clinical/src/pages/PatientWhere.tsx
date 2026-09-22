@@ -19,6 +19,14 @@
  * same `evaluatePathway` the landing screen renders, keyed by the stage each
  * obligation sits at — not from the cards on the rail, which are guidance
  * (§4.5's own rule) and would have marked a finished stage outstanding.
+ *
+ * ⚠️ **The header is a title and nothing else since 2026-09-22.** It carried
+ * "Now at step 2 of 8 — Clarify Risk · 1 of 8 stages with activity · 1
+ * recommended action": three clauses, each of which a row below already states
+ * in a pill — *You are here*, *Complete*, *1 due* — and two of which are
+ * counted in a stage vocabulary a clinician has no reason to know. A summary
+ * whose every fact is visible under it is a second thing to read, not a
+ * shortcut past the reading.
  */
 import { useMemo } from 'react'
 import { PageHeader } from '@spier/ui/PageHeader'
@@ -33,7 +41,7 @@ import { workflowArtifactsOf } from '@spier/core/lib/registry'
 import { usePresentation } from '@spier/tool-views/context/PresentationContext'
 import { useToolConfig } from '../context/ToolConfigContext'
 import { toolEnablementFor } from '../lib/toolEnablement'
-import { PatientPathway, PathwayProgress } from '../components/PatientPathway'
+import { PatientPathway } from '../components/PatientPathway'
 import '../css/PatientChart.css'
 
 export function PatientWhere() {
@@ -91,8 +99,6 @@ export function PatientWhere() {
     return out
   }, [evaluation])
 
-  const dueTotal = Object.values(dueByStage).reduce((a, b) => a + b, 0)
-
   return (
     <div className="patient-where">
       <PageHeader
@@ -100,7 +106,6 @@ export function PatientWhere() {
         up="/patient/record"
         eyebrowStyle="pill"
         title="Where this patient is"
-        lede={<PathwayProgress statuses={statuses} actionCount={dueTotal} />}
       />
 
       <PatientPathway
