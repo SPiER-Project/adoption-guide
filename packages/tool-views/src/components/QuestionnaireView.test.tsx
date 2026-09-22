@@ -136,6 +136,31 @@ function highRiskScreen(): QuestionnaireResponseResource {
   })
 }
 
+/**
+ * The words a reader meets on arrival — a closed `<details>` costs its
+ * `summary` and nothing else.
+ *
+ * ⚠️ The same rule as `apps/clinical/src/pages/pageLength.test.tsx` and the
+ * guide's copy of it, deliberately: the companion rule across this repo is
+ * *task first, detail demoted into a drawer, never deleted*, and a count over
+ * `textContent` would score demoting the same as leaving it in the way.
+ */
+function arrivalWords(root: Element): number {
+  const visible = (node: Node): string => {
+    if (node.nodeType === Node.TEXT_NODE) return node.nodeValue ?? ''
+    if (node.nodeType !== Node.ELEMENT_NODE) return ''
+    const el = node as Element
+    if (el.tagName === 'SCRIPT' || el.tagName === 'STYLE') return ''
+    if (el.hasAttribute('hidden')) return ''
+    if (el.tagName === 'DETAILS' && !(el as HTMLDetailsElement).open) {
+      const summary = el.querySelector('summary')
+      return summary ? visible(summary) : ''
+    }
+    return [...el.childNodes].map(visible).join(' ')
+  }
+  return visible(root).trim().split(/\s+/).filter(Boolean).length
+}
+
 const submit = () => screen.getByTestId('formbox-submit').click()
 const saveButton = () => screen.getByRole('button', { name: /Save to the chart/ })
 
@@ -160,6 +185,35 @@ describe('QuestionnaireView — submit shows the results, it does not write them
     submit()
 
     await waitFor(() => expect(screen.queryByTestId('formbox-submit')).toBeNull())
+  })
+
+  /**
+   * ⚠️ **The review screen is a DECISION, and this is what stops it growing
+   * back into a report.** Measured in the 470×900 panel: the six C-SSRS item
+   * values were an open list of 315px, all of it the clinician's own answers
+   * restated in the concepts' published names, sitting between the risk level
+   * and *Save to the chart* — which landed 470px below the fold on a HIGH
+   * screen. Counted the way `pageLength.test.tsx` counts, so a closed
+   * `<details>` costs its summary and demoting is the cheap fix rather than
+   * deleting.
+   */
+  it('keeps the decision at the top of the screen — the answers are one tap away, not in the way', async () => {
+    form.submitted = highRiskScreen()
+    renderScreener()
+    submit()
+    await waitFor(() => expect(document.querySelector('.submit-review')).not.toBeNull())
+
+    const drawer = document.querySelector('.submit-review details')
+    expect(drawer, 'the per-item values render outside a drawer').not.toBeNull()
+    expect(drawer!.hasAttribute('open'), 'the answers drawer starts open').toBe(false)
+
+    const words = arrivalWords(document.querySelector('.submit-review')!)
+    expect(
+      words,
+      `${words} words on arrival. This screen is the moment a clinician decides whether a ` +
+        'suicide-risk screen goes in the chart; anything longer than the result, the next step ' +
+        'and the choice belongs behind the drawer.',
+    ).toBeLessThanOrEqual(90)
   })
 
   it('shows the derived risk level, which the form itself never asked for', async () => {

@@ -514,6 +514,55 @@ results under the new instrument's name, with no form in sight.
 `QuestionnaireView` resets on the prop change during render, and
 `QuestionnaireView.test.tsx` pins it by rerendering with a different instrument.
 
+### 6.2b The review screen is a decision, measured in the panel — 2026-09-22
+
+§6.2 was verified on the guide's tool pages and landed there. Looked at on the
+CLINICAL surface, in the 470×900 panel the clinical-app audit holds it to, the
+same screen read differently and the difference was the point of the change:
+
+| | before | after |
+|---|---|---|
+| result block | 784px | 482px |
+| *Save to the chart*, from page top | 1162px | 859px |
+| page scroll height | 1321px | 1019px |
+
+The six per-item values were an open list of **315px** — the clinician's own
+answers of a moment ago, restated in the concepts' published names (*"Active
+suicidal ideation with any methods (not plan) without intent to act 1
+month"*) — sitting between the risk level and the button that files a HIGH
+screen. That was survivable while they sat under a form the reader had already
+scrolled past, and stopped being survivable when the results became the screen.
+
+They are a closed `Disclosure` now (*What this is based on*). The house rule
+decided it rather than taste: **task first, the detail one tap away, never
+deleted** — the same rule the guide's and the clinical surface's page budgets
+are measured under, which is why `QuestionnaireView.test.tsx` now counts
+arrival words the way `pageLength.test.tsx` does and caps this screen at 90.
+
+⚠️ **The first version of the summary carried a count, and it was wrong.** A
+C-SSRS derives seven values and the list renders six — the seventh is the risk
+level that is already the headline above — so the hint read *"7 answers"* over
+six rows. On the one screen whose job is to be trusted, a small lie is not a
+small thing. There is no count now.
+
+### 6.2c Two things looked at and NOT changed
+
+⚠️ **"No patient selected" is said twice on one clinical screen**, 400px apart:
+`PatientBanner`'s unassigned state at the top, and `PatientChartHint` in the
+decision block. Chrome-specific, and the hint is right in two of the three
+chromes — `PanelShell` draws no strip in the unassigned case, and the guide has
+no banner at all — so the duplicate is the standalone `LaunchShell` only. It
+also predates the fillers having the hint: the 11 recorders have read this way
+since `WorkflowForm` was written. Left for whoever owns the banner/hint
+relation; the fix is a decision about which copy wins, not a bug.
+
+⚠️ **The chip labels are LOINC display strings**, complete with timeframe
+notation (*"Wish to be dead 1 month"*). `check:jargon` cannot see them — they
+are runtime values off `Observation.code.coding[0].display`, not literals — and
+they are the published names of the concepts being recorded, so paraphrasing
+them is a terminology decision rather than a copy one. Behind the drawer they
+cost nothing on arrival, which is why this is a note and not a change.
+
 ### 6.3 What the tests can and cannot see
 
 Seven cases in `QuestionnaireView.test.tsx`, every one verified against a
