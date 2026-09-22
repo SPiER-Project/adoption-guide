@@ -1,0 +1,102 @@
+/* ===========================
+   One record, opened — the answers, the reading, the plan's steps, the facts.
+
+   `Card` owns every surface here, as it does on *What's on file*; what is below
+   is the question/answer grid and the weight that separates what was asked from
+   what was answered. The page root takes the prose width for the same reason
+   the list does: this is read down, not scanned across, and a nine-question
+   form at the wide width puts the answer a phone-width away from its question.
+   =========================== */
+
+.patient-record {
+  max-width: var(--page-width-prose);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* The reading a result carries, first on the page and the one thing on it a
+   clinician may have come for — so it is the only surface here with an accent. */
+.record-reading__value {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--font-size-2xl);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.record-reading__note {
+  margin: var(--space-1) 0 0;
+  font-size: var(--font-size-base);
+  color: var(--text-body);
+}
+
+.record-answers__section + .record-answers__section {
+  margin-top: var(--space-4);
+}
+
+.record-answers__heading {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.record-answers {
+  margin: 0;
+}
+
+/* Question above answer rather than beside it: the instruments ask in whole
+   sentences (*List personal warning signs that a crisis may be developing*), and
+   a two-column grid gives a sentence like that four words a line on a phone. */
+.record-answers__line {
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--border-default);
+}
+
+.record-answers__line:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.record-answers__q {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.record-answers__a {
+  margin: var(--space-0-5) 0 0;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.record-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.record-link {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--border-default);
+}
+
+.record-link:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.record-link__note {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}

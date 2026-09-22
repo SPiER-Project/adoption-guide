@@ -129,6 +129,54 @@ and renders plain text where the surface has no route for it.
   navigation a first-time reader is offered — were unwatched for the length of
   one commit.
 
+## A record is a page, and it has one address (2026-09-22)
+
+Every row on *Where this patient is* and *What's on file* said what was
+recorded, how it stood and when — and nothing opened. A clinician could read
+that a PHQ-9 was completed on Jul 31 and not one answer to it, not the score it
+came to, and not what it left on the chart. **`/patient/on-file/:recordKey`** is
+the row opened: the instrument's questions with the answers given to them, the
+value and interpretation a result carries, the steps of a plan, and the join
+between a completed form and what it produced, in both directions.
+
+- **A page, not an expanding row.** The two lists are two components, so a row
+  that expands would exist twice — and a nine-question form opening inside a
+  470px stage node pushes every stage under it off the screen. A deep link into
+  *What's on file* was the third option and answers nothing: that page lists the
+  same three columns.
+- **A CHILD of `/patient/on-file`, not a peer.** Its `up` is the list, its
+  eyebrow names the list, and the two cannot become rival answers to "what is on
+  file". A reader who arrived from the stage rail lands on the list on the way
+  back, which is where every record is.
+- ⚠️ **One record, one address.** `apps/clinical/src/lib/recordKeys.ts` is the
+  only thing that builds the path, and both lists call it — a second builder is
+  the same record with two URLs and two histories. The key is `kind-id` and is
+  never parsed: the page recomputes it for every artifact and compares, so an id
+  containing the separator costs nothing. The kind is the clinician's word for
+  the resource type, because the resource type is the one thing this surface may
+  not say.
+- ⚠️ **The record is resolved against `useOnFileGroups`**, not against the
+  patient buckets, so "everything on file" means one thing. A row the list shows
+  and the page cannot open — or the reverse — is the failure that rule prevents.
+- ⚠️ **`check:surface-links` cannot see any of these links**: the target is
+  computed, which that gate states as its own blind spot. The reachability is
+  pinned in `apps/clinical/src/pages/PatientRecord.test.tsx` instead — every row
+  has an address, every address resolves to the row it came from, and the rail's
+  addresses are the list's. Planting a kind mismatch in one list reports exactly
+  that.
+- ⚠️ **The page has two budgets and the second is the real one.** 180 of its
+  words on the measured record are the PHQ-9's nine questions and the nine
+  answers to them, so a whole-page cap moves with whichever record is measured.
+  `RECORD_CHROME_CAP` in `apps/clinical/src/pages/pageLength.test.tsx` counts
+  what is left — the eyebrow and the section headings, eight words — and says
+  the thing the page was built on: it frames the record and explains nothing.
+  Same shape as the caseload's `CHROME_CAP`, and for the same reason.
+- ⚠️ **Its chunk carries the 18 Questionnaires**, because the question text
+  lives on the Questionnaire and not on the response. That is fine and it is
+  also the whole of `check:eager-forms`: the page is `lazy()` in the route table
+  exactly like the fillers, and nothing eager may import
+  `apps/clinical/src/lib/recordDetail.ts`.
+
 ## The clinician-facing app shows no raw FHIR; the guide does
 
 One invariant, one gate point: `InspectContext`

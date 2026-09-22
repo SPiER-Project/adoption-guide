@@ -161,6 +161,7 @@ globalThis.ResizeObserver ??= NoopResizeObserver as unknown as typeof ResizeObse
 const { PatientChart } = await import('./PatientChart')
 const { PatientWhere } = await import('./PatientWhere')
 const { PatientOnFile } = await import('./PatientOnFile')
+const { PatientRecord } = await import('./PatientRecord')
 const { WhyThis } = await import('./WhyThis')
 const { PathwayProtocol } = await import('./PathwayProtocol')
 const { PathwayStage } = await import('./PathwayStage')
@@ -231,6 +232,15 @@ const CAPS: Record<string, { cap: number; why: string }> = {
       'for the 18 records of the fullest demo chart, so a row costs about eight and the cap allows ' +
       'roughly twice that chart. Three sections in three vocabularies, with an explanation of the ' +
       'FHIR R4 reference model to justify one of them, is what it replaced.',
+  },
+  '/patient/on-file/:recordKey': {
+    cap: 200,
+    why:
+      'One record opened (2026-09-22): the nine PHQ-9 questions, the nine answers given to them, and ' +
+      'the two results it produced. 180 words, and about 170 of them are the INSTRUMENT’s wording and ' +
+      'the patient’s own — so this is the weaker of the two numbers the page is held to, exactly like ' +
+      'the caseload’s. `RECORD_CHROME_CAP` below is the one that expresses the rule: this page writes ' +
+      'almost nothing of its own. Raise this one for a longer instrument; never raise it for a sentence.',
   },
   '/patient/pathway': {
     cap: 1700,
@@ -325,6 +335,7 @@ const PAGES: Record<string, () => ReactElement> = {
   '/patient/why': WhyThis,
   '/patient/where': PatientWhere,
   '/patient/on-file': PatientOnFile,
+  '/patient/on-file/:recordKey': PatientRecord,
   '/patient/pathway': PathwayProtocol,
   '/patient/pathway/:stageId': PathwayStage,
 }
@@ -332,12 +343,25 @@ const PAGES: Record<string, () => ReactElement> = {
 /** The stage the parameterised page is measured at — the one the demo lands on. */
 const MEASURED_STAGE = 'document-safety-actions'
 
+/**
+ * The record the opened-record page is measured at: patient-001's PHQ-9.
+ *
+ * ⚠️ **The LONGEST form on the fullest chart, chosen for that** — nine
+ * questions, nine answers and the two results it produced. The C-SSRS asks more
+ * and the Stanley-Brown plan is seven groups; neither is on this patient, and a
+ * cap measured on the CAMS section here (one question) would be a cap nothing
+ * could breach. What the number below therefore cannot see is a longer
+ * instrument's record, which is the same limit `MEASURED_STAGE` carries — and
+ * the reason the chrome cap under it exists.
+ */
+const MEASURED_RECORD = 'form-p001-phq9'
+
 /** Below this, the page did not render and a cap would pass on nothing. */
 const RENDER_FLOOR = 30
 
 function measure(path: string): number {
   const Page = PAGES[path]
-  const entry = path.replace(':stageId', MEASURED_STAGE)
+  const entry = path.replace(':stageId', MEASURED_STAGE).replace(':recordKey', MEASURED_RECORD)
   const { container } = render(
     <MemoryRouter initialEntries={[entry]}>
       <SurfaceLinksContext.Provider value={CLINICAL_SURFACE_LINKS}>
@@ -390,6 +414,55 @@ describe('the caseload leads with the worklist', () => {
         '        Audit §4.8: the table first, the summary below it, the alerts as one line that\n' +
         '        opens a page. Anything longer than a lede and a count belongs under the table.',
     ).toBeLessThanOrEqual(CHROME_CAP)
+  })
+})
+
+/**
+ * The opened record's SECOND number: the words SPiER writes on it.
+ *
+ * ⚠️ **A whole-page cap says almost nothing here.** 180 of that page's words are
+ * the PHQ-9's nine questions and the nine answers given to them, so the cap
+ * moves with whichever record is measured and would absorb a paragraph of
+ * explanation without noticing. What is worth gating is the property the page
+ * was built on: it frames the record and explains nothing. This counts
+ * everything outside the record's own content — the eyebrow, the section
+ * titles — which on the measured record is a handful of words.
+ *
+ * ⚠️ The page TITLE and LEDE are the record's, not SPiER's: the title is what
+ * was recorded and the lede is its kind, its state and its date. They are
+ * excluded for the same reason the answers are.
+ */
+const RECORD_CHROME_CAP = 15
+
+/** The containers holding the record itself rather than the page's own words. */
+const RECORD_CONTENT = '.record-answers, .record-reading, .record-links, .page-header__title, .page-header__lede'
+
+describe('an opened record explains nothing', () => {
+  it(`writes at most ${RECORD_CHROME_CAP} words of its own`, () => {
+    const { container } = render(
+      <MemoryRouter initialEntries={[`/patient/on-file/${MEASURED_RECORD}`]}>
+        <SurfaceLinksContext.Provider value={CLINICAL_SURFACE_LINKS}>
+          <Routes>
+            <Route path="/patient/on-file/:recordKey" element={<PatientRecord />} />
+          </Routes>
+        </SurfaceLinksContext.Provider>
+      </MemoryRouter>,
+    )
+    const page = container.querySelector('.patient-record')
+    expect(page, 'the record page did not render').toBeTruthy()
+    const content = [...page!.querySelectorAll(RECORD_CONTENT)]
+    // Liveness: a cap over a page that rendered none of the record is a cap
+    // over nothing, and it would be the easiest of all these to pass by mistake.
+    expect(content.length, 'the record page rendered none of the record').toBeGreaterThan(1)
+
+    const own = arrivalWords(page!) - content.reduce((n, el) => n + arrivalWords(el), 0)
+    expect(
+      own,
+      `${own} words on the opened record are SPiER's own, over the ${RECORD_CHROME_CAP} this page allows.\n` +
+        '        The page frames what was recorded and explains nothing: an eyebrow, a title that is the\n' +
+        '        record\u2019s own name, and one heading per section. An explanation of what a record is,\n' +
+        '        or of where it came from, belongs on the Adoption Guide.',
+    ).toBeLessThanOrEqual(RECORD_CHROME_CAP)
   })
 })
 

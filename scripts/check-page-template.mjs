@@ -136,6 +136,12 @@ const LENSES = {
   // panel each page's `up` is the only way back to the chart.
   'PatientWhere.tsx': 'the eight-stage rail as a page; a drill-in from the landing card, and its `up` is the way back',
   'PatientOnFile.tsx': 'everything recorded for the patient as a page; a drill-in from the landing card, and its `up` is the way back',
+  // Added 2026-09-22. One record opened — the answers, the reading, the plan's
+  // steps. Same shape again: a page of the Patient lens, which has no layout
+  // component to draw a header for it. Its `up` is *What's on file*, the list
+  // it is a child of, rather than the chart — a reader arriving from the stage
+  // rail lands on the list, which is where every record is.
+  'PatientRecord.tsx': 'one record opened; a drill-in from either list of records, and its `up` is the list it belongs to',
 }
 
 const errors = []

@@ -400,13 +400,31 @@ export function instrumentName(resource: FhirResourceLike, slice: PatientSlice):
     const tool = toolForResponse(resource)
     if (tool) return tool.shortName ?? tool.name
   }
+  const stored = sourceResponse(resource, slice)
+  if (!stored) return null
+  const tool = toolForResponse(stored.resource)
+  return tool ? (tool.shortName ?? tool.name) : stored.questionnaireName
+}
+
+/**
+ * The completed form an artifact came from, or null.
+ *
+ * ⚠️ **Split out of `instrumentName` on 2026-09-22 rather than copied.** The
+ * record page has to LINK a result back to the form that produced it, and the
+ * name alone cannot be linked; a second walk would be a second answer to "which
+ * form is this from" the day either was tuned, which is what `check:dupes`
+ * exists to stop. `instrumentName` is the name of what this returns, and
+ * nothing else now resolves it.
+ */
+export function sourceResponse(
+  resource: FhirResourceLike,
+  slice: PatientSlice,
+): PatientSlice['responses'][number] | null {
   const derivedFrom = (resource as { derivedFrom?: Array<{ reference?: string }> }).derivedFrom ?? []
   for (const ref of derivedFrom) {
     const id = ref.reference?.replace('QuestionnaireResponse/', '')
     const stored = id ? slice.responses.find(r => r.id === id) : undefined
-    const tool = stored && toolForResponse(stored.resource)
-    if (tool) return tool.shortName ?? tool.name
-    if (stored) return stored.questionnaireName
+    if (stored) return stored
   }
   // ⚠️ Last resort, and a heuristic rather than a link: the latest response at
   // the same pathway stage, recorded no later than this artifact. The scenario
@@ -431,9 +449,7 @@ export function instrumentName(resource: FhirResourceLike, slice: PatientSlice):
     .filter(r => Number.isFinite(r.at) && r.at <= at && day(r.on) === day(date))
     .sort((a, b) => a.at - b.at)
     .at(-1)
-  if (!sameStage) return null
-  const tool = toolForResponse(sameStage.stored.resource)
-  return tool ? (tool.shortName ?? tool.name) : sameStage.stored.questionnaireName
+  return sameStage?.stored ?? null
 }
 
 /* ─── The walk ──────────────────────────────────────────────── */

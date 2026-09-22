@@ -12,7 +12,16 @@
  * `lifecycleWord` is where "how it stands" comes from: a lifecycle code is a
  * real clinical fact (a referral still open is not a referral completed) and
  * only its spelling was the wire's.
+ *
+ * ⚠️ **Every row's name is a LINK since 2026-09-22**, to the record it names.
+ * Three columns and no way in was the gap: a clinician could read that a PHQ-9
+ * was completed and not one answer to it. The destination is built by
+ * `lib/recordKeys.ts` — the SAME function *What's on file* uses, so a record
+ * has one address however a reader reached it — and a row whose artifact
+ * carries no id stays plain text rather than linking nowhere.
  */
+import type { ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { outreachOutcome, OUTREACH_OUTCOMES } from '@spier/core/lib/followUp'
 import { displayFor } from '@spier/core/lib/codedOption'
 import {
@@ -22,8 +31,20 @@ import {
   type ArtifactBuckets,
   type RenderableResource,
 } from '../lib/chartDisplay'
+import type { FhirResourceLike } from '@spier/core/lib/patientPathway'
 import type { CommunicationResource, StoredResponse } from '@spier/core/types/fhir'
 import { formatDate, formatDateTime } from '@spier/tool-views/lib/dates'
+import { recordPath } from '../lib/recordKeys'
+
+/** The row's name, linked to the record when the artifact has an address. */
+function ArtifactName({ resource, children }: { resource: unknown; children: ReactNode }) {
+  const to = recordPath(resource as FhirResourceLike)
+  return (
+    <span className="stage-artifact-name">
+      {to ? <Link to={to}>{children}</Link> : children}
+    </span>
+  )
+}
 
 /** The meta line: how it stands, then when — either half may be missing. */
 function ArtifactMeta({ state, when }: { state?: string | null; when?: string | null }) {
@@ -46,7 +67,7 @@ export function ArtifactCards({
         return (
           <div key={r.id} className="stage-artifact stage-artifact--response">
             <div className="stage-artifact-body">
-              <span className="stage-artifact-name">{r.questionnaireName}</span>
+              <ArtifactName resource={r.resource}>{r.questionnaireName}</ArtifactName>
               <ArtifactMeta when={formatDateTime(r.completedAt)} />
             </div>
           </div>
@@ -58,7 +79,7 @@ export function ArtifactCards({
         return (
           <div key={`${cp.id}-${idx}`} className="stage-artifact stage-artifact--careplan">
             <div className="stage-artifact-body">
-              <span className="stage-artifact-name">{carePlanDisplayName(cp)}</span>
+              <ArtifactName resource={rawCp}>{carePlanDisplayName(cp)}</ArtifactName>
               <ArtifactMeta
                 state={lifecycleWord(cp.status ?? 'active')}
                 when={written ? formatDate(written) : null}
@@ -74,7 +95,7 @@ export function ArtifactCards({
         return (
           <div key={obs.id ?? `obs-${idx}`} className="stage-artifact stage-artifact--observation">
             <div className="stage-artifact-body">
-              <span className="stage-artifact-name">{name}</span>
+              <ArtifactName resource={rawObs}>{name}</ArtifactName>
               <ArtifactMeta when={when ? formatDate(when) : null} />
             </div>
           </div>
@@ -94,10 +115,10 @@ export function ArtifactCards({
         return (
           <div key={c.id ?? `comm-${idx}`} className="stage-artifact stage-artifact--communication">
             <div className="stage-artifact-body">
-              <span className="stage-artifact-name">
+              <ArtifactName resource={rawComm}>
                 {name}
                 {outcome && ` — ${displayFor(OUTREACH_OUTCOMES, outcome)}`}
-              </span>
+              </ArtifactName>
               <ArtifactMeta
                 state={lifecycleWord(c.status ?? 'completed')}
                 when={when ? formatDateTime(when) : null}
@@ -112,7 +133,7 @@ export function ArtifactCards({
         return (
           <div key={w.id ?? `workflow-${idx}`} className="stage-artifact stage-artifact--workflow">
             <div className="stage-artifact-body">
-              <span className="stage-artifact-name">{name}</span>
+              <ArtifactName resource={raw}>{name}</ArtifactName>
               <ArtifactMeta state={state} when={when} />
             </div>
           </div>

@@ -67,6 +67,22 @@ export function formatDateTime(iso: string | null | undefined): string {
   return `${formatDate(iso)}, ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
 }
 
+/**
+ * The clock time alone — "12:08 PM" — or an em dash.
+ *
+ * For the second half of a span whose first half already said the day: an
+ * appointment that reads "Aug 7, 2026, 10:00 AM to Aug 7, 2026, 10:45 AM" is
+ * printing the date at a reader twice. Here rather than in the one page that
+ * needs it, for the reason this module's header gives: nine views made their
+ * own copy of `todayIso` before it moved.
+ */
+export function formatTime(iso: string | null | undefined): string {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return '—'
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
 /** "Today", "3 days ago", "2 weeks ago", "4 months ago" — for a caseload's last-activity column. */
 export function formatDaysAgo(isoDate: string, now: number = Date.now()): string {
   const then = new Date(isoDate).getTime()

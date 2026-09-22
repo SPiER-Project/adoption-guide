@@ -15,9 +15,16 @@
  *     group rather than being guessed into an episode.
  *  4. **Every artifact appears exactly once.** The three sections it replaced
  *     could show the same artifact three times, labelled three ways.
+ *  5. **Every row opens the record it names** (2026-09-22). That the address is
+ *     the right one is `pages/PatientRecord.test.tsx`'s; what is here is that
+ *     the row IS a way in, which is what the list did not have.
  */
 import { describe, it, expect, afterEach } from 'vitest'
 import { render, cleanup, renderHook } from '@testing-library/react'
+// ⚠️ A row's name is a `<Link>` since 2026-09-22, so this list no longer renders
+// outside a router — the four assertions below were passing on markup, and a
+// bare `render` now throws rather than quietly dropping the link.
+import { MemoryRouter } from 'react-router-dom'
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
 import { useOnFileGroups } from '../lib/onFileGroups'
 import { OnFileList } from './OnFileList'
@@ -61,7 +68,14 @@ function groupsFor(over: Partial<typeof input> = {}) {
 
 function renderList(over: Partial<typeof input> = {}) {
   const groups = groupsFor(over)
-  return { groups, ...render(<OnFileList groups={groups} />) }
+  return {
+    groups,
+    ...render(
+      <MemoryRouter>
+        <OnFileList groups={groups} />
+      </MemoryRouter>,
+    ),
+  }
 }
 
 describe('what’s on file', () => {
@@ -111,7 +125,20 @@ describe('what’s on file', () => {
   })
 
   it('renders an empty chart as one sentence, not as three empty sections', () => {
-    const { container } = render(<OnFileList groups={[]} />)
+    const { container } = render(
+      <MemoryRouter>
+        <OnFileList groups={[]} />
+      </MemoryRouter>,
+    )
     expect(container.textContent).toBe('Nothing has been recorded for this patient yet.')
+  })
+
+  it('makes every row a way into the record it names', () => {
+    const { groups, container } = renderList()
+    const links = [...container.querySelectorAll('.on-file__name a')]
+    expect(links).toHaveLength(groups.flatMap(g => g.rows).length)
+    for (const link of links) {
+      expect(link.getAttribute('href')).toContain('/patient/on-file/')
+    }
   })
 })

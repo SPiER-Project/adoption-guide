@@ -50,6 +50,7 @@ import { bestArtifactDate } from '@spier/core/lib/artifactDate'
 import type { FhirResourceLike } from '@spier/core/lib/patientPathway'
 import type { PatientSlice } from '@spier/core/types/fhir'
 import { artifactLabel } from './chartDisplay'
+import { recordPath } from './recordKeys'
 
 /** One thing on file, resolved for reading. */
 export interface OnFileRow {
@@ -61,6 +62,15 @@ export interface OnFileRow {
   when: string | undefined
   /** Sortable stamp; `NaN` for an undated artifact, which sorts last. */
   at: number
+  /**
+   * The artifact itself, so the page that opens one resolves it against this
+   * same list rather than walking the buckets a second time — *What's on file*
+   * is what "everything on file" means here, and a record it does not list is
+   * a record nothing can open.
+   */
+  resource: FhirResourceLike
+  /** Where this row opens, or null for an artifact with no id to address. */
+  href: string | null
 }
 
 /** A heading and the rows under it. */
@@ -84,6 +94,8 @@ function rowFor(resource: FhirResourceLike, slice: PatientSlice, index: number):
   return {
     key: `${resource.resourceType}/${resource.id ?? index}`,
     name,
+    resource,
+    href: recordPath(resource),
     // A questionnaire's response IS its instrument; repeating the name beside
     // itself is the noise the resource-type meta used to be.
     instrument: instrument && instrument !== name ? instrument : null,
@@ -107,18 +119,28 @@ function episodeState(status: string): string | null {
   return null
 }
 
+/**
+ * The buckets as the one slice `instrumentName` and `sourceResponse` take.
+ *
+ * ⚠️ **Exported because the record page needs the same one**, and a second copy
+ * of this cast is a second answer to which buckets those two walk — the class
+ * `check:dupes` exists for. `instrumentName` reads only the responses, but its
+ * parameter is the whole slice, so a future hop it learns to follow does not
+ * need either call site changed.
+ */
+export function sliceOf(input: Parameters<typeof groupByEpisode>[0]): PatientSlice {
+  return {
+    responses: input.responses ?? [],
+    observations: input.observations ?? [],
+    carePlans: input.carePlans ?? [],
+    riskAlerts: [],
+  } as unknown as PatientSlice
+}
+
 export function useOnFileGroups(input: Parameters<typeof groupByEpisode>[0]): OnFileGroup[] {
   return useMemo(() => {
     const { records, unassigned } = groupByEpisode(input)
-    // `instrumentName` reads only the responses, but its parameter is the whole
-    // slice — passed as one rather than narrowed, so a future hop it learns to
-    // follow does not need this call site changed.
-    const slice = {
-      responses: input.responses ?? [],
-      observations: input.observations ?? [],
-      carePlans: input.carePlans ?? [],
-      riskAlerts: [],
-    } as unknown as PatientSlice
+    const slice = sliceOf(input)
 
     const groups: OnFileGroup[] = records.map((record, i) => {
       const period = (record.episode as { period?: { start?: string } }).period ?? {}
