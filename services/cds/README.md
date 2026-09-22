@@ -96,6 +96,7 @@ a **best-effort** in-isolate replay check — true one-time-use needs shared sta
 | `CDS_JWT_TRUSTED_ISSUERS` | Optional comma-separated allowlist of accepted `iss` values. |
 | `CDS_JWT_JWKS_URL` | Fixed JWK Set URL used when a token carries no `jku` header. |
 | `CDS_JWT_JKU_ALLOWED_HOSTS` | Comma-separated hosts a token's `jku` header may point at (see SSRF note). |
+| `CDS_JWT_BOUND_JWKS_HOST` | The one host whose key set is fetched through the `CLIENT` binding instead of over the network (see below). |
 
 Secrets (e.g. a JWKS URL you'd rather not commit) go via
 `wrangler secret put CDS_JWT_JWKS_URL` and override the `vars` value.
@@ -107,6 +108,32 @@ would let any caller make the Worker issue an outbound request to a URL of their
 choice. This service refuses a `jku` whose host is not in
 `CDS_JWT_JKU_ALLOWED_HOSTS` **before any network call**; leave that var blank to
 ignore `jku` entirely and rely on `CDS_JWT_JWKS_URL` / registered issuers.
+
+### The demo client's key set arrives over a binding, not the network
+
+⚠️ **Both demo Workers are on one zone, and Cloudflare refuses a same-zone
+Worker subrequest.** `services/mock-ehr` binds this service as `CDS` so its
+invoke can arrive (#581). Verifying the token that invoke carries is a
+subrequest in the *other* direction — the host signs with a key it publishes at
+its own `/.well-known/jwks.json` and names in the token's `jku` — and was
+refused identically. The symptom moved rather than cleared: `error code: 1042`
+became jose's `Expected 200 OK from the JSON Web Key Set HTTP response`, a 401
+one hop further along, on a URL that returns 200 to every other client.
+
+So this service binds the host back as `CLIENT`, and fetches
+`CDS_JWT_BOUND_JWKS_HOST`'s key set through it.
+
+⚠️ **One host, not the allowlist, and the distinction is load-bearing.** A
+service binding ignores the URL's host when it routes: everything handed to it
+arrives at the bound Worker. Sending every allowlisted `jku` through the binding
+would mean a token naming allowlisted host B got its keys from bound host A, and
+the signature would verify against the wrong client's key.
+`CDS_JWT_JKU_ALLOWED_HOSTS` remains the only answer to *who is trusted*; this
+var only decides *how one of them is reached*.
+
+⚠️ **An adopter's EHR needs none of this.** A client on any other zone is an
+ordinary `fetch`, which is the default path and the one every deployment other
+than this demo takes.
 
 ### `warn` → `require`, and the client that made it possible
 

@@ -73,6 +73,30 @@
     // ignore `jku` entirely and rely on CDS_JWT_JWKS_URL / registered issuers.
     // ⚠️ Non-blank now, which is what puts that guard on the LIVE path rather
     // than only under test — the demo host's tokens carry `jku`.
-    "CDS_JWT_JKU_ALLOWED_HOSTS": "spier-mock-ehr.bbthorson.workers.dev"
-  }
+    "CDS_JWT_JKU_ALLOWED_HOSTS": "spier-mock-ehr.bbthorson.workers.dev",
+    // The ONE host whose key set is fetched through the `CLIENT` binding below
+    // instead of over the network. Must also be allowlisted above: this chooses
+    // the transport, never whether the token is trusted.
+    "CDS_JWT_BOUND_JWKS_HOST": "spier-mock-ehr.bbthorson.workers.dev"
+  },
+
+  // ⚠️ **The return leg of the same-zone problem #581 fixed outbound.**
+  //
+  // `services/mock-ehr` binds THIS service as `CDS` so its invoke can arrive —
+  // both Workers are on `*.bbthorson.workers.dev`, one zone, and Cloudflare
+  // refuses a same-zone Worker subrequest. Verifying the token that invoke
+  // carries is a subrequest in the other direction: the host signs with a key it
+  // publishes at its own `/.well-known/jwks.json` and names in the token's `jku`,
+  // and fetching it from here was refused the same way. The symptom moved rather
+  // than cleared — `error code: 1042` became jose's "Expected 200 OK from the
+  // JSON Web Key Set HTTP response", a 401 one hop further along, on a URL that
+  // returns 200 from every other client on earth.
+  //
+  // ⚠️ **This binding is for the DEMO's client only.** An adopter's EHR is on
+  // another zone, where a plain fetch is correct and is what `auth.ts` still
+  // does by default. Nothing here widens who is trusted — `CDS_JWT_TRUSTED_ISSUERS`
+  // and `CDS_JWT_JKU_ALLOWED_HOSTS` remain the only answer to that.
+  "services": [
+    { "binding": "CLIENT", "service": "spier-mock-ehr" }
+  ]
 }
