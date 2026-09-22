@@ -7,7 +7,7 @@
  * makes two of its properties load-bearing rather than cosmetic: it says the
  * same thing the card said (a second reading of the record here would be a
  * fourth answer to "what do I do"), and it has a way back, because in panel
- * chrome the header's `up` is the only one.
+ * chrome the header's trail is the only one.
  */
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
@@ -75,7 +75,10 @@ describe('the page behind the landing card', () => {
     const { container } = renderWhy('patient-001')
     expect(container.querySelectorAll('.page-header')).toHaveLength(1)
     expect(container.querySelectorAll('h2')).toHaveLength(1)
-    expect(screen.getByRole('link', { name: /Patient Chart/ }).getAttribute('href')).toBe(
+    // ⚠️ "Care pathway", not "Patient Chart": the eyebrow is a breadcrumb trail
+    // since 2026-09-22 and names the page it leads back to, which is the
+    // pathway itself now.
+    expect(screen.getByRole('link', { name: /Care pathway/ }).getAttribute('href')).toBe(
       '/patient/record',
     )
   })

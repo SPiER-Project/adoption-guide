@@ -18,10 +18,25 @@ import './PageHeader.css'
  * the guide and the Population view ended up 24px further in than the other two.
  * `npm run check:template` enforces both halves of that.
  */
+/**
+ * One segment of the trail. A bare string is a segment with nowhere to go; a
+ * `{ label, to }` is a link.
+ *
+ * ⚠️ **`to` per segment, rather than a second `up`.** The header carried ONE
+ * link — `up`, on the first segment, with a back arrow — which is a back button
+ * wearing a trail's clothes: on `/patient/assessments/crisis-resources` it read
+ * `← PATIENT CHART` and said nothing about the four levels between the chart and
+ * the form (Brad, 2026-09-22). A trail whose segments each resolve is the thing
+ * that answers "where am I"; the arrow form stays for the pages that really do
+ * have exactly one ancestor.
+ */
+export type Crumb = string | { label: string; to: string }
+
 interface PageHeaderProps {
   /**
    * The trail above the title: what this page sits inside. `['Adoption Guide',
-   * 'Learn']` renders as `ADOPTION GUIDE / LEARN`. The separator is the
+   * 'Learn']` renders as `ADOPTION GUIDE / LEARN`, and a segment given as
+   * `{ label, to }` is a link to that ancestor. The separator is the
    * component's business, not the caller's, so a caller cannot introduce a
    * second punctuation style.
    *
@@ -35,7 +50,7 @@ interface PageHeaderProps {
    * one page that skipped it had its title sitting 24px higher than the other
    * three: an absent eyebrow is a layout difference, not just a missing label.
    */
-  eyebrow: string | string[]
+  eyebrow: Crumb | Crumb[]
   /**
    * Route to the page's parent. Turns the *first* eyebrow segment into a link
    * back to it, arrow included — so a drill-in page's way out is part of the
@@ -64,14 +79,24 @@ interface PageHeaderProps {
   lede?: ReactNode
 }
 
+const labelOf = (crumb: Crumb): string => (typeof crumb === 'string' ? crumb : crumb.label)
+
 export function PageHeader({ eyebrow, up, eyebrowStyle = 'text', title, lede }: PageHeaderProps) {
   const trail = Array.isArray(eyebrow) ? eyebrow : [eyebrow]
 
   return (
     <header className="page-header">
-      <p className={cx('page-header__eyebrow', eyebrowStyle === 'pill' && 'page-header__eyebrow--pill')}>
+      {/* ⚠️ A `<nav>`, not a `<p>`, as soon as any segment is a link — which is
+          what a breadcrumb is, and what lets a screen reader skip it. The
+          element is chosen by the CONTENT rather than by a prop: a caller
+          cannot render a trail of links and forget to say so. */}
+      <p
+        className={cx('page-header__eyebrow', eyebrowStyle === 'pill' && 'page-header__eyebrow--pill')}
+        role={trail.some(c => typeof c !== 'string') ? 'navigation' : undefined}
+        aria-label={trail.some(c => typeof c !== 'string') ? 'Breadcrumb' : undefined}
+      >
         {trail.map((part, i) => (
-          <span key={part}>
+          <span key={labelOf(part)}>
             {/* The slash is decoration; the spaces around it are real, so the
                 trail reads as "Adoption Guide Learn" to a screen reader
                 rather than running the two words together. */}
@@ -83,7 +108,11 @@ export function PageHeader({ eyebrow, up, eyebrowStyle = 'text', title, lede }: 
                 </span>{' '}
               </>
             )}
-            {i === 0 && up !== undefined ? (
+            {typeof part !== 'string' ? (
+              <Link to={part.to} className="page-header__crumb">
+                {part.label}
+              </Link>
+            ) : i === 0 && up !== undefined ? (
               <Link to={up} className="page-header__up">
                 {/* The arrow is inside the link so the whole affordance is one
                     target, and aria-hidden so the accessible name stays the
@@ -95,6 +124,15 @@ export function PageHeader({ eyebrow, up, eyebrowStyle = 'text', title, lede }: 
             )}
           </span>
         ))}
+        {/* ⚠️ The separator between the trail and the TITLE, drawn only in panel
+            chrome — where `PageHeader.css` collapses the header onto one line,
+            so the title is the trail's last segment and reads as one without
+            it. In a standalone tab the title is a heading below the trail and a
+            trailing slash would be punctuation with nothing after it. */}
+        <span className="page-header__eyebrow-sep page-header__eyebrow-sep--title" aria-hidden="true">
+          {' '}
+          /
+        </span>
       </p>
       <h2 className="page-header__title">{title}</h2>
       <div className="page-header__rule" />

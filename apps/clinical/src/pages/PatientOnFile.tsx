@@ -76,9 +76,7 @@ export function PatientOnFile() {
   return (
     <div className="patient-on-file">
       <PageHeader
-        eyebrow="Patient Chart"
-        up="/patient/record"
-        eyebrowStyle="pill"
+        eyebrow={[{ label: 'Care pathway', to: '/patient/record' }]}
         title={'What\u2019s on file'}
         lede={`${total} ${total === 1 ? 'record' : 'records'}`}
       />

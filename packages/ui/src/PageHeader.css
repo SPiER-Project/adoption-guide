@@ -45,9 +45,10 @@
   opacity: 0.5;
 }
 
-/* The back-link on a drill-in page (`up`). Inherits the eyebrow's color, so the
-   trail reads as one object; the underline is what says the first segment is the
-   part you can click. */
+/* A linked segment of the trail, and the back-link on a drill-in page (`up`).
+   Both inherit the eyebrow's colour, so the trail reads as one object; the
+   underline is what says which parts you can click. */
+.page-header__crumb,
 .page-header__up {
   color: inherit;
   text-decoration: underline;
@@ -55,8 +56,17 @@
   text-underline-offset: 2px;
 }
 
+.page-header__crumb:hover,
 .page-header__up:hover {
   text-decoration-color: var(--brand-terracotta-text);
+}
+
+/* The slash between the trail and the TITLE. Hidden by default: in a standalone
+   tab the title is a heading BELOW the trail, and a trailing slash would be
+   punctuation with nothing after it. Panel chrome, which puts them on one line,
+   turns it on. */
+.page-header__eyebrow-sep--title {
+  display: none;
 }
 
 /* Plum, not --text-strong: three of the four lenses used the neutral heading
@@ -143,17 +153,26 @@
   margin: 0;
 }
 
-/* Only the first segment survives: it is the one `up` links, and a full trail
-   would wrap the line it is supposed to fit on. */
-.panel-shell .page-header__eyebrow span:not(:first-child) {
-  display: none;
+/* ⚠️ **The whole trail survives now** (Brad, 2026-09-22). Every segment but the
+   first used to be hidden here, on the reasoning that `up` linked the first one
+   and a full trail would wrap — which was true of a trail that named a LENS and
+   a section. A trail that names ancestors is two or three short words a level
+   ("Care pathway / Step 4") and is the only thing on this surface that says
+   where the reader is, so it wraps rather than being cut. */
+
+/* The separator between the trail and the title, which share a line here. */
+.panel-shell .page-header__eyebrow-sep--title {
+  display: inline;
 }
 
-/* A top-level panel page — the chart — has no `up`, and its eyebrow then names a
-   lens ("Patient View") that means nothing inside a host chart: the host's own
-   navigation says where the clinician is. With `up` the eyebrow is the way back
-   out and stays; without it, it is a label for a sidebar that is not there. */
-.panel-shell .page-header__eyebrow:not(:has(.page-header__up)) {
+/* A top-level panel page — the chart — has no ancestors, and its eyebrow then
+   names the PROJECT, which means nothing inside a host chart: the host's own
+   navigation says whose software this is. A trail with a link in it is the way
+   back out and stays; a bare label is a label for a sidebar that is not there.
+   ⚠️ `:has(a)` rather than `:has(.page-header__up)` since the trail's segments
+   became links of their own — the old selector hid every breadcrumb that had no
+   back-arrow, which after 2026-09-22 is all of them. */
+.panel-shell .page-header__eyebrow:not(:has(a)) {
   display: none;
 }
 

@@ -47,7 +47,7 @@ import { Card } from '@spier/ui/Card'
 import { EmptyState } from '@spier/ui/EmptyState'
 import { stageLeadTools } from '@spier/core/lib/pathwaySelection'
 import { stageBlurb } from '@spier/core/data/catalog/stageBlurbs'
-import { stageById } from '@spier/core/data/catalog/stages'
+import { STAGES, stageById } from '@spier/core/data/catalog/stages'
 import type { Tool } from '@spier/core/data/catalog/tools'
 import { useToolConfig } from '../context/ToolConfigContext'
 import { usePresentation } from '@spier/tool-views/context/PresentationContext'
@@ -82,9 +82,10 @@ export function PathwayStage() {
           "The EHR supports…" definition — see
           `packages/core/src/data/catalog/stageBlurbs.ts`. */}
       <PageHeader
-        eyebrow="Patient Chart"
-        up="/patient/record"
-        eyebrowStyle="pill"
+        eyebrow={[
+          { label: 'Care pathway', to: '/patient/record' },
+          `Step ${STAGES.findIndex(s => s.id === stage.id) + 1}`,
+        ]}
         title={stage.title}
         lede={stageBlurb(stage.id)}
       />

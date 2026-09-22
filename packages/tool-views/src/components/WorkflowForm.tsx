@@ -58,6 +58,7 @@ import { Link } from 'react-router-dom'
 import { usePatient } from '../context/PatientContext'
 import { useSurfaceLinks } from '../context/SurfaceLinksContext'
 import { usePageHeaderOwner } from '../context/PageHeaderOwnerContext'
+import { useTrail } from '../context/useTrail'
 import { CodeDrawer } from './CodeDrawer'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { NextStep } from './NextStep'
@@ -199,11 +200,16 @@ export function WorkflowForm({
   // draws none — and keeps the lede, which is the clinician's sentence about
   // what the form records, inside the card instead (PageHeaderOwnerContext).
   const ownsHeader = usePageHeaderOwner() === 'view'
+  const trail = useTrail()
   return (
     <div className="form-view">
-      {ownsHeader && (
-        <PageHeader eyebrowStyle="pill" eyebrow={[links.parent.label, 'Workflow']} up={links.parent.href} title={title} lede={lede} />
-      )}
+      {/* ⚠️ A TRAIL, not a pill with a back arrow (Brad, 2026-09-22). The
+          eyebrow read `← PATIENT CHART` and the word "Workflow" after it, which
+          named the kind of page rather than where it sits; `Care pathway /
+          Step 4` says both, and each segment resolves. The pill style went with
+          the arrow — it is the website's drill-in badge and a badge containing a
+          three-segment trail reads as neither. */}
+      {ownsHeader && <PageHeader eyebrow={trail} title={title} lede={lede} />}
 
       <div className="form-wrapper">
         <div className="form-card">

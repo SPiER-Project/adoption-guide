@@ -83,9 +83,7 @@ export function WhyThis() {
   return (
     <div className="why-this">
       <PageHeader
-        eyebrow="Patient Chart"
-        up="/patient/record"
-        eyebrowStyle="pill"
+        eyebrow={[{ label: 'Care pathway', to: '/patient/record' }]}
         title="Why this?"
         lede={primary.title}
       />

@@ -76,12 +76,16 @@ export function ToolConfiguration() {
   return (
     <div className="tool-config">
       {/* Owns its own header, like PathwayProtocol beside it: the Patient lens
-          has no layout component to render one, and in panel chrome `up` is the
-          page's only way back to the chart. */}
+          has no layout component to render one, and in panel chrome the trail is
+          the page's only way back to the chart.
+
+          ⚠️ The crumb says "Care pathway" because that is where it GOES. It read
+          "Settings" beside an up-link to the chart — a label for this page,
+          styled as the trail above it, pointing somewhere it did not name. A
+          segment names its destination (`PageHeader`'s `Crumb`), and this page's
+          own name is the title. */}
       <PageHeader
-        eyebrow="Settings"
-        up="/patient/record"
-        eyebrowStyle="pill"
+        eyebrow={[{ label: 'Care pathway', to: '/patient/record' }]}
         title="Tool Configuration"
         lede="Which suicide-prevention tools this site has in place."
       />

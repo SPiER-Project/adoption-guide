@@ -16,8 +16,8 @@ import type { RendererProperties } from '@formbox/renderer'
  */
 type RendererQuestionnaire = RendererProperties<'r4'>['questionnaire']
 import { usePatient } from '../context/PatientContext'
-import { useSurfaceLinks } from '../context/SurfaceLinksContext'
 import { usePageHeaderOwner } from '../context/PageHeaderOwnerContext'
+import { useTrail } from '../context/useTrail'
 import { CodeDrawer } from './CodeDrawer'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { PageHeader } from '@spier/ui/PageHeader'
@@ -94,14 +94,14 @@ export function QuestionnaireView({ title, questionnaireUrl, persistName, carePl
   // Where this surface's chart and other tool views live — the clinician's
   // routes in the clinical app, the tool pages in the guide, and no chart at
   // all there. The literals are the app's, not this view's (SurfaceLinksContext).
-  const links = useSurfaceLinks()
   // Whether THIS view draws the page header. On the clinician's routes it is
   // the page and does; on the guide's tool page the page has already drawn one
   // naming the tool, and a second here would be two page titles (PageHeaderOwnerContext).
   const ownsHeader = usePageHeaderOwner() === 'view'
-  const header = ownsHeader ? (
-    <PageHeader eyebrowStyle="pill" eyebrow={[links.parent.label, 'Assessment']} up={links.parent.href} title={title} />
-  ) : null
+  const trail = useTrail()
+  // The same trail the recorders draw — see `WorkflowForm`'s note on why the
+  // pill-with-a-back-arrow went.
+  const header = ownsHeader ? <PageHeader eyebrow={trail} title={title} /> : null
 
   function handleSubmit(submittedResponse: QuestionnaireResponseResource) {
     const base = submittedResponse || response

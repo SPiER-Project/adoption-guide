@@ -28,9 +28,7 @@ export function PopulationAlerts() {
   return (
     <div className="population-view">
       <PageHeader
-        eyebrow={['Caseload', 'Alerts']}
-        up="/population/caseload"
-        eyebrowStyle="pill"
+        eyebrow={[{ label: 'Caseload', to: '/population/caseload' }]}
         title="Alerts"
         lede="Every patient on the caseload who was eligible for something and did not get it, worst first."
       />
