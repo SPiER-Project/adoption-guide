@@ -112,13 +112,44 @@ const NARRATED_NUMERATORS: Array<{
  * not receive something. Each needs a reason, and adding one should feel like a
  * decision.
  *
- * Empty today, and that is the finding: after #324 every miss among the
- * narrated patients is either a real pass, an administrative exclusion, or the
- * transfer/elopement exception. Before it, patient-011 / lethal-means-counseling
- * would have had to be written down here — and writing the reason is where
- * someone notices there isn't one.
+ * ⚠️ **It was empty, and that was reported as the finding — but it was empty
+ * because two positive screens were invisible to the measure.** `isPositive`
+ * reads `interpretation` first and falls back to a risk-TIER value; the ASQ
+ * results on patients 013 and 014 carried neither, because those fixtures had no
+ * `interpretation` at all. Both acute positive screens sat outside the
+ * `screen-to-assessment` denominator, so neither could miss it. Giving the
+ * fixtures the interpretation their own mapper writes (`asq.ts`: any positive →
+ * `A`) put them in, and the two entries below are what was underneath.
+ *
+ * Emptiness was never evidence. A measure cannot fail a patient it cannot see.
  */
-const EXPLAINED_MISSES: Array<{ patientId: string; group: string; because: string }> = []
+const EXPLAINED_MISSES: Array<{ patientId: string; group: string; because: string }> = [
+  {
+    patientId: 'patient-014',
+    group: 'screen-to-assessment',
+    // The care did not happen, and the record says why: an active Flag reading
+    // "Left the department while on suicide precautions — 2026-08-10 02:35".
+    // The walkthrough's fourth step is the patient leaving. This is the
+    // elopement case, and it is a true miss rather than a data gap.
+    because: 'the patient left the department while on precautions, before any assessment could be done',
+  },
+  {
+    patientId: 'patient-013',
+    group: 'screen-to-assessment',
+    // ⚠️ **A DATA gap wearing a clinical answer's clothes, and it is written
+    // down rather than fixed for a reason.** The walkthrough narrates "Derived
+    // risk tier — acute positive" as completed, but the scenario carries no
+    // `clarify-risk` artifact for it — so the numerator, which counts a
+    // risk-concept Observation at that stage, finds nothing. Materialising one
+    // means choosing the tier an acute positive ASQ maps to, and the only
+    // published answer is `crosswalk-asq.fsh` → `imminent`, which the IG itself
+    // marks "PENDING SME sign-off" (epic #77). Authoring clinical content for a
+    // demo shown to a working group on an unratified crosswalk is not a
+    // refactor, so the miss is recorded as it stands and the decision is left
+    // where it belongs.
+    because: 'no assessment is recorded before placement — the narrated risk tier has no artifact, pending the ASQ crosswalk sign-off (#77)',
+  },
+]
 
 describe('walkthrough narration agrees with the measure layer', () => {
   it('narrates at least the four ED patients', () => {

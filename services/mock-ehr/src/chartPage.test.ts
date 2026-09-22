@@ -447,6 +447,32 @@ describe('the chart shows what this server holds about the patient', () => {
     expect(body).not.toContain('Environmental safety re-sweep')
   })
 
+  it('gives every scored result a tone, because every one of them is interpreted', () => {
+    // ⚠️ **The gap this closes.** 11 of the 24 scored Observations carried no
+    // `interpretation` — every ASQ result and every risk-tier status — so an
+    // "Acute Positive Screen" rendered in the same neutral blue as a routine
+    // note while a PHQ-9 of 18 rendered critical. The tone is read from the
+    // Observation's own `interpretation` code and NEVER inferred from the
+    // value's wording (see TONE_FOR_INTERPRETATION), so a missing code could
+    // only ever show up as missing colour — which is the honest failure and
+    // also the invisible one.
+    //
+    // The fixtures now carry what their own mapper writes: `asq.ts` gives any
+    // positive screen `A` and a negative `N`; `safet.ts` gives any tier above
+    // no-risk `A`. A toneless scored result means a fixture has drifted from
+    // the mapper that would have produced it.
+    let scored = 0
+    for (const patient of DEMO_PATIENTS) {
+      for (const tile of chartRecordFor(patient.id).results) {
+        expect(tile.tone, `${patient.id}: ${tile.label} = ${tile.value}`).not.toBe('info')
+        scored += 1
+      }
+    }
+    // A floor: every assertion above is inside a loop, and a derivation that
+    // returned nothing would satisfy all of them by never running.
+    expect(scored).toBeGreaterThan(18)
+  })
+
   it('says so plainly when a chart has no results, rather than drawing an empty grid', async () => {
     // patient-002's one Observation carries no value and no dataAbsentReason —
     // it is an encounter marker, not a result. "Nothing has been recorded" is

@@ -70,6 +70,18 @@
           }
         ]
       },
+      "interpretation": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+              "code": "A",
+              "display": "Abnormal"
+            }
+          ],
+          "text": "High risk"
+        }
+      ],
       "note": [
         {
           "text": "Re-presented in July; SSF vitals re-rated and overall risk documented as high."

@@ -155,7 +155,19 @@
             "display": "Acute Positive Screen"
           }
         ]
-      }
+      },
+      "interpretation": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+              "code": "A",
+              "display": "Abnormal"
+            }
+          ],
+          "text": "Acute Positive Screen"
+        }
+      ]
     },
     {
       "resourceType": "Observation",

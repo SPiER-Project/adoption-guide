@@ -267,14 +267,19 @@ const CAPS: Record<string, { cap: number; why: string }> = {
       'cap is the chrome plus today’s worst day with room above it.',
   },
   '/population/summary': {
-    cap: 260,
+    cap: 310,
     why:
       'The framed half of the caseload — tiles, census, alerts — with no table and no page header, ' +
       'embedded by the demo EHR at the top of its front door in a 503px box on a phone (§8.8). ' +
-      '233 words, most of it the alert groups’ own summaries: eight patients, each with the ' +
+      '279 words, most of it the alert groups’ own summaries: ten patients, each with the ' +
       'labels of what they are owed. It is not smaller because this is the ONE place the inline ' +
       'alert list is still right — a host framing an activity has nowhere to send a reader — and ' +
-      'the audit did not ask for the host’s layout to change.',
+      'the audit did not ask for the host’s layout to change. ' +
+      '⚠️ Raised from 260/233 when patients 013 and 014 gained the `interpretation` their own ' +
+      'ASQ mapper writes: both acute positive screens had been invisible to `isPositive`, so ' +
+      'neither could miss `screen-to-assessment`, so neither raised an alert. This is the ' +
+      'caseload’s rule — raise for more CASELOAD, never for a sentence — and two patients newly ' +
+      'visible to a measure is more caseload.',
   },
   '/population/measures': {
     cap: 560,
