@@ -156,7 +156,19 @@
             "display": "Negative Screen"
           }
         ]
-      }
+      },
+      "interpretation": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+              "code": "N",
+              "display": "Normal"
+            }
+          ],
+          "text": "Negative screen"
+        }
+      ]
     }
   ],
   "carePlans": [],

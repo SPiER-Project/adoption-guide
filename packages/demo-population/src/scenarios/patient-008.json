@@ -51,6 +51,18 @@
           }
         ]
       },
+      "interpretation": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+              "code": "A",
+              "display": "Abnormal"
+            }
+          ],
+          "text": "Low risk"
+        }
+      ],
       "note": [
         {
           "text": "Risk status documented at episode entry; low risk with a safety plan in place."
