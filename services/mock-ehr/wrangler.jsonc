@@ -36,6 +36,39 @@
       { "name": "FHIRCAST_HUB", "class_name": "FhircastHub" }
     ]
   },
+  // ── The CDS Hooks service, as a binding ─────────────────────────────────
+  //
+  // ⚠️ **A plain `fetch()` to that Worker's URL does not work, and the failure
+  // is invisible to every gate.** Both Workers live on `*.bbthorson.workers.dev`,
+  // which is ONE zone, and Cloudflare refuses a Worker subrequest to another
+  // Worker on the same zone: the response is HTTP 404 with the body
+  // `error code: 1042`. `routes/cds.ts` passed that through faithfully and the
+  // chart printed "The CDS service ... could not be reached (HTTP 404)" — naming
+  // a service that never saw the request. It shipped with the server-to-server
+  // invoke (2026-09-20) and ran dark on the deployed demo until 2026-09-22;
+  // nothing local reproduces it, because the restriction is the edge's.
+  //
+  // A service binding dispatches to the Worker directly, so the zone is never
+  // consulted. The request is a real `Request` with the real invoke URL, so the
+  // signed `aud` still matches `CDS_JWT_AUDIENCE` and the service's routing is
+  // unchanged — this is the transport under the call, not the call.
+  //
+  // ⚠️ `service` is the deployed Worker NAME (services/cds/wrangler.jsonc
+  // `name`), not an origin. Renaming that Worker breaks this deploy.
+  //
+  // ⚠️ **`wrangler dev` resolves this binding too**, through the local dev
+  // registry — so `services/cds` must be running (port 8790) or the invoke is a
+  // 503 saying `Worker "spier-cds" not found. Make sure it is running locally.`
+  // That makes the local run a real exercise of this path, which is the whole
+  // reason to prefer a binding over an origin.
+  //
+  // ⚠️ The binding is still OPTIONAL in code (`env.CDS`), because the unit tests
+  // pass no env at all; `routes/cds.ts` falls back to `fetch` for them. A deploy
+  // that loses this line falls back too — silently, to the refusal above.
+  "services": [
+    { "binding": "CDS", "service": "spier-cds" }
+  ],
+
   // SQLite-backed, which is the current default for new classes and works on
   // the free plan. The tag is a one-way ledger: never edit or remove `v1`, add
   // `v2` for the next change, or the deploy is rejected.

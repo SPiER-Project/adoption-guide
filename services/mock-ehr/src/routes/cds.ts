@@ -113,9 +113,23 @@ cdsRoutes.post('/_admin/cds', async (c) => {
     jku: `${selfOrigin}${JWKS_PATH}`,
   })
 
+  // ⚠️ **The binding, not `fetch`, and it is a correctness fix.** On the
+  // deployed origins both Workers sit on `*.bbthorson.workers.dev` — one zone —
+  // and Cloudflare refuses a Worker subrequest to another Worker on the same
+  // zone, answering HTTP 404 with the body `error code: 1042`. The passthrough
+  // below relayed that 404 and the chart blamed the CDS service for a request it
+  // never received. The binding dispatches straight to the Worker: same URL,
+  // same signed `aud`, same routing on the other side, no zone in the path.
+  //
+  // ⚠️ The `fetch` fallback is for the unit tests, which pass no env. `wrangler
+  // dev` binds through the local dev registry, so a local run takes the same
+  // path as the deploy (and 503s if `services/cds` is not running) — which is
+  // what makes it able to reproduce this at all. The old `fetch` line could not
+  // be reproduced anywhere but production.
+  const invoke = envOf(c).CDS?.fetch.bind(envOf(c).CDS) ?? fetch
   let upstream: Response
   try {
-    upstream = await fetch(endpoint, {
+    upstream = await invoke(endpoint, {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
       body: JSON.stringify(hookRequest),

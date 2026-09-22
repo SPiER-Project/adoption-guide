@@ -364,18 +364,78 @@ fetch('/_admin/cds', {
     fhirServer: window.location.origin + '/fhir',
     context: { patientId: PATIENT },
   }),
-}).then((res) => {
-  if (!res.ok) throw new Error('HTTP ' + res.status)
+}).then(async (res) => {
+  // ⚠️ **Read the body before deciding what failed.** This request is to THIS
+  // host, which either relays the service's status or reports its own — and for
+  // six weeks the deployed demo printed "The CDS service could not be reached
+  // (HTTP 404)" for a 404 the service never issued: Cloudflare refuses a
+  // same-zone Worker subrequest with exactly that status (`error code: 1042`).
+  // The status alone cannot tell those apart; the host's own JSON `error` can.
+  if (!res.ok) {
+    const reason = await res.text().then((text) => {
+      try {
+        const body = JSON.parse(text) as { error?: unknown }
+        return typeof body.error === 'string' ? body.error : ''
+      } catch { return text.trim().slice(0, 120) }
+    }).catch(() => '')
+    throw new Error(reason ? `HTTP ${res.status} — ${reason}` : `HTTP ${res.status}`)
+  }
   return res.json() as Promise<{ cards?: CdsCard[] }>
 }).then((body) => {
-  renderCards(body.cards ?? [])
+  const cards = body.cards ?? []
+  renderLaunchPitch(cards)
+  renderCards(cards)
 }).catch((err: unknown) => {
-  // Names the SERVICE, not this host: the reader wants to know which endpoint
-  // did not answer. A 401 here means this host's signed identity was refused,
-  // which the status code is what distinguishes.
+  // Names the SERVICE and says which hop this host was on, because the two
+  // failures a reader has to tell apart are "the service refused my identity"
+  // (401, from the service) and "this host never got there" (anything else).
   must('cds-status').textContent =
-    `The CDS service at ${CDS_ENDPOINT} could not be reached (${message(err)}).`
+    `This EHR could not get recommendations from the CDS service at ${CDS_ENDPOINT} (${message(err)}).`
 })
+
+/**
+ * State the patient's position and the suggested action beside the launch
+ * button, in the service's own words.
+ *
+ * ⚠️ **The FIRST card by indicator, not by SPiER's opinion of it.** The response
+ * carries a `spier-card-id` extension that marks which cards are pathway
+ * obligations, and reading it here would make this host's chart depend on a
+ * vendor extension to render its own page — the thing a mock EHR exists to
+ * avoid claiming. CDS Hooks ranks by `indicator`, so this does too, stably, and
+ * a service that returns one card gets that card.
+ *
+ * ⚠️ **It hides the fixture sentence.** `storyOf(patient.id).story` is static
+ * prose about the scenario ("No suicide-risk screening on file") and this is the
+ * live record; both would be one claim stated twice, in two tenses, with nothing
+ * saying which is current.
+ */
+const INDICATOR_RANK: Record<string, number> = { critical: 0, warning: 1, info: 2 }
+
+function renderLaunchPitch(cards: CdsCard[]): void {
+  const out = must('launch-state')
+  const top = [...cards].sort(
+    (a, b) => (INDICATOR_RANK[a.indicator ?? 'info'] ?? 2) - (INDICATOR_RANK[b.indicator ?? 'info'] ?? 2),
+  )[0]
+  if (!top?.summary) return
+
+  const action = document.createElement('strong')
+  action.textContent = top.summary
+  out.replaceChildren(action)
+
+  // One sentence of the detail. The problem-list card's is ~200 words of codes
+  // and a ValueSet URL — complete, and not what a first line beside a button is
+  // for. The whole thing is on the card below, unabridged.
+  const detail = (top.detail ?? '').trim()
+  if (detail) {
+    const stop = detail.indexOf('. ')
+    out.appendChild(document.createTextNode(stop > 0 ? detail.slice(0, stop + 1) : detail))
+  }
+  out.hidden = false
+
+  // The fixture sentence is now the stale half of the same claim.
+  const story = document.getElementById('launch-story')
+  if (story) story.hidden = true
+}
 
 function renderCards(cards: CdsCard[]): void {
   const status = must('cds-status')
