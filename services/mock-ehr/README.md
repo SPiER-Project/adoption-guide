@@ -302,7 +302,15 @@ config deliberately does not:
 # services/cds/.dev.vars
 CDS_JWT_TRUSTED_ISSUERS=http://localhost:8787
 CDS_JWT_JKU_ALLOWED_HOSTS=localhost:8787
+CDS_JWT_BOUND_JWKS_HOST=localhost:8787
 ```
+
+The third line is optional locally and is what makes the local run take the
+deployed path in *both* directions: the service fetches this host's key set
+through its own `CLIENT` binding rather than over the network. Omit it and the
+key fetch is a plain `fetch` to localhost, which works locally and is exactly
+the thing that cannot work on the deployed zone — see
+`services/cds/README.md` § "The demo client's key set arrives over a binding".
 
 Without those two the invoke is a 401 naming which half was refused
 (`jku host not allowlisted: localhost:8787`). `aud` needs nothing: this host

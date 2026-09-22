@@ -19,7 +19,7 @@
  *
  * Spec: https://cds-hooks.org/specification/current/#trusting-cds-clients
  */
-import { createRemoteJWKSet, decodeProtectedHeader, jwtVerify } from 'jose'
+import { createRemoteJWKSet, customFetch, decodeProtectedHeader, jwtVerify } from 'jose'
 import type { JWTPayload } from 'jose'
 import type { MiddlewareHandler } from 'hono'
 
@@ -52,6 +52,33 @@ export interface CdsJwtEnv {
    * guard). Leave unset to ignore `jku` entirely and use `CDS_JWT_JWKS_URL`.
    */
   CDS_JWT_JKU_ALLOWED_HOSTS?: string
+  /**
+   * The ONE host whose key set is fetched through the `CLIENT` service binding
+   * rather than over the network. See `CLIENT` below for why that is needed at
+   * all, and `boundFetchFor` for why it is a single host and not the allowlist.
+   */
+  CDS_JWT_BOUND_JWKS_HOST?: string
+  /**
+   * The demo host (`services/mock-ehr`), bound Worker-to-Worker.
+   *
+   * ⚠️ **Not a convenience — a plain `fetch()` to its JWKS CANNOT work from this
+   * Worker**, and this is the return leg of the bug #581 fixed outbound. Both
+   * Workers live on `*.bbthorson.workers.dev`, one zone, and Cloudflare refuses
+   * a same-zone Worker subrequest. #581 bound this service INTO the host so the
+   * invoke could arrive; the host's token carries `jku` pointing back at its own
+   * `/.well-known/jwks.json`, and verifying it is a subrequest in the other
+   * direction — refused identically. The invoke stopped failing with
+   * `error code: 1042` and started failing with jose's "Expected 200 OK from the
+   * JSON Web Key Set HTTP response", one hop later.
+   *
+   * ⚠️ **An adopter's EHR needs no binding.** A client on any other zone is an
+   * ordinary `fetch`, which is the path every line below still takes by default.
+   * This exists because the demo's client and service happen to be two Workers
+   * on one account.
+   *
+   * Optional: the unit tests pass no binding and take the `fetch` path.
+   */
+  CLIENT?: { fetch: typeof fetch }
 }
 
 /** Hono context variables set by this middleware. */
@@ -71,11 +98,44 @@ const CLOCK_TOLERANCE = '60s'
  */
 const jwksByUrl = new Map<string, ReturnType<typeof createRemoteJWKSet>>()
 
-function remoteJwks(url: string): ReturnType<typeof createRemoteJWKSet> {
-  let set = jwksByUrl.get(url)
+/**
+ * The fetch this key set is retrieved with: the service binding for the one
+ * bound host, a plain `fetch` for everyone else.
+ *
+ * ⚠️ **One host, named by its own var — deliberately NOT "any allowlisted
+ * host".** A service binding ignores the URL's host when it routes: whatever
+ * URL you hand it, the request arrives at the bound Worker. So sending every
+ * allowlisted `jku` through the binding would mean a token naming allowlisted
+ * host B silently got its keys from bound host A, and the signature would
+ * verify against the wrong client's key. The allowlist stays the security
+ * boundary; this only decides the transport, for exactly one host.
+ */
+function boundFetchFor(url: string, env: CdsJwtEnv): typeof fetch | null {
+  const bound = (env.CDS_JWT_BOUND_JWKS_HOST ?? '').trim()
+  if (!bound || !env.CLIENT) return null
+  try {
+    return new URL(url).host === bound ? env.CLIENT.fetch.bind(env.CLIENT) : null
+  } catch {
+    return null
+  }
+}
+
+function remoteJwks(url: string, env: CdsJwtEnv): ReturnType<typeof createRemoteJWKSet> {
+  const bound = boundFetchFor(url, env)
+  // ⚠️ The transport is part of the cache key. The map lives for the isolate's
+  // lifetime and the same URL can be resolved both ways — a unit test with no
+  // binding and a real request with one — so keying on the URL alone would hand
+  // the second caller a resolver wired to the first caller's fetch.
+  const key = `${bound ? 'bound' : 'net'} ${url}`
+  let set = jwksByUrl.get(key)
   if (!set) {
-    set = createRemoteJWKSet(new URL(url))
-    jwksByUrl.set(url, set)
+    // `customFetch` swaps the transport and nothing else: jose keeps its own key
+    // cache and its re-fetch on an unknown `kid`, which is the rotation handling
+    // a hand-rolled fetch + `createLocalJWKSet` would have had to reimplement.
+    set = bound
+      ? createRemoteJWKSet(new URL(url), { [customFetch]: bound })
+      : createRemoteJWKSet(new URL(url))
+    jwksByUrl.set(key, set)
   }
   return set
 }
@@ -134,10 +194,10 @@ function resolveKeySet(
       // SSRF guard: refuse the token instead of fetching an untrusted URL.
       throw new Error(`jku host not allowlisted: ${host}`)
     }
-    return remoteJwks(jku)
+    return remoteJwks(jku, env)
   }
 
-  if (env.CDS_JWT_JWKS_URL) return remoteJwks(env.CDS_JWT_JWKS_URL)
+  if (env.CDS_JWT_JWKS_URL) return remoteJwks(env.CDS_JWT_JWKS_URL, env)
   return null
 }
 

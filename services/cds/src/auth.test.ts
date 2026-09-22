@@ -204,6 +204,116 @@ describe('jku SSRF guard', () => {
   })
 })
 
+describe('the CLIENT service binding — the same-zone return leg', () => {
+  // ⚠️ **The bug this is written against shipped twice.** Both demo Workers sit
+  // on one zone, where Cloudflare refuses a Worker-to-Worker subrequest. #581
+  // bound this service into the host so the invoke could arrive; verifying the
+  // token that invoke carries is a subrequest in the OTHER direction — the
+  // host's `jku` points at its own JWKS — and was refused identically. The
+  // deployed demo went from `error code: 1042` to jose's "Expected 200 OK from
+  // the JSON Web Key Set HTTP response": still dark, one hop further along.
+  //
+  // A fresh JWKS URL per test, because `auth.ts` caches resolvers for the
+  // isolate's lifetime and these tests are about which transport a resolver was
+  // built with.
+  const BOUND_URL = 'https://bound.test/.well-known/jwks.json'
+  const BOUND_HOST = 'bound.test'
+
+  /** A binding that answers the key set, and records that it was asked. */
+  function clientBinding() {
+    const calls: string[] = []
+    return {
+      calls,
+      binding: {
+        fetch: async (input: RequestInfo | URL) => {
+          calls.push(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url)
+          return new Response(JSON.stringify(jwks), { headers: { 'content-type': 'application/json' } })
+        },
+      },
+    }
+  }
+
+  it('fetches the bound host’s key set through the binding, not over the network', async () => {
+    const { calls, binding } = clientBinding()
+    const before = fetchMock.mock.calls.length
+    const token = await signToken({ jku: BOUND_URL, jti: 'bound-1' })
+    const res = await invoke({ Authorization: `Bearer ${token}` }, {
+      ...REQUIRE,
+      CDS_JWT_JKU_ALLOWED_HOSTS: BOUND_HOST,
+      CDS_JWT_BOUND_JWKS_HOST: BOUND_HOST,
+      CLIENT: binding,
+    })
+    expect(res.status).toBe(200)
+    expect(calls).toEqual([BOUND_URL])
+    // And NOT over the network — which is the whole point, because on the
+    // deployed zone that request is the one that cannot succeed.
+    const wentOut = fetchMock.mock.calls.slice(before).some((call) => String(call[0]).includes(BOUND_HOST))
+    expect(wentOut).toBe(false)
+  })
+
+  it('leaves every OTHER allowlisted host on a plain fetch', async () => {
+    // ⚠️ The security half, and the reason this is one named host rather than
+    // the allowlist. A service binding ignores the URL's host when it routes:
+    // send every allowlisted `jku` through it and a token naming host B gets
+    // its keys from bound host A, so the signature verifies against the wrong
+    // client's key. Here the token names the ordinary JWKS host while a binding
+    // for a different host is configured — it must not be consulted.
+    const { calls, binding } = clientBinding()
+    const token = await signToken({ jku: JWKS_URL, jti: 'bound-2' })
+    const res = await invoke({ Authorization: `Bearer ${token}` }, {
+      ...REQUIRE,
+      CDS_JWT_JKU_ALLOWED_HOSTS: `${JWKS_HOST},${BOUND_HOST}`,
+      CDS_JWT_BOUND_JWKS_HOST: BOUND_HOST,
+      CLIENT: binding,
+    })
+    expect(res.status).toBe(200)
+    expect(calls).toEqual([])
+  })
+
+  it('does not hand a bound request a resolver built for the network', async () => {
+    // ⚠️ **This rule had a comment and no test, and a planted defect proved it:
+    // dropping the transport from the cache key left all fifteen tests green.**
+    // `auth.ts` caches resolvers for the isolate's lifetime, and the same URL is
+    // genuinely resolved both ways — a request before the binding is configured,
+    // or any test that does not pass one — so a URL-only key hands the second
+    // caller the first caller's transport. On the deployed zone that is the
+    // whole bug back again, intermittently, depending on which request an
+    // isolate served first.
+    const { calls, binding } = clientBinding()
+    // First: no binding at all, so this resolver is built on plain fetch.
+    const plain = await signToken({ jku: JWKS_URL, jti: 'cache-1' })
+    expect((await invoke({ Authorization: `Bearer ${plain}` }, {
+      ...REQUIRE,
+      CDS_JWT_JKU_ALLOWED_HOSTS: JWKS_HOST,
+    })).status).toBe(200)
+
+    // Then the same URL WITH the binding. It must not reuse the one above.
+    const bound = await signToken({ jku: JWKS_URL, jti: 'cache-2' })
+    expect((await invoke({ Authorization: `Bearer ${bound}` }, {
+      ...REQUIRE,
+      CDS_JWT_JKU_ALLOWED_HOSTS: JWKS_HOST,
+      CDS_JWT_BOUND_JWKS_HOST: JWKS_HOST,
+      CLIENT: binding,
+    })).status).toBe(200)
+    expect(calls).toEqual([JWKS_URL])
+  })
+
+  it('does not make the binding a way around the SSRF allowlist', async () => {
+    // Naming a host as bound does NOT trust it. The allowlist is still the gate,
+    // and it is still checked before anything is fetched.
+    const { calls, binding } = clientBinding()
+    const token = await signToken({ jku: BOUND_URL, jti: 'bound-3' })
+    const res = await invoke({ Authorization: `Bearer ${token}` }, {
+      ...REQUIRE,
+      CDS_JWT_JKU_ALLOWED_HOSTS: JWKS_HOST,
+      CDS_JWT_BOUND_JWKS_HOST: BOUND_HOST,
+      CLIENT: binding,
+    })
+    expect(res.status).toBe(401)
+    expect(calls).toEqual([])
+  })
+})
+
 describe('enforce=warn', () => {
   it('lets a bad token through with 200 (logged, not blocked)', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})

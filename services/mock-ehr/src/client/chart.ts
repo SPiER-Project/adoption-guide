@@ -9,6 +9,7 @@
  * why that was the change that let this be a module.
  */
 import { must, readConfig, renderInline } from './config'
+import { rankCards } from './cdsRanking'
 import type { ChartClientConfig } from './types'
 
 const config = readConfig<ChartClientConfig>()
@@ -353,7 +354,13 @@ setInterval(() => { if (!dock.hidden) void refreshAllWrites() }, 4000)
 // the call can be signed at all — a browser that could sign would be a browser
 // holding the host's private key.
 interface CdsLink { type?: string; label: string; url?: string; appContext?: string }
-interface CdsCard { summary?: string; detail?: string; indicator?: string; source?: { label?: string }; links?: CdsLink[] }
+interface CdsCard {
+  summary?: string
+  detail?: string
+  indicator?: string
+  source?: { label?: string }
+  links?: CdsLink[]
+}
 
 fetch('/_admin/cds', {
   method: 'POST',
@@ -382,9 +389,13 @@ fetch('/_admin/cds', {
   }
   return res.json() as Promise<{ cards?: CdsCard[] }>
 }).then((body) => {
-  const cards = body.cards ?? []
-  renderLaunchPitch(cards)
-  renderCards(cards)
+  // ⚠️ One renderer, not two. #581 also drew the top card as a sentence beside
+  // the launch button (`renderLaunchPitch` / `.launch__state`); the module's
+  // first row is now that same card, with its summary, a line of its detail AND
+  // a button that opens the panel on it — so keeping both would state one
+  // recommendation twice, two elements apart. What that function got right is
+  // kept: the ranking rule (`rankCards`) and hiding the fixture sentence.
+  renderCards(body.cards ?? [])
 }).catch((err: unknown) => {
   // Names the SERVICE and says which hop this host was on, because the two
   // failures a reader has to tell apart are "the service refused my identity"
@@ -394,109 +405,114 @@ fetch('/_admin/cds', {
 })
 
 /**
- * State the patient's position and the suggested action beside the launch
- * button, in the service's own words.
+ * One recommendation, as a ROW inside the SPiER module.
  *
- * ⚠️ **The FIRST card by indicator, not by SPiER's opinion of it.** The response
- * carries a `spier-card-id` extension that marks which cards are pathway
- * obligations, and reading it here would make this host's chart depend on a
- * vendor extension to render its own page — the thing a mock EHR exists to
- * avoid claiming. CDS Hooks ranks by `indicator`, so this does too, stably, and
- * a service that returns one card gets that card.
- *
- * ⚠️ **It hides the fixture sentence.** `storyOf(patient.id).story` is static
- * prose about the scenario ("No suicide-risk screening on file") and this is the
- * live record; both would be one claim stated twice, in two tenses, with nothing
- * saying which is current.
+ * ⚠️ **It was a `.card` in a stack of cards, and that is the defect this
+ * replaces.** Each recommendation had the same border, background and weight as
+ * the launch card above it, so a chart with three of them offered a clinician
+ * four equally loud things to press. Here the act is the row's title, the
+ * trigger is the line under it, and the launch is one compact button at the end
+ * — and only the primary one is on the page's surface at all.
  */
-const INDICATOR_RANK: Record<string, number> = { critical: 0, warning: 1, info: 2 }
+function recRow(card: CdsCard): HTMLLIElement {
+  const li = document.createElement('li')
+  li.className = 'rec rec--' + (card.indicator || 'info')
 
-function renderLaunchPitch(cards: CdsCard[]): void {
-  const out = must('launch-state')
-  const top = [...cards].sort(
-    (a, b) => (INDICATOR_RANK[a.indicator ?? 'info'] ?? 2) - (INDICATOR_RANK[b.indicator ?? 'info'] ?? 2),
-  )[0]
-  if (!top?.summary) return
+  const text = document.createElement('div')
+  text.className = 'rec__text'
 
-  const action = document.createElement('strong')
-  action.textContent = top.summary
-  out.replaceChildren(action)
+  const summary = document.createElement('p')
+  summary.className = 'rec__title'
+  summary.textContent = card.summary || ''
+  text.appendChild(summary)
 
-  // One sentence of the detail. The problem-list card's is ~200 words of codes
-  // and a ValueSet URL — complete, and not what a first line beside a button is
-  // for. The whole thing is on the card below, unabridged.
-  const detail = (top.detail ?? '').trim()
-  if (detail) {
-    const stop = detail.indexOf('. ')
-    out.appendChild(document.createTextNode(stop > 0 ? detail.slice(0, stop + 1) : detail))
+  if (card.detail) {
+    const detail = document.createElement('p')
+    detail.className = 'rec__why'
+    // Rendered as text, not markdown: the spec allows GFM in the detail field
+    // and a markdown renderer is not worth shipping to prove a launch works.
+    detail.textContent = card.detail
+    text.appendChild(detail)
   }
-  out.hidden = false
+  li.appendChild(text)
 
-  // The fixture sentence is now the stale half of the same claim.
-  const story = document.getElementById('launch-story')
-  if (story) story.hidden = true
+  // ⚠️ The source label used to be a third line on every card — "Source: SPiER
+  // Suicide-Safer Pathway", repeated once per recommendation, under a module
+  // whose bar already says SPiER. It is the row's title attribute now: still
+  // reachable, no longer said three times.
+  li.title = 'Source: ' + (card.source?.label || 'unknown')
+
+  const links = card.links ?? []
+  if (links.length > 0) {
+    const row = document.createElement('div')
+    row.className = 'rec__actions'
+    for (const link of links) {
+      if (link.type === 'smart') {
+        // The host mints the launch — the card supplies the app's launch URL
+        // and its appContext, never OAuth parameters.
+        const btn = document.createElement('button')
+        btn.type = 'button'
+        btn.className = 'btn btn--smart'
+        btn.textContent = link.label
+        btn.addEventListener('click', () => { void launch(intentOf(link), link.label) })
+        row.appendChild(btn)
+      } else {
+        // type: "absolute" — a plain deep link. Opened in a new tab rather
+        // than the panel: it is not a SMART launch and carries no context.
+        const a = document.createElement('a')
+        a.href = link.url ?? '#'
+        a.target = '_blank'
+        a.rel = 'noopener'
+        a.textContent = link.label + ' ↗'
+        row.appendChild(a)
+      }
+    }
+    li.appendChild(row)
+  }
+  return li
 }
 
+/**
+ * The recommendations, ranked: the primary one on the surface, the rest nested.
+ * The ranking rule itself is `rankCards` (cdsRanking.ts), which is a module of
+ * its own so it can be tested without a DOM.
+ */
 function renderCards(cards: CdsCard[]): void {
   const status = must('cds-status')
-  const list = must('cds-cards')
+  const primaryList = must('cds-cards')
+  const moreList = must('cds-cards-more')
+  const more = must<HTMLDetailsElement>('cds-more')
+
   if (cards.length === 0) {
-    status.textContent = 'The CDS service returned no cards for this patient.'
+    // The evaluator's own answer, not an error: a patient with nothing
+    // outstanding gets no action card at all.
+    status.textContent = 'SPiER has nothing outstanding for this patient.'
     return
   }
-  status.textContent = cards.length + (cards.length === 1 ? ' card' : ' cards') + ' returned.'
-  for (const card of cards) {
-    const li = document.createElement('li')
-    li.className = 'card card--' + (card.indicator || 'info')
 
-    const summary = document.createElement('p')
-    summary.className = 'card__title'
-    summary.textContent = card.summary || ''
-    li.appendChild(summary)
+  const { primary, rest } = rankCards(cards)
 
-    if (card.detail) {
-      const detail = document.createElement('p')
-      detail.className = 'card__body'
-      // Rendered as text, not markdown: the spec allows GFM in the detail field
-      // and a markdown renderer is not worth shipping to prove a launch works.
-      detail.textContent = card.detail
-      li.appendChild(detail)
-    }
+  for (const card of primary) primaryList.appendChild(recRow(card))
+  for (const card of rest) moreList.appendChild(recRow(card))
 
-    const source = document.createElement('p')
-    source.className = 'card__meta'
-    source.textContent = 'Source: ' + (card.source?.label || 'unknown')
-    li.appendChild(source)
+  // ⚠️ The fixture sentence in the lede is now the stale half of one claim.
+  // `storyOf(patient.id).story` is static prose about the scenario ("No
+  // suicide-risk screening on file") and the row above is the live record;
+  // both would say one thing twice, in two tenses, with nothing saying which is
+  // current. Hidden rather than removed: when the service cannot be reached the
+  // fixture sentence is all there is, and that is the right fallback.
+  const story = document.getElementById('launch-story')
+  if (story) story.hidden = true
 
-    const links = card.links ?? []
-    if (links.length > 0) {
-      const row = document.createElement('div')
-      row.className = 'card__actions'
-      for (const link of links) {
-        if (link.type === 'smart') {
-          // The host mints the launch — the card supplies the app's launch URL
-          // and its appContext, never OAuth parameters.
-          const btn = document.createElement('button')
-          btn.type = 'button'
-          btn.className = 'btn btn--smart'
-          btn.textContent = link.label
-          btn.addEventListener('click', () => { void launch(intentOf(link), link.label) })
-          row.appendChild(btn)
-        } else {
-          // type: "absolute" — a plain deep link. Opened in a new tab rather
-          // than the panel: it is not a SMART launch and carries no context.
-          const a = document.createElement('a')
-          a.href = link.url ?? '#'
-          a.target = '_blank'
-          a.rel = 'noopener'
-          a.textContent = link.label + ' ↗'
-          row.appendChild(a)
-        }
-      }
-      li.appendChild(row)
-    }
-    list.appendChild(li)
+  if (rest.length > 0) {
+    must('cds-more-summary').textContent = `Also due (${rest.length})`
+    more.hidden = false
   }
+  // ⚠️ The status line is EVIDENCE once there is something on screen — "3 cards
+  // returned" is a fact about a protocol, not about this patient — so it goes
+  // quiet rather than counting. It speaks only when there is nothing to show or
+  // the call failed, which are the two cases a blank area cannot explain.
+  status.hidden = true
 }
 
 /** appContext is a JSON string per the CDS Hooks spec; tolerate anything else. */

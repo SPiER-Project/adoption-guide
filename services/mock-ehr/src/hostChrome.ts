@@ -307,6 +307,46 @@ export const COMPONENTS = `
     color: var(--ink-faint);
   }
 
+  /* ── Status chip ──────────────────────────────────────────────────────────
+     The pills along a patient header: the active safety flag, the open episode,
+     the tasks still owed. Host identity rather than one page's arrangement —
+     that row is the first thing a clinician reads on any chart in any product,
+     which is why it lives here with the app bar and the tables.
+
+     ⚠️ The DOT carries the colour, not the background. The first version tinted
+     the whole pill at full strength and the label stopped being readable at
+     --text-xs, which is the size a header row of four of these has to be.
+
+     ⚠️ Never --guest-brand. A chip is the host stating a fact about its own
+     record; tinting one in SPiER's colour is the defect at the top of this file
+     arriving somewhere new. */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s1);
+    padding: .1rem var(--s2);
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--line);
+    background: var(--surface-sunken);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+
+  .chip::before {
+    content: "";
+    flex: 0 0 auto;
+    width: .45em;
+    height: .45em;
+    border-radius: var(--radius-pill);
+    background: currentcolor;
+  }
+
+  .chip--critical { border-color: var(--critical); background: var(--critical-soft); color: var(--critical); }
+  .chip--warning { border-color: var(--warning); background: var(--warning-soft); color: var(--warning); }
+  .chip--notice { border-color: var(--notice); background: var(--notice-soft); color: var(--notice); }
+  .chip--info { border-color: var(--line-strong); }
+
   /* ── Breadcrumbs ──────────────────────────────────────────────────────── */
   .crumbs {
     display: flex;
