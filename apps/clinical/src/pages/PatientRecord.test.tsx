@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  *
- * One record, opened — the four properties that make this page worth having.
+ * One record, opened — the five properties that make this page worth having.
  *
  *  1. **The answers are there, and they are QUESTIONS and answers.** The gap
  *     this page closes is that a clinician could read "PHQ-9 · Jul 31" and not
@@ -21,6 +21,12 @@
  *  4. **No resource type anywhere on it.** The clinical surface names no wire
  *     format (clinical-app audit §1.9), and this page renders more of a
  *     resource than anything else on that surface does.
+ *  5. **Its trail names both ancestors, as links.** Not decoration: in panel
+ *     chrome `.panel-shell .page-header__eyebrow:not(:has(a))` hides an eyebrow
+ *     that holds no link, so a trail of bare labels would delete the only way
+ *     out of the panel. The page shipped with a single `up` at *What's on file*
+ *     and sent everyone who arrived from a stage row back to a list they had
+ *     never opened.
  */
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { render, cleanup, renderHook } from '@testing-library/react'
@@ -137,6 +143,18 @@ describe('an opened record', () => {
     const { container } = open('result-not-a-record')
     expect(container.textContent).toContain('This is not on the open chart')
     expect(container.querySelector('.record-answers')).toBeNull()
+  })
+
+  it('names both ancestors in its trail, as links', () => {
+    const { container } = open('form-p001-phq9')
+    const crumbs = [...container.querySelectorAll('.page-header__eyebrow a')].map(a => [
+      a.textContent,
+      a.getAttribute('href'),
+    ])
+    expect(crumbs).toEqual([
+      ['Care pathway', '/patient/record'],
+      ['What\u2019s on file', '/patient/on-file'],
+    ])
   })
 
   it('names no resource type', () => {

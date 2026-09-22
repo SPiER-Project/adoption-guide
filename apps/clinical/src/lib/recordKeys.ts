@@ -4,8 +4,8 @@
  * ── Why a "kind" at all, when the resource type is right there ────────────
  *
  * Because the resource type is the one thing this surface may not say
- * (`check:jargon`'s clinical scan, clinical-app audit §1.9). Every row on
- * *Where this patient is* and *What's on file* already names what was recorded
+ * (`check:jargon`'s clinical scan, clinical-app audit §1.9). Every row on the
+ * care pathway's stages and on *What's on file* already names what was recorded
  * without it; opening one needs the same word in two more places — the address
  * a clinician can see in a launched tab, and the line under the record's title.
  * So the mapping is made once, here, and both of those read from it.

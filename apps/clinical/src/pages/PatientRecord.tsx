@@ -3,10 +3,10 @@
  *
  * ── Why a page, and why this one ──────────────────────────────────────────
  *
- * *Where this patient is* and *What's on file* both list what was recorded, how
- * it stands and when, and both stopped there: a clinician could see that a
- * PHQ-9 was completed on Jul 31 and could not see a single answer to it, the
- * score it came to, or what it left on the chart. Brad flagged that on
+ * The care pathway's stage rows and *What's on file* both list what was
+ * recorded, how it stands and when, and both stopped there: a clinician could
+ * see that a PHQ-9 was completed on Jul 31 and could not see a single answer to
+ * it, the score it came to, or what it left on the chart. Brad flagged that on
  * 2026-09-22 — *"not something we need to fix right now, but we should come
  * back to it"*. This is the coming back.
  *
@@ -21,9 +21,28 @@
  *    under it off the screen.
  *  - **A page** is one implementation, reached from both lists, and it is the
  *    shape the rest of this surface already uses for a drill-in (*Why this?*,
- *    *Where this patient is*, the stage pages). It is a CHILD of
- *    `/patient/on-file` rather than a peer, so its `up` is the list a reader
- *    came from and the two cannot become rival answers to "what is on file".
+ *    the stage pages).
+ *
+ * ── Its trail names BOTH ancestors, and that is the 2026-09-22 correction ──
+ *
+ * It shipped with `up="/patient/on-file"` and a pill — one back-arrow to the
+ * list it was written against. Two things were wrong with that by the time it
+ * landed. The header form is the one #581 retired hours earlier: a segment that
+ * is a link per ancestor, because `up` is *"a back button wearing a trail's
+ * clothes"* (Brad, 2026-09-22 — `PageHeader`'s own `Crumb` note). And the
+ * destination was wrong for most arrivals, because the stage rows moved onto
+ * the chart itself: a clinician who opened a record from a stage row was sent
+ * "back" to a list they had never visited.
+ *
+ * So the trail is **Care pathway / What's on file**, both links. It names where
+ * the record sits rather than guessing which door the reader came through —
+ * which is the whole argument for a trail over an arrow, and it means neither
+ * entry point is the one that gets the wrong answer.
+ *
+ * ⚠️ **Dropping `up` is safe in the panel and was checked**, not assumed:
+ * `.panel-shell .page-header__eyebrow:not(:has(a))` hides an eyebrow with no
+ * link in it, and #581 widened that selector from `:has(.page-header__up)` for
+ * exactly this reason. A trail of links survives; the pill form would not have.
  *
  * ⚠️ **The record is resolved against `useOnFileGroups`, not against the
  * buckets.** That hook is what "everything on file" means on this surface, and
@@ -32,8 +51,8 @@
  * the row's own name, instrument and date are the ones the list showed, rather
  * than a second derivation of them.
  *
- * ⚠️ **No patient in the path**, like `/patient/why`, `/patient/where` and
- * `/patient/on-file` above it: the active patient travels in context.
+ * ⚠️ **No patient in the path**, like `/patient/why` and `/patient/on-file`
+ * beside it: the active patient travels in context.
  *
  * ⚠️ **Nothing here is inspection-gated, because nothing here is the wire
  * format.** The page renders the instrument's questions, the patient's answers,
@@ -43,7 +62,7 @@
  */
 import { useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { PageHeader } from '@spier/ui/PageHeader'
+import { PageHeader, type Crumb } from '@spier/ui/PageHeader'
 import { Card } from '@spier/ui/Card'
 import { Notice } from '@spier/ui/Notice'
 import { SectionHeader } from '@spier/ui/SectionHeader'
@@ -57,6 +76,19 @@ import { artifactLabel, lifecycleWord } from '../lib/chartDisplay'
 import { KIND_WORD, recordKey, recordKind, recordPath } from '../lib/recordKeys'
 import { answerSections, planSteps, recordFacts, resultReading } from '../lib/recordDetail'
 import '../css/PatientRecord.css'
+
+/**
+ * Where a record sits: the chart, then the list of everything on it.
+ *
+ * Both segments are links, and both are literals `check:surface-links` reads.
+ * Written here rather than through `useTrail` because that hook is for the 29
+ * shared form views, which must not hold a route literal — this page is one
+ * app's, and its ancestors are the same whichever row opened it.
+ */
+const RECORD_TRAIL: Crumb[] = [
+  { label: 'Care pathway', to: '/patient/record' },
+  { label: 'What\u2019s on file', to: '/patient/on-file' },
+]
 
 /** The record's own line under the title: what it is, how it stands, when. */
 function subtitle(resource: FhirResourceLike, when: string | undefined): string {
@@ -152,12 +184,7 @@ export function PatientRecord() {
   if (!row) {
     return (
       <div className="patient-record">
-        <PageHeader
-          eyebrow={'What\u2019s on file'}
-          up="/patient/on-file"
-          eyebrowStyle="pill"
-          title="Record not found"
-        />
+        <PageHeader eyebrow={RECORD_TRAIL} title="Record not found" />
         <Notice title="This is not on the open chart.">
           <p>
             It may belong to another patient, or it may have been opened from an older link.{' '}
@@ -180,9 +207,7 @@ export function PatientRecord() {
   return (
     <div className="patient-record">
       <PageHeader
-        eyebrow={'What\u2019s on file'}
-        up="/patient/on-file"
-        eyebrowStyle="pill"
+        eyebrow={RECORD_TRAIL}
         title={row.name}
         lede={subtitle(resource, row.when)}
       />
