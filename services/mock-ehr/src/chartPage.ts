@@ -40,6 +40,7 @@
  *   fabricated practitioner would be theatre.
  */
 import { DISCLAIMER, crumbs, esc, page } from './hostChrome'
+import { ageOn, chartRecordFor, formatDate, type ChartSection } from './chartRecord'
 import type { DemoPatient } from './fixtures'
 import { TRY_IT_ORDER, storyOf } from './demoStories'
 import { MRN_SYSTEM } from '@spier/core/lib/fhircast'
@@ -392,16 +393,24 @@ const CHART_CSS = `
   .chart-layout { display: flex; align-items: flex-start; min-height: calc(100vh - var(--bar-h)); }
   .chart-main { flex: 1 1 auto; min-width: 0; padding: var(--s5); }
 
-  /* ── Patient banner ───────────────────────────────────────────────────────
+  /* ── Patient header ───────────────────────────────────────────────────────
      The host identifying its own patient, and the thing that licenses the launch
      to send \`need_patient_banner:false\`. A left rule in the host's action colour,
-     not the guest's: this row is drawn by the EHR and has to look it. */
-  .banner {
+     not the guest's: this row is drawn by the EHR and has to look it.
+
+     ⚠️ **It was four fields on one line, and that was the chart's whole clinical
+     content.** Reviewed as a chart rather than as a demo (2026-09-22): a name, an
+     MRN, a birth date and a sex, then a launch button — no EHR serves that page,
+     and a viewer asked to believe the panel beside it is running inside one is
+     looking at the evidence against. The chips are the fix, and they are drawn
+     from this patient's own Flags, EpisodeOfCare and Tasks (chartRecord.ts);
+     nothing here is decorative and nothing is invented. */
+  .chart-header {
     display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
-    gap: var(--s1) var(--s4);
-    padding: var(--s3) var(--s4);
+    align-items: flex-start;
+    gap: var(--s3) var(--s5);
+    padding: var(--s4);
     border: 1px solid var(--line);
     border-left: 3px solid var(--action);
     border-radius: var(--radius);
@@ -409,65 +418,329 @@ const CHART_CSS = `
     box-shadow: var(--shadow-card);
   }
 
-  .banner__name { font-size: var(--text-lg); font-weight: 700; }
-  .banner__meta { color: var(--ink-soft); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
-  .banner__note { flex-basis: 100%; color: var(--ink-faint); font-size: var(--text-xs); }
+  .chart-header__id { display: flex; align-items: center; gap: var(--s3); min-width: 0; }
 
-  /* ── The launch card ──────────────────────────────────────────────────────
-     This is the ONE thing a reader is meant to do on this page, and it used to
-     be the last element on it — below the CDS cards, the capability switch and
-     the FHIRcast log, under an <h2>Activity</h2> nobody scrolled to. Same defect
-     as the old front door (§6.3): the demo's entry point was undiscoverable from
-     the page it was on. It sits directly under the banner, which is also where a
-     vendor hangs an activity button.
+  /* ⚠️ Initials, never a photograph. A synthetic patient with a stock face is
+     the one thing on this page that would be pretending, on a page whose entire
+     subject is which pixels are telling the truth about what. */
+  .chart-header__avatar {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--radius-pill);
+    background: var(--action-soft);
+    color: var(--action);
+    font-weight: 700;
+  }
 
-     ⚠️ It is a HOST control that happens to launch SPiER, so it is steel like
-     every other host control. Tinting it raspberry — which it was — put the
-     guest's colour on the host's button, on the page whose whole subject is
-     which pixels belong to whom. */
-  .launch {
+  .chart-header__name { margin: 0; font-size: var(--text-lg); font-weight: 700; }
+  .chart-header__age { margin-left: var(--s2); font-size: var(--text-sm); font-weight: 600; color: var(--ink-soft); }
+
+  .chart-header__meta {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: var(--text-sm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* At the far end of the row, which is where a vendor header hangs its alerts —
+     and, once the row wraps, on their own line rather than crushed beside the
+     name. */
+  .chart-header__chips { display: flex; flex-wrap: wrap; gap: var(--s2); margin-left: auto; }
+
+  /* ── Result tiles ─────────────────────────────────────────────────────────
+     Where a general chart puts vital signs, this one puts the assessment
+     results — chartRecord.ts has the reasoning, and it is not a substitute for a
+     row we could not fill: these are the Observations SPiER writes back, so the
+     EHR showing them as its own chart data is the write-back claim standing
+     where a clinician's eye already goes.
+
+     ⚠️ **auto-FILL, not auto-fit**, and the difference is the whole rule. A
+     patient may have one result or six; auto-fit collapses the empty tracks and
+     stretches the lone tile across the chart, which is how patient-014's single
+     result rendered as a banner. auto-fill keeps the tracks, so one tile is the
+     width of one tile. */
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+    gap: var(--s3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* ⚠️ **Subgrid, because the four rows have to line up ACROSS the tiles.** A
+     label is one line on most results and two on "Brief suicide safety
+     assessment — determination", and with each tile laying itself out the values
+     beside it sat at three different heights — a row of tiles that reads as
+     three unrelated boxes rather than one row. Subgrid puts every tile's label,
+     value, date and note on the same four tracks.
+
+     Four rows and not three: the note is optional, and a tile without one has to
+     leave the track empty rather than pull its neighbours' notes up. Where
+     subgrid is unsupported the tiles simply lay out independently, which is the
+     arrangement this replaced — a degradation, not a break. */
+  .tile {
+    display: grid;
+    grid-row: span 4;
+    grid-template-rows: subgrid;
+    align-content: start;
+    padding: var(--s3);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--line-strong);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* The accent is the Observation's own \`interpretation\` code and nothing else —
+     never the value's wording. See TONE_FOR_INTERPRETATION. */
+  .tile--critical { border-top-color: var(--critical); }
+  .tile--warning { border-top-color: var(--warning); }
+  .tile--notice { border-top-color: var(--notice); }
+  .tile--info { border-top-color: var(--action); }
+
+  .tile__value { margin: var(--s1) 0 0; font-size: var(--text-lg); font-weight: 700; line-height: 1.25; }
+  .tile__meta { margin: var(--s1) 0 0; font-size: var(--text-xs); color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+
+  /* Clamped rather than dropped or truncated with an ellipsis in the string: one
+     fixture's note is a paragraph and another's is the entire reason the result
+     is absent, so neither "omit it" nor "cut it at N characters" is right. Three
+     lines on screen, the whole sentence in the title attribute. */
+  .tile__note {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    margin: var(--s2) 0 0;
+    font-size: var(--text-xs);
+    color: var(--ink-soft);
+  }
+
+  /* ── The SPiER module ─────────────────────────────────────────────────────
+     ONE area for everything SPiER, and the shape of what it replaced is the
+     argument for it. The chart used to carry a launch card, then
+     a "Recommendations from SPiER" heading with a lede and a status line, then one
+     bordered card per recommendation with a button of its own — three kinds of
+     container and up to five buttons, all of them saying "open SPiER", spread
+     down the page. Reported directly (2026-09-22): the callouts should be
+     "contained to a single area, and the specific recommendations … appear as
+     nested launch options".
+
+     So the bar owns the generic launch — the vendor-configured activity button,
+     which knows the patient and nothing else — and the rows inside are the
+     specific ones, each opening the panel already scoped to the tool the card
+     names. Two entry points (the plan's §2), one area.
+
+     ⚠️ **Still directly under the patient header, and still the first thing to
+     do.** The launch button was the LAST element on this page once, under an
+     <h2>Activity</h2> nobody scrolled to — the old front door's undiscoverable
+     entry point, one page along. Consolidating must not put it back below
+     anything.
+
+     ⚠️ **Steel, not raspberry, even though its contents come from SPiER.** This
+     is the EHR reporting what a decision-support service told it — the host's own
+     rendering of a CDS Hooks response, not pixels SPiER drew. \`--guest-brand\` is
+     for the bar above the panel's iframe and nowhere else; see the note at the
+     top of hostChrome.ts for what happened the last time the guest's colour
+     appeared on a host control. */
+  .spier {
+    margin-top: var(--s4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+
+  .spier__bar {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: var(--s3) var(--s5);
-    margin-top: var(--s4);
-    padding: var(--s4);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
+    gap: var(--s2) var(--s4);
+    padding: var(--s3) var(--s4);
+    border-bottom: 1px solid var(--line);
     background: var(--action-soft);
   }
 
-  .launch__text { flex: 1 1 22rem; min-width: 0; }
-  .launch__title { margin: 0; font-size: var(--text-base); font-weight: 700; }
-  .launch__lede { margin: var(--s1) 0 0; font-size: var(--text-sm); }
+  /* ⚠️ The border is reset, not inherited. \`h2\` carries a rule underneath it in
+     COMPONENTS — the host's section divider — and inside this flex bar it drew a
+     short underline the width of the words, which reads as a rendering fault
+     rather than as a divider. The module's own bottom border is the divider here. */
+  .spier__title { margin: 0; padding: 0; border: 0; font-size: var(--text-base); font-weight: 700; }
+  /* Pushed to the end of the bar so the button's position is the same whatever
+     the status line says — including when it says nothing yet. */
+  .spier__bar .btn { margin-left: auto; }
+  .spier__body { padding: var(--s3) var(--s4) var(--s4); }
+  .spier__lede { margin: 0; font-size: var(--text-sm); }
+  /* The protocol note, one size down: true, and not the reason to press the button. */
+  .spier__meta { margin: var(--s3) 0 0; font-size: var(--text-xs); color: var(--ink-faint); }
+
   /* ⚠️ Under the lede and NOT in the drawer, because it contradicts the lede.
      The story beside the button is static prose about the fixture ("no
      screening on file"); writes from an earlier visitor live in this server and
      are shown to the next one. A presenter who meets Marcus Chen three steps
      further along than the script says has to be able to see why without
      opening anything. Warning-toned rather than faint: it is a correction. */
-  .launch__written {
+  .spier__written {
     margin: var(--s2) 0 0;
     font-size: var(--text-sm);
     padding-left: var(--s2);
     border-left: 3px solid var(--warning);
     color: var(--ink-soft);
   }
-  /* ⚠️ The live statement of what this patient needs, which IS the reason to
-     press the button — so it is the one thing in this block that is not the
-     body size. Accent-ruled rather than boxed: a second card beside the CDS
-     cards below would read as a second recommendation rather than as the same
-     one, said where the button is. */
-  .launch__state {
-    margin: var(--s2) 0 0;
-    padding-left: var(--s2);
-    border-left: 3px solid var(--action);
-    font-size: var(--text-sm);
-  }
-  .launch__state strong { display: block; }
 
-  /* The protocol note, one size down: true, and not the reason to press the button. */
-  .launch__meta { margin: var(--s2) 0 0; font-size: var(--text-xs); color: var(--ink-faint); }
+  /* ── One recommendation ───────────────────────────────────────────────────
+     A ROW, not a card. The recommendations were bordered cards in a stack, which
+     gave each one the same visual weight as the module around it and made a
+     chart with three of them read as three competing offers. Inside one module
+     they are rows, the first is the one the service marked primary, and the rest
+     are behind a disclosure. */
+  .recs { display: grid; gap: var(--s2); margin: var(--s3) 0 0; padding: 0; list-style: none; }
+
+  .rec {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--s2) var(--s3);
+    padding: var(--s2) var(--s3);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--line-strong);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+
+  /* The card's own indicator, which is the service's statement of urgency. */
+  .rec--critical { border-left-color: var(--critical); background: var(--critical-soft); }
+  .rec--warning { border-left-color: var(--warning); background: var(--warning-soft); }
+  .rec--info { border-left-color: var(--action); }
+
+  .rec__text { flex: 1 1 18rem; min-width: 0; }
+  .rec__title { margin: 0; font-size: var(--text-sm); font-weight: 700; }
+  .rec__why { margin: var(--s1) 0 0; font-size: var(--text-xs); color: var(--ink-soft); }
+  .rec__actions { display: flex; flex-wrap: wrap; gap: var(--s2); margin-left: auto; }
+
+  /* ── What else is due ─────────────────────────────────────────────────────
+     ⚠️ Closed, and holding the NON-primary recommendations only. The service
+     marks exactly one card primary when anything is due; everything else is real
+     and is not the next thing. A chart that shouts five times has told a
+     clinician nothing about which to do first — and the drawer's summary carries
+     the count, so nothing is hidden, only ranked. */
+  .recs-more { margin: var(--s3) 0 0; font-size: var(--text-sm); }
+  /* ⚠️ \`list-style: none\` AND the -webkit pseudo-element. The webkit rule alone
+     leaves the modern \`::marker\` in place, and the drawer rendered with TWO
+     arrows — the browser's and ours. \`.hood\` in hostChrome.ts carries both for
+     the same reason; this one was copied without the first line. */
+  .recs-more > summary { cursor: pointer; color: var(--action); font-weight: 600; list-style: none; }
+  .recs-more > summary::-webkit-details-marker { display: none; }
+  .recs-more > summary::before { content: "\\25B8"; display: inline-block; width: 1.1em; color: var(--ink-faint); }
+  .recs-more[open] > summary::before { content: "\\25BE"; }
+  .recs-more[hidden] { display: none; }
+
+  /* The service's own answer when nothing is outstanding, and the place a failed
+     call reports itself. Never silent: a chart that shows no recommendations and
+     no reason is indistinguishable from one whose service is down. */
+  .recs-status { margin: var(--s3) 0 0; font-size: var(--text-sm); color: var(--ink-soft); }
+
+  /* ── The chart body ───────────────────────────────────────────────────────
+     Two columns, wide then narrow: what happened and what was ordered on the
+     left, the plan and the handover on the right — the arrangement a chart has
+     had since before it was software.
+
+     ⚠️ **A CONTAINER query, not a media query, and this file has the scars to
+     explain why.** The dock is up to 700px of the window and appears when the
+     panel is launched, so the space this grid has is not a function of the
+     viewport at all: a media query at, say, 70rem would put two columns in a
+     620px column the moment the panel opened. Two earlier rules in this file
+     were hand-computed against the viewport and both went wrong — one silently,
+     for every viewer, for months. The measurement is about THIS element, so the
+     query asks this element.
+
+     60rem: two 28rem columns plus the gap. Below it the narrow column's sections
+     follow the wide one's, which is the same reading order a phone gets. */
+  .chart-body { container: chart-body / inline-size; margin-top: var(--s6); }
+
+  .chart-body__cols { display: grid; gap: var(--s5); }
+
+  @container chart-body (min-width: 60rem) {
+    .chart-body__cols { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); align-items: start; }
+
+    /* ⚠️ **One column when only one column has anything in it.** patient-014 has
+       encounters and tasks but no plan, no appointment and no document, and the
+       two-track grid left its whole right-hand side empty — 40% of a chart
+       reading as a column that failed to load rather than as a record that has
+       nothing there. The page renders no empty column element and says so here. */
+    .chart-body__cols--single { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  .chart-body__col { display: grid; gap: var(--s5); align-content: start; }
+
+  /* ── One section ──────────────────────────────────────────────────────────
+     A bordered panel with its heading in a tinted bar — the "Active Problems" /
+     "Recent Labs" furniture every chart has, and the thing that makes a page of
+     lists read as a record rather than as a report. */
+  .sect {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+
+  /* ⚠️ Resets the section rule \`h3\` does not have but \`h2\` does; these headings
+     are h3 because the page's one h1 is the patient's name and the module above
+     owns the h2. Keeping them h2 would have made the chart's structure claim
+     that a care plan is a peer of the patient. */
+  .sect__title {
+    margin: 0;
+    padding: var(--s2) var(--s3);
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-header);
+    font-size: var(--text-sm);
+    font-weight: 700;
+  }
+
+  .sect__list { margin: 0; padding: 0; list-style: none; }
+
+  .entry {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--s1) var(--s3);
+    padding: var(--s2) var(--s3);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .entry:last-child { border-bottom: 0; }
+
+  .entry__text { flex: 1 1 14rem; min-width: 0; }
+  .entry__title { margin: 0; font-size: var(--text-sm); font-weight: 600; }
+  .entry__detail { margin: var(--s1) 0 0; font-size: var(--text-xs); color: var(--ink-soft); }
+  .entry__when {
+    flex: 0 0 auto;
+    font-size: var(--text-xs);
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* The status pill. ⚠️ Only an OPEN state is coloured — see statusTone. A
+     timeline where every line is tinted carries the same information as one
+     where none is, and these records are mostly finished work. */
+  .entry__status {
+    flex: 0 0 auto;
+    padding: 0 var(--s2);
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--line);
+    background: var(--surface-sunken);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+
+  .entry__status--warning { border-color: var(--warning); background: var(--warning-soft); color: var(--warning); }
+  .entry__status--critical { border-color: var(--critical); background: var(--critical-soft); color: var(--critical); }
 
   /* ── The dock ─────────────────────────────────────────────────────────────
      ⚠️ **Sticky and exactly one viewport tall — not stretched to the column
@@ -580,6 +853,53 @@ const CHART_CSS = `
 `
 
 /**
+ * The avatar's two letters.
+ *
+ * ⚠️ First and LAST token, not the first two: "Maria Isabel Alvarez" is MA in
+ * every chart anyone has ever used, and the naive `split(' ').slice(0, 2)` makes
+ * it MI. A single-token name gets one letter rather than a padded one.
+ */
+function initialsOf(name: string): string {
+  const parts = name.split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '?'
+  const first = parts[0]![0]!
+  const last = parts.length > 1 ? parts[parts.length - 1]![0]! : ''
+  return (first + last).toUpperCase()
+}
+
+/** "34Y · female" — the pill beside the name. Age is derived; see `ageOn`. */
+function ageAndSex(patient: DemoPatient): string {
+  const age = ageOn(patient.birthDate)
+  return age === null ? patient.gender : `${age}Y · ${patient.gender}`
+}
+
+/**
+ * One chart section: a titled panel of lines.
+ *
+ * ⚠️ The status word is printed as the resource spells it — `in-progress`,
+ * `entered-in-error`. That is EHR vocabulary and it belongs on this surface:
+ * `check:jargon` covers the guide and the clinical app precisely because those
+ * are the surfaces where it does not. A host that translated FHIR statuses into
+ * friendlier words would be hiding the thing the demo is showing.
+ */
+function chartSection(section: ChartSection): string {
+  const entries = section.entries.map(entry => `
+            <li class="entry">
+              <div class="entry__text">
+                <p class="entry__title">${esc(entry.title)}</p>
+                ${entry.detail ? `<p class="entry__detail">${esc(entry.detail)}</p>` : ''}
+              </div>
+              <span class="entry__when">${esc(entry.when)}</span>
+              ${entry.status ? `<span class="entry__status entry__status--${esc(entry.tone)}">${esc(entry.status)}</span>` : ''}
+            </li>`).join('')
+  return `
+        <section class="sect" aria-labelledby="sect-${esc(section.id)}">
+          <h3 class="sect__title" id="sect-${esc(section.id)}">${esc(section.title)}</h3>
+          <ul class="sect__list">${entries}</ul>
+        </section>`
+}
+
+/**
  * One patient's chart, with the panel docked beside it.
  *
  * `cdsEndpoint` and `panelOrigin` are passed in rather than derived here so this
@@ -605,6 +925,23 @@ export function patientChartPage(
   // The host's one-line annotation of this chart (demoStories.ts), so the launch
   // card says what THIS chart is a story about rather than describing the protocol.
   const { story } = storyOf(patient.id)
+  // Everything clinical on this page, derived from the resources this server
+  // serves for this patient. See chartRecord.ts: nothing here may come from
+  // anywhere else.
+  const record = chartRecordFor(patient.id)
+  const chips = record.chips.map(chip => `
+          <span class="chip chip--${esc(chip.tone)}"${chip.detail ? ` title="${esc(chip.detail)}"` : ''}>${esc(chip.label)}</span>`).join('')
+  // ⚠️ The EMPTY columns are dropped here rather than rendered blank. See the
+  // note on `.chart-body__cols--single`: a two-track grid with nothing in its
+  // second track reads as a column that failed to load.
+  const columns = [record.main, record.side].filter(sections => sections.length > 0)
+  const tiles = record.results.map(result => `
+        <li class="tile tile--${esc(result.tone)}">
+          <p class="label">${esc(result.label)}</p>
+          <p class="tile__value">${esc(result.value)}</p>
+          <p class="tile__meta">${esc(result.when)}${result.trend ? ` &middot; ${esc(result.trend)}` : ''}</p>
+          ${result.note ? `<p class="tile__note" title="${esc(result.note)}">${esc(result.note)}</p>` : ''}
+        </li>`).join('')
   return page({
     title: `${patient.name} — SPiER mock EHR`,
     css: CHART_CSS,
@@ -619,15 +956,20 @@ export function patientChartPage(
     { label: patient.name },
   ])}
 
-      <!-- The host's own patient banner. This is what licenses the launch to
-           send need_patient_banner:false — see the note in the dock below. -->
-      <div class="banner">
-        <span class="banner__name">${esc(patient.name)}</span>
-        <span class="banner__meta">MRN ${esc(patient.mrn)}</span>
-        <span class="banner__meta">Born ${esc(patient.birthDate)}</span>
-        <span class="banner__meta">${esc(patient.gender)}</span>
-        <span class="banner__note">Host banner — drawn by the EHR, not by the panel.</span>
-      </div>
+      <!-- The host's own patient header. This is what licenses the launch to
+           send need_patient_banner:false — see the note in the dock below. The
+           chips come from this patient's own resources; chartRecord.ts says why
+           nothing on this page may come from anywhere else. -->
+      <header class="chart-header">
+        <div class="chart-header__id">
+          <span class="chart-header__avatar" aria-hidden="true">${esc(initialsOf(patient.name))}</span>
+          <div>
+            <h1 class="chart-header__name">${esc(patient.name)}<span class="chart-header__age">${esc(ageAndSex(patient))}</span></h1>
+            <p class="chart-header__meta">MRN ${esc(patient.mrn)} &middot; Born ${esc(formatDate(patient.birthDate))}</p>
+          </div>
+        </div>
+        ${chips.length > 0 ? `<div class="chart-header__chips">${chips}</div>` : ''}
+      </header>
 
       <!-- The vendor-configured activity, and the one thing to do on this page.
            It knows the patient and nothing else, so the panel opens on the
@@ -635,42 +977,66 @@ export function patientChartPage(
            point (§2), and they name an instrument — but this one has to be
            obvious without reading anything, which is why it is here and not
            under an <h2>Activity</h2> at the foot of the page. -->
-      <div class="launch">
-        <div class="launch__text">
-          <h2 class="launch__title">SPiER Suicide-Safer Pathway</h2>
-          <p class="launch__lede">
+      <section class="spier" aria-labelledby="spier-title">
+        <div class="spier__bar">
+          <h2 class="spier__title" id="spier-title">SPiER Suicide-Safer Pathway</h2>
+          <button type="button" id="open-panel" class="btn btn--primary btn--lg">Launch SPiER &rarr;</button>
+        </div>
+        <div class="spier__body">
+          <p class="spier__lede">
             Open SPiER for ${esc(patient.name)}. It shows where ${esc(patient.name)} is on the
             suicide-safer care pathway and what to do next, and anything you record in it is written
             back to this chart. <span id="launch-story">${esc(story)}</span>
           </p>
-          <!-- The reason to press the button, in the SERVICE's words. Filled by
-               the client module from the top CDS card and hidden until one
-               arrives; the fixture sentence in the lede above is hidden at the
-               same moment, because it is static prose about the scenario and
-               this is the live record. If the service cannot be reached the
-               fixture sentence is all there is, which is the right fallback and
-               the reason it is hidden rather than removed. -->
-          <p class="launch__state" id="launch-state" hidden></p>
           <!-- Filled by the client module from /_admin/writes?patient=, and
                hidden while the count is zero. Server-rendered empty rather than
                omitted: the page is one template for fourteen charts and the
                count is not known at render time. -->
-          <p class="launch__written" id="written-since" hidden></p>
-          <p class="launch__meta">
+          <p class="spier__written" id="written-since" hidden></p>
+
+          <!-- The specific recommendations, nested under the generic launch. The
+               primary one is a row here; everything else the tier owes is inside
+               the disclosure below, which the client module unhides and counts.
+               Both are filled from the CDS Hooks response — see src/client/chart.ts. -->
+          <ul id="cds-cards" class="recs"></ul>
+          <details class="recs-more" id="cds-more" hidden>
+            <summary id="cds-more-summary">Also due</summary>
+            <ul id="cds-cards-more" class="recs"></ul>
+          </details>
+          <p id="cds-status" class="recs-status">Asking SPiER for recommendations&hellip;</p>
+
+          <p class="spier__meta">
             Opens in a panel on this chart over a SMART on FHIR launch: SPiER authorizes against
-            this EHR, reads this chart, and writes to it.
+            this EHR, reads this chart, and writes to it. A recommendation's own button opens the
+            panel already on that tool.
           </p>
         </div>
-        <button type="button" id="open-panel" class="btn btn--primary btn--lg">Launch SPiER &rarr;</button>
-      </div>
+      </section>
 
-      <h2>Recommendations from SPiER</h2>
-      <p class="lede">
-        What SPiER's decision-support service recommends for this patient, as the EHR received it.
-        A card's button launches SPiER already opened on that tool.
-      </p>
-      <p id="cds-status" class="readout">Asking SPiER for recommendations…</p>
-      <ul id="cds-cards" class="stack"></ul>
+      <!-- What this server holds, in the place a chart holds it. Rendered only
+           when there is something to render: a patient with no results on file
+           gets the sentence rather than an empty grid, because "nothing has been
+           recorded" is this chart's actual finding for several of the fourteen
+           and is the reason their story is worth opening. -->
+      <h2>Recent results</h2>
+      ${record.results.length > 0
+    ? `<ul class="tiles">${tiles}</ul>`
+    : `<p class="lede">No assessment results are on file for ${esc(patient.name)}.</p>`}
+
+      <!-- The record itself, in the two columns a chart uses. Every section is
+           dropped when it is empty (chartRecord.ts) — nine of the fourteen have
+           no orders and eleven have no documents, and a page of headings over
+           empty states is a chart pretending the record is fuller than it is.
+           An empty COLUMN goes the same way, and so does the whole block: a
+           patient with nothing on file gets nothing here rather than a grid of
+           blank panels. -->
+      ${columns.length > 0
+    ? `<div class="chart-body">
+        <div class="chart-body__cols${columns.length === 1 ? ' chart-body__cols--single' : ''}">
+          ${columns.map(sections => `<div class="chart-body__col">${sections.map(chartSection).join('')}</div>`).join('')}
+        </div>
+      </div>`
+    : ''}
 
       <!-- ⚠️ Everything below is EVIDENCE, and it used to sit inline at the
            same weight as the launch button — the endpoint that was called, the

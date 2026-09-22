@@ -13,7 +13,10 @@
  */
 import { describe, expect, it } from 'vitest'
 import app from './app'
-import { DEMO_PATIENTS, DEMO_PATIENTS_BY_ID } from './fixtures'
+import { DEMO_PATIENTS, DEMO_PATIENTS_BY_ID, HELD_RESOURCES, RESOURCES_BY_KEY } from './fixtures'
+import { chartRecordFor } from './chartRecord'
+import { esc } from './hostChrome'
+import { rankCards } from './client/cdsRanking'
 import { TRY_IT_ORDER, storyOf } from './demoStories'
 import { SERVICE_ID } from '../../cds/src/service'
 
@@ -355,6 +358,357 @@ describe('demographics are derived, not restated', () => {
   })
 })
 
+describe('the chart shows what this server holds about the patient', () => {
+  it('draws the header chips from the patient’s OWN active resources', async () => {
+    // patient-011 has an active Flag and an open EpisodeOfCare, and both of its
+    // Tasks are completed. So: two chips, and no "tasks open" chip — a header
+    // that kept showing finished work is a header nobody reads twice.
+    const { body } = await html('/chart/patient-011')
+    expect(body).toContain('Active suicide-safer care episode')
+    expect(body).toContain('Episode open · since 2 Aug')
+    expect(body).not.toContain('task open')
+  })
+
+  it('does not say the same thing twice when a flag already named the episode', async () => {
+    // ⚠️ patient-011's flag reads "Active suicide-safer care episode" and its
+    // EpisodeOfCare is of type "Suicide-safer care episode". Rendered as written
+    // they are two pills saying one thing, which is how a header teaches people
+    // to stop reading it. patient-009 has the episode and no flag, so there the
+    // type IS the chip's information and stays.
+    //
+    // ⚠️ Matched case-INSENSITIVELY, which is the whole reason this is a test and
+    // not an eyeball: the flag spells it "Active suicide-safer care episode" and
+    // the episode type spells it "Suicide-safer care episode". A case-sensitive
+    // check finds no duplicate at all and passes a header that visibly stutters.
+    const { body: flagged } = await html('/chart/patient-011')
+    expect(flagged.match(/suicide-safer care episode/gi)).toHaveLength(1)
+    const { body: unflagged } = await html('/chart/patient-009')
+    expect(unflagged).toContain('Suicide-safer care episode · since 28 Jul')
+  })
+
+  it('counts outstanding tasks rather than listing one chip each', async () => {
+    // patient-012's single Task is `requested`. One chip, and the task's own
+    // words are the hover title — which tasks they are is the chart body's
+    // question, not the header's.
+    const { body } = await html('/chart/patient-012')
+    expect(body).toContain('>1 task open<')
+    expect(body).toContain('Re-screen for suicide risk')
+  })
+
+  it('puts the assessment results where a chart puts vitals, newest first', async () => {
+    // ⚠️ The ORDER is the assertion. The tile row answers "where is this patient
+    // now", so a row that led with the first screen of the admission would
+    // answer a question nobody asked.
+    const { body } = await html('/chart/patient-011')
+    const latest = body.indexOf('tile__value">High risk<')
+    const determination = body.indexOf('Further evaluation of risk is necessary')
+    const firstScreen = body.indexOf('tile__value">Non-Acute Positive Screen<')
+    for (const [name, at] of [['risk level', latest], ['determination', determination], ['screen', firstScreen]] as const) {
+      expect(at, name).toBeGreaterThan(-1)
+    }
+    expect(latest).toBeLessThan(determination)
+    expect(determination).toBeLessThan(firstScreen)
+  })
+
+  it('separates instruments that share a LOINC, and trends only a repeat of the SAME one', async () => {
+    // ⚠️ The defect this is written against: keyed on the LOINC alone, all four
+    // of patient-011's Observations are 93374-7, so the chart's richest record
+    // collapsed into ONE tile — the ASQ screen, the safety assessment's
+    // determination and the C-SSRS risk level counted as one measurement taken
+    // four times. `meta.profile` is the record's own statement that they are
+    // not, and it is what the key adds.
+    const results = chartRecordFor('patient-011').results
+    expect(results).toHaveLength(3)
+    // The two C-SSRS risk levels DO share a profile, so they are one tile — and
+    // carry no trend, because the level did not change between them.
+    const risk = results.find(r => r.value === 'High risk')!
+    expect(risk.trend).toBeUndefined()
+    // patient-013's deferred screen and its re-attempt are one measurement, so
+    // that one does trend.
+    expect(chartRecordFor('patient-013').results[0]!.trend).toContain('Temporarily Unknown')
+  })
+
+  it('renders an absent result as a result rather than as nothing', async () => {
+    // patient-013's first Observation has no value at all — it has a
+    // `dataAbsentReason`, and "the screen was deferred because the patient was
+    // not alert enough to answer reliably" is a clinical finding. A chart that
+    // dropped it would lose the fact that a screen was attempted and could not
+    // be completed. Here it is superseded by the re-attempt six hours later, so
+    // it reaches the page as that tile's trend — which is the same rule, seen
+    // from the other end.
+    const { body } = await html('/chart/patient-013')
+    expect(body).toContain('was Temporarily Unknown on 7 Aug')
+  })
+
+  it('keeps a free-text observation OUT of the tile row', async () => {
+    // patient-014's shift-change sweep is a 200-character valueString. A tile is
+    // a label and a short value; the rule is the value's KIND, not its length.
+    const { body } = await html('/chart/patient-014')
+    expect(body).not.toContain('Environmental safety re-sweep')
+  })
+
+  it('says so plainly when a chart has no results, rather than drawing an empty grid', async () => {
+    // patient-002's one Observation carries no value and no dataAbsentReason —
+    // it is an encounter marker, not a result. "Nothing has been recorded" is
+    // this chart's actual finding and the reason its story is worth opening.
+    const { body } = await html('/chart/patient-002')
+    expect(body).toContain('No assessment results are on file')
+    expect(body).not.toContain('<ul class="tiles">')
+  })
+
+  it('invents nothing: every chip and tile points at a resource this server serves', async () => {
+    // ⚠️ **The demo's central claim, as a test.** The panel beside this chart is
+    // supposed to be reading a real record, so a chart padded with plausible
+    // vitals nobody can fetch is the one thing that would make the rest of it
+    // unbelievable. Every chip and every tile therefore names the resource it
+    // states a fact about, and every one of those references has to resolve.
+    //
+    // ⚠️ This began as a comparison of the rendered LABEL against the scenario
+    // JSON, and it was the wrong property twice over: it went red for an honest
+    // chart the moment a label was composed from a date, and it needed a
+    // hand-written exemption for the task chip, which is a count. A count and a
+    // composed date are both fine; a resource that does not exist is not.
+    const held = new Set(
+      HELD_RESOURCES.map(h => `${h.resource.resourceType}/${String(h.resource.id)}`),
+    )
+    let checked = 0
+    for (const patient of DEMO_PATIENTS) {
+      const { body } = await html(`/chart/${patient.id}`)
+      const record = chartRecordFor(patient.id)
+      for (const tile of record.results) {
+        expect(held, `${patient.id}: ${tile.from}`).toContain(tile.from)
+        // The VALUE is quoted rather than composed, so it is checkable directly —
+        // and it is the one a fabricated number would appear in.
+        expect(JSON.stringify(RESOURCES_BY_KEY.get(tile.from)), tile.from).toContain(tile.value)
+        expect(body).toContain(tile.value)
+        checked += 1
+      }
+      for (const chip of record.chips) {
+        expect(chip.from.length, `${patient.id}: ${chip.label}`).toBeGreaterThan(0)
+        for (const ref of chip.from) expect(held, `${patient.id}: ${ref}`).toContain(ref)
+        checked += 1
+      }
+      for (const section of [...record.main, ...record.side]) {
+        for (const entry of section.entries) {
+          expect(held, `${patient.id}: ${entry.from}`).toContain(entry.from)
+          // ⚠️ Escaped before comparing. One referral is titled "Outpatient
+          // referral & receipt confirmed", which reaches the page as `&amp;` —
+          // so a raw comparison fails on a page that is correct, and would have
+          // been "fixed" by loosening the assertion rather than by escaping it.
+          expect(body).toContain(esc(entry.title))
+          checked += 1
+        }
+      }
+    }
+    // ⚠️ A floor, because every assertion above is inside a loop: a derivation
+    // that returned nothing at all would satisfy every one of them by never
+    // running. Well under the 31 the fourteen charts render today.
+    expect(checked).toBeGreaterThan(20)
+  })
+})
+
+describe('the chart body is the record, in two columns', () => {
+  it('builds five sections across two columns from six resource types', async () => {
+    const { body } = await html('/chart/patient-011')
+    const record = chartRecordFor('patient-011')
+    expect(record.main.map(s => s.id)).toEqual(['timeline', 'orders'])
+    expect(record.side.map(s => s.id)).toEqual(['plans', 'appointments', 'documents'])
+    for (const section of [...record.main, ...record.side]) {
+      expect(body, section.id).toContain(`id="sect-${section.id}"`)
+    }
+  })
+
+  it('merges encounters, contacts and procedures into ONE timeline, newest first', async () => {
+    // ⚠️ A caring contact and a post-discharge phone call ARE the follow-up —
+    // the later pathway stages exist to produce them. Splitting them into
+    // "Encounters" and "Messages" buries the part this demo is about under the
+    // part every EHR already shows.
+    const timeline = chartRecordFor('patient-011').main[0]!
+    const types = new Set(timeline.entries.map(e => e.from.split('/')[0]))
+    expect(types).toEqual(new Set(['Encounter', 'Communication', 'Procedure']))
+    const dates = timeline.entries.map(e => e.iso)
+    expect([...dates].sort((a, b) => b.localeCompare(a))).toEqual(dates)
+  })
+
+  it('drops an empty COLUMN too, rather than leaving 40% of the chart blank', async () => {
+    // ⚠️ patient-014 has encounters and tasks but no plan, no appointment and no
+    // document. The two-track grid left its whole right-hand side empty, which
+    // reads as a column that failed to load rather than as a record with nothing
+    // in it. One column when only one column has content.
+    const record = chartRecordFor('patient-014')
+    expect(record.main.length).toBeGreaterThan(0)
+    expect(record.side).toEqual([])
+    //
+    // ⚠️ Read from the CLASS ATTRIBUTE, not from the page text. The modifier is
+    // also a selector in the stylesheet, which ships on every chart — so
+    // `not.toContain('chart-body__cols--single')` is false on every page,
+    // including the ones that render two columns correctly.
+    const { body } = await html('/chart/patient-014')
+    expect(body).toMatch(/class="chart-body__cols chart-body__cols--single"/)
+    expect(body.match(/class="chart-body__col"/g)).toHaveLength(1)
+    // And patient-011 has both, so it keeps two.
+    const { body: maria } = await html('/chart/patient-011')
+    expect(maria).toMatch(/class="chart-body__cols"/)
+    expect(maria).not.toMatch(/class="chart-body__cols chart-body__cols--single"/)
+    expect(maria.match(/class="chart-body__col"/g)).toHaveLength(2)
+  })
+
+  it('drops a section rather than drawing an empty one', async () => {
+    // ⚠️ Nine of the fourteen have no orders and eleven have no documents. A
+    // page of five headings over three empty states is a chart pretending the
+    // record is fuller than it is — and on this page that is not a style
+    // preference, it is the claim the whole demo rests on.
+    const bare = chartRecordFor('patient-004')
+    expect([...bare.main, ...bare.side]).toEqual([])
+    const { body } = await html('/chart/patient-004')
+    expect(body).not.toContain('class="sect"')
+    expect(body).not.toContain('Orders and tasks')
+    // With no sections at all the whole block goes, not just its contents.
+    expect(body).not.toContain('class="chart-body"')
+  })
+
+  it('prints the resource’s own status word, because this surface is the EHR', async () => {
+    // ⚠️ `check:jargon` covers the guide and the clinical app precisely because
+    // those are the surfaces where wire vocabulary does not belong. Here it
+    // does: a host that translated FHIR statuses into friendlier words would be
+    // hiding the thing the demo exists to show.
+    const { body } = await html('/chart/patient-014')
+    expect(body).toContain('>in-progress<')
+    const { body: maria } = await html('/chart/patient-011')
+    expect(maria).toContain('>finished<')
+    expect(maria).toContain('>completed<')
+  })
+
+  it('colours only the states that are still open', async () => {
+    // A timeline where every line is tinted carries the same information as one
+    // where none is, and these records are mostly finished work.
+    const entries = chartRecordFor('patient-014').main.flatMap(s => s.entries)
+    const open = entries.filter(e => e.tone === 'warning').map(e => e.status)
+    expect(open).toContain('in-progress')
+    expect(entries.filter(e => e.status === 'finished').every(e => e.tone === 'info')).toBe(true)
+  })
+
+  it('splits the columns on a CONTAINER query, never on the viewport', async () => {
+    // ⚠️ **The rule with the longest history in this file.** The dock is up to
+    // 700px of the window and appears when the panel is launched, so the space
+    // this grid has is not a function of the viewport at all — a media query
+    // would put two columns into a 620px column the moment the panel opened.
+    // Two earlier rules here were hand-computed against the viewport and both
+    // went wrong, one silently, for every viewer, for months.
+    const { body } = await html('/chart/patient-011')
+    expect(body).toContain('@container chart-body (min-width: 60rem)')
+    expect(body).toContain('container: chart-body / inline-size')
+    expect(body).not.toMatch(/@media[^{]*\{\s*\.chart-body__cols/)
+  })
+})
+
+describe('everything SPiER is one area on the chart', () => {
+  it('holds the launch AND the recommendations inside a single section', async () => {
+    // ⚠️ The defect, reported 2026-09-22: the chart carried a launch card, then an
+    // <h2>Recommendations from SPiER</h2> with its own lede and status line, then
+    // one bordered card per recommendation with a button of its own — three kinds
+    // of container and up to five buttons all saying "open SPiER", spread down
+    // the page. The property is containment: the generic launch and every
+    // specific one are inside ONE element.
+    const { body } = await html('/chart/patient-011')
+    const start = body.indexOf('<section class="spier"')
+    const end = body.indexOf('</section>', start)
+    expect(start).toBeGreaterThan(-1)
+    const module = body.slice(start, end)
+    for (const part of ['id="open-panel"', 'id="cds-cards"', 'id="cds-cards-more"', 'id="cds-status"', 'id="written-since"']) {
+      expect(module, part).toContain(part)
+    }
+    // And nothing SPiER is left outside it. The old heading is gone rather than
+    // duplicated — a second "Recommendations" heading below the module would be
+    // the consolidation half-done.
+    //
+    // ⚠️ The rendered HEADING, not the phrase. The phrase still appears on the
+    // page inside a CSS comment explaining what this module replaced, because
+    // these stylesheets are template literals that ship to the browser comments
+    // and all — so `not.toContain('Recommendations from SPiER')` fails on a page
+    // that is entirely correct.
+    expect(body).not.toContain('<h2>Recommendations from SPiER</h2>')
+    expect(body.slice(end)).not.toContain('id="cds-')
+  })
+
+  it('nests the specific recommendations as launch options under the generic one', async () => {
+    // The shape of a row: the act as its title, the trigger under it, and ONE
+    // compact launch at the end. Read from the client module, which is what
+    // builds them — the markup ships two empty lists.
+    const module = await clientModule('/chart/patient-011')
+    expect(module).toContain('rec__title')
+    expect(module).toContain('rec__why')
+    expect(module).toContain('btn btn--smart')
+    // ⚠️ A row is not a card. `.card` gave every recommendation the same border
+    // and weight as the module containing it, which is what made a chart with
+    // three of them read as four competing offers.
+    expect(module).not.toContain("'card card--'")
+  })
+
+  it('ranks by the spec’s `indicator`, never by SPiER’s own extension', () => {
+    // ⚠️ **This was written the other way first and #581 had already settled
+    // it.** Ranking on `spier-primary` — the pathway evaluator's mark for the
+    // next step — makes THIS HOST'S CHART depend on a vendor extension to render
+    // its own page, which is precisely the claim a mock EHR exists to avoid
+    // making. `indicator` is in the CDS Hooks spec, so any service gets ranked
+    // and an adopter reading this page as an example is shown a dependency they
+    // can satisfy.
+    //
+    // ⚠️ Asserted against the FUNCTION, not against the built bundle. The first
+    // version of this test grepped the minified client module for the source
+    // expression, which is a test of the minifier: it would have passed with the
+    // rule deleted and the expression left in a comment.
+    const urgent = { indicator: 'critical' }
+    const due = { indicator: 'warning' }
+    const note = { indicator: 'info' }
+    expect(rankCards([note, urgent, due])).toEqual({ primary: [urgent], rest: [due, note] })
+  })
+
+  it('keeps the service’s own order within one level of urgency', () => {
+    // A stable sort is where SPiER's ranking survives without being read: its
+    // primary card is the first of its tier, so it stays first.
+    const first = { indicator: 'warning', id: 1 }
+    const second = { indicator: 'warning', id: 2 }
+    expect(rankCards([first, second]).primary).toEqual([first])
+    // An unknown indicator sorts last rather than throwing — a service may add
+    // one, and a card this host cannot rank is still a card it must show.
+    const odd = { indicator: 'advisory' }
+    expect(rankCards([odd, first]).primary).toEqual([first])
+    expect(rankCards([odd, first]).rest).toEqual([odd])
+  })
+
+  it('promotes exactly one card, and answers an empty response with nothing', () => {
+    // ⚠️ The module's surface answers "what is next", singular. Two rows there
+    // is the "four equally loud things to press" defect this consolidation
+    // removed — so a tie does not promote both.
+    const tie = [{ indicator: 'warning' }, { indicator: 'warning' }]
+    expect(rankCards(tie).primary).toHaveLength(1)
+    expect(rankCards(tie).rest).toHaveLength(1)
+    expect(rankCards([])).toEqual({ primary: [], rest: [] })
+  })
+
+  it('offers the nested drawer and both no-cards answers in the client module', async () => {
+    const module = await clientModule('/chart/patient-011')
+    expect(module).toContain('Also due (')
+    // A service that returns no cards is an ANSWER, not a failure, and a call
+    // that failed is a failure — both have to reach the page, because a blank
+    // area explains neither.
+    expect(module).toContain('nothing outstanding for this patient')
+    // #581's wording: it names the hop this host was on, because "the service
+    // refused my identity" and "this host never got there" are the two failures
+    // a reader has to tell apart.
+    expect(module).toContain('could not get recommendations')
+  })
+
+  it('ships the "Also due" drawer closed, and hidden until it has something in it', async () => {
+    const { body } = await html('/chart/patient-011')
+    // An empty disclosure is a promise of content that is not there, so the
+    // markup hides it and the client unhides it only once it has filled it.
+    expect(body).toMatch(/<details class="recs-more" id="cds-more" hidden>/)
+    expect(body).not.toMatch(/<details class="recs-more"[^>]*\sopen/)
+  })
+})
+
 describe('the chart leads with the launch, and carries no controls', () => {
   it('puts the launch CTA directly under the banner, before everything else', async () => {
     // ⚠️ The property, stated as an ordering rather than as styling. This button
@@ -362,12 +716,28 @@ describe('the chart leads with the launch, and carries no controls', () => {
     // capability switch and the FHIRcast log, under an <h2>Activity</h2>. Same
     // defect as the old front door: the one thing to do here was the last thing
     // you would find.
+    //
+    // ⚠️ The header anchor is asserted to EXIST before it is compared against.
+    // This test read `class="banner"` for a while after the header was rebuilt
+    // as `.chart-header`, and `indexOf` returned -1: every launch offset is
+    // greater than -1, so the ordering rule passed while checking nothing. A
+    // missing anchor has to fail the test rather than satisfy it.
     const { body } = await html('/chart/patient-011')
+    const header = body.indexOf('class="chart-header"')
+    expect(header).toBeGreaterThan(-1)
     const launch = body.indexOf('id="open-panel"')
     expect(launch).toBeGreaterThan(-1)
-    expect(launch).toBeGreaterThan(body.indexOf('class="banner"'))
-    expect(launch).toBeLessThan(body.indexOf('Recommendations from SPiER'))
-    expect(launch).toBeLessThan(body.indexOf('Shared context'))
+    expect(launch).toBeGreaterThan(header)
+    // ⚠️ Both anchors are asserted to exist, for the reason above: this test
+    // compared against `indexOf('Recommendations from SPiER')` until that
+    // heading was absorbed into the SPiER module, and -1 is less than every
+    // offset — so the rule would have inverted silently.
+    const recs = body.indexOf('id="cds-cards"')
+    const shared = body.indexOf('Shared context')
+    expect(recs).toBeGreaterThan(-1)
+    expect(shared).toBeGreaterThan(-1)
+    expect(launch).toBeLessThan(recs)
+    expect(launch).toBeLessThan(shared)
   })
 
   it('says what launching does, in the host’s words, with the patient’s story', async () => {
@@ -505,9 +875,13 @@ describe('the chart leads with the launch, and carries no controls', () => {
     const line = chart.body.indexOf('id="written-since"')
     expect(line).toBeGreaterThan(-1)
     expect(line).toBeLessThan(hood)
-    // Under the launch lede, inside the launch card — not a banner of its own.
-    expect(chart.body.indexOf('class="launch__lede"')).toBeLessThan(line)
-    expect(line).toBeLessThan(chart.body.indexOf('Recommendations from SPiER'))
+    // Under the lede, inside the SPiER module — not a banner of its own.
+    const lede = chart.body.indexOf('class="spier__lede"')
+    const recs = chart.body.indexOf('id="cds-cards"')
+    expect(lede).toBeGreaterThan(-1)
+    expect(recs).toBeGreaterThan(-1)
+    expect(lede).toBeLessThan(line)
+    expect(line).toBeLessThan(recs)
     // Hidden until there is something to say. A chart nobody has written to
     // must not carry an empty warning rule.
     expect(chart.body).toMatch(/id="written-since" hidden/)
@@ -519,30 +893,32 @@ describe('the chart leads with the launch, and carries no controls', () => {
     expect(module).toContain('added to this chart by an earlier demo')
   })
 
-  it('reserves a line beside the button for what the service says, and the module fills it', async () => {
+  it('states what the service says in the recommendation row, and retires the fixture sentence', async () => {
     // The reason to press Launch SPiER, stated for THIS patient rather than in
     // general (2026-09-22). The server cannot render it — it is the CDS
-    // service's answer and arrives after the page — so the page reserves the
-    // element hidden and the client module fills it from the top card.
+    // service's answer and arrives after the page — so the client module fills
+    // it from the top card.
     //
-    // ⚠️ **Both ids, asserted from both sides.** The failure this catches is a
-    // rename on one side only: the page would render a permanently empty line
-    // and the module would silently do nothing, and neither half is wrong on
-    // its own. `must()` throws on a missing id, so the real page would break
-    // loudly — but only for someone who opened it with the service reachable,
-    // which no test and no local run does (the service enforces `iss`/`jku`
-    // against the deployed host).
+    // ⚠️ **This was a reserved `#launch-state` line beside the button (#581),
+    // and the module's first row is now the same card said better**: the
+    // summary, a line of the detail AND a button that opens the panel on it.
+    // Two of them, two elements apart, is one recommendation stated twice. What
+    // #581's rule protected survives and is asserted here — the static fixture
+    // sentence must yield to the live record, because the two are one claim in
+    // two tenses with nothing saying which is current.
     const chart = await html('/chart/patient-002')
-    expect(chart.body).toMatch(/id="launch-state" hidden/)
     expect(chart.body).toContain('id="launch-story"')
-    // Inside the launch card, above the protocol note — not down with the cards.
-    expect(chart.body.indexOf('id="launch-state"')).toBeLessThan(
-      chart.body.indexOf('Recommendations from SPiER'),
-    )
+    // Hidden by the module, not removed by the page: when the service cannot be
+    // reached the fixture sentence is all there is, and that is the right
+    // fallback.
+    expect(chart.body).not.toMatch(/id="launch-story"[^>]*hidden/)
 
     const module = await clientModule('/chart/patient-002')
-    expect(module).toContain('launch-state')
     expect(module).toContain('launch-story')
+    // ⚠️ Asserted from BOTH sides. The failure this catches is a rename on one
+    // side only: the page would carry a span nothing ever hides and the module
+    // would silently do nothing, and neither half is wrong on its own.
+    expect(module).toContain('hidden = true')
   })
 })
 
