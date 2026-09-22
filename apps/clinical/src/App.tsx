@@ -55,6 +55,11 @@ const ToolConfiguration = lazy(() => import('./pages/ToolConfiguration').then(m 
 const PatientChart = lazy(() => import('./pages/PatientChart').then(m => ({ default: m.PatientChart })))
 const PathwayProtocol = lazy(() => import('./pages/PathwayProtocol').then(m => ({ default: m.PathwayProtocol })))
 const PatientOnFile = lazy(() => import('./pages/PatientOnFile').then(m => ({ default: m.PatientOnFile })))
+// ⚠️ Lazy for the reason every filler is: this page joins a response's answers
+// back to the Questionnaire that asked them, so its chunk carries the 18
+// instruments. `check:eager-forms` fails if a static import puts them in the
+// entry — see apps/clinical/src/lib/recordDetail.ts.
+const PatientRecord = lazy(() => import('./pages/PatientRecord').then(m => ({ default: m.PatientRecord })))
 const WhyThis = lazy(() => import('./pages/WhyThis').then(m => ({ default: m.WhyThis })))
 const PathwayStage = lazy(() => import('./pages/PathwayStage').then(m => ({ default: m.PathwayStage })))
 const PopulationView = lazy(() => import('./pages/PopulationView').then(m => ({ default: m.PopulationView })))
@@ -134,6 +139,14 @@ function AppRoutes() {
               it takes no patient in its path — the active patient travels in
               context. */}
           <Route path="on-file" element={<PatientOnFile />} />
+          {/* One record, opened: the answers that were given, the reading a
+              result carries, the steps of a plan. A CHILD of the list rather
+              than a peer, so its `up` is where a reader came from and the two
+              cannot become rival answers to "what is on file" (2026-09-22).
+              Reached from the rows on BOTH lists — this one and the stage rail
+              — through `lib/recordKeys.ts`, which is the only thing that
+              builds the path. */}
+          <Route path="on-file/:recordKey" element={<PatientRecord />} />
           {/* The published protocol, beside the chart rather than in the guide
               (Phase 4 of docs/plans/suicide-safer-care-pathway.md). This is the
               route the embedded SMART panel reaches from the chart's pathway

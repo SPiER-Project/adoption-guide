@@ -3,7 +3,15 @@
  *
  * The grouping, the row resolution and the argument for both are
  * `lib/onFileGroups.ts`; what is here is the markup and nothing else.
+ *
+ * ⚠️ **A row's name is a LINK since 2026-09-22**, to the record it names. The
+ * list said what was recorded, how it stood and when, and a clinician wanting
+ * the answers behind it had nowhere to go — see `pages/PatientRecord.tsx` for
+ * why that became a page rather than a row that expands. A row whose artifact
+ * carries no id has no address, so it stays plain text rather than becoming a
+ * link to the list it is already on.
  */
+import { Link } from 'react-router-dom'
 import { formatDate } from '@spier/tool-views/lib/dates'
 import { Card } from '@spier/ui/Card'
 import { EmptyState } from '@spier/ui/EmptyState'
@@ -32,7 +40,9 @@ export function OnFileList({ groups }: { groups: OnFileGroup[] }) {
             <ul className="on-file__rows">
               {group.rows.map(row => (
                 <li className="on-file__row" key={row.key}>
-                  <span className="on-file__name">{row.name}</span>
+                  <span className="on-file__name">
+                    {row.href ? <Link to={row.href}>{row.name}</Link> : row.name}
+                  </span>
                   <span className="on-file__meta">
                     {row.instrument && <span className="on-file__instrument">{row.instrument}</span>}
                     <span className="on-file__when">
