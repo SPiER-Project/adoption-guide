@@ -1,0 +1,90 @@
+/* ===========================
+   The next action, inside the stage it belongs to.
+
+   Was `ChartLanding.css` — a card at the top of the chart. The chart opens on
+   the pathway now (2026-09-22) and this sits inside the open stage node, so it
+   draws no surface of its own: `.pathway-node-card` is the surface, and a
+   second card inside it would read as a second recommendation rather than as
+   the reason this stage is open. What is left is the urgency edge, the type
+   scale, and the spacing.
+   =========================== */
+
+.next-action {
+  /* The urgency rule. Its own left edge rather than the node's, which already
+     carries the stage's state — one says "there is something to do", the other
+     says "this is where you are", and colouring one line with both is the
+     "four labels for one state" defect this chart has had twice. */
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--border-default);
+}
+
+.next-action--urgent {
+  border-left-color: var(--risk-acute);
+}
+
+.next-action--elevated {
+  border-left-color: var(--risk-moderate);
+}
+
+.next-action--routine {
+  border-left-color: var(--brand-primary);
+}
+
+/* Nothing due is not an alarm and not a success badge — it is the absence of a
+   claim, so it keeps the page's own edge (the base rule above). */
+
+/* The act. The largest thing inside the node, because it is why it is open. */
+.next-action__act {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-tight);
+  color: var(--text-strong);
+}
+
+/* The trigger, in the clinician's words. One of the three prose sizes
+   (`check:prose` RULE 5) with the measure capped against its own type. */
+.next-action__trigger {
+  margin: var(--space-2) 0 0;
+  max-width: var(--measure-prose);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--text-body);
+}
+
+/* The published step's own instruction — what the protocol says the act is.
+   Same size as the trigger it follows: it is the second half of one statement,
+   not a footnote to it. */
+.next-action__instruction {
+  margin: var(--space-2) 0 0;
+  max-width: var(--measure-prose);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--text-body);
+}
+
+.next-action__launch {
+  margin: var(--space-3) 0 0;
+}
+
+/* The rest of the tier's obligations, as one line. */
+.next-action__also {
+  margin: var(--space-3) 0 0;
+  max-width: var(--measure-prose);
+  /* One of the three prose sizes (`check:prose` RULE 5) — it is a run of text
+     with a reading measure on it, so `--font-size-sm` would narrow the column
+     without shortening the line. */
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--text-muted);
+}
+
+.next-action__also-label {
+  font-weight: 600;
+  color: var(--text-base);
+}
+
+.next-action__why {
+  margin: var(--space-2) 0 0;
+  font-size: var(--font-size-sm);
+}

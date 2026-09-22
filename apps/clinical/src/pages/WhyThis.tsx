@@ -21,7 +21,7 @@
  *
  * ⚠️ **Reached from the landing card and from nowhere else.** That is the
  * design (§4.2) and it is also why the route is declared in `App.tsx` and
- * linked from `ChartLanding`: `check:catalog` validates declared navigation
+ * linked from `NextAction`: `check:catalog` validates declared navigation
  * targets, so a route nothing links to is dead code no gate would notice.
  *
  * ⚠️ **It decides nothing either.** Like the landing card, every sentence comes
@@ -47,7 +47,6 @@ import { reassessmentStatusLabel } from '@spier/core/lib/reassessment'
 import { useToolConfig } from '../context/ToolConfigContext'
 import { toolEnablementFor } from '../lib/toolEnablement'
 import { StageAlternatives } from '../components/StageAlternatives'
-import { ON_FILE_PATH } from '../components/ChartLanding'
 import '../css/WhyThis.css'
 
 export function WhyThis() {
@@ -95,7 +94,7 @@ export function WhyThis() {
       <Card>
         <p className="why-this__prose">{primary.reason}</p>
         <p className="why-this__more">
-          <Link to={ON_FILE_PATH}>See it in what&rsquo;s on file</Link>
+          <Link to="/patient/on-file">See it in what&rsquo;s on file</Link>
         </p>
       </Card>
 

@@ -2,8 +2,14 @@
    `.patient-chart-title`) is the shared PageHeader now. `.patient-chart-reset`
    went with it: it styled a button this page stopped rendering, and the rules
    had outlived their element. */
+/* ⚠️ **Prose, not wide, since the pathway became this page** (2026-09-22). It
+   was wide when the chart was one card and three record sections; the eight-row
+   list carries the reason `/patient/where` used prose — at the wide measure the
+   status pill sits an inch of empty track away from the title it belongs to,
+   and the list is eight rows to read DOWN rather than a table to scan across.
+   One owner per route, and this is it (`docs/internals/css-and-page-template.md`). */
 .patient-chart {
-  max-width: var(--page-width-wide);
+  max-width: var(--page-width-prose);
 }
 
 /* Cap the body, not the band — the tinted band is page-level framing, so it
@@ -38,13 +44,6 @@
    indicator scale (`.cds-card--info` and friends) is CDS Hooks semantics and is
    deliberately left alone.
    =========================== */
-/* *Where this patient is* — the page the rail became. Prose width: it is eight
-   rows to read down, and the wide measure left the status pill an inch of empty
-   track away from the title it belongs to. */
-.patient-where {
-  max-width: var(--page-width-prose);
-}
-
 .pathway {
   margin-bottom: var(--space-8);
   scroll-margin-top: var(--anchor-scroll-offset);
@@ -215,6 +214,68 @@
   font-size: var(--font-size-xs);
   font-weight: 600;
   color: var(--text-muted);
+}
+
+/* ===========================
+   The collapsed stage's readout: what was used, what it said, when.
+
+   Three columns rather than a run-on chip (Brad, 2026-09-22). A `<dl>` because
+   that is what it is — a term and its values — and the grid is declared on the
+   ROW rather than the list so each row's three cells align to the same tracks
+   without the list having to know how many rows there are.
+
+   ⚠️ **The stack is the PHONE's, and the panel keeps its three columns.** The
+   obvious-looking `.panel-shell` copy of the stack was written first and then
+   measured out: an instrument name is short by the time it reaches this column
+   (`PHQ-9`, not `PHQ-9 total score`), and three columns fit a 470px dock with
+   room to spare — stacking there bought nothing and cost every row a second
+   line. A phone is a different case: the node's own padding and the page inset
+   leave the outcome column too narrow to read a tier display in.
+   =========================== */
+.pathway-node-rows {
+  margin: var(--space-1) 0 0;
+}
+
+.pathway-node-row {
+  display: grid;
+  grid-template-columns: minmax(0, 7rem) minmax(0, 1fr) auto;
+  gap: var(--gap-inline);
+  align-items: baseline;
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+}
+
+.pathway-node-row + .pathway-node-row {
+  margin-top: var(--space-0-5);
+}
+
+.pathway-node-row__tool {
+  font-weight: 600;
+  color: var(--text-base);
+}
+
+.pathway-node-row__outcome {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+/* The date is the quietest of the three and the one that must not wrap: a
+   half-printed date is worse than none. */
+.pathway-node-row__when {
+  margin: 0;
+  color: var(--text-faint);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 639px) {
+  .pathway-node-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .pathway-node-row__tool {
+    grid-column: 1 / -1;
+  }
 }
 
 .pathway-node-status--done     { background: var(--risk-low-faded); color: var(--risk-low-soft-text); }
@@ -458,3 +519,17 @@
   text-decoration: underline;
 }
 
+
+/* The record, one tap off the pathway. Was one of two links on the landing
+   card; the other one's destination is this page now. */
+.patient-chart__on-file {
+  display: flex;
+  align-items: baseline;
+  gap: var(--gap-inline);
+  margin: var(--space-5) 0 0;
+  font-size: var(--font-size-base);
+}
+
+.patient-chart__fact {
+  color: var(--text-muted);
+}

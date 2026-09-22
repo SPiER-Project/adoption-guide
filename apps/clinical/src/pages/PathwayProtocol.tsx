@@ -90,7 +90,7 @@ export function PathwayProtocol() {
             is.</strong> SPiER brings this protocol with it rather than reading it from this
             EHR, so it is the same here as it is anywhere else SPiER runs. For what has been
             recorded for the patient in front of you, and what is due next, go back to{' '}
-            <Link to="/patient/where">where this patient is</Link>.
+            <Link to="/patient/record">where this patient is</Link>.
           </p>
 
           <PathwaySpine model={loaded.model} />

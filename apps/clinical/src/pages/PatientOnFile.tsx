@@ -8,7 +8,7 @@
  * things three different ways.
  *
  * ⚠️ **No patient in the path**, for the same reason as `/patient/why` and
- * `/patient/where`: the active patient travels in context.
+ * `/patient/why`: the active patient travels in context.
  *
  * The list itself, and what it stopped explaining, is `components/OnFileList.tsx`.
  */

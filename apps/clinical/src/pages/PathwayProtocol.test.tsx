@@ -92,7 +92,7 @@ describe('PathwayProtocol — the pathway in the embedded panel', () => {
     renderPage()
     expect(screen.getByText(/not where this patient/)).toBeDefined()
     const back = screen.getByRole('link', { name: /where this patient is/ })
-    expect(back.getAttribute('href')).toBe('/patient/where')
+    expect(back.getAttribute('href')).toBe('/patient/record')
   })
 
   it('offers a way back out — the only one the panel has', () => {

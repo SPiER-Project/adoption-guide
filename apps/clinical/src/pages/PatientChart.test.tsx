@@ -3,25 +3,23 @@
  *
  * What a clinician meets on arrival at a patient's chart, in both chromes.
  *
- * ⚠️ **One page header per page, and in the panel none at all.** The template
- * gate counts header IMPLEMENTATIONS by reading source text
- * (`scripts/check-page-template.mjs`); it cannot count the headers a route
- * actually renders, which is the property that goes wrong — the panel drew the
- * host's header, SPiER's identity strip, a page title, a rail title and a
- * progress sentence, five bands before the first instruction (clinical-app
- * audit §3). `ToolPage.test.tsx` counts them the same way on the guide.
+ * ⚠️ **EXACTLY ONE page header, in BOTH chromes** (Brad, 2026-09-22). The panel
+ * drew none at all until then — the measurement behind that was real (the panel
+ * once drew the host's header, SPiER's identity strip, a page title, a rail
+ * title and a progress sentence: five bands before the first instruction,
+ * clinical-app audit §3) but the answer overshot, and a reader who has navigated
+ * into a stage or a form had nothing saying where they are. `PageHeader.css`
+ * collapses it to one line under `.panel-shell`, and the count is what these
+ * tests hold: one, never two. The template gate counts header IMPLEMENTATIONS by
+ * reading source text (`scripts/check-page-template.mjs`); it cannot count the
+ * headers a route actually renders, which is the property that goes wrong.
  *
- * ⚠️ **And the order.** "The landing screen answers one question" (§4.1) is a
- * claim about what is FIRST, so the test asserts document order rather than
- * mere presence: a landing card rendered under anything else would satisfy
- * every other assertion in this repo.
- *
- * ⚠️ **The rail and the record are not on this page at all since 2026-09-21**
- * (audit §4.3, §4.4) — they are `/patient/where` and `/patient/on-file`, and
- * this page carries the two links to them. Three assertions here used to name
- * `.pathway` and `#on-file`; they name the links now, because "the rail is
- * below the card" and "the rail is a page" are different claims and only the
- * second one is true.
+ * ⚠️ **The pathway IS this page** (Brad, 2026-09-22). The audit made the chart
+ * one instruction and moved the eight-stage list to `/patient/where` (§4.3);
+ * the list is the landing screen again, with the act drawn INSIDE the stage it
+ * satisfies rather than in a card above it. So the assertions below are about
+ * the act being *in the open stage* and *stated once* — the §4.1 property that
+ * still holds — rather than about the list being absent.
  */
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { render, cleanup } from '@testing-library/react'
@@ -88,55 +86,62 @@ function renderChart(mode: 'ehr' | 'panel') {
   )
 }
 
-/** True when `a` precedes `b` in document order. */
-function precedes(a: Element, b: Element): boolean {
-  return (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0
-}
-
-describe('the chart opens on one instruction', () => {
-  it('draws no page header in the panel, and the landing card is the first thing', () => {
-    const { container } = renderChart('panel')
-    expect(container.querySelectorAll('.page-header')).toHaveLength(0)
-    expect(container.querySelectorAll('h2')).toHaveLength(0)
-    const landing = container.querySelector('.chart-landing')!
-    expect(landing).not.toBeNull()
-    expect(landing).toBe(container.querySelector('.patient-chart > *'))
+describe('the chart opens on the pathway, at what is due', () => {
+  it('draws exactly one page header, in both chromes', () => {
+    for (const mode of ['ehr', 'panel'] as const) {
+      const { container } = renderChart(mode)
+      expect(container.querySelectorAll('.page-header'), mode).toHaveLength(1)
+      expect(container.querySelectorAll('h2'), mode).toHaveLength(1)
+      cleanup()
+    }
   })
 
-  it('draws exactly one page header in a standalone tab, above the landing card', () => {
-    const { container } = renderChart('ehr')
-    expect(container.querySelectorAll('.page-header')).toHaveLength(1)
-    expect(container.querySelectorAll('h2')).toHaveLength(1)
-    const header = container.querySelector('.page-header')!
-    const landing = container.querySelector('.chart-landing')!
-    expect(precedes(header, landing)).toBe(true)
+  it('renders the eight-stage list, with the act inside one of its stages', () => {
+    const { container } = renderChart('panel')
+    const rail = container.querySelector('.pathway')
+    expect(rail).not.toBeNull()
+    const action = container.querySelector('.next-action')
+    expect(action).not.toBeNull()
+    // Inside a stage node, not a sibling of the list: "where am I" and "what do
+    // I do" are one screen only if the act is drawn at the stage it satisfies.
+    expect(action?.closest('.pathway-node')).not.toBeNull()
   })
 
   it('names one act, and it is the only one on the page', () => {
     const { container } = renderChart('panel')
-    expect(container.querySelectorAll('.chart-landing__act')).toHaveLength(1)
+    expect(container.querySelectorAll('.next-action__act')).toHaveLength(1)
   })
 
-  it('holds neither the rail nor the record — they are pages', () => {
-    // ⚠️ The measured half of §4.3/§4.4. The chart carried the rail, three
-    // record sections and the landing card; what is left is the card and two
-    // links, so "what do I do" is the whole screen rather than its first inch.
+  it('opens the stage the act sits at', () => {
+    const { container } = renderChart('panel')
+    const node = container.querySelector('.next-action')?.closest('.pathway-node')
+    // An open node renders its body; a collapsed one renders the readout only.
+    expect(node?.querySelector('.pathway-node-body')).not.toBeNull()
+  })
+
+  it('states what is due ONCE — no guidance card repeats the obligation', () => {
+    // ⚠️ The §1.5 defect ("three answers to what do I do"), one layer down. The
+    // list draws guidance cards; an obligation card drawn there too would be a
+    // second copy of the act a few pixels below the first.
     const { container } = renderChart('ehr')
-    expect(container.querySelector('.pathway')).toBeNull()
+    const act = container.querySelector('.next-action__act')?.textContent ?? ''
+    expect(act).not.toBe('')
+    const cardTitles = [...container.querySelectorAll('.cds-card-title')].map(t => t.textContent)
+    expect(cardTitles).not.toContain(act)
+  })
+
+  it('keeps the record a page, linked once', () => {
+    const { container } = renderChart('ehr')
     expect(container.querySelector('#on-file')).toBeNull()
     expect(container.querySelector('.episode-record-section')).toBeNull()
-    expect(container.querySelector('.documents-section')).toBeNull()
+    expect(container.querySelectorAll('a[href="/patient/on-file"]')).toHaveLength(1)
+    const fact = container.querySelector('.patient-chart__fact')?.textContent
+    expect(fact).toMatch(/^\d+ records?$/)
   })
 
-  it('links to both of them, with the fact each carries', () => {
+  it('no longer links to the page it replaced', () => {
     const { container } = renderChart('panel')
-    const where = container.querySelector('a[href="/patient/where"]')
-    const onFile = container.querySelector('a[href="/patient/on-file"]')
-    expect(where?.textContent).toBe('Where this patient is')
-    expect(onFile?.textContent).toBe('What\u2019s on file')
-    const facts = [...container.querySelectorAll('.chart-landing__fact')].map(f => f.textContent)
-    expect(facts[0]).toMatch(/^Step \d of 8$/)
-    expect(facts[1]).toMatch(/^\d+ records?$/)
+    expect(container.querySelector('a[href="/patient/where"]')).toBeNull()
   })
 
   it('carries no scenario walkthrough — it is demo narration, not a chart', () => {
