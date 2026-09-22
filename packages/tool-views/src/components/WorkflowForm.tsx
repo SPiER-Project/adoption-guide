@@ -24,7 +24,9 @@
  * ⚠️ **Before a submit, the hint says which chart this lands in — and it is
  * "no patient in CONTEXT", not "no id in the URL".** §1.8: under a live launch
  * every recorder opened by telling the clinician no patient was selected while
- * the write was attaching correctly to the launch patient. See the branch below.
+ * the write was attaching correctly to the launch patient. The three-branch
+ * rule and its words are `PatientChartHint`, which the fillers' results screen
+ * asks the same question of — it lived here until they needed it too.
  *
  * ⚠️ **After a submit, there is ONE next action and it is the pathway's.**
  * §4.6: the notice offered "View in chart" and, on one recorder, a second link
@@ -54,12 +56,10 @@
  * it by parsing this file's callers and reading their JSX text.
  */
 import { useEffect, useMemo, useRef, type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
-import { usePatient } from '../context/PatientContext'
-import { useSurfaceLinks } from '../context/SurfaceLinksContext'
 import { usePageHeaderOwner } from '../context/PageHeaderOwnerContext'
 import { useTrail } from '../context/useTrail'
 import { CodeDrawer } from './CodeDrawer'
+import { PatientChartHint } from './PatientChartHint'
 import { FhirJsonViewer } from './FhirJsonViewer'
 import { NextStep } from './NextStep'
 import { PageHeader } from '@spier/ui/PageHeader'
@@ -170,31 +170,11 @@ export function WorkflowForm({
   recorded?: ReactNode
   children: ReactNode
 }) {
-  // ⚠️ **"No patient in context", not "no id in the URL".** Under a SMART
-  // launch the chart is the launch patient's and `activePatientId` — which is
-  // read off the route — is null, so this frame opened every recorder with
-  // *"No patient selected — this will be recorded in the scratch chart"* while
-  // `SmartDataSource` was correctly resolving the launch patient and writing to
-  // their chart (clinical-app audit §1.8). The notice was false, not the data.
-  //
-  // The three cases, and only the first is a scratch chart:
-  //
-  //   no session, no id     the demo's "play with the forms" state — the write
-  //                         lands in the scratch chart, which is what this says
-  //   a session with a      the launch patient IS the patient in context; the
-  //   patient               write attaches to them and there is nothing to say
-  //   a session with NO     a worklist launch, which has a server and no chart:
-  //   patient               the write has nowhere to land and will fail, so the
-  //                         honest line is that one rather than the scratch one
-  const { activePatientId, isSmartSession, isSmartConnected } = usePatient()
-  const patientState = isSmartSession
-    ? (isSmartConnected ? 'in-context' : 'launch-without-patient')
-    : (activePatientId === null ? 'scratch' : 'in-context')
   const pending = useMemo(() => pendingRecord(justRecorded ?? []), [justRecorded])
-  // The chart, the caseload and this page's parent are the SURFACE's routes,
-  // not this frame's: the clinical app has all three, the guide has only the
-  // parent (Tools). See SurfaceLinksContext for the dead links this replaced.
-  const links = useSurfaceLinks()
+  // This frame reads no surface route of its own any more: the header's trail
+  // comes from `useTrail`, and the caseload link in the chart hint went with
+  // that hint into `PatientChartHint`. Both still resolve through
+  // `SurfaceLinksContext` — one layer down.
   // On the clinician's routes this frame IS the page and draws the header. On
   // the guide's tool page the page has drawn one naming the tool, so the frame
   // draws none — and keeps the lede, which is the clinician's sentence about
@@ -214,24 +194,11 @@ export function WorkflowForm({
       <div className="form-wrapper">
         <div className="form-card">
           {!ownsHeader && <p className="workflow-form__lede">{lede}</p>}
-          {patientState === 'scratch' && (
-            <WorkflowHint>
-              No patient selected — this will be recorded in the scratch chart.
-              {links.registryHref && (
-                <>
-                  {' '}
-                  Pick a patient from the <Link to={links.registryHref}>caseload</Link> to attach it to a
-                  specific record.
-                </>
-              )}
-            </WorkflowHint>
-          )}
-          {patientState === 'launch-without-patient' && (
-            <WorkflowHint>
-              This session was opened without a patient, so there is no chart to record against.
-              Open a patient first.
-            </WorkflowHint>
-          )}
+          {/* ⚠️ Which chart this lands in — and the rule is "a patient in
+              CONTEXT", not "an id in the URL". `PatientChartHint` holds both
+              the three-branch rule and the words, because the fillers ask the
+              same question on their results screen (clinical-app audit §1.8). */}
+          <PatientChartHint />
 
           {children}
 

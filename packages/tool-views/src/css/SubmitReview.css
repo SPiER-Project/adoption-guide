@@ -1,0 +1,25 @@
+/* ===========================
+   The results screen a filler shows after Submit (QuestionnaireView)
+
+   A plain stack, not a card: it renders INSIDE `.form-card`, where the form
+   was, and a box around it would be a second surface owner inside the one that
+   already drew a border (`docs/internals/css-and-page-template.md`). Its
+   children — the risk summary, the generated plan, the confirmation beat, the
+   notices — each bring their own top or bottom spacing, so there is no gap
+   here to double it up with.
+   =========================== */
+.submit-review {
+  display: block;
+}
+
+/* The decision: keep these results, or start again. One row, wrapping — at
+   375px "Save to the chart" and "Start over" do not fit side by side, and a
+   row that does not wrap puts the second control off the edge of the panel
+   (the same reason `.next-step__actions` wraps). */
+.submit-review__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--space-4) 0 0;
+}

@@ -33,6 +33,16 @@
  * so the surface decides what exists; a step whose tool this surface does not
  * render reads as words with no button, exactly as the chart's landing card
  * does for a tool a site has turned off.
+ *
+ * ⚠️ **`preview` drops the buttons and keeps the sentence**, for the one screen
+ * where the act has happened and the write has not: a filler's results screen,
+ * where the clinician has submitted and is deciding whether to save
+ * (`QuestionnaireView`). Leaving that screen by a button here would discard a
+ * completed screen silently, which on a suicide-risk instrument is the worst
+ * outcome available. The sentence still comes from `evaluatePathway` over the
+ * record WITH `pending` folded in, so it is the same answer the chart will give
+ * once the save lands — and is typeset as the same claim rather than as a
+ * second, quieter one.
  */
 import { useEffect, useMemo, useRef } from 'react'
 import { evaluatePathway, type PathwayRecord } from '@spier/core/lib/pathwayEvaluation'
@@ -50,7 +60,14 @@ function fold<T extends { id?: string }>(saved: T[] | undefined, pending: T[] | 
   return [...(saved ?? []), ...pending.filter(r => !r.id || !known.has(r.id))]
 }
 
-export function NextStep({ pending }: { pending?: PathwayRecord }) {
+export function NextStep({
+  pending,
+  preview,
+}: {
+  pending?: PathwayRecord
+  /** Say what is next; offer no way there. See the header. */
+  preview?: boolean
+}) {
   const {
     responses,
     observations,
@@ -110,18 +127,20 @@ export function NextStep({ pending }: { pending?: PathwayRecord }) {
           chart's landing card makes the same call in the same words. */}
       {primary && !primary.tool && <p className="next-step__instruction">{primary.description}</p>}
 
-      <p className="next-step__actions">
-        {launch && (
-          <Button to={launch.href} variant="primary" size="sm" arrow>
-            {launch.label}
-          </Button>
-        )}
-        {links.chartHref && (
-          <Button to={links.chartHref} variant="link" size="sm">
-            Back to chart
-          </Button>
-        )}
-      </p>
+      {!preview && (
+        <p className="next-step__actions">
+          {launch && (
+            <Button to={launch.href} variant="primary" size="sm" arrow>
+              {launch.label}
+            </Button>
+          )}
+          {links.chartHref && (
+            <Button to={links.chartHref} variant="link" size="sm">
+              Back to chart
+            </Button>
+          )}
+        </p>
+      )}
     </div>
   )
 }

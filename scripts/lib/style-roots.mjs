@@ -42,7 +42,7 @@ export const STYLE_ROOTS = [
   { source: 'apps/guide/src', dir: join(REPO_ROOT, 'apps/guide/src'), floorCss: 5, floorSrc: 12 },
   { source: 'apps/clinical/src', dir: join(REPO_ROOT, 'apps/clinical/src'), floorCss: 4, floorSrc: 18 },
   { source: 'packages/ui/src', dir: join(REPO_ROOT, 'packages/ui/src'), floorCss: 6, floorSrc: 6 },
-  { source: 'packages/tool-views/src', dir: join(REPO_ROOT, 'packages/tool-views/src'), floorCss: 1, floorSrc: 12 },
+  { source: 'packages/tool-views/src', dir: join(REPO_ROOT, 'packages/tool-views/src'), floorCss: 2, floorSrc: 12 },
   { source: 'packages/app-shell/src', dir: join(REPO_ROOT, 'packages/app-shell/src'), floorCss: 4, floorSrc: 11 },
 ]
 

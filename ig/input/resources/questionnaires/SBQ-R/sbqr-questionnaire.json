@@ -361,6 +361,10 @@
       ],
       "extension": [
         {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-hidden",
+          "valueBoolean": true
+        },
+        {
           "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression",
           "valueExpression": {
             "description": "Sum of the ordinal weights of all 4 item answers (SDC weight() resolves each answer's ordinalValue from the Questionnaire answerOption). Range 3-18. Cutoff \u22657 general population, \u22658 psychiatric inpatients.",
