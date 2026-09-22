@@ -55,6 +55,18 @@ const ALLOWED = new Map(Object.entries({
   'docs/instruments/PSS-3/licensing/MEMO.md::ig/input/pagecontent/pss3.md': 'IG attribution page not yet authored; memo says so',
   'docs/instruments/SAFE-T/licensing/MEMO.md::ig/input/pagecontent/safet.md': 'IG attribution page not yet authored; memo says so',
 
+  // -- the clinical-app audit's dated status entries name the two files PR 4
+  //    and PR 5 created. Both were deleted on 2026-09-22, when the chart
+  //    absorbed the eight-stage list it had just been split from: the landing
+  //    card became `NextAction` inside a stage node and `/patient/where`
+  //    became the chart itself. The entries are a record of what shipped on
+  //    2026-09-21 and retargeting them would falsify it — the audit's own
+  //    header now carries the superseding note.
+  'docs/plans/clinical-app-ux-audit-2026-09-21.md::apps/clinical/src/pages/PatientWhere.tsx':
+    'PR 5 created it; deleted 2026-09-22 when the chart absorbed the stage list',
+  'docs/plans/clinical-app-ux-audit-2026-09-21.md::apps/clinical/src/components/ChartLanding.tsx':
+    'PR 4 created it; became components/NextAction.tsx on 2026-09-22',
+
   // -- history: the sentence around each of these says the file is gone.
   //
   // ⚠️ **Eleven `web/…` entries were deleted here at the tooling hoist, and
