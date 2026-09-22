@@ -453,6 +453,19 @@ const CHART_CSS = `
     border-left: 3px solid var(--warning);
     color: var(--ink-soft);
   }
+  /* ⚠️ The live statement of what this patient needs, which IS the reason to
+     press the button — so it is the one thing in this block that is not the
+     body size. Accent-ruled rather than boxed: a second card beside the CDS
+     cards below would read as a second recommendation rather than as the same
+     one, said where the button is. */
+  .launch__state {
+    margin: var(--s2) 0 0;
+    padding-left: var(--s2);
+    border-left: 3px solid var(--action);
+    font-size: var(--text-sm);
+  }
+  .launch__state strong { display: block; }
+
   /* The protocol note, one size down: true, and not the reason to press the button. */
   .launch__meta { margin: var(--s2) 0 0; font-size: var(--text-xs); color: var(--ink-faint); }
 
@@ -628,8 +641,16 @@ export function patientChartPage(
           <p class="launch__lede">
             Open SPiER for ${esc(patient.name)}. It shows where ${esc(patient.name)} is on the
             suicide-safer care pathway and what to do next, and anything you record in it is written
-            back to this chart. ${esc(story)}
+            back to this chart. <span id="launch-story">${esc(story)}</span>
           </p>
+          <!-- The reason to press the button, in the SERVICE's words. Filled by
+               the client module from the top CDS card and hidden until one
+               arrives; the fixture sentence in the lede above is hidden at the
+               same moment, because it is static prose about the scenario and
+               this is the live record. If the service cannot be reached the
+               fixture sentence is all there is, which is the right fallback and
+               the reason it is hidden rather than removed. -->
+          <p class="launch__state" id="launch-state" hidden></p>
           <!-- Filled by the client module from /_admin/writes?patient=, and
                hidden while the count is zero. Server-rendered empty rather than
                omitted: the page is one template for fourteen charts and the

@@ -74,9 +74,7 @@ export function PathwayProtocol() {
   return (
     <div className="pathway-protocol">
       <PageHeader
-        eyebrow="Patient Chart"
-        up="/patient/record"
-        eyebrowStyle="pill"
+        eyebrow={[{ label: 'Care pathway', to: '/patient/record' }]}
         title="Published Care Pathway"
         lede="The Suicide Safer Care protocol SPiER carries, rendered from the artifact it publishes."
       />
@@ -90,7 +88,7 @@ export function PathwayProtocol() {
             is.</strong> SPiER brings this protocol with it rather than reading it from this
             EHR, so it is the same here as it is anywhere else SPiER runs. For what has been
             recorded for the patient in front of you, and what is due next, go back to{' '}
-            <Link to="/patient/where">where this patient is</Link>.
+            <Link to="/patient/record">where this patient is</Link>.
           </p>
 
           <PathwaySpine model={loaded.model} />

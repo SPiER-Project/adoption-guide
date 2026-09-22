@@ -209,6 +209,32 @@ describe('POST /_admin/cds', () => {
     })
   })
 
+  // ⚠️ **This is the test the deployed 404 needed and nobody had.** A plain
+  // `fetch()` to the service's URL succeeds here, and is refused on the deployed
+  // origins: both Workers sit on one `workers.dev` zone, and Cloudflare answers
+  // a same-zone Worker subrequest with HTTP 404 / `error code: 1042`. So "the
+  // CDS call is covered" was true of every path except the only one that ran in
+  // production. A unit test cannot reach the edge; what it can assert is the
+  // dispatch CHOICE — that a bound Worker is used when one exists. The end of
+  // the chain is exercised by running both Workers under `wrangler dev`.
+  it('dispatches through the CDS service binding when it is bound', async () => {
+    // Params are declared so the mock's call tuple is typed — `bound.mock.calls[0][0]`
+    // is `never` off a zero-arg mock, which is a compile error rather than a
+    // failing assertion.
+    const bound = vi.fn(async (_url: string, _init?: RequestInit) =>
+      new Response(JSON.stringify({ cards: [] }), { headers: { 'content-type': 'application/json' } }),
+    )
+    const res = await post({ ...fakeStore(), CDS: { fetch: bound } })
+    expect(res.status).toBe(200)
+    expect(bound).toHaveBeenCalledTimes(1)
+    // The URL is unchanged by the transport — the signed `aud` is that string.
+    expect(bound.mock.calls[0]?.[0]).toBe(
+      'https://spier-cds.bbthorson.workers.dev/cds-services/spier-patient-view',
+    )
+    // And the zone-refused path is not taken.
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
   it('signs with the key it publishes', async () => {
     const env = fakeStore()
     await post(env)

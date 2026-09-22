@@ -52,6 +52,7 @@
  * CDS Hooks spec: https://cds-hooks.org/specification/current/
  */
 import { Hono } from 'hono'
+import type { Context } from 'hono'
 import { cors } from 'hono/cors'
 import { cdsJwt } from './auth'
 import type { CdsJwtEnv, CdsJwtVariables } from './auth'
@@ -83,10 +84,20 @@ app.use('/cds-services', apiCors)
 app.use('/cds-services/*', apiCors)
 
 // Discovery.
-app.get('/cds-services', (c) => {
+//
+// ⚠️ **Both spellings, and the slash is not pedantry.** The spec's path is
+// `/cds-services`, and Hono matches it exactly — `/cds-services/` was a 404 with
+// a 200 one character away. A person pasting the URL into a browser, a client
+// that normalizes a base URL by appending a separator, and a proxy that
+// canonicalizes a path all arrive at the second spelling, and the 404 they get
+// is indistinguishable from "this service does not exist". Reported from a
+// browser 2026-09-22.
+const discovery = (c: Context) => {
   const body: CdsDiscoveryResponse = { services: [PATIENT_VIEW_SERVICE] }
   return c.json(body)
-})
+}
+app.get('/cds-services', discovery)
+app.get('/cds-services/', discovery)
 
 // patient-view invocation — bearer JWT validated per CDS_JWT_ENFORCE policy
 // (discovery above stays open; feedback below is likewise guarded).

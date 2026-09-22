@@ -3,6 +3,10 @@
  * dating and counting. Pure and React-free; the components that use them live
  * in components/ChartArtifacts.tsx.
  */
+import { bestArtifactDate, type DatedResourceLike } from '@spier/core/lib/artifactDate'
+import { displayFor } from '@spier/core/lib/codedOption'
+import { RISK_TIERS } from '@spier/core/lib/riskEpisode'
+import { tierForCodings } from '@spier/core/lib/conceptCrosswalk'
 import { toolForResponse } from '@spier/core/lib/patientPathway'
 import type {
   FhirResourceLike,
@@ -40,11 +44,15 @@ const SCORE_CHIP_LABELS: Record<string, string> = {
 }
 
 /**
- * The clinical score(s) a stage's Observations carry, e.g. "PHQ-9 total: 14".
- * Read straight off the persisted resource value; empty when no scored
- * observation exists.
+ * The clinical score(s) a set of Observations carry, e.g. "PHQ-9 total: 14".
+ *
+ * ⚠️ **No longer the collapsed stage's readout** — see `stageRecordRows` at the
+ * foot of this file, which answers with an instrument, an outcome and a date
+ * instead. What is left of this is `artifactLabel`'s last-resort name for an
+ * Observation whose code says nothing, which is a different job: one resource,
+ * no date, and a caller that has already failed to name it twice.
  */
-export function scoreSummaryOf(observations: FhirResourceLike[]): string {
+function scoreSummaryOf(observations: FhirResourceLike[]): string {
   return observations
     .map(rawObs => {
       const o = rawObs as RenderableResource
@@ -277,4 +285,87 @@ export function artifactLabel(resource: FhirResourceLike): string {
     )
   }
   return workflowArtifactDisplay(resource).name
+}
+
+/* ---------- The collapsed stage's readout ---------- */
+
+/**
+ * One line per thing recorded at a stage: what was used, what it said, when.
+ *
+ * ⚠️ **This replaces a run-on score chip** — `scoreSummaryOf` joined every
+ * value at a stage into `PHQ-9 total: 9 · PHQ-9 item 9: 1`, which answers "what
+ * numbers are here" and not the question a clinician scanning a passed stage is
+ * actually holding: *which instrument, what did it say, and how old is it*. A
+ * score with no date is the one of those three that can mislead on its own.
+ *
+ * An Observation already IS those three facts, so it maps to a row directly.
+ * Everything else at the stage — a safety plan, a referral, a packet — is named
+ * with its lifecycle state in the outcome column, because "Referral · Active"
+ * and "Referral · Completed" are the distinction that column exists to carry.
+ *
+ * ⚠️ The date is `bestArtifactDate`, the one date helper (`check:dupes` fails a
+ * second field-precedence list), and it is the CLINICAL date where the resource
+ * has one — not the save stamp.
+ */
+export interface StageRecordRow {
+  /** The instrument or artifact, in the clinician's words. */
+  tool: string
+  /** What it said: the score, the coded result, or the lifecycle state. */
+  outcome: string
+  /** Locale date, or an empty string when the resource carries none. */
+  when: string
+}
+
+/** `PHQ-9 total` is the score's name; `PHQ-9` is the instrument's. */
+function instrumentOf(label: string): string {
+  return label.endsWith(' total') ? label.slice(0, -' total'.length) : label
+}
+
+function observationRow(resource: FhirResourceLike): StageRecordRow | null {
+  const o = resource as RenderableResource & {
+    valueCodeableConcept?: CodeableConcept
+  }
+  const code = o.code?.coding?.[0]?.code
+  const label =
+    (code && SCORE_CHIP_LABELS[code]) || o.code?.text || o.code?.coding?.[0]?.display || 'Result'
+
+  const value = o.valueInteger ?? o.valueQuantity?.value
+  // A value that crosswalks to the harmonized tier is named by the tier's own
+  // display rather than by the instrument's word for it — the whole point of the
+  // concept layer is that one vocabulary reads across instruments.
+  const tier = tierForCodings(o.valueCodeableConcept?.coding)
+  const coded =
+    o.valueCodeableConcept?.text ??
+    o.valueCodeableConcept?.coding?.[0]?.display ??
+    (tier === undefined ? undefined : displayFor(RISK_TIERS, tier))
+
+  const outcome = [value === undefined || value === null ? null : String(value), coded]
+    .filter(Boolean)
+    .join(' — ')
+  if (!outcome) return null
+
+  const iso = bestArtifactDate(resource as DatedResourceLike)
+  return {
+    tool: instrumentOf(label),
+    outcome,
+    when: iso ? new Date(iso).toLocaleDateString() : '',
+  }
+}
+
+export function stageRecordRows(buckets: ArtifactBuckets): StageRecordRow[] {
+  const rows = buckets.observations.map(observationRow).filter((r): r is StageRecordRow => r !== null)
+
+  // Stages that record an ACT rather than a measurement — a safety plan, a
+  // handoff, a follow-up — carry no Observation, and a stage that shows nothing
+  // when it holds a completed safety plan is the collapsed row at its least
+  // useful. Same three columns; the state is the outcome.
+  for (const resource of [...buckets.carePlans, ...buckets.workflowArtifacts]) {
+    const iso = bestArtifactDate(resource as DatedResourceLike)
+    rows.push({
+      tool: artifactLabel(resource),
+      outcome: lifecycleWord((resource as RenderableResource).status) ?? '',
+      when: iso ? new Date(iso).toLocaleDateString() : '',
+    })
+  }
+  return rows
 }

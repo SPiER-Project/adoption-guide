@@ -134,7 +134,6 @@ const LENSES = {
   // route of the Patient lens has no layout above it to draw a header — the
   // same shape as PathwayStage and WhyThis, and the same extra reason: in the
   // panel each page's `up` is the only way back to the chart.
-  'PatientWhere.tsx': 'the eight-stage rail as a page; a drill-in from the landing card, and its `up` is the way back',
   'PatientOnFile.tsx': 'everything recorded for the patient as a page; a drill-in from the landing card, and its `up` is the way back',
 }
 

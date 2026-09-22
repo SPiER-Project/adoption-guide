@@ -158,10 +158,12 @@ export function MeasureDashboard() {
   if (scope !== 'registry') {
     return (
       <div className="measure-dashboard">
+        {/* ⚠️ The trail is the ANCESTOR only. It read `Caseload / Measures`
+            above a title that also said "Measures" — the last segment of a
+            breadcrumb is the page you are on, and the page's name is the title.
+            (2026-09-22, with the rest of the header's move to a real trail.) */}
         <PageHeader
-          eyebrow={['Caseload', 'Measures']}
-          up="/population/caseload"
-          eyebrowStyle="pill"
+          eyebrow={[{ label: 'Caseload', to: '/population/caseload' }]}
           title="Measures"
           lede="How this programme is doing, over every patient on the caseload."
         />
@@ -184,9 +186,7 @@ export function MeasureDashboard() {
           question and the Adoption Guide answers it; the quality lead reading
           this wants to know what the page IS (audit §8.5). */}
       <PageHeader
-        eyebrow={['Caseload', 'Measures']}
-        up="/population/caseload"
-        eyebrowStyle="pill"
+        eyebrow={[{ label: 'Caseload', to: '/population/caseload' }]}
         title="Measures"
         lede="How this programme is doing, over every patient on the caseload. Computed each time you open it — nothing here is saved."
       />

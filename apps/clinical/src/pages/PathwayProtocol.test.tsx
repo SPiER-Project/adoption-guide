@@ -92,18 +92,20 @@ describe('PathwayProtocol — the pathway in the embedded panel', () => {
     renderPage()
     expect(screen.getByText(/not where this patient/)).toBeDefined()
     const back = screen.getByRole('link', { name: /where this patient is/ })
-    expect(back.getAttribute('href')).toBe('/patient/where')
+    expect(back.getAttribute('href')).toBe('/patient/record')
   })
 
   it('offers a way back out — the only one the panel has', () => {
     renderPage()
-    // PageHeader `up`: in panel chrome there is no sidebar, so this is the exit.
-    // ⚠️ Matched on "Patient Chart" since 2026-09-09, and the rename is the
-    // point rather than an incidental edit: the eyebrow used to say "Patient
-    // View" — a lens that no longer exists — while `up` already pointed at the
-    // chart. The trail now names what it links to, which is what PageHeader's
-    // contract asks for.
-    const up = screen.getByRole('link', { name: /Patient Chart/ })
+    // The header's trail: in panel chrome there is no sidebar, so this is the
+    // exit.
+    // ⚠️ The name has moved twice, and each move was the point rather than an
+    // incidental edit. "Patient View" was a lens that no longer exists; the
+    // eyebrow became "Patient Chart" on 2026-09-09 so it named what it linked
+    // to; it is "Care pathway" since 2026-09-22 because that is what the page it
+    // links to now IS, and because the eyebrow is a trail rather than a back
+    // button (`PageHeader`'s `Crumb`).
+    const up = screen.getByRole('link', { name: /Care pathway/ })
     expect(up.getAttribute('href')).toBe('/patient/record')
   })
 

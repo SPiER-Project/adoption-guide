@@ -8,7 +8,7 @@
  * things three different ways.
  *
  * ⚠️ **No patient in the path**, for the same reason as `/patient/why` and
- * `/patient/where`: the active patient travels in context.
+ * `/patient/why`: the active patient travels in context.
  *
  * The list itself, and what it stopped explaining, is `components/OnFileList.tsx`.
  */
@@ -76,9 +76,7 @@ export function PatientOnFile() {
   return (
     <div className="patient-on-file">
       <PageHeader
-        eyebrow="Patient Chart"
-        up="/patient/record"
-        eyebrowStyle="pill"
+        eyebrow={[{ label: 'Care pathway', to: '/patient/record' }]}
         title={'What\u2019s on file'}
         lede={`${total} ${total === 1 ? 'record' : 'records'}`}
       />

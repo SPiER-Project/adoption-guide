@@ -2,8 +2,14 @@
    `.patient-chart-title`) is the shared PageHeader now. `.patient-chart-reset`
    went with it: it styled a button this page stopped rendering, and the rules
    had outlived their element. */
+/* ⚠️ **Prose, not wide, since the pathway became this page** (2026-09-22). It
+   was wide when the chart was one card and three record sections; the eight-row
+   list carries the reason `/patient/where` used prose — at the wide measure the
+   status pill sits an inch of empty track away from the title it belongs to,
+   and the list is eight rows to read DOWN rather than a table to scan across.
+   One owner per route, and this is it (`docs/internals/css-and-page-template.md`). */
 .patient-chart {
-  max-width: var(--page-width-wide);
+  max-width: var(--page-width-prose);
 }
 
 /* Cap the body, not the band — the tinted band is page-level framing, so it
@@ -19,15 +25,16 @@
    characters a line. */
 
 /* ===========================
-   Vertical pathway rail
+   Stage list (was the vertical rail — the numbered markers and the spine
+   between them came off 2026-09-22; see `.pathway-node`)
 
    One rail replaces what used to be three parallel retellings of the same
    eight stages (horizontal stepper, detached recommendation stack, stage
    activity list). Each node carries its own status, actions and records, so
    "what do I do next" is answered where the reader is already looking.
 
-   ⚠️ **"Current" is the brand accent, not --accent-info.** The active marker,
-   the "You are here" pill, the active card's border, the "Do now" flag and the
+   ⚠️ **"Current" is the brand accent, not --accent-info.** The "You are here"
+   pill, the active card's border, the "Do now" flag and the
    recommended-actions count were all info blue — the same hue as the host EHR's
    primary button, on a demo whose whole subject is which pixels belong to whom
    (services/mock-ehr/README.md § The look of the host). Reviewed in the panel
@@ -37,23 +44,15 @@
    indicator scale (`.cds-card--info` and friends) is CDS Hooks semantics and is
    deliberately left alone.
    =========================== */
-/* *Where this patient is* — the page the rail became. Prose width: it is eight
-   rows to read down, and the wide measure left the status pill an inch of empty
-   track away from the title it belongs to. */
-.patient-where {
-  max-width: var(--page-width-prose);
-}
-
 .pathway {
   margin-bottom: var(--space-8);
   scroll-margin-top: var(--anchor-scroll-offset);
 }
 
-.pathway-progress-actions {
-  /* Not the accent: coloured like a link, it read as one, and it went nowhere. */
-  color: var(--text-strong);
-  font-weight: 600;
-}
+/* `.pathway-progress-actions` styled the "N recommended actions" clause of the
+   page header's status line. The line came off entirely 2026-09-22 (see
+   `pages/PatientWhere.tsx`) — every clause of it is a pill on a row below — so
+   the rule went with the markup rather than being left for `check:css-dead`. */
 
 /* Cards whose stage id doesn't resolve — surfaced above the rail rather than
    dropped, since a recommendation is the one thing this page must not lose. */
@@ -70,69 +69,16 @@
   padding: 0;
 }
 
-/* Marker column + card, with the connecting spine drawn behind the marker. */
+/* One stacked card per stage. ⚠️ **The marker column and the spine are gone**
+   (2026-09-22): a numbered circle and the line through it restated the card
+   title's own "Step N" and the status pill's own "Complete", in a column that
+   cost 1.75rem of a 470px panel and was `aria-hidden` — decoration narrowing
+   the thing it duplicated. `position: relative` stays: it is what
+   `.pathway-node-anchor` is positioned against. */
 .pathway-node {
   position: relative;
-  display: grid;
-  grid-template-columns: 1.75rem 1fr;
-  gap: var(--space-3);
   padding-bottom: var(--space-3);
   scroll-margin-top: var(--anchor-scroll-offset);
-}
-
-/* The spine runs from just under this node's marker to the next node's. */
-.pathway-node::before {
-  content: '';
-  position: absolute;
-  left: 0.875rem;
-  top: 1.9rem;
-  bottom: -0.15rem;
-  width: 2px;
-  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- not spacing: half the rule's own 2px width, to centre it on its axis */
-  margin-left: -1px;
-  background: var(--border-default);
-}
-
-.pathway-node:last-child::before {
-  display: none;
-}
-
-.pathway-node--done::before {
-  background: var(--risk-low-faded);
-}
-
-.pathway-node-marker {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: var(--radius-circle);
-  border: 1px solid var(--border-default);
-  background: var(--surface-muted);
-  color: var(--text-muted);
-  font-size: var(--font-size-sm);
-  font-weight: 700;
-  position: relative;
-  z-index: 1;
-}
-
-.pathway-node--done .pathway-node-marker {
-  background: var(--risk-low);
-  border-color: var(--risk-low);
-  color: var(--text-on-brand);
-}
-
-.pathway-node--active .pathway-node-marker {
-  background: var(--brand-primary);
-  border-color: var(--brand-primary);
-  color: var(--text-on-brand);
-  box-shadow: var(--shadow-brand-glow);
-}
-
-.pathway-node--passed .pathway-node-marker {
-  background: var(--surface-card);
-  border-color: var(--border-strong);
 }
 
 .pathway-node-card {
@@ -268,6 +214,68 @@
   font-size: var(--font-size-xs);
   font-weight: 600;
   color: var(--text-muted);
+}
+
+/* ===========================
+   The collapsed stage's readout: what was used, what it said, when.
+
+   Three columns rather than a run-on chip (Brad, 2026-09-22). A `<dl>` because
+   that is what it is — a term and its values — and the grid is declared on the
+   ROW rather than the list so each row's three cells align to the same tracks
+   without the list having to know how many rows there are.
+
+   ⚠️ **The stack is the PHONE's, and the panel keeps its three columns.** The
+   obvious-looking `.panel-shell` copy of the stack was written first and then
+   measured out: an instrument name is short by the time it reaches this column
+   (`PHQ-9`, not `PHQ-9 total score`), and three columns fit a 470px dock with
+   room to spare — stacking there bought nothing and cost every row a second
+   line. A phone is a different case: the node's own padding and the page inset
+   leave the outcome column too narrow to read a tier display in.
+   =========================== */
+.pathway-node-rows {
+  margin: var(--space-1) 0 0;
+}
+
+.pathway-node-row {
+  display: grid;
+  grid-template-columns: minmax(0, 7rem) minmax(0, 1fr) auto;
+  gap: var(--gap-inline);
+  align-items: baseline;
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+}
+
+.pathway-node-row + .pathway-node-row {
+  margin-top: var(--space-0-5);
+}
+
+.pathway-node-row__tool {
+  font-weight: 600;
+  color: var(--text-base);
+}
+
+.pathway-node-row__outcome {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+/* The date is the quietest of the three and the one that must not wrap: a
+   half-printed date is worse than none. */
+.pathway-node-row__when {
+  margin: 0;
+  color: var(--text-faint);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 639px) {
+  .pathway-node-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .pathway-node-row__tool {
+    grid-column: 1 / -1;
+  }
 }
 
 .pathway-node-status--done     { background: var(--risk-low-faded); color: var(--risk-low-soft-text); }
@@ -419,8 +427,8 @@
    ⚠️ **Measured, at the 470px the step-0 spike settled on (panel plan §9.1).**
    A COLLAPSED stage — one line of text and a status pill — was **90px**, because
    the `max-width: 600px` rule above fires inside the panel and stacks the pill
-   onto its own row. Six collapsed stages is 540px of a 900px viewport spent
-   restating what the marker column already says.
+   onto its own row. Six collapsed stages is 540px of a 900px viewport spent on
+   rows that say one thing each.
 
    Three changes, in descending order of what they buy:
 
@@ -429,33 +437,17 @@
       vertical room and no horizontal room. A docked panel has the opposite
       problem — the entire reason `PanelShell` exists — so it gets the opposite
       answer rather than inheriting one aimed at a different device.
-   2. **Narrow the marker column.** 1.75rem of gutter plus a --space-3 gap is
-      44px of horizontal room spent on a check mark; 1.25rem and --space-2 give
-      24px of it back to the title, which is what lets the row stay one line.
+   2. **Give the title the gutter.** This narrowed the marker column from
+      1.75rem to 1.25rem for 24px of horizontal room, which is what let the row
+      stay one line. ⚠️ Superseded 2026-09-22: the column is gone entirely and
+      the title has all 44px, so nothing here needs to buy it back.
    3. **Step the title down one size.** --font-size-lg is a heading size for a
       page that has a heading; in a panel the page title is already one line of
       --font-size-base above, and a larger stage title competes with it.
 
-   The spine and the marker keep their alignment because both are derived from
-   the same measurements — `left` is half the marker's width, and `top` clears
-   it. Changing the marker size without those two is what leaves the spine
-   floating beside the checks rather than through them.
    =========================== */
 .panel-shell .pathway-node {
-  grid-template-columns: 1.25rem 1fr;
-  gap: var(--space-2);
   padding-bottom: var(--space-2);
-}
-
-.panel-shell .pathway-node-marker {
-  width: 1.25rem;
-  height: 1.25rem;
-  font-size: var(--font-size-2xs);
-}
-
-.panel-shell .pathway-node::before {
-  left: 0.625rem;
-  top: 1.4rem;
 }
 
 /* Overrides the phone stack above — a class more, so specificity decides it and
@@ -527,3 +519,17 @@
   text-decoration: underline;
 }
 
+
+/* The record, one tap off the pathway. Was one of two links on the landing
+   card; the other one's destination is this page now. */
+.patient-chart__on-file {
+  display: flex;
+  align-items: baseline;
+  gap: var(--gap-inline);
+  margin: var(--space-5) 0 0;
+  font-size: var(--font-size-base);
+}
+
+.patient-chart__fact {
+  color: var(--text-muted);
+}

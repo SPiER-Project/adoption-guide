@@ -273,8 +273,6 @@ nothing failing. `chartPage.test.ts` pins the ordering.
 # services/mock-ehr/.dev.vars
 MOCK_PANEL_BASE_URL=http://localhost:8788/
 MOCK_REDIRECT_URIS=http://localhost:8788/
-# Only if the CDS Hooks service is NOT on the panel's origin (it is, locally):
-# MOCK_CDS_BASE_URL=http://localhost:8788/
 
 # services/guide/.dev.vars
 PANEL_FRAME_ANCESTORS='self' http://localhost:8787
@@ -286,6 +284,30 @@ Then `npm run dev -- --port 8787` here and `npm run dev -- --port 8788` in
 refused **without a `Location` header**, and a panel whose `frame-ancestors` does
 not name this origin renders as a blocked frame. ⚠️ `wrangler dev` does **not**
 hot-reload `.dev.vars` — restart it.
+
+### Local dev against the CDS Hooks service
+
+**The service is reached through a service binding** (`CDS` in `wrangler.jsonc`),
+not by URL — see the note there for why a plain `fetch` to its `workers.dev` URL
+is refused by the edge. `wrangler dev` binds it through the local dev registry,
+so `services/cds` has to be running (`npm run dev -- --port 8790`, the
+`cds-worker` launch config) or the chart says
+`Worker "spier-cds" not found. Make sure it is running locally.`
+
+That is a **real** exercise of the deployed path, including the signature — so
+the service has to be told to trust a localhost client, which the deployed
+config deliberately does not:
+
+```
+# services/cds/.dev.vars
+CDS_JWT_TRUSTED_ISSUERS=http://localhost:8787
+CDS_JWT_JKU_ALLOWED_HOSTS=localhost:8787
+```
+
+Without those two the invoke is a 401 naming which half was refused
+(`jku host not allowlisted: localhost:8787`). `aud` needs nothing: this host
+mints it from `MOCK_CDS_BASE_URL`, which stays the deployed URL because the
+binding — not the URL — decides where the request goes.
 
 ## This host is a CDS Client, and it signs
 

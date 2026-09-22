@@ -518,6 +518,32 @@ describe('the chart leads with the launch, and carries no controls', () => {
     expect(module).toMatch(/\/_admin\/writes\?patient=/)
     expect(module).toContain('added to this chart by an earlier demo')
   })
+
+  it('reserves a line beside the button for what the service says, and the module fills it', async () => {
+    // The reason to press Launch SPiER, stated for THIS patient rather than in
+    // general (2026-09-22). The server cannot render it — it is the CDS
+    // service's answer and arrives after the page — so the page reserves the
+    // element hidden and the client module fills it from the top card.
+    //
+    // ⚠️ **Both ids, asserted from both sides.** The failure this catches is a
+    // rename on one side only: the page would render a permanently empty line
+    // and the module would silently do nothing, and neither half is wrong on
+    // its own. `must()` throws on a missing id, so the real page would break
+    // loudly — but only for someone who opened it with the service reachable,
+    // which no test and no local run does (the service enforces `iss`/`jku`
+    // against the deployed host).
+    const chart = await html('/chart/patient-002')
+    expect(chart.body).toMatch(/id="launch-state" hidden/)
+    expect(chart.body).toContain('id="launch-story"')
+    // Inside the launch card, above the protocol note — not down with the cards.
+    expect(chart.body.indexOf('id="launch-state"')).toBeLessThan(
+      chart.body.indexOf('Recommendations from SPiER'),
+    )
+
+    const module = await clientModule('/chart/patient-002')
+    expect(module).toContain('launch-state')
+    expect(module).toContain('launch-story')
+  })
 })
 
 /**

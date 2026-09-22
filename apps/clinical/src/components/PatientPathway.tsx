@@ -32,9 +32,9 @@
  * themselves are the landing screen's, and rendering them here too is §1.5
  * rebuilt one layer down.
  */
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { Check, ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import { STAGES, stageBlurb, stageById } from '@spier/core/data/catalog'
 import type { Card, CdsIndicator } from '@spier/core/lib/cdsHooks'
 import type { StageArtifacts, StageStatus } from '@spier/core/lib/patientPathway'
@@ -42,7 +42,7 @@ import { FhirJsonViewer } from '@spier/tool-views/components/FhirJsonViewer'
 import { useInspect } from '@spier/tool-views/context/InspectContext'
 import { usePresentation } from '@spier/tool-views/context/PresentationContext'
 import { ArtifactCards } from './ChartArtifacts'
-import { artifactCount, scoreSummaryOf } from '../lib/chartDisplay'
+import { artifactCount, stageRecordRows } from '../lib/chartDisplay'
 import { CDS_INDICATOR_ICON } from '@spier/tool-views/lib/statusIcons'
 import { EmptyState } from '@spier/ui/EmptyState'
 import { Pill } from '@spier/ui/Pill'
@@ -202,6 +202,7 @@ function StageNode({
   open,
   onToggle,
   anchorId,
+  action,
 }: {
   index: number
   group: StageArtifacts
@@ -213,11 +214,21 @@ function StageNode({
   onToggle: () => void
   /** Extra in-page anchor hosted by this node (the sidebar's #recommendations). */
   anchorId?: string
+  /**
+   * What the pathway owes at this stage, when it owes anything here.
+   *
+   * ⚠️ **Rendered FIRST inside the body, above the stage's own description.** An
+   * open stage with a title, a blurb and a list of what is already recorded is
+   * what "there's no clear action to be taken" meant (Brad, 2026-09-22): the
+   * reader had to infer the act from the stage's name and go looking for the
+   * tool. Supplied by the page, not decided here.
+   */
+  action?: ReactNode
 }) {
   const stage = stageById(group.stageId)
   const count = artifactCount(group)
   const state = nodeStateOf(status, count > 0)
-  const scoreSummary = scoreSummaryOf(group.observations)
+  const rows = stageRecordRows(group)
   // ⚠️ **"Due" is the PATHWAY's count, not the card count**, and that is the
   // whole difference from the rule this replaced. Until PR 4 the rail held the
   // obligations themselves, so "a card is here" and "something is owed here"
@@ -227,9 +238,12 @@ function StageNode({
   // "four labels for one state" (§1.6) was, one layer down.
   const hasCards = cards.length > 0
   const needsAttention = dueCount > 0
-  // Collapsed one-liner: the scores if there are any, else how much is here.
-  const summary =
-    scoreSummary || (count > 0 ? `${count} ${count === 1 ? 'record' : 'records'}` : '')
+  // Collapsed readout: one line per thing recorded here — what was used, what
+  // it said, when. ⚠️ **The date is the addition that matters.** This was a
+  // run-on score chip (`PHQ-9 total: 9 · PHQ-9 item 9: 1`), so a screen from
+  // eighteen months ago and one from this morning read identically on a
+  // collapsed stage (Brad, 2026-09-22). A stage holding records that yield no
+  // rows still says how much is there rather than reading empty.
 
   return (
     <li
@@ -238,9 +252,14 @@ function StageNode({
         needsAttention ? 'pathway-node--attention' : ''
       }`}
     >
-      <span className="pathway-node-marker" aria-hidden>
-        {state === 'done' ? <Check size={16} /> : index + 1}
-      </span>
+      {/* ⚠️ **No marker column and no spine since 2026-09-22.** The rail drew a
+          numbered circle (a check once the stage was done) with a connecting
+          line through it, beside a card whose title already reads "Step N" and
+          whose status pill already reads "Complete". Three encodings of the
+          same two facts, the outer one costing 1.75rem of a 470px panel and
+          carrying `aria-hidden` — so it was decoration that pushed the title
+          it duplicated into a narrower column. Order is the stacking; state is
+          the pill and the card's border. */}
       <div className="pathway-node-card">
         {anchorId && <span id={anchorId} className="pathway-node-anchor" />}
         {/* ⚠️ **Two controls, not one, and the split is audit §4.3's "each row
@@ -282,13 +301,30 @@ function StageNode({
         {/* ⚠️ The one useful fact about a collapsed stage sits on its OWN line,
             not beside the pills. Inside the aside it cost the title most of a
             375px row and wrapped "Identify Possible Risk" onto three lines. */}
-        {!open && summary && <p className="pathway-node-summary">{summary}</p>}
+        {!open && rows.length > 0 && (
+          <dl className="pathway-node-rows">
+            {rows.map((row, i) => (
+              <div className="pathway-node-row" key={`${row.tool}-${i}`}>
+                <dt className="pathway-node-row__tool">{row.tool}</dt>
+                <dd className="pathway-node-row__outcome">{row.outcome}</dd>
+                <dd className="pathway-node-row__when">{row.when}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+        {!open && rows.length === 0 && count > 0 && (
+          <p className="pathway-node-summary">
+            {count} {count === 1 ? 'record' : 'records'}
+          </p>
+        )}
 
         {open && (
           <div className="pathway-node-body">
             {/* The clinician's sentence, not the CodeSystem's definition — see
                 the module header and `packages/core/src/data/catalog/stageBlurbs.ts`. */}
             <p className="pathway-node-desc">{stageBlurb(group.stageId)}</p>
+
+            {action}
 
             {hasCards && (
               <div className="pathway-node-actions">
@@ -305,9 +341,7 @@ function StageNode({
 
             {count > 0 && (
               <div className="pathway-node-records">
-                <h5 className="pathway-node-section-title">
-                  Recorded here{scoreSummary && ` \u00b7 ${scoreSummary}`}
-                </h5>
+                <h5 className="pathway-node-section-title">Recorded here</h5>
                 <ArtifactCards
                   responses={group.responses}
                   carePlans={group.carePlans}
@@ -318,7 +352,10 @@ function StageNode({
               </div>
             )}
 
-            {count === 0 && !hasCards && (
+            {/* ⚠️ Not when the stage carries the act. "Nothing recorded at this
+                stage yet" under a recommendation to record something there is a
+                sentence that argues with the button above it. */}
+            {count === 0 && !hasCards && !action && (
               <EmptyState>
                 {state === 'passed'
                   ? 'The pathway moved past this stage without anything being recorded here.'
@@ -332,58 +369,6 @@ function StageNode({
   )
 }
 
-/* ---------- The one-line status ---------- */
-
-/**
- * Where the patient is on the pathway, in one line. Exported because in panel
- * chrome it is NOT rendered by the rail: the chart's `PageHeader` carries it as
- * the lede, so the panel shows one title and one status line instead of a page
- * title, a rail title and a two-line progress sentence stacked above the first
- * stage (112px of a 740px frame, measured 2026-09-02). `compact` drops the
- * "N of 8 stages with activity" clause, which the rail's markers already show.
- */
-export function PathwayProgress({
-  statuses,
-  actionCount,
-  compact = false,
-}: {
-  statuses: Record<string, StageStatus>
-  actionCount: number
-  compact?: boolean
-}) {
-  const withActivity = STAGES.filter(s => statuses[s.id] === 'complete').length
-  const activeStage = STAGES.find(s => statuses[s.id] === 'active')
-  return (
-    <>
-      {activeStage ? (
-        <>
-          <strong>
-            {compact ? 'Step' : 'Now at step'} {STAGES.indexOf(activeStage) + 1} of {STAGES.length}
-          </strong>
-          {' — '}
-          {activeStage.title}
-        </>
-      ) : (
-        <strong>All {STAGES.length} stages passed</strong>
-      )}
-      {!compact && (
-        <>
-          {' · '}
-          {withActivity} of {STAGES.length} stages with activity
-        </>
-      )}
-      {actionCount > 0 && (
-        <>
-          {' · '}
-          <span className="pathway-progress-actions">
-            {actionCount} recommended {actionCount === 1 ? 'action' : 'actions'}
-          </span>
-        </>
-      )}
-    </>
-  )
-}
-
 /* ---------- The rail ---------- */
 
 export function PatientPathway({
@@ -391,6 +376,7 @@ export function PatientPathway({
   statuses,
   cards,
   dueByStage,
+  action,
 }: {
   stageGroups: StageArtifacts[]
   statuses: Record<string, StageStatus>
@@ -401,6 +387,15 @@ export function PatientPathway({
    * reads, so the two cannot disagree about what is owed.
    */
   dueByStage?: Record<string, number>
+  /**
+   * What the pathway owes, and the stage to render it at.
+   *
+   * ⚠️ **The chart's answer to "what do I do" lives INSIDE the open stage since
+   * 2026-09-22.** It was a card above this list, on a page the list was a link
+   * away from; the two questions are one screen now. The node it sits at is
+   * opened by default and cannot be the reader's problem to find.
+   */
+  action?: { stageId: string; node: ReactNode }
 }) {
   // Cards target a stage through the `spier-stage-id` extension the builder
   // already stamps. A card whose stage doesn't resolve would otherwise vanish
@@ -426,10 +421,15 @@ export function PatientPathway({
   // exists to surface).
   const autoOpen = useMemo(
     () =>
-      STAGES.filter(s => statuses[s.id] === 'active' || (byStage.get(s.id)?.length ?? 0) > 0).map(
-        s => s.id,
-      ),
-    [statuses, byStage],
+      STAGES.filter(
+        s =>
+          // The stage the pathway owes something at, which is the chart's whole
+          // answer and is therefore never collapsed.
+          s.id === action?.stageId ||
+          statuses[s.id] === 'active' ||
+          (byStage.get(s.id)?.length ?? 0) > 0,
+      ).map(s => s.id),
+    [statuses, byStage, action?.stageId],
   )
   const [open, setOpen] = useState<Set<string>>(() => new Set(autoOpen))
 
@@ -460,7 +460,7 @@ export function PatientPathway({
     <section id="activity" className="pathway">
       {/* ⚠️ **No header and no progress line in EITHER chrome since 2026-09-21.**
           The rail is a page now and `pages/PatientWhere.tsx` owns its header —
-          title, up-link and `PathwayProgress` as the lede. It drew its own in a
+          a title and an up-link, and since 2026-09-22 nothing else. It drew its own in a
           standalone tab while the panel suppressed them, which is exactly the
           "one owner per page" rule `docs/internals/css-and-page-template.md`
           states; the rail simply stopped being the thing that owns it. */}
@@ -489,6 +489,7 @@ export function PatientPathway({
             open={open.has(group.stageId)}
             onToggle={() => toggle(group.stageId)}
             anchorId={group.stageId === recommendationsHost ? 'recommendations' : undefined}
+            action={action?.stageId === group.stageId ? action.node : undefined}
           />
         ))}
       </ol>

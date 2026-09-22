@@ -67,6 +67,22 @@ export interface SurfaceLinks {
    * plain text for `null` rather than a link to nowhere.
    */
   launchHref: (slug: string) => string | null
+  /**
+   * The trail above a form view on this surface — its ancestors, outermost
+   * first, NOT including the form's own title.
+   *
+   * ⚠️ **A function of the PATH, not a prop on each of the 29 views.** The stage
+   * a form sits at is in the catalog, derived from the FSH; asking each view to
+   * declare it again would be 29 chances to type the wrong one, gated by
+   * nothing. The surface resolves it from where the reader actually is.
+   *
+   * ⚠️ **Optional, because a surface may genuinely have no trail to give.** The
+   * guide's tool pages ARE the tool's page — the form is not a drill-in from
+   * anywhere — so the guide returns nothing and the header falls back to
+   * `parent`. A default here would name one surface's hierarchy, which is the
+   * defect this whole context exists to prevent.
+   */
+  trailFor?: (pathname: string) => Array<{ label: string; to: string }>
 }
 
 export const SurfaceLinksContext = createContext<SurfaceLinks | undefined>(undefined)

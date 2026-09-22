@@ -12,6 +12,17 @@ views in `packages/tool-views/`, and the mock EHR that launches them
 PR 7's own audit of the care manager's two screens, written before they were
 touched.
 
+**Status 2026-09-22 — §4.1 and §4.3 are SUPERSEDED.** The shape those sections
+argued for — the chart as one instruction, with the eight-stage list a link away
+at `/patient/where` — lasted a day. Brad, 2026-09-22: a clinician opening a chart
+wants *where is this patient* and *what do I do* at once, and they are one screen
+when the act is drawn inside the stage it satisfies. The list is the landing
+screen again, `NextAction` renders the obligation inside the open stage, and both
+files those sections created are gone (`ChartLanding.tsx` became `NextAction.tsx`;
+`PatientWhere.tsx` was deleted and `/patient/where` redirects to the chart). What
+§4.1 got right and this keeps: the chart answers *what do I do* once, and nothing
+else on it answers the same question a second time.
+
 **Status 2026-09-21 (PR 7):** the care manager's two screens were audited
 first (§8, appended before anything was edited) and then redesigned on those
 findings — §1.10, §1.11, §1.12, §4.8, §4.9.

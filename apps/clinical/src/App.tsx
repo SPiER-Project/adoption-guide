@@ -54,7 +54,6 @@ import { TOOL_VIEWS } from '@spier/tool-views/data/toolViews'
 const ToolConfiguration = lazy(() => import('./pages/ToolConfiguration').then(m => ({ default: m.ToolConfiguration })))
 const PatientChart = lazy(() => import('./pages/PatientChart').then(m => ({ default: m.PatientChart })))
 const PathwayProtocol = lazy(() => import('./pages/PathwayProtocol').then(m => ({ default: m.PathwayProtocol })))
-const PatientWhere = lazy(() => import('./pages/PatientWhere').then(m => ({ default: m.PatientWhere })))
 const PatientOnFile = lazy(() => import('./pages/PatientOnFile').then(m => ({ default: m.PatientOnFile })))
 const WhyThis = lazy(() => import('./pages/WhyThis').then(m => ({ default: m.WhyThis })))
 const PathwayStage = lazy(() => import('./pages/PathwayStage').then(m => ({ default: m.PathwayStage })))
@@ -124,13 +123,16 @@ function AppRoutes() {
               active patient persists across non-chart routes exactly as it does
               for /patient/pathway/:stageId beside it. */}
           <Route path="why" element={<WhyThis />} />
-          {/* The two pages the landing screen's two links open (audit §4.3,
-              §4.4). They were anchors on the chart until 2026-09-21, which is
-              what made the chart a scroll with its own answer at the top of it:
-              the rail and the record are things a clinician opens on purpose.
-              Like `why` above they take no patient in their path — the active
-              patient travels in context. */}
-          <Route path="where" element={<PatientWhere />} />
+          {/* ⚠️ `where` is the FRONT DOOR now, not a page (Brad, 2026-09-22).
+              The eight-stage list was moved off the chart by the audit (§4.3)
+              and moved back onto it as the landing screen, with the act drawn
+              inside the open stage — so this URL means "you wanted the chart".
+              It resolves rather than 404s: it is linked from the published
+              protocol page and was live for a day. */}
+          <Route path="where" element={<Navigate to="/patient/record" replace />} />
+          {/* The record, still a page of its own (audit §4.4). Like `why` above
+              it takes no patient in its path — the active patient travels in
+              context. */}
           <Route path="on-file" element={<PatientOnFile />} />
           {/* The published protocol, beside the chart rather than in the guide
               (Phase 4 of docs/plans/suicide-safer-care-pathway.md). This is the

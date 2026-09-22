@@ -1,4 +1,4 @@
-import { TOOLS } from '@spier/core/data/catalog'
+import { STAGES, TOOLS } from '@spier/core/data/catalog'
 import type { SurfaceLinks } from '@spier/tool-views/context/SurfaceLinksContext'
 import { launchSlug } from '@spier/tool-views/lib/launchSlug'
 
@@ -26,6 +26,47 @@ for (const tool of TOOLS) {
   }
 }
 
+/**
+ * Launch path → the pathway stage the tool it launches sits at.
+ *
+ * Derived from the catalog, which derives it from the FSH — the same chain
+ * `check:catalog` already holds. A hand map here would be 29 chances to state a
+ * stage that the published protocol does not agree with.
+ */
+const STAGE_BY_LAUNCH_PATH = new Map<string, string>()
+for (const tool of TOOLS) {
+  for (const action of tool.launchActions) {
+    if (!STAGE_BY_LAUNCH_PATH.has(action.path)) STAGE_BY_LAUNCH_PATH.set(action.path, tool.stageId)
+  }
+}
+
+/**
+ * The trail above a form on the clinician's surface: `Care pathway / Step 4`.
+ *
+ * ⚠️ **This replaced `← PATIENT CHART`** (Brad, 2026-09-22), which was a back
+ * button rather than a trail: on a recorder four levels down it named the chart
+ * and said nothing about the levels between. The step is a link to the stage's
+ * own page, so the trail is navigable rather than decorative.
+ *
+ * ⚠️ **A path this cannot place gets the chart alone**, not a guessed step. A
+ * form reached from somewhere the catalog does not describe is exactly the case
+ * where an invented breadcrumb misleads.
+ *
+ * ⚠️ The two hrefs are literals `check:surface-links` reads (RULE 1), which is
+ * why the stage page's path is written out here rather than assembled from
+ * `STAGES`.
+ */
+function clinicalTrail(pathname: string): Array<{ label: string; to: string }> {
+  const trail = [{ label: 'Care pathway', to: '/patient/record' }]
+  // The launch path may carry a query (`cams-section-a?tool=…`); match the path.
+  const stageId = STAGE_BY_LAUNCH_PATH.get(pathname)
+  const index = STAGES.findIndex(s => s.id === stageId)
+  if (index >= 0) {
+    trail.push({ label: `Step ${index + 1}`, to: `/patient/pathway/${STAGES[index].id}` })
+  }
+  return trail
+}
+
 export const CLINICAL_SURFACE_LINKS: SurfaceLinks = {
   parent: { label: 'Patient Chart', href: '/patient/record' },
   // "Back to chart", the second half of a form's confirmation beat. It has
@@ -39,4 +80,5 @@ export const CLINICAL_SURFACE_LINKS: SurfaceLinks = {
   chartHref: '/patient/record',
   registryHref: '/population/caseload',
   launchHref: (slug) => LAUNCH_PATH_BY_SLUG.get(slug) ?? null,
+  trailFor: clinicalTrail,
 }

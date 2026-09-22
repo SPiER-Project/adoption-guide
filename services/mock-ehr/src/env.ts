@@ -21,6 +21,20 @@ export interface Env extends SmartEnv {
   DEMO_STORE?: DurableObjectNamespace<DemoStore>
   /** The FHIRcast hub (step 6). Absent in unit tests that do not need it. */
   FHIRCAST_HUB?: DurableObjectNamespace<FhircastHub>
+  /**
+   * The CDS Hooks service (`services/cds`), bound Worker-to-Worker.
+   *
+   * ⚠️ **Not a convenience — a plain `fetch()` to its URL CANNOT work from this
+   * Worker.** Both live on `*.bbthorson.workers.dev`, one zone, and Cloudflare
+   * refuses a same-zone Worker subrequest with HTTP 404 / `error code: 1042`.
+   * See the long note in `wrangler.jsonc`.
+   *
+   * Optional because the unit tests pass no env at all; `routes/cds.ts` falls
+   * back to `fetch` for them. `wrangler dev` DOES bind it (through the local dev
+   * registry), so a local run needs `services/cds` running or the invoke 503s
+   * with "Worker not found" — a real exercise of the deployed path.
+   */
+  CDS?: { fetch: typeof fetch }
   /** Profile a freshly started isolate begins with (wrangler.jsonc `vars`). */
   MOCK_CAPABILITY_PROFILE?: string
   /** Where the panel app lives, for the launch URL the control page builds. */

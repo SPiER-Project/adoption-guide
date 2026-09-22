@@ -36,6 +36,17 @@ describe('GET /cds-services (discovery)', () => {
     expect(body.services).toHaveLength(1)
     expect(body.services[0]?.hook).toBe('patient-view')
   })
+
+  // ⚠️ A REGRESSION, reported from a browser 2026-09-22: the spec path matched
+  // exactly and `/cds-services/` was a 404 one character from a 200. Anything
+  // that normalizes a base URL by appending a separator lands there, and the
+  // 404 it gets back is indistinguishable from "no such service".
+  it('answers on the trailing-slash spelling too', async () => {
+    const res = await app.request(`${BASE}/cds-services/`)
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as CdsDiscoveryResponse
+    expect(body.services[0]?.id).toBe('spier-patient-view')
+  })
 })
 
 describe('OPTIONS preflight', () => {

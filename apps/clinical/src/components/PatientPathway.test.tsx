@@ -27,7 +27,7 @@ import type { Card } from '@spier/core/lib/cdsHooks'
 import type { StageArtifacts, StageStatus } from '@spier/core/lib/patientPathway'
 import { PresentationProvider } from '@spier/tool-views/context/PresentationProvider'
 import type { ChromeMode } from '@spier/tool-views/context/PresentationContext'
-import { PatientPathway, PathwayProgress } from './PatientPathway'
+import { PatientPathway } from './PatientPathway'
 
 afterEach(cleanup)
 
@@ -156,24 +156,6 @@ describe('PatientPathway — the header belongs to the page', () => {
       expect(container.querySelector('.pathway-footnote'), mode).toBeNull()
       cleanup()
     }
-  })
-})
-
-describe('PathwayProgress — the one-line status the page header carries', () => {
-  it('compact form: step, stage title and action count, without the activity clause', () => {
-    const { container } = render(<p><PathwayProgress statuses={statuses} actionCount={1} compact /></p>)
-    const text = container.textContent ?? ''
-    expect(text).toContain(`Step 4 of ${STAGES.length}`)
-    expect(text).toContain(STAGES[3].title)
-    expect(text).toContain('1 recommended action')
-    expect(text).not.toContain('stages with activity')
-    expect(text).not.toContain('Now at')
-  })
-
-  it('says so when every stage is passed', () => {
-    const passed = Object.fromEntries(STAGES.map(s => [s.id, 'complete' as StageStatus]))
-    const { container } = render(<p><PathwayProgress statuses={passed} actionCount={0} compact /></p>)
-    expect(container.textContent).toBe(`All ${STAGES.length} stages passed`)
   })
 })
 

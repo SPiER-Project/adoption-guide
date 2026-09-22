@@ -50,7 +50,7 @@
  * things PR 7 is for.
  *
  * ⚠️ **A budget that is mostly the PATIENT'S RECORD rather than SPiER's
- * writing.** `/patient/on-file` and `/patient/where` grow with the chart —
+ * writing.** `/patient/on-file` and `/patient/record` grow with the chart —
  * about eight words a row — so their caps are set from the fullest chart in the
  * demo population with room above it. A real chart with 60 artifacts would
  * breach them and would be right to; the number to change then is the cap, and
@@ -159,7 +159,6 @@ globalThis.ResizeObserver ??= NoopResizeObserver as unknown as typeof ResizeObse
 // is the "not narrow" default the hook documents.
 
 const { PatientChart } = await import('./PatientChart')
-const { PatientWhere } = await import('./PatientWhere')
 const { PatientOnFile } = await import('./PatientOnFile')
 const { WhyThis } = await import('./WhyThis')
 const { PathwayProtocol } = await import('./PathwayProtocol')
@@ -202,12 +201,16 @@ function arrivalWords(root: Element): number {
  */
 const CAPS: Record<string, { cap: number; why: string }> = {
   '/patient/record': {
-    cap: 60,
+    cap: 300,
     why:
-      'Audit §4.1: who, one card, one link, two links with a fact each — "that is the whole screen", ' +
-      'and in a 470×900 panel it fits without scrolling. 34 words today on the fullest chart in the ' +
-      'demo population. This is the smallest budget in the repo and it is meant to be: anything ' +
-      'needing more words than this belongs on one of the pages the two links open.',
+      'The chart IS the eight-stage pathway now (Brad, 2026-09-22), opened at what the record owes. ' +
+      'Audit §4.1 budgeted this page at 60 words when it was one card with the stage list a link ' +
+      'away; the list came back onto it, so its 134 words came with it — 219 on the fullest chart in ' +
+      'the demo population, which is the old /patient/where measurement plus the act now drawn inside ' +
+      'the open stage. Most of it is the patient’s record, about eight words a row, so the cap is set ' +
+      'from the fullest chart with room above it rather than from prose. What it still forbids is the ' +
+      'thing §4.3 cut: CodeSystem definitions written to an EHR vendor, and a second retelling of ' +
+      'what is due.',
   },
   '/patient/why': {
     cap: 150,
@@ -215,14 +218,6 @@ const CAPS: Record<string, { cap: number; why: string }> = {
       'The reasoning behind the one recommendation (§4.2), 80 words. PR 4 measured it at 73 in a ' +
       'browser and at 470×900 it fits without scrolling, which is the property to keep. Its ' +
       'alternatives list is a closed drawer, so it costs its summary and not its contents.',
-  },
-  '/patient/where': {
-    cap: 260,
-    why:
-      'The eight-stage rail (§4.3): eight rows, the open ones carrying one clinician sentence and what ' +
-      'is recorded there. 134 words. It has a budget rather than a shorter form because most of its ' +
-      'length is the patient’s record — what §4.3 cut was the CodeSystem definitions written to an EHR ' +
-      'vendor and the tool chips, and this cap is what stops them coming back as something else.',
   },
   '/patient/on-file': {
     cap: 400,
@@ -323,7 +318,6 @@ const PAGES: Record<string, () => ReactElement> = {
   '/population/measures': MeasureDashboard,
   '/settings': ToolConfiguration,
   '/patient/why': WhyThis,
-  '/patient/where': PatientWhere,
   '/patient/on-file': PatientOnFile,
   '/patient/pathway': PathwayProtocol,
   '/patient/pathway/:stageId': PathwayStage,
