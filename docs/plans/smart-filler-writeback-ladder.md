@@ -81,6 +81,16 @@ propose a problem for a patient who screened negative.
 
 The ladder sat on `main` from #348 with 28 passing tests and **zero callers**.
 
+### ⚠️ The trigger moved on 2026-09-22; the ladder did not
+
+A filler used to run this on the renderer's submit. It now runs on **Save to the
+chart**, a button on the results screen `QuestionnaireView` shows after a submit
+(`docs/internals/tool-views.md` §6.2). Nothing below changed: `addResponse` is
+still the one call, `saveResponse` is still the seam, and QR-first is still
+QR-first. What changed is that the clinician decides, which is worth knowing if
+you are reading a session's writeback report and wondering why a completed form
+produced none — it produced none because nobody pressed the button.
+
 ### The seam is `saveResponse`, not `saveArtifact`
 
 Issue #350 points at `smartDataSource.ts:398`, which is `saveArtifact` — the path

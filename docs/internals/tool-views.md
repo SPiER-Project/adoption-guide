@@ -19,6 +19,8 @@ Three questions, answered in order:
 - **§3** — whether the `JSON.stringify` hole is worth a gate, and what the gate
   that now exists cannot see.
 - **§5** — whether a view can be derived from the catalog instead of written.
+- **§6** — the fillers' own two beats, added 2026-09-22: a computed item is hidden
+  in the artifact, and submit stopped meaning save.
 
 **§4 was the one open decision.** Brad settled it the same day — the recorder
 describes the act — so it is now a rule with a gate rather than a question.
@@ -436,6 +438,106 @@ where a derived resource type would be rendered.
 
 ---
 
+## 6. The filler's own beats — settled 2026-09-22
+
+§4's two beats are the RECORDERS'. The fillers had a third problem that neither
+covers, and Brad named both halves of it on 2026-09-22.
+
+### 6.1 A computed item is hidden in the ARTIFACT, not filtered in React
+
+The C-SSRS Screener's *Suicide Risk Level* is derived from q1–q6 by
+`observationMappers/cssrsScreener.ts` — no mapper reads the item, and no
+clinician is asked for it. It nonetheless rendered as an empty radio group at
+the bottom of the form, in the same typeface as the six items they answer, which
+reads as a seventh question.
+
+**The fix is the standard R4 `questionnaire-hidden` extension in
+`ig/input/resources/questionnaires/`**, and the reason it is not a filter in
+`QuestionnaireView` is the one that decides most questions in this repo: the
+Questionnaire is what SPiER *publishes*. A React filter hides the item in
+SPiER's own filler and nowhere else, so an EHR rendering the same artifact would
+still put the empty radio group in front of its clinicians. `@formbox/renderer`
+honours the extension (`hidden` on the item store; verified in the browser
+2026-09-22).
+
+⚠️ **Hidden is not absent from the response, and that distinction is
+load-bearing.** formbox gates the response snapshot on `enableWhen` alone
+(`buildItemSnapshot`), never on hidden — so the PHQ-9 and SBQ-R totals still
+compute from their `calculatedExpression` and still land in the
+QuestionnaireResponse, which is what keeps their declared `observationExtract`
+contract true. Measured rather than assumed: nine PHQ-9 items at *Nearly every
+day* produced `total-score: 27` in the live response with the item rendering
+nowhere.
+
+**The class, not the list.** The rule is derived both ways in
+`tests/questionnaireComputedItems.test.ts`: every `readOnly` item in every
+hand-authored Questionnaire is hidden, and nothing hidden is answerable. Five
+items today — three C-SSRS risk levels and the two totals. The two `risk-level`
+items that are **not** hidden are the distinction the rule turns on: SAFE-T's
+and the full PSS's are `tier-derivation: clinician-assigned`, which is the
+clinician's own formulation and the point of those instruments.
+
+### 6.2 Submit stopped meaning save
+
+The form wrote on submit and rendered its summary *under* the still-filled form,
+so there was no moment between completing a suicide-risk instrument and it being
+in the patient's chart. The flow is now three phases in `QuestionnaireView`:
+fill in → **Submit** → a screen carrying the results and the recommendation →
+**Save to the chart**, or start the form again.
+
+⚠️ **The writeback ladder did not move.** `addResponse` still runs the whole of
+it in the order it always has — QuestionnaireResponse first so the
+server-assigned id can be remapped into what references it, then the derived
+Observations ([`../plans/smart-filler-writeback-ladder.md`](../plans/smart-filler-writeback-ladder.md)).
+Only the *trigger* changed: a button the clinician presses rather than the
+renderer's submit. Everything the review screen shows is computed by pure
+functions over the submitted response — `mapResponseToObservations` and the
+instrument's `carePlanMapper` — which is what makes a review step possible
+without touching the chart at all.
+
+⚠️ **The review screen offers no way off itself but its two buttons**, and that
+is why `NextStep` grew `preview`. The response exists only in component state
+until the save, so a link out of that screen discards a completed suicide-risk
+instrument silently. The recommendation still renders — same sentence, same
+`evaluatePathway` over the record with the submit folded in — without the button
+that leaves.
+
+⚠️ **The one real defect this uncovered, found in the browser and not by any
+gate: the 18 fillers are ONE component instance.** `TOOL_VIEWS` holds one
+`<QuestionnaireView>` element per slug and both apps render them from the same
+position in the tree, so walking from the PHQ-9's page to the C-SSRS's changes
+`questionnaireUrl` and keeps every piece of state. The form body was always fine
+— formbox rebuilds from the `questionnaire` prop — so the old code's version of
+this was a stale summary under a correct form, mild enough that nobody saw it.
+With the results *replacing* the form it became the previous instrument's
+results under the new instrument's name, with no form in sight.
+`QuestionnaireView` resets on the prop change during render, and
+`QuestionnaireView.test.tsx` pins it by rerendering with a different instrument.
+
+### 6.3 What the tests can and cannot see
+
+Seven cases in `QuestionnaireView.test.tsx`, every one verified against a
+planted defect (submit writes again; `NextStep` ignores `preview`; the results
+render beside the form instead of replacing it; *Start over* does not leave the
+review screen; the instrument-change reset removed) plus two over the artifact
+rule (the C-SSRS hidden extension removed; a clinician-assigned tier hidden).
+
+⚠️ **`@formbox/renderer` does not load under vitest** — its bundle imports a
+`fhirpath/fhir-context/r4` DIRECTORY, which Node's ESM resolver refuses — so
+every one of those cases runs against a mock. What that mock cannot see is
+anything about the real renderer: that it honours `questionnaire-hidden`, that a
+`calculatedExpression` still fires for a hidden item, and that its store is
+rebuilt rather than reset. All three were checked in the browser instead, and
+all three are the kind of thing that changes on a vendor upgrade with the suite
+still green.
+
+⚠️ **The mock reports its mount**, deliberately. "A blank form" is not a
+property of any DOM the test can read — the answers live in formbox's store — so
+it is asserted as "a different instance", which a stateless stub would have
+passed for free.
+
+---
+
 ## Where the rules live
 
 | Thing | File |
@@ -445,6 +547,9 @@ where a derived resource type would be rendered.
 | the gate, its allowlist and its blind spots | `scripts/check-fhir-render.mjs`, [`web-gates.md`](web-gates.md) |
 | the recorder frame every view shares | `packages/tool-views/src/components/WorkflowForm.tsx` |
 | the confirmation beat both fillers and recorders end on | `packages/tool-views/src/components/NextStep.tsx` |
+| which chart a submit lands in, for fillers and recorders alike | `packages/tool-views/src/components/PatientChartHint.tsx` |
+| a filler's fill → review → save phases | `packages/tool-views/src/components/QuestionnaireView.tsx` |
+| every computed item is hidden in the published artifact | `tests/questionnaireComputedItems.test.ts` |
 | a recorder's success sentence + what it wrote, as one state | `packages/tool-views/src/lib/useRecorderNotice.ts` |
 | tool → launch path | `packages/core/src/data/catalog/tool-ui-metadata.ts` |
 | tool → stage, Questionnaire, licensing | `ig/input/fsh/` (derived in `tools.ts`) |
