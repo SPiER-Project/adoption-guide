@@ -27,18 +27,18 @@
 }
 
 .writeback-scorecard__rung--written {
-  background: var(--accent-success-bg);
-  border-left-color: var(--accent-success);
+  background: var(--status-success-bg);
+  border-left-color: var(--status-success-edge);
 }
 
 .writeback-scorecard__rung--failed {
-  background: var(--risk-acute-soft);
-  border-left-color: var(--risk-acute);
+  background: var(--status-danger-bg);
+  border-left-color: var(--status-danger-edge);
 }
 
 .writeback-scorecard__rung--skipped {
-  background: var(--accent-warning-bg);
-  border-left-color: var(--accent-warning-edge);
+  background: var(--status-warning-bg);
+  border-left-color: var(--status-warning-edge);
 }
 
 .writeback-scorecard__rung--absent {

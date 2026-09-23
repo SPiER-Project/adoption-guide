@@ -331,7 +331,7 @@
 
 .cds-card--critical { border-left-color: var(--risk-acute); }
 .cds-card--warning  { border-left-color: var(--risk-moderate); }
-.cds-card--info     { border-left-color: var(--accent-info); }
+.cds-card--info     { border-left-color: var(--status-info-edge); }
 
 .cds-card-header {
   display: flex;
@@ -342,7 +342,7 @@
 
 .cds-card-pill--critical { background: var(--risk-acute); color: var(--risk-acute-on); }
 .cds-card-pill--warning  { background: var(--risk-moderate); color: var(--risk-moderate-on); }
-.cds-card-pill--info     { background: var(--accent-info); color: var(--text-on-brand); }
+.cds-card-pill--info     { background: var(--status-info-edge); color: var(--text-on-brand); }
 
 .cds-card-title {
   font-size: var(--font-size-xl);

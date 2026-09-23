@@ -130,27 +130,34 @@
   );
   --brand-logo-height-sm: 1.625rem; /* wordmark height in the app bar */
 
-  /* ── Semantic accents ───────────────────────────────────── */
-  --accent-info:           #2563eb;
-  --accent-info-soft:      #dbeafe;
-  --accent-info-soft-bg:   #eff6ff; /* pale info wash (lighter than --accent-info-soft) */
-  --accent-info-border:    #93c5fd; /* pale info border */
-  --accent-info-mid:       #3b82f6; /* mid info blue */
-  --accent-info-text-deep: #1e40af; /* deeper info text */
-  --accent-warning-bg:     #fef3c7;
-  --accent-warning-text:   #92400e;
-  --accent-warning-text-deep: #78350f; /* deeper amber/brown text */
-  --accent-warning-edge:   #f59e0b;
-  --accent-warning-border: #fcd34d; /* warning border */
-  --accent-warning-stop:   #facc15; /* yellow gradient stop */
-  --accent-success-bg:     #dcfce7;
-  --accent-success-text:   #166534;
-  --accent-success:        #22c55e; /* solid success green */
-  --accent-success-light:  #4ade80; /* lighter success */
-  --accent-orange-soft:    #fff7ed;
-  --accent-orange-mid:     #fed7aa;
-  --accent-orange-strong:  #fb923c; /* stronger orange (rubric mid) */
-  --accent-red-light:      #f87171; /* light red (rubric low) */
+  /* ── Status: info, success, warning, danger ──────────────
+     Four families of four, each named for its part: -bg the tinted ground,
+     -border the 1px outline, -edge the 3px left rule, -text the words. They
+     replaced twenty --accent-* tokens that had grown one per call site (a
+     -text, a -text-deep, a -mid, a -stop…) in Tailwind's blue, green and
+     amber, none of them from the brand. Info and success now come from the
+     brand tints (sky, sage); danger's edge IS --risk-acute.
+     ⚠️ A status colour is for a message about state. A link is --brand-link,
+     a selected thing is plum on --tint-peach-soft, a category is a tint, and
+     a scale is the risk ramp — every one of those borrowed a status colour
+     before 2026-09-23, which is how "info blue" came to mean five things.
+     tests/colourContrast.test.ts holds each -text on its -bg at >= 4.5:1. */
+  --status-info-bg:        #e4f3f6;
+  --status-info-border:    var(--tint-sky);
+  --status-info-edge:      var(--brand-link);
+  --status-info-text:      #1f5a6b;
+  --status-success-bg:     #e6f0e2;
+  --status-success-border: var(--tint-sage);
+  --status-success-edge:   #4f8a5b;
+  --status-success-text:   #2d6a3e;
+  --status-warning-bg:     #f8eed8;
+  --status-warning-border: #e6cf98;
+  --status-warning-edge:   #c9962a;
+  --status-warning-text:   #72500a;
+  --status-danger-bg:      #fbe8e4;
+  --status-danger-border:  #f0bfb5;
+  --status-danger-edge:    var(--risk-acute);
+  --status-danger-text:    #9c2a1f;
 
   /* ── Banner-muted surfaces (subnav buttons, header chips) ─
      Warm neutrals now, not plum-tinted: on the new grey-warm ground a pink
@@ -167,7 +174,7 @@
   /* ⚠️ Every step is a PAIR, and the pair is what clears AA — a fill with no
      named text colour is how white-on-#ca8a04 (2.94:1) and white-on-#ea580c
      (3.56:1) shipped as 11px bold pills. Moderate is the one light solid, so
-     its text is plum, not white. tests/riskContrast.test.ts reads these
+     its text is plum, not white. tests/colourContrast.test.ts reads these
      pairs out of this file and holds each at ≥ 4.5:1; a new step needs a
      pair there too. */
   --risk-acute:               #b3261e;
@@ -349,8 +356,6 @@
 
   /* ── Surface & text aliases (repeating hex literals) ────── */
   --surface-banner:      #ebeae6; /* patient banner background (warm) */
-  --accent-info-text:    #1d4ed8; /* deep info blue for text on info surfaces */
-  --text-error:          #d32f2f; /* error/destructive copy */
 
   /* ── Type families ──────────────────────────────────────────
      Three, and stylelint's strict-value list now includes `font-family`, so

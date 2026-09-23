@@ -269,7 +269,7 @@ consumers reached for `--text-on-brand` because a pill is plum everywhere else.
 Moderate is now the one light solid, so its `-on` is plum. The old
 `-soft-bg` / `-faded` pair per step collapsed into one `-soft`, and both names
 were deleted rather than aliased, so `check:tokens` failed on every use the
-sweep missed. `tests/riskContrast.test.ts` holds the pairs at ≥ 4.5:1 from this
+sweep missed. `tests/colourContrast.test.ts` holds the pairs at ≥ 4.5:1 from this
 file's own values. It also holds every rule in every style root that fills with
 a solid step to that step's `-on`, with a short `TEXT_FREE` list for swatches and
 bar segments; that half is what caught `.cds-card-pill--warning` still putting
@@ -279,6 +279,46 @@ fails is the one that restores the white. ⚠️ What neither half checks is a s
 step used as an **edge or bar**: moderate is 1.93:1 against white (it was 2.94),
 under the 3:1 WCAG asks of a graphical object. Every such use today sits next to
 the level written in words, which is what keeps it from being the only signal.
+
+**Status is four families of four, and a status colour means a status.**
+`--status-{info,success,warning,danger}-{bg,border,edge,text}`: the tinted
+ground, the 1px outline, the 3px left rule, the words. Info and success come
+from the brand tints (sky, sage), and danger's edge *is* `--risk-acute`. They
+replaced twenty `--accent-*` tokens in Tailwind's blue, green and amber, which
+had grown one per call site (`-text`, `-text-deep`, `-mid`, `-stop`, `-light`).
+The twenty were deleted, not aliased, along with the two aliases
+`--accent-info-text` and `--text-error`. ⚠️ **The sweep moved each use by its
+job, not its old name**, because "info blue" had come to mean five things:
+- Notices and pills that *are* a status took `--status-*`.
+- Links took `--brand-link`: the caseload's controls, the alert's patient name, the pager, the readiness links.
+- Selections took plum on `--tint-peach-soft`: the active preset, the caseload's active view tab, the tool toggles.
+- Categories took a tint under plum: resource-type badges, licensing badges and the pathway's stage chip.
+- The two scale bars took the risk ramp.
+
+Three moves go past the brief:
+- **`.notice--brand` is gone.** It had no callers at all, and it was a second blue for info's job.
+- **`.reassess-pill--due-soon` is info, not warning.** Due *today* is the warning; due *soon* is not one yet.
+- **`.licensing-badge--registration` is sky-soft, not sand**, because `--commercial` was already sand.
+
+The rubric's covered and checked states take success. PR 1 had had to borrow `--risk-low` for them, and they are not a risk level.
+⚠️ **The scale bars are a stepped solid ramp, not the soft one.** The brief
+offered either, and the measurement decided it: the four soft steps measure
+1.02–1.03:1 against the bar's track (`--surface-muted`). A soft bar is
+invisible. The solid steps measure 5.43 / 4.15 / 1.60 / 4.37. Moderate's 1.60 is
+the same edge-contrast gap recorded for the ramp above, and the old gradient's
+stops were all below 3:1 too (2.30 → 1.27).
+`tests/colourContrast.test.ts` holds each family's text on its ground at
+≥ 4.5:1. It checks each family has all four parts and that no `--accent-*` came
+back. It also measures every rule, in every style root, that sets a status or
+risk fill together with a text colour, as the pair that rule actually renders.
+⚠️ **What nothing checks is a status colour doing another job.** The brief's
+plant, `#2563eb` as the link colour, passed stylelint, `check:tokens` and every
+test here. The rule the brief proposed (`--status-*` only inside `.notice*`,
+`.pill*` or an allowlisted alert selector) was not built. On the day it would
+have landed, 24 selectors outside Notice and Pill legitimately set a status
+colour against 9 inside them, so the allowlist would have been longer than what
+it guarded, and it still could not see a *new* token spelled in blue. A link is
+`--brand-link` because this paragraph says so. Review is the gate.
 
 **Spacing is a 10-step scale**, `--space-0-5` … `--space-8`; the two half-steps
 exist because the 0.25rem grid is too coarse below 0.5rem, where pill and badge

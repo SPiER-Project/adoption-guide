@@ -1,5 +1,5 @@
 /**
- * Every risk colour is a pair, and every pair clears WCAG AA.
+ * Every risk and status colour is a pair, and every pair clears WCAG AA.
  *
  * ⚠️ **Written against two pills that shipped failing.** White on
  * `--risk-high` (#ea580c) measured 3.56:1 and white on `--risk-moderate`
@@ -19,9 +19,21 @@
  *      Every rule, in every style root, that fills with a solid step must set
  *      `color` to that step's `-on` — or be named below as carrying no text.
  *
- * What it cannot see: a soft fill under text that some OTHER rule colours (the
- * breached caseload tile colours its children separately), and any colour that
- * is not a risk token. The status families join in the next pass.
+ * The STATUS families joined on 2026-09-23, when twenty --accent-* tokens
+ * became sixteen --status-*: every family has all four parts (bg, border,
+ * edge, text), and its text clears 4.5:1 on its own ground.
+ *
+ * And one check spans both: every rule, anywhere, that sets a status or risk
+ * FILL and a text colour in the same declaration block must measure ≥ 4.5:1
+ * as the pair it actually renders. The token pairs only prove the pairs the
+ * tokens name; this proves the pairs the stylesheets wrote.
+ *
+ * What it cannot see: a fill under text that some OTHER rule colours (the
+ * breached caseload tile colours its children separately), and any rule whose
+ * colours are not tokens. It also cannot tell a link from a status: a link set
+ * in `--status-info-edge` passes every test here. That job is on the reader of
+ * css-and-page-template.md, not on a gate — see its note on why the selector
+ * allowlist was not built.
  */
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
@@ -109,15 +121,39 @@ describe('the risk ramp in foundation.css', () => {
   })
 })
 
-describe('every rule that fills with a solid risk step', () => {
-  const files = allStyleFiles(['.css'])
-  const rules: { file: string; selector: string; body: string }[] = []
-  for (const file of files) {
-    const css = readFileSync(file, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
-    for (const m of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-      rules.push({ file: relRepo(file), selector: m[1].trim().replace(/\s+/g, ' '), body: m[2] })
-    }
+const STATUS = [...tokens.keys()]
+  .map(t => /^--status-([a-z]+)-bg$/.exec(t)?.[1])
+  .filter((f): f is string => f !== undefined)
+
+describe('the status families in foundation.css', () => {
+  it('has exactly info, success, warning and danger — an empty scan would pass everything below', () => {
+    expect([...STATUS].sort()).toEqual(['danger', 'info', 'success', 'warning'])
+  })
+
+  it.each(STATUS)('%s has all four parts', family => {
+    for (const part of ['bg', 'border', 'edge', 'text']) resolve(tokens, `--status-${family}-${part}`)
+  })
+
+  it.each(STATUS)('--status-%s-text on its -bg at ≥ 4.5:1', family => {
+    const ratio = contrast(resolve(tokens, `--status-${family}-bg`), resolve(tokens, `--status-${family}-text`))
+    expect(ratio, `--status-${family}-text on -bg measures ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(AA)
+  })
+
+  it('left no --accent-* token behind, and no alias from old to new', () => {
+    expect([...tokens.keys()].filter(t => t.startsWith('--accent-') || t === '--text-error')).toEqual([])
+  })
+})
+
+/** Every rule in every style root, comments stripped. foundation.css defines tokens and sets none of these. */
+const rules: { file: string; selector: string; body: string }[] = []
+for (const file of allStyleFiles(['.css'])) {
+  const css = readFileSync(file, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
+  for (const m of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    rules.push({ file: relRepo(file), selector: m[1].trim().replace(/\s+/g, ' '), body: m[2] })
   }
+}
+
+describe('every rule that fills with a solid risk step', () => {
   const filled = rules.flatMap(r => {
     const m = /background(?:-color)?\s*:\s*var\((--risk-[a-z]+)\)/.exec(r.body)
     return m ? [{ ...r, fill: m[1] }] : []
@@ -137,5 +173,22 @@ describe('every rule that fills with a solid risk step', () => {
   it('lists no TEXT_FREE selector that no longer exists', () => {
     const present = new Set(filled.map(r => r.selector))
     expect(Object.keys(TEXT_FREE).filter(s => !present.has(s))).toEqual([])
+  })
+})
+
+describe('every rule that sets a status or risk fill AND a text colour', () => {
+  const paired = rules.flatMap(r => {
+    const fill = /background(?:-color)?\s*:\s*var\((--(?:status|risk)-[a-z-]+)\)/.exec(r.body)?.[1]
+    const text = /(?:^|[;\s])color\s*:\s*var\((--[a-z0-9-]+)\)/.exec(r.body)?.[1]
+    return fill && text ? [{ ...r, fill, text }] : []
+  })
+
+  it('finds the known pairs — a parse that matched nothing would pass', () => {
+    expect(paired.length).toBeGreaterThanOrEqual(25)
+  })
+
+  it.each(paired.map(r => [r.selector, r] as const))('%s renders its text at ≥ 4.5:1', (_s, r) => {
+    const ratio = contrast(resolve(tokens, r.fill), resolve(tokens, r.text))
+    expect(ratio, `${r.file}: \`${r.selector}\` sets ${r.text} on ${r.fill}, ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(AA)
   })
 })

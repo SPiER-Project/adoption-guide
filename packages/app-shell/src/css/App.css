@@ -15,7 +15,7 @@
    SMART on FHIR redirect (success / error states)
    =========================== */
 .smart-error-heading {
-  color: var(--text-error);
+  color: var(--status-danger-text);
 }
 
 /* The `.breadcrumb` family lived here: a second trail implementation, rendered

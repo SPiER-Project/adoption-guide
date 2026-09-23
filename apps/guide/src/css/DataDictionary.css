@@ -325,8 +325,8 @@
   border: 0;
 }
 
-.dd-resource-badge--careplan { background: var(--accent-info-soft); color: var(--accent-info-text); }
-.dd-resource-badge--observation { background: var(--accent-warning-bg); color: var(--accent-warning-text); }
+.dd-resource-badge--careplan { background: var(--tint-sky-soft); color: var(--brand-primary); }
+.dd-resource-badge--observation { background: var(--tint-sand); color: var(--brand-primary); }
 .dd-resource-badge--condition { background: var(--tint-peach-soft); color: var(--brand-primary); }
 
 .dd-tools {

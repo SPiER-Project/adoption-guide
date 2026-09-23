@@ -25,7 +25,7 @@
   padding: 0;
   font: inherit;
   font-size: var(--font-size-md);
-  color: var(--accent-info);
+  color: var(--brand-link);
   font-weight: 600;
   cursor: pointer;
   text-decoration: underline;
@@ -106,7 +106,7 @@
 }
 
 .caseload-sort-icon--active {
-  color: var(--accent-info);
+  color: var(--brand-link);
   opacity: 1;
 }
 
@@ -117,7 +117,7 @@
 }
 
 .caseload-filter-trigger--active .caseload-funnel-icon {
-  color: var(--accent-info);
+  color: var(--brand-link);
   opacity: 1;
 }
 
@@ -167,7 +167,7 @@
 .caseload-filter-option-check {
   flex: none;
   width: 0.75rem;
-  color: var(--accent-info);
+  color: var(--brand-link);
 }
 
 /* Pushed right rather than growing the label, so a risk option's .pill
@@ -455,7 +455,7 @@
 }
 
 .pop-alert-group--red { border-left-color: var(--risk-high); }
-.pop-alert-group--yellow { border-left-color: var(--accent-warning-edge); }
+.pop-alert-group--yellow { border-left-color: var(--status-warning-edge); }
 
 .pop-alert-group-head {
   /* A <summary>: the count badge sits in column 1, the name and the
@@ -475,7 +475,7 @@
 
 .pop-alert-patient {
   font-weight: 700;
-  color: var(--accent-info-text);
+  color: var(--brand-link);
   text-decoration: none;
 }
 
@@ -506,7 +506,7 @@
 }
 
 .pop-alert--red .pop-alert-dot { background: var(--risk-high); }
-.pop-alert--yellow .pop-alert-dot { background: var(--accent-warning-edge); }
+.pop-alert--yellow .pop-alert-dot { background: var(--status-warning-edge); }
 
 .pop-alert-body {
   display: grid;
@@ -587,9 +587,9 @@
 }
 
 .population-view-tab--active {
-  background: var(--accent-info-soft-bg);
-  border-color: var(--accent-info-border);
-  color: var(--accent-info-text-deep);
+  background: var(--tint-peach-soft);
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
 }
 
 .population-view-description {
@@ -658,7 +658,7 @@
 
 .pop-alert-group-name {
   font-weight: 700;
-  color: var(--accent-warning-text);
+  color: var(--status-warning-text);
   font-size: var(--font-size-md);
 }
 
@@ -713,13 +713,13 @@
 }
 
 .reassess-pill--due-today {
-  background: var(--accent-warning-bg);
-  color: var(--accent-warning-text-deep);
+  background: var(--status-warning-bg);
+  color: var(--status-warning-text);
 }
 
 .reassess-pill--due-soon {
-  background: var(--accent-warning-bg);
-  color: var(--accent-warning-text);
+  background: var(--status-info-bg);
+  color: var(--status-info-text);
 }
 
 .reassess-pill--ok {
@@ -762,7 +762,7 @@
 
 .caseload-alerts-link {
   font-weight: 600;
-  color: var(--accent-info);
+  color: var(--brand-link);
 }
 
 .caseload-alerts-link:hover {
