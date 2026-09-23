@@ -108,7 +108,7 @@ export function controlPage(
       </button></li>`).join('')
 
   return page({
-    title: 'Settings — SPiER mock EHR',
+    title: 'Settings',
     nav: 'settings',
     variant: 'prose',
     body: `

@@ -7,9 +7,13 @@
  * assertion would only prove the document matches this test's idea of it.
  */
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { readFileSync, readdirSync, statSync } from 'node:fs'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { parseCapabilityStatement } from '@spier/core/lib/writeback/capability'
 import app, { resetProfile } from './app'
 import { authHeaderFor } from './__fixtures__/launch'
+import { DEMO_PATIENTS } from './fixtures'
 
 const BASE = 'https://mock-ehr.test'
 
@@ -265,5 +269,47 @@ describe('favicon', () => {
       const html = await (await app.request(`${BASE}${path}`)).text()
       expect(html, path).toContain('<link rel="icon" type="image/svg+xml" href="/favicon.svg">')
     }
+  })
+})
+
+/**
+ * The host is Northfield Health on every page, and SPiER's retired raspberry
+ * is on none.
+ *
+ * ⚠️ **The page list is derived, not sampled.** `/`, `/settings` and every
+ * demo patient's chart — so a fifteenth patient is covered the day it is
+ * added. And the last test is what makes "every page" mean every page:
+ * `page()` is the only thing in `src/` that emits a document, so a page that
+ * built its own `<!doctype>` (controlPage.ts once did) could carry any title
+ * and any colour and still leave the per-page test green.
+ */
+describe('Northfield Health', () => {
+  const PAGES = ['/', '/settings', ...DEMO_PATIENTS.map(p => `/chart/${p.id}`)]
+
+  it('covers every page — an empty fixture list would pass everything', () => {
+    expect(PAGES.length).toBeGreaterThanOrEqual(16)
+  })
+
+  it.each(PAGES)('%s is titled Northfield Health and carries no #cc3366', async path => {
+    const res = await app.request(`${BASE}${path}`)
+    expect(res.status, path).toBe(200)
+    const html = await res.text()
+    expect(/<title>([^<]*)<\/title>/.exec(html)?.[1], path).toContain('Northfield Health')
+    expect(html.toLowerCase(), path).not.toContain('#cc3366')
+  })
+
+  it('has one document emitter, page() in hostChrome.ts', () => {
+    const src = fileURLToPath(new URL('.', import.meta.url))
+    const walk = (dir: string): string[] => readdirSync(dir).flatMap(entry => {
+      const full = join(dir, entry)
+      if (statSync(full).isDirectory()) return entry === 'dist' ? [] : walk(full)
+      return full.endsWith('.ts') && !full.endsWith('.test.ts') ? [full] : []
+    })
+    const files = walk(src)
+    expect(files.length).toBeGreaterThan(10)
+    const emitters = files
+      .filter(f => /<!doctype html>/i.test(readFileSync(f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')))
+      .map(f => f.slice(src.length))
+    expect(emitters).toEqual(['hostChrome.ts'])
   })
 })
