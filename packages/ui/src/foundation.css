@@ -164,25 +164,32 @@
   --surface-page-alt:      #f8f8f6;
 
   /* ── Risk-level scale (clinical severity) ──────────────── */
-  --risk-acute:               #dc2626;
-  --risk-acute-soft-bg:       #fef2f2;
-  --risk-acute-soft-text:     #991b1b;
-  --risk-acute-faded:         #fecaca;
+  /* ⚠️ Every step is a PAIR, and the pair is what clears AA — a fill with no
+     named text colour is how white-on-#ca8a04 (2.94:1) and white-on-#ea580c
+     (3.56:1) shipped as 11px bold pills. Moderate is the one light solid, so
+     its text is plum, not white. tests/riskContrast.test.ts reads these
+     pairs out of this file and holds each at ≥ 4.5:1; a new step needs a
+     pair there too. */
+  --risk-acute:               #b3261e;
+  --risk-acute-on:            #ffffff;
+  --risk-high:                #b8501f;
+  --risk-high-on:             #ffffff;
+  --risk-moderate:            #e0b54a;
+  --risk-moderate-on:         var(--brand-primary);
+  --risk-low:                 #2f7a45;
+  --risk-low-on:              #ffffff;
 
-  --risk-high:                #ea580c;
-  --risk-high-soft-bg:        var(--accent-orange-soft);
-  --risk-high-soft-text:      #9a3412;
-  --risk-high-faded:          var(--accent-orange-mid);
-
-  --risk-moderate:            #ca8a04;
-  --risk-moderate-soft-bg:    #fefce8;
-  --risk-moderate-soft-text:  #854d0e;
-  --risk-moderate-faded:      #fde68a;
-
-  --risk-low:                 #16a34a;
-  --risk-low-soft-bg:         #f0fdf4;
-  --risk-low-soft-text:       #15803d;
-  --risk-low-faded:           #86efac;
+  /* The soft ramp: a tinted fill and its text, for a banded scale or a tinted
+     surface that is not itself a risk level. It replaced two tokens per step
+     (-soft-bg and -faded); one fill per step is the whole vocabulary. */
+  --risk-acute-soft:          #fbe8e4;
+  --risk-acute-soft-text:     #9c2a1f;
+  --risk-high-soft:           #f9e3d6;
+  --risk-high-soft-text:      #8a3a12;
+  --risk-moderate-soft:       #f6e7bf;
+  --risk-moderate-soft-text:  #6b4a00;
+  --risk-low-soft:            #e6f0e2;
+  --risk-low-soft-text:       #2d6a3e;
 
   /* ── Spacing scale (4-pt rem) ───────────────────────────── */
   /* ⚠️ Two half-steps at the small end, and they are what make this scale

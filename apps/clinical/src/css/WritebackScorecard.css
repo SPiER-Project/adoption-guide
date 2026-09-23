@@ -32,7 +32,7 @@
 }
 
 .writeback-scorecard__rung--failed {
-  background: var(--risk-acute-soft-bg);
+  background: var(--risk-acute-soft);
   border-left-color: var(--risk-acute);
 }
 

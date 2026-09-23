@@ -259,6 +259,27 @@ in `foundation.css` were read off the rendered Figma, not its variables —
 replace them from the file, do not tune them by eye. Two are deliberately
 deeper than the design for WCAG AA at app sizes.
 
+**The risk ramp is four pairs, not four fills.** Each solid step `--risk-X`
+has a `--risk-X-on` for the text set on it, and each soft step `--risk-X-soft`
+has a `--risk-X-soft-text`; those two weights are the whole vocabulary.
+⚠️ Written against two pills that shipped failing AA: white on `--risk-high`
+(#ea580c) measured 3.56:1 and white on `--risk-moderate` (#ca8a04) 2.94:1, at
+11px bold. The ramp named a fill and left its text to each consumer, and the
+consumers reached for `--text-on-brand` because a pill is plum everywhere else.
+Moderate is now the one light solid, so its `-on` is plum. The old
+`-soft-bg` / `-faded` pair per step collapsed into one `-soft`, and both names
+were deleted rather than aliased, so `check:tokens` failed on every use the
+sweep missed. `tests/riskContrast.test.ts` holds the pairs at ≥ 4.5:1 from this
+file's own values. It also holds every rule in every style root that fills with
+a solid step to that step's `-on`, with a short `TEXT_FREE` list for swatches and
+bar segments; that half is what caught `.cds-card-pill--warning` still putting
+white on the new amber. ⚠️ Planting `#ca8a04` back does **not** fail on its own:
+plum on the old amber clears AA. The defect was the pairing, and the plant that
+fails is the one that restores the white. ⚠️ What neither half checks is a solid
+step used as an **edge or bar**: moderate is 1.93:1 against white (it was 2.94),
+under the 3:1 WCAG asks of a graphical object. Every such use today sits next to
+the level written in words, which is what keeps it from being the only signal.
+
 **Spacing is a 10-step scale**, `--space-0-5` … `--space-8`; the two half-steps
 exist because the 0.25rem grid is too coarse below 0.5rem, where pill and badge
 padding lives. Don't add an eleventh — a step is a decision every later author

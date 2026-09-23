@@ -278,7 +278,7 @@
   }
 }
 
-.pathway-node-status--done     { background: var(--risk-low-faded); color: var(--risk-low-soft-text); }
+.pathway-node-status--done     { background: var(--risk-low-soft); color: var(--risk-low-soft-text); }
 .pathway-node-status--active   { background: var(--tint-peach-soft); color: var(--brand-primary); }
 .pathway-node-status--passed   { background: var(--surface-muted); color: var(--text-muted); }
 .pathway-node-status--upcoming { background: var(--surface-muted); color: var(--text-faint); }
@@ -340,8 +340,8 @@
   margin-bottom: var(--space-1-5);
 }
 
-.cds-card-pill--critical { background: var(--risk-acute); color: var(--text-on-brand); }
-.cds-card-pill--warning  { background: var(--risk-moderate); color: var(--text-on-brand); }
+.cds-card-pill--critical { background: var(--risk-acute); color: var(--risk-acute-on); }
+.cds-card-pill--warning  { background: var(--risk-moderate); color: var(--risk-moderate-on); }
 .cds-card-pill--info     { background: var(--accent-info); color: var(--text-on-brand); }
 
 .cds-card-title {
