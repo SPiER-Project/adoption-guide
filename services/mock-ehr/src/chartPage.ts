@@ -39,7 +39,7 @@
  * - **No login, no user, no encounter.** `patient-view` needs a patient; a
  *   fabricated practitioner would be theatre.
  */
-import { DISCLAIMER, crumbs, esc, page } from './hostChrome'
+import { DISCLAIMER, PRODUCT_NAME, crumbs, esc, page } from './hostChrome'
 import { ageOn, chartRecordFor, formatDate, type ChartSection } from './chartRecord'
 import type { DemoPatient } from './fixtures'
 import { TRY_IT_ORDER, storyOf } from './demoStories'
@@ -258,7 +258,7 @@ export function homePage(patients: DemoPatient[], { scriptUrl }: { scriptUrl: st
       </tr>`).join('')
 
   return page({
-    title: 'SPiER mock EHR',
+    // No title: the front door's tab is the product name alone.
     css: HOME_CSS,
     scriptSrc: scriptUrl,
     nav: 'chart',
@@ -269,7 +269,7 @@ export function homePage(patients: DemoPatient[], { scriptUrl }: { scriptUrl: st
     // and has five columns.
     variant: 'wide',
     body: `
-  <h1>Patients</h1>
+  <h1>${esc(PRODUCT_NAME)}</h1>
   <p class="lede">
     A stand-in for a vendor EHR, so SPiER can be launched inside one. <strong>Open a chart</strong>
     and press <strong>Launch SPiER</strong>: SPiER opens in a panel beside the chart, shows where that
@@ -540,7 +540,7 @@ const CHART_CSS = `
      entry point, one page along. Consolidating must not put it back below
      anything.
 
-     ⚠️ **Steel, not raspberry, even though its contents come from SPiER.** This
+     ⚠️ **Steel, not plum, even though its contents come from SPiER.** This
      is the EHR reporting what a decision-support service told it — the host's own
      rendering of a CDS Hooks response, not pixels SPiER drew. \`--guest-brand\` is
      for the bar above the panel's iframe and nowhere else; see the note at the
@@ -943,7 +943,7 @@ export function patientChartPage(
           ${result.note ? `<p class="tile__note" title="${esc(result.note)}">${esc(result.note)}</p>` : ''}
         </li>`).join('')
   return page({
-    title: `${patient.name} — SPiER mock EHR`,
+    title: patient.name,
     css: CHART_CSS,
     nav: 'chart',
     // The dock has to reach the window edge, so this page owns its own inset.

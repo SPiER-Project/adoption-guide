@@ -415,8 +415,10 @@ message naming the command. `typecheck` runs both projects.
 
 ## The look of the host
 
-⚠️ **The host is slate and steel; SPiER is plum and raspberry. That is a claim,
-not a taste.** Every page here says some version of *"Everything below this bar
+⚠️ **The host is Northfield Health, in slate and steel; SPiER is plum. That is
+a claim, not a taste.** (SPiER was plum and raspberry when this was written.
+Raspberry was retired in the 2026 redesign, and the guest label followed it on
+2026-09-23.) Every page here says some version of *"Everything below this bar
 is drawn by SPiER, not by the host"* — and until this pass, the host drew its own
 **Launch SPiER** button in SPiER's raspberry, on the same page. A viewer had no
 way to read the boundary the demo is about, because both sides of it were the

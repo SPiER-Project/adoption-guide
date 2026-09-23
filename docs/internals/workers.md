@@ -290,12 +290,27 @@ fail the orphaned key the moment nothing read it.
 ⚠️ **The mock EHR is deliberately NOT styled like SPiER**, and that is a demo
 claim rather than a preference. Its pages say *"Everything below this bar is
 drawn by SPiER, not by the host"*, so the host is slate and steel and SPiER's
-raspberry appears in exactly one role — `--guest-brand`, on the `.guest__title`
+plum appears in exactly one role — `--guest-brand`, on the `.guest__title`
 wordmark above a frame SPiER drew. A host control tinted with it puts the guest's
 colour on the host's button, on the page whose whole subject is which pixels
 belong to whom. `services/mock-ehr/README.md` § *The look of the host* has the
 reasoning, including why `hostChrome.ts`'s original argument for matching the app
 was reversed.
+⚠️ **That label was raspberry until 2026-09-23**, a week after the app retired
+raspberry. The one colour whose job is to say "this is SPiER" was one SPiER no
+longer used, and no gate could see it: `check:host-css` checks that a colour is
+defined once, not that it is the right one. `app.test.ts` now fails any host
+page carrying the old hex.
+
+⚠️ **On screen the host is Northfield Health** (`PRODUCT_NAME` in
+`hostChrome.ts`): the app bar's wordmark, the front door's heading, and every
+tab title, which `page()` suffixes so no page can leave it out. Before this it
+had no name, and its bar read "SPiER mock EHR", introducing the host as part of
+SPiER. "Mock EHR" stays the engineering name for routes, this directory and
+these docs; renaming it would be churn. `app.test.ts` requests every host page
+(derived from the demo patients, not sampled) for the title, and asserts
+`page()` is the only document emitter in `src/`, because a hand-rolled page
+could carry any title and still pass.
 
 
 

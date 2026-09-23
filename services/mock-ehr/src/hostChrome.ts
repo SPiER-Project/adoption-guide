@@ -12,11 +12,22 @@
  * EHR is that sentence contradicting itself in the one place a viewer looks.
  *
  * So the host is now **slate and steel** — the flat, institutional look of
- * vendor software — and SPiER's plum and raspberry appear on these pages in
- * exactly one role: labelling the frames SPiER draws inside
- * (`--guest-brand`, used by `.guest__title` and nowhere else). The boundary the
- * demo is about is now a colour boundary, which is the one a viewer reads
- * without being told.
+ * vendor software — and SPiER's plum appears on these pages in exactly one
+ * role: labelling the frames SPiER draws inside (`--guest-brand`, used by
+ * `.guest__title` and nowhere else). The boundary the demo is about is now a
+ * colour boundary, which is the one a viewer reads without being told.
+ *
+ * ⚠️ **That label stayed raspberry until 2026-09-23**, a week after the app's
+ * reskin retired raspberry to follow the 2026 website redesign. The one colour
+ * whose job is to say "this is SPiER" was the one SPiER no longer uses.
+ *
+ * ── Why the host has a name ─────────────────────────────────────────────────
+ *
+ * It is **Northfield Health** (`PRODUCT_NAME`). Unnamed, the bar read "SPiER
+ * mock EHR", so on screen the host introduced itself as part of SPiER — the
+ * same contradiction as the raspberry button, in words. A made-up vendor's
+ * name is what a viewer expects a host to have. "Mock EHR" stays the
+ * engineering name: routes, this directory, internals docs.
  *
  * ── Why tokens, when the old comment said not to have a design system ───────
  *
@@ -48,6 +59,9 @@
  * in the page when it describes that page's one arrangement — the chart's panel
  * dock, the front door's activity frame. `page()` composes the two.
  */
+
+/** The host's product name — see "Why the host has a name" above. */
+export const PRODUCT_NAME = 'Northfield Health'
 
 /**
  * The host's tokens.
@@ -92,10 +106,10 @@ export const TOKENS = `
     --line-strong: #b0c0cd;
 
     /* ── Status ───────────────────────────────────────────────────────────
-       Used by CDS card severities and by the standing disclaimer. Kept away from
-       the guest's raspberry on purpose: a red-ish host accent next to a
-       raspberry SPiER accent is the collision this palette exists to avoid, so
-       critical here is a deep brick rather than a pink-leaning red. */
+       Used by CDS card severities and by the standing disclaimer. Critical is a
+       deep brick rather than a pink-leaning red, chosen when the guest label
+       was raspberry so the two could not be mistaken for each other. The guest
+       is plum now, and brick still reads as the host's own. */
     --critical: #a4102f;
     --critical-soft: #fbeaee;
     --warning: #8a5209;
@@ -104,12 +118,13 @@ export const TOKENS = `
     --notice-soft: #e9f4f0;
 
     /* ── The guest ────────────────────────────────────────────────────────
-       thespierproject.org's plum and raspberry (project_spier_official_brand).
+       thespierproject.org's plum, the colour SPiER's own pages set its name in.
        ⚠️ These are the ONLY SPiER colours on these pages, and they are permitted
        in exactly one role: naming SPiER on the chrome bar above something SPiER
        drew. A host control tinted with them is the defect described at the top
-       of this file. */
-    --guest-brand: #cc3366;
+       of this file. The label IS the plum, so it points at it rather than
+       typing it twice. */
+    --guest-brand: var(--guest-ink);
     --guest-ink: #341528;
     --guest-tint: #fdf5f8;
 
@@ -208,11 +223,11 @@ export const COMPONENTS = `
     z-index: 10;
   }
 
+  /* The wordmark: the name in the host's own system stack at 600, no icon and
+     no caps. A vendor's name set like a vendor's name, not like a tag. */
   .app-bar__mark {
-    font-size: var(--text-sm);
-    font-weight: 700;
-    letter-spacing: .08em;
-    text-transform: uppercase;
+    font-size: var(--text-base);
+    font-weight: 600;
     color: var(--surface);
     text-decoration: none;
     white-space: nowrap;
@@ -387,7 +402,7 @@ export const COMPONENTS = `
   .stack { display: grid; gap: var(--s3); margin: 0; padding: 0; list-style: none; }
 
   /* ── Buttons ──────────────────────────────────────────────────────────────
-     ⚠️ Steel, never raspberry. A host control in SPiER's colour is the defect
+     ⚠️ Steel, never plum. A host control in SPiER's colour is the defect
      described at the top of this file. */
   .btn {
     font: inherit;
@@ -636,7 +651,12 @@ export function page({
   nav,
   variant = 'default',
 }: {
-  title: string
+  /**
+   * What this page is, e.g. a patient's name. The product name is appended
+   * here, once, so no page can ship a tab titled as something other than
+   * Northfield Health. Omit it on the front door, whose title is the name.
+   */
+  title?: string
   css?: string
   body: string
   /**
@@ -669,13 +689,13 @@ export function page({
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(title)}</title>
+<title>${esc(title ? `${title} — ${PRODUCT_NAME}` : PRODUCT_NAME)}</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <style>${TOKENS}${COMPONENTS}${css}</style>
 </head>
 <body>
 <header class="app-bar">
-  <a class="app-bar__mark" href="/">SPiER mock EHR</a>
+  <a class="app-bar__mark" href="/">${esc(PRODUCT_NAME)}</a>
   <span class="app-bar__tag">Demo host</span>
   <nav class="app-bar__nav">
     <a class="app-bar__link" href="/"${nav === 'chart' ? ' aria-current="page"' : ''}>Patients</a>
@@ -747,8 +767,8 @@ export const DISCLAIMER = `
  * `resolveTokens` substitutes from `TOKENS`, so the mark tracks the palette and
  * a renamed token fails the gate instead of shipping a black square.
  */
-const FAVICON_TEMPLATE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Mock EHR">
-  <title>Mock EHR</title>
+const FAVICON_TEMPLATE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Northfield Health">
+  <title>Northfield Health</title>
   <rect width="64" height="64" rx="12" fill="var(--chrome)"/>
   <rect x="18" y="13" width="28" height="38" rx="3" fill="var(--chrome-ink)"/>
   <rect x="24" y="22" width="16" height="3" rx="1.5" fill="var(--chrome)"/>

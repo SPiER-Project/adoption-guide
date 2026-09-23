@@ -1,7 +1,7 @@
 # Demo script — SPiER launched inside a (mock) EHR
 
-A one-page walkthrough of the hosted demo: a stand-in vendor EHR at
-<https://spier-mock-ehr.bbthorson.workers.dev> with SPiER launched into a
+A one-page walkthrough of the hosted demo: **Northfield Health**, a stand-in
+vendor EHR at <https://spier-mock-ehr.bbthorson.workers.dev>, with SPiER launched into a
 patient's chart over a real SMART on FHIR handshake. About ten minutes end to end.
 
 This describes the pages as they read after
@@ -13,8 +13,9 @@ only the *what to click*.
 
 ## Who you are
 
-A clinician in a vendor EHR who has a SPiER button on the chart. You never leave
-the EHR. Everything in the **slate** chrome is the host; everything in the
+A clinician in Northfield Health, a vendor EHR with a SPiER button on the chart.
+You never leave Northfield Health. Its name is on the app bar and every tab, and
+it is a made-up vendor: say so if asked. Everything in the **slate** chrome is the host; everything in the
 **panel on the right** is SPiER. That colour boundary is the demo's subject —
 which pixels belong to whom — so point at it once, early.
 
@@ -68,7 +69,7 @@ it still does not prove.
    (a clinician launching from a chart does not re-consent per launch).
 3. The panel lands on his chart: **Step 1 of 8**, one recommendation,
    *Next step: Identify Possible Risk*, with **Launch PHQ-9** first among the
-   screeners. Say: *SPiER has read his chart from the EHR and found no screen.
+   screeners. Say: *SPiER has read his chart from Northfield Health and found no screen.
    The pathway names the PHQ-9 as the screen it demonstrates, so it leads.*
 4. Press **Launch PHQ-9**. Answer the questions; on item 9 pick anything above
    **Not at all**. **Submit.**
@@ -100,7 +101,7 @@ Open her chart and launch. The host page already shows the card SPiER's
 decision-support service returned — *Next step: Clarify Risk*, whose text names
 the PHQ-9 item 9 result and whose first button is **Launch C-SSRS Screener**. In
 the panel: **Step 2 of 8 — Clarify Risk**, with the PHQ-9 recorded under step 1
-and the same card on step 2. Say: *the EHR and the panel got the same answer
+and the same card on step 2. Say: *Northfield Health and the panel got the same answer
 from the same rules.* Launch the screener from either card, submit, and watch
 the rail advance exactly as it did for Marcus.
 
