@@ -98,11 +98,11 @@
 .tool-page__trigger {
   margin: 0;
   padding: var(--space-2) var(--space-3);
-  border-left: 3px solid var(--accent-warning-edge);
+  border-left: 3px solid var(--status-warning-edge);
   border-radius: var(--radius-sm);
-  background: var(--accent-warning-bg);
+  background: var(--status-warning-bg);
   font-size: var(--font-size-base);
-  color: var(--accent-warning-text-deep);
+  color: var(--status-warning-text);
 }
 
 .tool-page__elements {

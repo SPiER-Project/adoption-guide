@@ -71,11 +71,11 @@
 }
 
 .rubric-summary-fill--coverage {
-  background: linear-gradient(90deg, var(--accent-orange-strong), var(--accent-success-light));
+  background: linear-gradient(90deg, var(--risk-high), var(--risk-low));
 }
 
 .rubric-summary-fill--maturity {
-  background: linear-gradient(90deg, var(--accent-red-light) 0%, var(--accent-orange-strong) 33%, var(--accent-warning-stop) 66%, var(--accent-success-light) 100%);
+  background: linear-gradient(90deg, var(--risk-acute) 0% 25%, var(--risk-high) 25% 50%, var(--risk-moderate) 50% 75%, var(--risk-low) 75% 100%);
 }
 
 .rubric-reset-btn {
@@ -117,7 +117,7 @@
 }
 
 .rubric-stage-section--covered {
-  border-color: var(--risk-low);
+  border-color: var(--status-success-edge);
 }
 
 .rubric-stage-header {
@@ -167,8 +167,8 @@
 }
 
 .rubric-stage-indicator--covered {
-  background: var(--accent-success-bg);
-  color: var(--accent-success-text);
+  background: var(--status-success-bg);
+  color: var(--status-success-text);
 }
 
 .rubric-stage-title {
@@ -191,7 +191,7 @@
 }
 
 .rubric-stage-coverage--all {
-  color: var(--accent-success-text);
+  color: var(--status-success-text);
 }
 
 /* ── Tool Checkboxes ── */
@@ -221,13 +221,13 @@
 }
 
 .rubric-tool-checkbox--checked {
-  background: var(--risk-low-soft);
-  border-color: var(--risk-low);
-  color: var(--risk-low-soft-text);
+  background: var(--status-success-bg);
+  border-color: var(--status-success-edge);
+  color: var(--status-success-text);
 }
 
 .rubric-tool-checkbox input[type="checkbox"] {
-  accent-color: var(--accent-success);
+  accent-color: var(--status-success-edge);
   cursor: pointer;
 }
 

@@ -58,7 +58,7 @@
 }
 
 .guide-pager__link:hover {
-  border-color: var(--accent-info);
+  border-color: var(--brand-link);
   background: var(--surface-page);
 }
 
@@ -76,5 +76,5 @@
 .guide-pager__label {
   font-size: var(--font-size-lg);
   font-weight: 600;
-  color: var(--accent-info);
+  color: var(--brand-link);
 }

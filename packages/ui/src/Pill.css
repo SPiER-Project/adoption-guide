@@ -47,9 +47,10 @@
 .pill--neutral  { background: var(--surface-muted);       color: var(--text-body); }
 .pill--brand    { background: var(--brand-primary);        color: var(--text-on-brand); }
 .pill--accent   { background: var(--tint-peach-soft);    color: var(--brand-primary); }
-.pill--info     { background: var(--accent-info-soft);    color: var(--accent-info-text-deep); }
-.pill--success  { background: var(--accent-success-bg);   color: var(--accent-success-text); }
-.pill--warning  { background: var(--accent-warning-bg);   color: var(--accent-warning-text); }
+.pill--info     { background: var(--status-info-bg);      color: var(--status-info-text); }
+.pill--success  { background: var(--status-success-bg);   color: var(--status-success-text); }
+.pill--warning  { background: var(--status-warning-bg);   color: var(--status-warning-text); }
+.pill--danger   { background: var(--status-danger-bg);    color: var(--status-danger-text); }
 
 /* ---- tones: the brand tints (the website's category tags) ---- */
 .pill--peach    { background: var(--tint-peach-soft);     color: var(--brand-primary); }

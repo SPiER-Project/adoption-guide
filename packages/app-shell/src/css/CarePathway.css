@@ -104,10 +104,10 @@
 .pathway-stage-chip {
   display: inline-block;
   padding: var(--space-1) var(--space-2);
-  border: 1px solid var(--accent-info-border);
+  border: 1px solid var(--tint-sky);
   border-radius: var(--radius-pill);
-  background-color: var(--accent-info-soft-bg);
-  color: var(--accent-info-text-deep);
+  background-color: var(--tint-sky-soft);
+  color: var(--brand-primary);
   font-size: var(--font-size-2xs);
   font-weight: 600;
   letter-spacing: normal;
@@ -358,10 +358,10 @@
 .pathway-matrix__mark {
   display: inline-block;
   padding: var(--space-0-5) var(--space-2);
-  border: 1px solid var(--accent-success-light);
+  border: 1px solid var(--status-success-border);
   border-radius: var(--radius-pill);
-  background-color: var(--accent-success-bg);
-  color: var(--accent-success-text);
+  background-color: var(--status-success-bg);
+  color: var(--status-success-text);
   font-size: var(--font-size-2xs);
   font-weight: 700;
   letter-spacing: var(--tracking-caps);
@@ -622,15 +622,15 @@
 
 .pathway-pending {
   padding: var(--space-5);
-  border: 1px solid var(--accent-warning-border);
+  border: 1px solid var(--status-warning-border);
   border-radius: var(--radius-lg);
-  background-color: var(--accent-warning-bg);
+  background-color: var(--status-warning-bg);
 }
 
 .pathway-pending__lede {
   max-width: var(--measure-prose);
   margin: 0 0 var(--space-3);
-  color: var(--accent-warning-text-deep);
+  color: var(--status-warning-text);
   font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
 }

@@ -20,7 +20,7 @@ import type { ReactNode, Ref } from 'react'
 import { cx } from './cx'
 import './Notice.css'
 
-export type NoticeTone = 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'danger'
+export type NoticeTone = 'neutral' | 'info' | 'success' | 'warning' | 'danger'
 
 export function Notice({
   tone = 'neutral',

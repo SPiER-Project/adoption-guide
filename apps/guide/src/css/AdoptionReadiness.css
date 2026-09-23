@@ -69,11 +69,11 @@
 }
 
 .ar-summary-fill--built {
-  background: linear-gradient(90deg, var(--accent-orange-strong), var(--accent-success-light));
+  background: linear-gradient(90deg, var(--risk-high), var(--risk-low));
 }
 
 .ar-summary-fill--depth {
-  background: linear-gradient(90deg, var(--accent-red-light) 0%, var(--accent-orange-strong) 33%, var(--accent-warning-stop) 66%, var(--accent-success-light) 100%);
+  background: linear-gradient(90deg, var(--risk-acute) 0% 25%, var(--risk-high) 25% 50%, var(--risk-moderate) 50% 75%, var(--risk-low) 75% 100%);
 }
 
 .ar-summary-bar-caption {
@@ -183,7 +183,7 @@
 .ar-res-link {
   font-size: var(--font-size-sm);
   font-weight: 600;
-  color: var(--accent-info);
+  color: var(--brand-link);
   text-decoration: none;
   white-space: nowrap;
 }

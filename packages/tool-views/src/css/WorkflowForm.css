@@ -110,15 +110,15 @@
 }
 
 .consent-gate--permitted {
-  background: var(--accent-success-bg);
-  border-color: var(--accent-success);
-  color: var(--accent-success-text);
+  background: var(--status-success-bg);
+  border-color: var(--status-success-border);
+  color: var(--status-success-text);
 }
 
 .consent-gate--withheld {
-  background: var(--accent-warning-bg);
-  border-color: var(--accent-warning-edge);
-  color: var(--accent-warning-text);
+  background: var(--status-warning-bg);
+  border-color: var(--status-warning-border);
+  color: var(--status-warning-text);
 }
 
 .consent-gate__title {
@@ -150,8 +150,8 @@
   margin-left: var(--space-2);
   padding: 0 var(--space-2);
   border-radius: var(--radius-sm);
-  background: var(--accent-warning-bg);
-  color: var(--accent-warning-text);
+  background: var(--status-warning-bg);
+  color: var(--status-warning-text);
   font-size: var(--font-size-sm);
   text-decoration: none;
 }

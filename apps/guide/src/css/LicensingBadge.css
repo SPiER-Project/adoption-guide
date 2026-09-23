@@ -3,8 +3,8 @@
    pill's shape is Pill's. Moved out of AdoptionReadiness.css when the tool page
    started rendering the same badge (components/LicensingBadge.tsx).
    =========================== */
-.licensing-badge--public-domain  { background: var(--accent-info-soft);      color: var(--accent-info-text-deep); }
-.licensing-badge--registration   { background: var(--accent-warning-bg);     color: var(--accent-warning-text); }
+.licensing-badge--public-domain  { background: var(--tint-sage-soft);        color: var(--brand-primary); }
+.licensing-badge--registration   { background: var(--tint-sky-soft);         color: var(--brand-primary); }
 .licensing-badge--commercial     { background: var(--tint-sand);            color: var(--brand-primary); }
 .licensing-badge--spier-authored { background: var(--surface-muted);         color: var(--text-muted); }
 

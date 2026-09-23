@@ -1,8 +1,9 @@
 /* ===========================
    Notice — see components/Notice.tsx for the recipe and what is NOT one.
 
-   The tone tokens are the app's existing accent families; a new tone is a
-   new family in index.css first, then a modifier here — never a literal.
+   Each tone is one --status-* family (bg / border / edge / text) from
+   foundation.css; a new tone is a new family there first, then a modifier
+   here — never a literal.
    =========================== */
 
 .notice {
@@ -38,23 +39,22 @@
   font-size: var(--font-size-sm);
 }
 
-.notice--brand {
-  background: var(--tint-sky-soft);
-  border-color: var(--tint-sky);
-  border-left-color: var(--brand-primary);
+.notice--info {
+  background: var(--status-info-bg);
+  border-color: var(--status-info-border);
+  border-left-color: var(--status-info-edge);
+  color: var(--status-info-text);
 }
 
-.notice--info {
-  background: var(--accent-info-soft-bg);
-  border-color: var(--accent-info-border);
-  border-left-color: var(--accent-info-mid);
+.notice--info .notice__title {
+  color: inherit;
 }
 
 .notice--success {
-  background: var(--accent-success-bg);
-  border-color: var(--accent-success-light);
-  border-left-color: var(--accent-success);
-  color: var(--accent-success-text);
+  background: var(--status-success-bg);
+  border-color: var(--status-success-border);
+  border-left-color: var(--status-success-edge);
+  color: var(--status-success-text);
 }
 
 .notice--success .notice__title {
@@ -62,10 +62,10 @@
 }
 
 .notice--warning {
-  background: var(--accent-warning-bg);
-  border-color: var(--accent-warning-border);
-  border-left-color: var(--accent-warning-edge);
-  color: var(--accent-warning-text-deep);
+  background: var(--status-warning-bg);
+  border-color: var(--status-warning-border);
+  border-left-color: var(--status-warning-edge);
+  color: var(--status-warning-text);
 }
 
 .notice--warning .notice__title {
@@ -73,10 +73,10 @@
 }
 
 .notice--danger {
-  background: var(--risk-acute-soft);
-  border-color: var(--risk-acute-soft);
-  border-left-color: var(--risk-acute);
-  color: var(--risk-acute-soft-text);
+  background: var(--status-danger-bg);
+  border-color: var(--status-danger-border);
+  border-left-color: var(--status-danger-edge);
+  color: var(--status-danger-text);
 }
 
 .notice--danger .notice__title {

@@ -30,7 +30,7 @@ import { cx } from './cx'
 import './Pill.css'
 
 export type PillTone =
-  | 'neutral' | 'brand' | 'accent' | 'info' | 'success' | 'warning'
+  | 'neutral' | 'brand' | 'accent' | 'info' | 'success' | 'warning' | 'danger'
   | 'peach' | 'sage' | 'sky'
   | 'acute' | 'high' | 'moderate' | 'low' | 'none' | 'unknown'
   | 'soft-acute' | 'soft-high' | 'soft-moderate' | 'soft-low'

@@ -115,8 +115,8 @@
 }
 
 .preset-card--active {
-  border-color: var(--accent-info);
-  background: var(--accent-info-soft-bg);
+  border-color: var(--brand-primary);
+  background: var(--tint-peach-soft);
   box-shadow: var(--shadow-focus-ring);
 }
 
@@ -182,7 +182,7 @@
   height: 1rem;
   cursor: pointer;
   flex-shrink: 0;
-  accent-color: var(--accent-info);
+  accent-color: var(--brand-primary);
 }
 
 .tool-row-name {
