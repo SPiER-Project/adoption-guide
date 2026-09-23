@@ -57,15 +57,15 @@
 .pill--sky      { background: var(--tint-sky-soft);       color: var(--brand-primary); }
 
 /* ---- tones: the risk ramp, solid (a risk level) ---- */
-.pill--acute    { background: var(--risk-acute);          color: var(--text-on-brand); }
-.pill--high     { background: var(--risk-high);           color: var(--text-on-brand); }
-.pill--moderate { background: var(--risk-moderate);       color: var(--text-on-brand); }
-.pill--low      { background: var(--risk-low-faded);      color: var(--accent-success-text); }
+.pill--acute    { background: var(--risk-acute);          color: var(--risk-acute-on); }
+.pill--high     { background: var(--risk-high);           color: var(--risk-high-on); }
+.pill--moderate { background: var(--risk-moderate);       color: var(--risk-moderate-on); }
+.pill--low      { background: var(--risk-low);            color: var(--risk-low-on); }
 .pill--none     { background: var(--border-default);      color: var(--text-body); }
 .pill--unknown  { background: var(--border-default);      color: var(--text-body); font-style: italic; }
 
 /* ---- tones: the risk ramp, soft (a 4-step scale that is not a risk level) ---- */
-.pill--soft-acute    { background: var(--risk-acute-faded);    color: var(--risk-acute-soft-text); }
-.pill--soft-high     { background: var(--risk-high-faded);     color: var(--risk-high-soft-text); }
-.pill--soft-moderate { background: var(--risk-moderate-faded); color: var(--risk-moderate-soft-text); }
-.pill--soft-low      { background: var(--risk-low-faded);      color: var(--risk-low-soft-text); }
+.pill--soft-acute    { background: var(--risk-acute-soft);       color: var(--risk-acute-soft-text); }
+.pill--soft-high     { background: var(--risk-high-soft);        color: var(--risk-high-soft-text); }
+.pill--soft-moderate { background: var(--risk-moderate-soft);    color: var(--risk-moderate-soft-text); }
+.pill--soft-low      { background: var(--risk-low-soft);         color: var(--risk-low-soft-text); }

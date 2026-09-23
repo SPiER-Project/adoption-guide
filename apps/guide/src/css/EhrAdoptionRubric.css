@@ -117,7 +117,7 @@
 }
 
 .rubric-stage-section--covered {
-  border-color: var(--risk-low-faded);
+  border-color: var(--risk-low);
 }
 
 .rubric-stage-header {
@@ -221,9 +221,9 @@
 }
 
 .rubric-tool-checkbox--checked {
-  background: var(--risk-low-soft-bg);
-  border-color: var(--risk-low-faded);
-  color: var(--accent-success-text);
+  background: var(--risk-low-soft);
+  border-color: var(--risk-low);
+  color: var(--risk-low-soft-text);
 }
 
 .rubric-tool-checkbox input[type="checkbox"] {
@@ -285,7 +285,7 @@
   border-color: var(--text-faint);
 }
 
-.rubric-select--level-0 { background: var(--risk-acute-faded);    color: var(--risk-acute-soft-text); }
-.rubric-select--level-1 { background: var(--risk-high-faded);     color: var(--risk-high-soft-text); }
-.rubric-select--level-2 { background: var(--risk-moderate-faded); color: var(--risk-moderate-soft-text); }
-.rubric-select--level-3 { background: var(--risk-low-faded);      color: var(--risk-low-soft-text); }
+.rubric-select--level-0 { background: var(--risk-acute-soft);       color: var(--risk-acute-soft-text); }
+.rubric-select--level-1 { background: var(--risk-high-soft);        color: var(--risk-high-soft-text); }
+.rubric-select--level-2 { background: var(--risk-moderate-soft);    color: var(--risk-moderate-soft-text); }
+.rubric-select--level-3 { background: var(--risk-low-soft);         color: var(--risk-low-soft-text); }

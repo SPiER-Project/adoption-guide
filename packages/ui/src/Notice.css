@@ -73,8 +73,8 @@
 }
 
 .notice--danger {
-  background: var(--risk-acute-soft-bg);
-  border-color: var(--risk-acute-faded);
+  background: var(--risk-acute-soft);
+  border-color: var(--risk-acute-soft);
   border-left-color: var(--risk-acute);
   color: var(--risk-acute-soft-text);
 }

@@ -68,7 +68,7 @@
  * FhircastListener's header for why silence would be the worst option.
  */
 .fhircast-banner--warn {
-  background-color: var(--risk-high-soft-bg);
-  border-color: var(--risk-high-faded);
+  background-color: var(--risk-high-soft);
+  border-color: var(--risk-high-soft);
   color: var(--risk-high-soft-text);
 }

@@ -488,10 +488,10 @@
   background-color: var(--surface-card);
 }
 
-.pathway-sim__result--low { border-color: var(--risk-low); background-color: var(--risk-low-soft-bg); }
-.pathway-sim__result--moderate { border-color: var(--risk-moderate); background-color: var(--risk-moderate-soft-bg); }
-.pathway-sim__result--high { border-color: var(--risk-high); background-color: var(--risk-high-soft-bg); }
-.pathway-sim__result--imminent { border-color: var(--risk-acute); background-color: var(--risk-acute-soft-bg); }
+.pathway-sim__result--low { border-color: var(--risk-low); background-color: var(--risk-low-soft); }
+.pathway-sim__result--moderate { border-color: var(--risk-moderate); background-color: var(--risk-moderate-soft); }
+.pathway-sim__result--high { border-color: var(--risk-high); background-color: var(--risk-high-soft); }
+.pathway-sim__result--imminent { border-color: var(--risk-acute); background-color: var(--risk-acute-soft); }
 
 .pathway-sim__result-label {
   color: var(--text-faint);
