@@ -95,9 +95,14 @@
 }
 
 /* A stage carrying a live recommendation — including one the pathway has
-   already passed — must read as "there is something to do here". */
+   already passed — must read as "there is something to do here".
+   ⚠️ Plum, not terracotta (2026-09-24). Terracotta is the guide's label colour,
+   and in this chart it sat beside the risk ramp's high orange and read as a
+   statement about risk. Plum is what the stage's own "N due" pill already
+   says. The active stage adds its glow on top, so "here" and "something to do
+   here" stay two signals, and a stage that is both shows both. */
 .pathway-node--attention .pathway-node-card {
-  border-color: var(--brand-terracotta);
+  border-color: var(--brand-primary);
 }
 
 .pathway-node--upcoming .pathway-node-card {
