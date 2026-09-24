@@ -14,29 +14,30 @@
 }
 
 /* Uppercase micro-trail: what the page sits inside. Always present — see the
-   prop docs in PageHeader.tsx for why it is not optional. Terracotta rather
-   than muted grey — it is the website's section label and reads as a label
-   rather than as demoted body copy. `--brand-terracotta-text` is the deepened
-   shade: 4.69:1 on --surface-page, so it clears AA at this size where the
-   design's own value (2.95:1) would not. */
+   prop docs in PageHeader.tsx for why it is not optional. `--label-color` is
+   the density's label: terracotta in the guide (the website's section label,
+   deepened to 4.69:1 for AA), plum-muted in the clinical apps, where a
+   terracotta label beside the high-risk orange reads as a risk statement.
+   foundation.css's density note has the rest. */
 .page-header__eyebrow {
   margin: 0 0 var(--space-2);
   font-size: var(--font-size-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-wide);
-  color: var(--brand-terracotta-text);
+  color: var(--label-color);
 }
 
 /* The website's sub-page eyebrow: the same words in an outlined pill. The
-   outline takes the design's own terracotta — a hairline is not text, so the
-   contrast rule does not bind it. `inline-flex` so the pill hugs the trail
+   outline is --label-hairline: the design's own terracotta in the guide (a
+   hairline is not text, so the contrast rule does not bind it), and a plain
+   rule in the clinical apps. `inline-flex` so the pill hugs the trail
    rather than spanning the header. */
 .page-header__eyebrow--pill {
   display: inline-flex;
   align-items: center;
   padding: var(--space-0-5) var(--space-2);
-  border: 1px solid var(--brand-terracotta);
+  border: 1px solid var(--label-hairline);
   border-radius: var(--radius-pill);
 }
 
@@ -52,13 +53,13 @@
 .page-header__up {
   color: inherit;
   text-decoration: underline;
-  text-decoration-color: var(--brand-terracotta-faint);
+  text-decoration-color: var(--label-underline);
   text-underline-offset: 2px;
 }
 
 .page-header__crumb:hover,
 .page-header__up:hover {
-  text-decoration-color: var(--brand-terracotta-text);
+  text-decoration-color: var(--label-color);
 }
 
 /* The slash between the trail and the TITLE. Hidden by default: in a standalone
@@ -86,14 +87,18 @@
 /* The brand's accent rule, and the header's only separator. It replaces the
    guide's card band + border-bottom, which was invisible anyway (--surface-card
    against --surface-page is #fff on #fafaf9) while costing the whole guide body
-   a 24px indent that no other lens had. */
+   a 24px indent that no other lens had.
+   It is the guide's: the density sets --page-rule to the brand gradient there
+   and to nothing in the clinical apps, where --page-rule-display takes the box
+   and its margins with it — a transparent rule would leave a 36px gap. */
 .page-header__rule {
+  display: var(--page-rule-display);
   height: 4px;
   width: 100%;
   max-width: 300px;
   margin: var(--space-4) 0;
   border-radius: 2px;
-  background: var(--gradient-brand);
+  background: var(--page-rule);
 }
 
 .page-header__lede {
@@ -179,12 +184,6 @@
 .panel-shell .page-header__title {
   margin: 0;
   font-size: var(--font-size-base);
-}
-
-/* The accent rule is a full-width divider under a stacked title. There is no
-   stack here for it to divide. */
-.panel-shell .page-header__rule {
-  display: none;
 }
 
 /* The lede keeps its content but leaves the header's line — most workflow views

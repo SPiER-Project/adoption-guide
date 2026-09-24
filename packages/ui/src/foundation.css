@@ -380,6 +380,47 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ── Density: one brand, two settings ─────────────────────────
+   Each app sets the attribute ONCE, on <html> in its own index.html:
+   `guide` for the Adoption Guide, `clinical` for the two SMART apps. The guide
+   is read the way thespierproject.org is read, so it sits closer to the site;
+   the clinical apps run inside someone else's chart, often in a 470px dock,
+   and are quieter.
+   ⚠️ **No component reads which app it is in; it reads these tokens.**
+   `check:template` fails a `[data-density]` selector anywhere but this file,
+   and any TypeScript that reads the attribute, because a component that asks
+   "am I clinical?" is the per-app fork this exists to prevent.
+   ⚠️ **Terracotta is a guide colour.** In a clinical view a terracotta eyebrow
+   (#a8572d) sits beside the high-risk orange (#b8501f) and reads as a
+   statement about risk, which is why the clinical label is plum-muted.
+   Three tokens are companions the approved set needed to work in CSS:
+   --page-rule-display, because `--page-rule: none` still leaves the rule's
+   box and margins as a blank gap; and --label-hairline and --label-underline,
+   the pill eyebrow's outline and the crumb's resting underline, which were
+   terracotta too. Running-text and page-title size join these with the type
+   roles; they are deliberately not here as --font-size-* values. */
+[data-density="guide"] {
+  --label-color: var(--brand-terracotta-text);
+  --label-hairline: var(--brand-terracotta);
+  --label-underline: var(--brand-terracotta-faint);
+  --card-pad: var(--space-6);
+  --card-radius: var(--radius-2xl);
+  --page-rule: var(--gradient-brand);
+  --page-rule-display: block;
+  --button-accent-allowed: 1;
+}
+
+[data-density="clinical"] {
+  --label-color: #6b5563; /* plum-muted: 6.76:1 on white, 6.15:1 on --surface-page */
+  --label-hairline: var(--border-strong);
+  --label-underline: var(--border-strong);
+  --card-pad: var(--space-4);
+  --card-radius: var(--radius-lg);
+  --page-rule: none;
+  --page-rule-display: none;
+  --button-accent-allowed: 0;
+}
+
 *,
 *::before,
 *::after {

@@ -41,7 +41,9 @@ npm run check:css-dead # every class selector in src/**/*.css is referenced by a
                        # test (tests are excluded on purpose), or two files defining the
                        # same class where import order picks the winner.
 npm run check:template # page template: one header implementation, one owner of the page
-                       # inset, one owner of the page width
+                       # inset, one owner of the page width, and density read from tokens
+                       # only (RULE 7: no [data-density] selector outside foundation.css, no
+                       # component reading it, every app's <html> setting a defined one)
 npm run check:prose    # the reading MEASURE — `--measure-prose`. Its five rules are each
                        # written against a defect that shipped: the token must be in `em`
                        # and in band (it was 760px, a width where a character count was
