@@ -337,8 +337,11 @@ Card there would have resolved `--card-pad` to nothing. The HTML entry is the
 one element above every route.
 ⚠️ **Terracotta is a guide colour.** In a clinical view a terracotta eyebrow
 (#a8572d) sits beside the high-risk orange (#b8501f) and reads as a statement
-about risk. `.pathway-node--attention`'s terracotta *border* is not text and
-was not in scope; it still shows in the clinical chart.
+about risk. `.pathway-node--attention`'s *border* was the last terracotta in
+the clinical chart, and it is plum since 2026-09-24, matching the stage's own
+"N due" pill. The attention rule comes after the active one, so its terracotta
+used to paint over the active stage's plum border too; the stage you were on
+never showed the active colour at all when it had something due.
 ⚠️ **Three companion tokens.** The approved set did not quite work in CSS on
 its own:
 - `--page-rule-display`: `--page-rule: none` still leaves the rule's 4px box and margins as a 36px gap, so the display switch takes the whole box.
