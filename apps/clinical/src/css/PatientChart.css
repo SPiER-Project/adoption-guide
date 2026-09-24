@@ -335,8 +335,8 @@
    CDS cards (rendered inside their pathway stage)
    =========================== */
 
-.cds-card--critical { border-left-color: var(--risk-acute); }
-.cds-card--warning  { border-left-color: var(--risk-moderate); }
+.cds-card--critical { border-left-color: var(--risk-acute-edge); }
+.cds-card--warning  { border-left-color: var(--risk-moderate-edge); }
 .cds-card--info     { border-left-color: var(--status-info-edge); }
 
 .cds-card-header {

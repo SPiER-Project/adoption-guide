@@ -16,8 +16,17 @@
  *      edit is what gets measured.
  *   2. THE CONSUMERS. A pair that passes does nothing for a rule that puts
  *      white on the fill anyway, which is exactly how the moderate pill failed.
- *      Every rule, in every style root, that fills with a solid step must set
- *      `color` to that step's `-on` — or be named below as carrying no text.
+ *      A solid step `--risk-X` appears ONLY as the background of a rule that
+ *      sets `color: var(--risk-X-on)`. Anything else — a border, a bar
+ *      segment, a swatch, a gradient stop — is a mark, and reads --risk-X-edge.
+ *
+ * ⚠️ **The edge half joined on 2026-09-24.** Moderate's fill (#e0b54a) is
+ * light so that plum text reads on it, and as a card edge or a bar segment it
+ * measured 1.60-1.93:1, under the 3:1 WCAG 1.4.11 asks of a mark. Every
+ * --risk-X-edge now clears 3:1 against white, the page, the muted bar track
+ * and its own soft fill (a sim result's border sits on it). The rule above is
+ * what replaced a TEXT_FREE list of eight selectors: a mark has its own token,
+ * so there is no text-free fill left to exempt.
  *
  * The STATUS families joined on 2026-09-23, when twenty --accent-* tokens
  * became sixteen --status-*: every family has all four parts (bg, border,
@@ -43,21 +52,7 @@ import { allStyleFiles, relRepo, REPO_ROOT } from '../scripts/lib/style-roots.mj
 const FOUNDATION = join(REPO_ROOT, 'packages/ui/src/foundation.css')
 const AA = 4.5
 
-/**
- * Rules that fill with a solid step and hold no text, so they have no text
- * colour to set. Keyed by selector; the reason is the markup, which is where
- * to look before adding one.
- */
-const TEXT_FREE: Record<string, string> = {
-  '.pop-census-seg--acute': 'PopulationSummary: an empty <span> sized by flex-grow, and the key dot beside a label',
-  '.pop-census-seg--high': 'as above',
-  '.pop-census-seg--moderate': 'as above',
-  '.pop-census-seg--low': 'as above',
-  '.pop-alert--red .pop-alert-dot': 'a status dot; the alert text sits beside it, not on it',
-  '.pathway-matrix__tier--low .pathway-matrix__swatch': 'a colour swatch beside the tier name',
-  '.pathway-matrix__tier--moderate .pathway-matrix__swatch': 'as above',
-  '.pathway-matrix__tier--high .pathway-matrix__swatch': 'as above',
-}
+const MARK = 3
 
 /** `--name: value;` declarations, comments stripped. The last one wins, as in CSS. */
 export function tokensOf(css: string): Map<string, string> {
@@ -153,26 +148,32 @@ for (const file of allStyleFiles(['.css'])) {
   }
 }
 
-describe('every rule that fills with a solid risk step', () => {
-  const filled = rules.flatMap(r => {
-    const m = /background(?:-color)?\s*:\s*var\((--risk-[a-z]+)\)/.exec(r.body)
-    return m ? [{ ...r, fill: m[1] }] : []
+describe('the risk ramp as a mark', () => {
+  const EDGE = SOLID.map(t => `${t}-edge`)
+  const GROUNDS = ['--surface-card', '--surface-page', '--surface-muted']
+
+  it.each(EDGE.flatMap(e => [...GROUNDS, e.replace(/-edge$/, '-soft')].map(g => [e, g] as const)))(
+    '%s on %s at ≥ 3:1', (edge, ground) => {
+      const ratio = contrast(resolve(tokens, edge), resolve(tokens, ground))
+      expect(ratio, `${edge} on ${ground} measures ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(MARK)
+    })
+})
+
+describe('every rule that uses a solid risk step', () => {
+  // foundation.css DEFINES the ramp (an -edge is `var(--risk-X)`); it is not a use of it.
+  const uses = rules.filter(r => r.file !== 'packages/ui/src/foundation.css').flatMap(r => [...r.body.matchAll(/var\((--risk-(?:acute|high|moderate|low))\)/g)].map(m => ({ ...r, token: m[1] })))
+
+  it('finds the known uses — a parse that matched nothing would pass', () => {
+    expect(uses.length).toBeGreaterThanOrEqual(7)
   })
 
-  it('finds the known consumers — a parse that matched nothing would pass', () => {
-    expect(filled.length).toBeGreaterThanOrEqual(12)
-  })
-
-  it.each(filled.map(r => [r.selector, r] as const))('%s sets its step\'s -on text colour', (_s, r) => {
-    if (r.selector in TEXT_FREE) return
-    const color = /(?:^|[;\s])color\s*:\s*(var\(--[a-z0-9-]+\))/.exec(r.body)?.[1]
-    expect(color, `${r.file}: \`${r.selector}\` fills with ${r.fill}; set color: var(${r.fill}-on), or list it in TEXT_FREE if it holds no text`)
-      .toBe(`var(${r.fill}-on)`)
-  })
-
-  it('lists no TEXT_FREE selector that no longer exists', () => {
-    const present = new Set(filled.map(r => r.selector))
-    expect(Object.keys(TEXT_FREE).filter(s => !present.has(s))).toEqual([])
+  it.each(uses.map(r => [`${r.selector} (${r.token})`, r] as const))('%s is text on its fill, or reads -edge', (_s, r) => {
+    const fill = new RegExp(`background(?:-color)?\\s*:\\s*var\\(${r.token}\\)`).test(r.body)
+    const on = new RegExp(`(?:^|[;\\s])color\\s*:\\s*var\\(${r.token}-on\\)`).test(r.body)
+    expect(fill && on,
+      `${r.file}: \`${r.selector}\` uses ${r.token} ${fill ? 'as a fill without its -on text colour' : 'as a mark'} — ` +
+      `a fill under text sets color: var(${r.token}-on); a border, segment, swatch or gradient stop reads var(${r.token}-edge)`)
+      .toBe(true)
   })
 })
 

@@ -19,11 +19,11 @@
 }
 
 .next-action--urgent {
-  border-left-color: var(--risk-acute);
+  border-left-color: var(--risk-acute-edge);
 }
 
 .next-action--elevated {
-  border-left-color: var(--risk-moderate);
+  border-left-color: var(--risk-moderate-edge);
 }
 
 .next-action--routine {

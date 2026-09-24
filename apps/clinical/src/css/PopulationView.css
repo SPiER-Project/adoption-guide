@@ -328,7 +328,7 @@
 }
 
 .pop-tile--breached {
-  border-color: var(--risk-high);
+  border-color: var(--risk-high-edge);
   background: var(--risk-high-soft);
 }
 
@@ -380,10 +380,10 @@
   min-width: 0.125rem;
 }
 
-.pop-census-seg--acute { background: var(--risk-acute); }
-.pop-census-seg--high { background: var(--risk-high); }
-.pop-census-seg--moderate { background: var(--risk-moderate); }
-.pop-census-seg--low { background: var(--risk-low); }
+.pop-census-seg--acute { background: var(--risk-acute-edge); }
+.pop-census-seg--high { background: var(--risk-high-edge); }
+.pop-census-seg--moderate { background: var(--risk-moderate-edge); }
+.pop-census-seg--low { background: var(--risk-low-edge); }
 .pop-census-seg--none { background: var(--border-default); }
 
 .pop-census-key {
@@ -452,7 +452,7 @@
   cursor: pointer;
 }
 
-.pop-alert-group--red { border-left-color: var(--risk-high); }
+.pop-alert-group--red { border-left-color: var(--risk-high-edge); }
 .pop-alert-group--yellow { border-left-color: var(--status-warning-edge); }
 
 .pop-alert-group-head {
@@ -503,7 +503,7 @@
   margin-top: var(--space-1-5);
 }
 
-.pop-alert--red .pop-alert-dot { background: var(--risk-high); }
+.pop-alert--red .pop-alert-dot { background: var(--risk-high-edge); }
 .pop-alert--yellow .pop-alert-dot { background: var(--status-warning-edge); }
 
 .pop-alert-body {

@@ -273,14 +273,25 @@ Moderate is now the one light solid, so its `-on` is plum. The old
 were deleted rather than aliased, so `check:tokens` failed on every use the
 sweep missed. `tests/colourContrast.test.ts` holds the pairs at ≥ 4.5:1 from this
 file's own values. It also holds every rule in every style root that fills with
-a solid step to that step's `-on`, with a short `TEXT_FREE` list for swatches and
-bar segments; that half is what caught `.cds-card-pill--warning` still putting
-white on the new amber. ⚠️ Planting `#ca8a04` back does **not** fail on its own:
+a solid step to that step's `-on`; that half is what caught
+`.cds-card-pill--warning` still putting white on the new amber. ⚠️ Planting `#ca8a04` back does **not** fail on its own:
 plum on the old amber clears AA. The defect was the pairing, and the plant that
-fails is the one that restores the white. ⚠️ What neither half checks is a solid
-step used as an **edge or bar**: moderate is 1.93:1 against white (it was 2.94),
-under the 3:1 WCAG asks of a graphical object. Every such use today sits next to
-the level written in words, which is what keeps it from being the only signal.
+fails is the one that restores the white.
+⚠️ **A fill is not a mark, and the ramp has a token for each.** A solid step
+is for text on it, with its `-on`. A card's left edge, a bar segment, a swatch,
+a dot or a gradient stop is a *mark*, and reads `--risk-X-edge`. Moderate is why:
+its fill is light so that plum text reads on it, and as a mark it measured
+1.60–1.93:1, under the 3:1 WCAG 1.4.11 asks of a graphical object. For two
+days that was recorded here as a known gap. Since 2026-09-24,
+`--risk-moderate-edge` is the fill's hue and saturation darkened just enough to
+clear 3:1 on every ground: 3.16 on the bar track, 3.45 on the page, 3.80 on
+white, 3.16 on its own soft fill. It goes no further, so it keeps some lightness
+apart from high and low beside it in a stepped bar (1.31 and 1.39); past that,
+only hue tells them apart. The other three steps already cleared 3:1, so their
+edge is their fill. 26 rules moved, and only seven text fills still read a
+solid step. The test's rule replaced the `TEXT_FREE` list of eight swatches
+and segments: a solid step appears only as the background of a rule that sets
+its `-on`. With a token of their own, text-free marks need no exemption.
 
 **Status is four families of four, and a status colour means a status.**
 `--status-{info,success,warning,danger}-{bg,border,edge,text}`: the tinted
@@ -306,9 +317,10 @@ The rubric's covered and checked states take success. PR 1 had had to borrow `--
 ⚠️ **The scale bars are a stepped solid ramp, not the soft one.** The brief
 offered either, and the measurement decided it: the four soft steps measure
 1.02–1.03:1 against the bar's track (`--surface-muted`). A soft bar is
-invisible. The solid steps measure 5.43 / 4.15 / 1.60 / 4.37. Moderate's 1.60 is
-the same edge-contrast gap recorded for the ramp above, and the old gradient's
-stops were all below 3:1 too (2.30 → 1.27).
+invisible. The solid steps measured 5.43 / 4.15 / 1.60 / 4.37. Moderate's 1.60 was
+the edge-contrast gap recorded for the ramp above, and the old gradient's stops
+were all below 3:1 too (2.30 → 1.27). The bars read the `-edge` tokens now, so
+the moderate step measures 3.16.
 `tests/colourContrast.test.ts` holds each family's text on its ground at
 ≥ 4.5:1. It checks each family has all four parts and that no `--accent-*` came
 back. It also measures every rule, in every style root, that sets a status or
