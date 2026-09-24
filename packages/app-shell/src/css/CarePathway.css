@@ -42,6 +42,7 @@
    directly under the provenance strip, where a reader who has just been told
    "this is the published artifact" is deciding what it is about. */
 .pathway-protocol__scope {
+  font: var(--type-caption);
   max-width: var(--measure-prose);
   margin: 0;
   padding: var(--space-3) var(--space-4);
@@ -49,7 +50,6 @@
   border-radius: var(--radius-sm);
   background-color: var(--surface-muted);
   color: var(--text-body);
-  font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
 }
 
@@ -59,10 +59,10 @@
    text run, never on `.care-pathway`. Three sizes and no others: the lede at
    `lg`, the paragraphs at `md`, notes at `base` (`npm run check:prose`). */
 .care-pathway__lede {
+  font: var(--type-lead);
   margin: 0;
   max-width: var(--measure-prose);
   color: var(--text-body);
-  font-size: var(--font-size-lg);
   line-height: var(--line-height-normal);
 }
 
@@ -73,10 +73,10 @@
 }
 
 .care-pathway__para {
+  font: var(--type-running);
   margin: 0;
   max-width: var(--measure-prose);
   color: var(--text-body);
-  font-size: var(--font-size-md);
   line-height: var(--line-height-normal);
 }
 
@@ -93,22 +93,23 @@
 }
 
 .pathway-section-title {
+  font: var(--type-running);
+  font-family: var(--font-display);
   margin: 0 0 var(--space-3);
   color: var(--text-strong);
-  font-size: var(--font-size-lg);
   font-weight: 600;
 }
 
 /* ── Shared chips and notes ─────────────────────────────────── */
 
 .pathway-stage-chip {
+  font: var(--type-label);
   display: inline-block;
   padding: var(--space-1) var(--space-2);
   border: 1px solid var(--tint-sky);
   border-radius: var(--radius-pill);
   background-color: var(--tint-sky-soft);
   color: var(--brand-primary);
-  font-size: var(--font-size-2xs);
   font-weight: 600;
   letter-spacing: normal;
   text-transform: uppercase;
@@ -128,18 +129,18 @@
    ran 183 characters a line. Capping the item rather than `.pathway-notes__text`
    keeps the rule, the label and the wrapped text on one measure. */
 .pathway-notes__item {
+  font: var(--type-caption);
   max-width: var(--measure-prose);
   padding-left: var(--space-3);
   border-left: 2px solid var(--border-strong);
   color: var(--text-muted);
-  font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
 }
 
 .pathway-notes__label {
+  font: var(--type-label);
   display: block;
   color: var(--text-strong);
-  font-size: var(--font-size-2xs);
   font-weight: 700;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
@@ -151,11 +152,17 @@
 
 .pathway-notes__link,
 .pathway-notes__canonical {
+  font: var(--type-caption);
   display: block;
   overflow-wrap: anywhere;
   margin-top: var(--space-1);
   color: var(--label-color);
-  font-size: var(--font-size-2xs);
+}
+
+/* The canonical is a <code>. The shorthand above resets the browser's
+   monospace, so the face is restated here, for the code alone. */
+.pathway-notes__canonical {
+  font-family: var(--font-mono);
 }
 
 /* ── The spine ──────────────────────────────────────────────── */
@@ -190,9 +197,10 @@
 }
 
 .pathway-step__title {
+  font: var(--type-running);
+  font-family: var(--font-display);
   margin: 0;
   color: var(--text-strong);
-  font-size: var(--font-size-lg);
   font-weight: 600;
 }
 
@@ -205,10 +213,10 @@
    canonical — while its description is one sentence and gets a measure. It was
    the worst run on the page at 187 characters a line. */
 .pathway-step__desc {
+  font: var(--type-caption);
   margin: var(--space-2) 0 0;
   max-width: var(--measure-prose);
   color: var(--text-body);
-  font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
 }
 
@@ -231,9 +239,9 @@
 }
 
 .pathway-obligation__title {
+  font: var(--type-caption);
   margin: 0;
   color: var(--text-strong);
-  font-size: var(--font-size-sm);
   font-weight: 600;
 }
 
@@ -241,10 +249,10 @@
    205 characters a line uncapped. `--measure-prose` is in `em` precisely so this
    run and the 14px lede above it land on the same character count. */
 .pathway-obligation__desc {
+  font: var(--type-caption);
   margin: var(--space-1) 0 0;
   max-width: var(--measure-prose);
   color: var(--text-muted);
-  font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
 }
 
@@ -257,6 +265,7 @@
 }
 
 .pathway-obligation__def {
+  font: var(--type-caption);
   overflow-wrap: anywhere;
   padding: var(--space-1) var(--space-2);
   border: 1px solid var(--border-default);
@@ -264,12 +273,11 @@
   background-color: var(--tint-sand);
   color: var(--brand-primary);
   font-family: var(--font-mono);
-  font-size: var(--font-size-2xs);
 }
 
 .pathway-obligation__protocol {
+  font: var(--type-caption);
   color: var(--text-faint);
-  font-size: var(--font-size-2xs);
   font-style: italic;
 }
 
@@ -319,6 +327,7 @@
 .pathway-matrix__tier--high .pathway-matrix__swatch { background-color: var(--risk-high); }
 
 .pathway-matrix__flag {
+  font: var(--type-label);
   display: block;
   width: fit-content;
   margin-top: var(--space-1);
@@ -326,7 +335,6 @@
   border-radius: var(--radius-pill);
   background-color: var(--brand-primary);
   color: var(--text-on-brand);
-  font-size: var(--font-size-2xs);
   font-weight: 600;
   letter-spacing: normal;
   text-transform: uppercase;
@@ -345,9 +353,9 @@
 /* The gate row's sentence, and a cell's notes, are bounded by the column, so
    neither carries the reading measure. */
 .pathway-matrix__desc {
+  font: var(--type-ui);
   margin: 0;
   color: var(--text-muted);
-  font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
 }
 
@@ -356,13 +364,13 @@
 }
 
 .pathway-matrix__mark {
+  font: var(--type-label);
   display: inline-block;
   padding: var(--space-0-5) var(--space-2);
   border: 1px solid var(--status-success-border);
   border-radius: var(--radius-pill);
   background-color: var(--status-success-bg);
   color: var(--status-success-text);
-  font-size: var(--font-size-2xs);
   font-weight: 700;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
@@ -405,29 +413,30 @@
 }
 
 .pathway-branch__exit {
+  font: var(--type-caption);
   max-width: var(--measure-prose);
   margin: var(--space-4) 0 0;
   padding: var(--space-3);
   border: 1px dashed var(--border-strong);
   border-radius: var(--radius-md);
   color: var(--text-muted);
-  font-size: var(--font-size-base);
 }
 
 /* ── The simulator ──────────────────────────────────────────── */
 
 .pathway-sim__title {
+  font: var(--type-running);
+  font-family: var(--font-display);
   margin: 0;
   color: var(--text-strong);
-  font-size: var(--font-size-lg);
   font-weight: 600;
 }
 
 .pathway-sim__lede {
+  font: var(--type-caption);
   margin: var(--space-2) 0 0;
   max-width: var(--measure-prose);
   color: var(--text-muted);
-  font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
 }
 
@@ -462,17 +471,17 @@
 }
 
 .pathway-sim__q {
+  font: var(--type-caption);
   flex: none;
   min-width: var(--space-7);
   color: var(--text-strong);
-  font-size: var(--font-size-xs);
   font-weight: 700;
 }
 
 .pathway-sim__text {
+  font: var(--type-caption);
   max-width: var(--measure-prose);
   color: var(--text-body);
-  font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
 }
 
@@ -494,30 +503,30 @@
 .pathway-sim__result--imminent { border-color: var(--risk-acute); background-color: var(--risk-acute-soft); }
 
 .pathway-sim__result-label {
+  font: var(--type-label);
   color: var(--text-faint);
-  font-size: var(--font-size-2xs);
   font-weight: 700;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
 }
 
 .pathway-sim__result-tier {
+  font: var(--type-running);
   color: var(--text-strong);
-  font-size: var(--font-size-lg);
   font-weight: 700;
 }
 
 .pathway-sim__result-detail {
+  font: var(--type-caption);
   color: var(--text-muted);
-  font-size: var(--font-size-xs);
 }
 
 /* The one caveat on the simulator, after the result and quieter than it. */
 .pathway-sim__note {
+  font: var(--type-caption);
   margin: var(--space-3) 0 0;
   max-width: var(--measure-prose);
   color: var(--text-faint);
-  font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
 }
 
@@ -540,21 +549,21 @@
 }
 
 .pathway-code__label {
+  font: var(--type-running);
   color: var(--text-strong);
-  font-size: var(--font-size-lg);
   font-weight: 600;
 }
 
 .pathway-code__hint {
+  font: var(--type-caption);
   color: var(--text-muted);
-  font-size: var(--font-size-xs);
 }
 
 .pathway-code__lede {
+  font: var(--type-caption);
   margin: var(--space-3) 0 0;
   max-width: var(--measure-prose);
   color: var(--text-muted);
-  font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
 }
 
@@ -566,19 +575,19 @@
 }
 
 .pathway-code__step {
+  font: var(--type-caption);
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
   align-items: baseline;
   color: var(--text-strong);
-  font-size: var(--font-size-sm);
   font-weight: 600;
 }
 
 .pathway-code__id {
+  font: var(--type-caption);
   color: var(--text-faint);
   font-family: var(--font-mono);
-  font-size: var(--font-size-2xs);
   font-weight: 400;
 }
 
@@ -596,8 +605,8 @@
 }
 
 .pathway-code__kind {
+  font: var(--type-label);
   color: var(--text-faint);
-  font-size: var(--font-size-2xs);
   font-weight: 700;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
@@ -606,6 +615,7 @@
 /* Wraps rather than scrolls: a FHIRPath expression is one long line, and on a
    phone a scrolling <pre> inside a scrolling page is two things to drag. */
 .pathway-code__expr {
+  font: var(--type-caption);
   margin: 0;
   overflow-wrap: anywhere;
   padding: var(--space-2);
@@ -614,7 +624,6 @@
   background-color: var(--surface-muted);
   color: var(--text-body);
   font-family: var(--font-mono);
-  font-size: var(--font-size-2xs);
   white-space: pre-wrap;
 }
 
@@ -628,10 +637,10 @@
 }
 
 .pathway-pending__lede {
+  font: var(--type-caption);
   max-width: var(--measure-prose);
   margin: 0 0 var(--space-3);
   color: var(--status-warning-text);
-  font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
 }
 
@@ -640,17 +649,17 @@
 }
 
 .pathway-pending__list dt {
+  font: var(--type-caption);
   margin-top: var(--space-3);
   color: var(--text-strong);
-  font-size: var(--font-size-sm);
   font-weight: 700;
 }
 
 .pathway-pending__list dd {
+  font: var(--type-caption);
   max-width: var(--measure-prose);
   margin: var(--space-1) 0 0;
   color: var(--text-muted);
-  font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
 }
 
@@ -659,10 +668,10 @@
 /* The panel keeps its full width: `.pathway-provenance__facts` below is an
    auto-fit grid that uses every pixel of it. Only the sentence is capped. */
 .pathway-provenance__lede {
+  font: var(--type-caption);
   margin: 0 0 var(--space-3);
   max-width: var(--measure-prose);
   color: var(--text-muted);
-  font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
 }
 
@@ -674,24 +683,25 @@
 }
 
 .pathway-provenance__fact dt {
+  font: var(--type-label);
   color: var(--text-faint);
-  font-size: var(--font-size-2xs);
   font-weight: 700;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
 }
 
 .pathway-provenance__fact dd {
+  font: var(--type-caption);
   overflow-wrap: anywhere;
   margin: var(--space-1) 0 0;
   color: var(--text-body);
-  font-size: var(--font-size-xs);
 }
 
 .pathway-provenance__subtitle {
+  font: var(--type-caption);
+  font-family: var(--font-display);
   margin: 0;
   color: var(--text-strong);
-  font-size: var(--font-size-sm);
   font-weight: 600;
 }
 
@@ -714,10 +724,10 @@
 }
 
 .pathway-provenance__canonical {
+  font: var(--type-ui);
   overflow-wrap: anywhere;
   margin: 0 0 var(--space-4);
   color: var(--brand-primary);
-  font-size: var(--font-size-md);
   font-weight: 700;
   line-height: var(--line-height-normal);
 }

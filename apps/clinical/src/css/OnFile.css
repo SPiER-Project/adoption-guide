@@ -26,16 +26,16 @@
 }
 
 .on-file__group-title {
+  font: var(--type-ui);
   margin: 0;
   font-family: var(--font-display);
-  font-size: var(--font-size-md);
   font-weight: 600;
   color: var(--text-strong);
 }
 
 .on-file__group-when {
+  font: var(--type-caption);
   margin: var(--space-0-5) 0 0;
-  font-size: var(--font-size-sm);
   color: var(--text-muted);
 }
 
@@ -61,7 +61,7 @@
 }
 
 .on-file__name {
-  font-size: var(--font-size-base);
+  font: var(--type-ui);
   color: var(--text-body);
   min-width: 0;
 }
@@ -69,10 +69,10 @@
 /* The instrument and the date read as one trailing fact, and on a phone they
    wrap under the name rather than squeezing it to two words a line. */
 .on-file__meta {
+  font: var(--type-caption);
   display: flex;
   align-items: baseline;
   gap: var(--space-2);
-  font-size: var(--font-size-sm);
   color: var(--text-muted);
 }
 

@@ -194,7 +194,7 @@
 }
 
 .pathway-node-step {
-  font-size: var(--font-size-2xs);
+  font: var(--type-label);
   font-weight: 700;
   letter-spacing: var(--tracking-caps-wide);
   text-transform: uppercase;
@@ -202,7 +202,7 @@
 }
 
 .pathway-node-title {
-  font-size: var(--font-size-lg);
+  font: var(--type-running);
   font-weight: 600;
   color: var(--text-strong);
 }
@@ -210,8 +210,8 @@
 /* The one useful fact about a collapsed stage: its score, or its record count.
    Its own line under the heading — see the note in `PatientPathway.tsx`. */
 .pathway-node-summary {
+  font: var(--type-caption);
   margin: var(--space-0-5) 0 0;
-  font-size: var(--font-size-xs);
   font-weight: 600;
   color: var(--text-muted);
 }
@@ -237,11 +237,11 @@
 }
 
 .pathway-node-row {
+  font: var(--type-caption);
   display: grid;
   grid-template-columns: minmax(0, 7rem) minmax(0, 1fr) auto;
   gap: var(--gap-inline);
   align-items: baseline;
-  font-size: var(--font-size-xs);
   line-height: var(--line-height-normal);
 }
 
@@ -284,7 +284,7 @@
 .pathway-node-status--upcoming { background: var(--surface-muted); color: var(--text-faint); }
 
 .pathway-node-chevron {
-  font-size: var(--font-size-2xs);
+  font: var(--type-caption);
   color: var(--text-muted);
 }
 
@@ -293,15 +293,16 @@
 }
 
 .pathway-node-desc {
+  font: var(--type-caption);
   max-width: var(--measure-prose);
-  font-size: var(--font-size-base);
   color: var(--text-muted);
   line-height: 1.5;
   margin: 0 0 var(--space-3) 0;
 }
 
 .pathway-node-section-title {
-  font-size: var(--font-size-2xs);
+  font: var(--type-label);
+  font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: var(--tracking-caps-wide);
   text-transform: uppercase;
@@ -345,16 +346,16 @@
 .cds-card-pill--info     { background: var(--status-info-edge); color: var(--text-on-brand); }
 
 .cds-card-title {
-  font-size: var(--font-size-xl);
+  font: var(--type-heading);
   font-weight: 600;
   color: var(--text-strong);
   margin: 0 0 var(--space-1) 0;
 }
 
 .cds-card-rationale {
+  font: var(--type-running);
   max-width: var(--measure-prose);
   color: var(--text-body);
-  font-size: var(--font-size-md);
   line-height: 1.5;
   margin: 0 0 var(--space-3) 0;
 }
@@ -366,12 +367,12 @@
 }
 
 .cds-card-action-btn {
+  font: var(--type-ui);
   display: inline-block;
   background: var(--brand-primary);
   color: var(--text-on-brand);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
-  font-size: var(--font-size-base);
   font-weight: 600;
   text-decoration: none;
   transition: background 0.15s;
@@ -410,13 +411,13 @@
 }
 
 .stage-artifact-name {
+  font: var(--type-ui);
   font-weight: 600;
-  font-size: var(--font-size-base);
   color: var(--text-strong);
 }
 
 .stage-artifact-meta {
-  font-size: var(--font-size-xs);
+  font: var(--type-caption);
   color: var(--text-faint);
   margin-top: var(--space-0-5);
 }
@@ -468,7 +469,8 @@
 }
 
 .panel-shell .pathway-node-title {
-  font-size: var(--font-size-base);
+  font: var(--type-ui);
+  font-weight: 600; /* a size override: the shorthand would otherwise reset .pathway-node-title's 600 */
 }
 
 /* ===========================
@@ -508,8 +510,7 @@
   padding: 0;
   border: 0;
   background: none;
-  font: inherit;
-  font-size: var(--font-size-sm);
+  font: var(--type-caption);
   font-weight: 600;
   color: var(--brand-link);
   cursor: pointer;
@@ -523,11 +524,11 @@
 /* The record, one tap off the pathway. Was one of two links on the landing
    card; the other one's destination is this page now. */
 .patient-chart__on-file {
+  font: var(--type-ui);
   display: flex;
   align-items: baseline;
   gap: var(--gap-inline);
   margin: var(--space-5) 0 0;
-  font-size: var(--font-size-base);
 }
 
 .patient-chart__fact {

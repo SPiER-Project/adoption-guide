@@ -30,8 +30,8 @@
 }
 
 .careplan-header h3 {
+    font: var(--type-title);
     margin: 0;
-    font-size: var(--font-size-3xl);
     color: var(--brand-primary);
 }
 
@@ -56,7 +56,7 @@
 }
 
 .careplan-step-title {
-    font-size: var(--font-size-base);
+    font: var(--type-caption);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: var(--tracking-caps);
@@ -65,7 +65,7 @@
 }
 
 .careplan-step-code {
-    font-size: var(--font-size-xs);
+    font: var(--type-caption);
     color: var(--text-faint);
     font-weight: 400;
     margin-left: var(--space-2);
@@ -73,8 +73,8 @@
 }
 
 .careplan-step-description {
+    font: var(--type-running);
     color: var(--text-strong);
-    font-size: var(--font-size-lg);
     line-height: 1.5;
     margin: 0;
 }
@@ -93,6 +93,7 @@
 }
 
 .careplan-download-btn {
+    font: var(--type-ui);
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
@@ -102,7 +103,6 @@
     border: none;
     border-radius: var(--radius-lg);
     font-weight: 600;
-    font-size: var(--font-size-md);
     cursor: pointer;
     transition: background-color 0.2s, transform 0.15s;
 }
@@ -113,11 +113,12 @@
 }
 
 .careplan-download-btn .btn-icon {
-    font-size: var(--font-size-xl);
+    font: var(--type-body);
     flex-shrink: 0;
 }
 
 .careplan-json-toggle {
+    font: var(--type-ui);
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
@@ -127,7 +128,6 @@
     border: 1px solid var(--border-default);
     border-radius: var(--radius-lg);
     font-weight: 500;
-    font-size: var(--font-size-md);
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -147,9 +147,9 @@
 }
 
 .careplan-json-panel pre {
+    font: var(--type-ui);
     margin: 0;
     color: var(--border-default);
-    font-size: var(--font-size-base);
     font-family: var(--font-mono);
     line-height: 1.5;
     white-space: pre-wrap;

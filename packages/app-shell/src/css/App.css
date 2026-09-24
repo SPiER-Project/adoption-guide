@@ -2,13 +2,13 @@
    Route-level lazy-load fallback
    =========================== */
 .route-loading {
+  font: var(--type-ui);
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 40vh;
   padding: var(--space-8);
   color: var(--text-muted);
-  font-size: var(--font-size-md);
 }
 
 /* ===========================
@@ -71,8 +71,9 @@
 }
 
 .debug-sidebar h3 {
+  font: var(--type-caption);
+  font-family: var(--font-display);
   margin: 0 0 var(--space-4) 0;
-  font-size: var(--font-size-md);
   font-weight: 600;
   color: var(--border-emphasis);
   text-transform: uppercase;
@@ -80,8 +81,9 @@
 }
 
 .debug-sidebar pre {
+  font: var(--type-ui);
+  font-family: var(--font-mono);
   margin: 0;
-  font-size: var(--font-size-base);
   color: var(--text-body);
   white-space: pre-wrap;
   word-break: break-all;
@@ -119,13 +121,13 @@
 }
 
 .submit-result-title {
-  font-size: var(--font-size-lg);
+  font: var(--type-running);
   font-weight: 700;
   color: var(--text-strong);
 }
 
 .submit-result-detail {
-  font-size: var(--font-size-base);
+  font: var(--type-ui);
   color: var(--text-body);
   line-height: 1.5;
   margin: 0 0 var(--space-3) 0;
@@ -139,6 +141,7 @@
 }
 
 .submit-result-obs-chip {
+  font: var(--type-ui);
   display: inline-flex;
   align-items: center;
   gap: var(--space-1-5);
@@ -146,7 +149,6 @@
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
   padding: var(--space-1) var(--space-2);
-  font-size: var(--font-size-base);
 }
 
 .submit-result-obs-chip .chip-label {
@@ -165,13 +167,13 @@
    renderer's DOM cannot become the component. Move a decision there, move it
    here. */
 .form-card .pon106y.b1fzc7cb {
+  font: var(--type-ui);
   background: var(--brand-primary);
   color: var(--text-on-brand);
   border-color: var(--brand-primary);
   border-radius: var(--radius-pill);
   padding: var(--space-2) var(--space-5);
   font-family: var(--font-display);
-  font-size: var(--font-size-md);
   font-weight: 600;
   transition: background-color 0.2s, transform 0.15s;
 }
@@ -183,13 +185,13 @@
 }
 
 .form-card .s7gz39z.b1fzc7cb {
+  font: var(--type-ui);
   background: var(--surface-card);
   color: var(--brand-primary);
   border: 1px solid var(--brand-primary);
   border-radius: var(--radius-pill);
   padding: var(--space-2) var(--space-5);
   font-family: var(--font-display);
-  font-size: var(--font-size-md);
   font-weight: 600;
   transition: all 0.2s;
 }
@@ -272,25 +274,25 @@
    header. This is the instrument's formal name sitting above its own form —
    an attribution line, not a second page title. */
 .instrument-header__name {
+  font: var(--type-ui);
   margin: 0;
-  font-size: var(--font-size-base);
   font-weight: 600;
   line-height: var(--line-height-tight);
   color: var(--text-strong);
 }
 
 .instrument-header__about {
+  font: var(--type-caption);
   margin-top: var(--space-2);
-  font-size: var(--font-size-sm);
   color: var(--text-muted);
 }
 
 .instrument-header__about > summary {
+  font: var(--type-caption);
   cursor: pointer;
   color: var(--text-muted);
   /* The marker is the affordance at this size — the text is deliberately quiet,
      because opening this is an implementer's action, not a clinician's. */
-  font-size: var(--font-size-xs);
 }
 
 .instrument-header__about > summary:hover {
@@ -298,8 +300,8 @@
 }
 
 .instrument-header__about > p {
+  font: var(--type-caption);
   max-width: var(--measure-prose);
-  font-size: var(--font-size-base);
   margin: var(--space-2) 0 0;
   line-height: var(--line-height-normal);
 }

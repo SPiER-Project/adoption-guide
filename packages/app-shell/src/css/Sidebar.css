@@ -59,12 +59,12 @@
    the row itself is the marker: peach-soft under plum, the website's nav state.
    `.sidebar-link--child` derives its inset from this rule's `--space-3`. */
 .sidebar-link {
+  font: var(--type-ui);
   display: flex;
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-pill);
-  font-size: var(--font-size-md);
   font-weight: 500;
   color: var(--text-body);
   text-decoration: none;
@@ -91,10 +91,10 @@
    Evaluate buckets). Non-interactive, so it is indented less than the links it
    labels and carries no hover or active state. */
 .sidebar-group-heading {
+  font: var(--type-label);
   margin: var(--space-4) 0 var(--space-1) 0;
   /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- an indent, not spacing: set by eye between the link inset and the label column, because this heading is deliberately NOT aligned to the links it labels */
   padding-left: 2.25rem;
-  font-size: var(--font-size-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-wide);
@@ -102,10 +102,10 @@
 }
 
 .sidebar-link--child {
+  font: var(--type-ui);
   /* Aligns the child label under its parent's: the link's own inset, plus
      `.sidebar-icon` (1.25rem), plus the gap between them. */
   padding-left: calc(var(--space-3) + 1.25rem + var(--space-2));
-  font-size: var(--font-size-base);
   font-weight: 400;
   color: var(--text-muted);
 }
@@ -144,6 +144,7 @@
    look like a fourth. Hence no hover state, no active state, and the same
    `--font-size-xs` as the outbound note above it rather than a link's size. */
 .sidebar-try__aside {
+  font: var(--type-caption);
   /* Inline inset comes from `.sidebar-try` now; repeating it here would double it. */
   margin: var(--space-2) 0 0;
   /* ⚠️ No `--measure-prose`, and `check:prose` RULE 5 is what settled it. The
@@ -155,7 +156,6 @@
      decoration, and keeping it would have forced the size up to `base` to
      satisfy a constraint that does nothing. Matches the outbound note above it
      instead. */
-  font-size: var(--font-size-xs);
   line-height: 1.45;
   color: var(--text-muted);
 }
@@ -223,10 +223,10 @@
 }
 
 .sidebar-outbound-label {
+  font: var(--type-ui);
   display: flex;
   align-items: baseline;
   gap: var(--space-1);
-  font-size: var(--font-size-base);
   font-weight: 600;
 }
 
@@ -236,7 +236,7 @@
    `--text-muted`, not `--text-faint`: faint was legible on the old dark column
    and measures 2.3:1 on the light ground. */
 .sidebar-outbound-note {
-  font-size: var(--font-size-xs);
+  font: var(--type-caption);
   color: var(--text-muted);
   line-height: 1.3;
 }

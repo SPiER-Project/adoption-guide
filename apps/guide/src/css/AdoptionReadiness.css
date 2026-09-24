@@ -8,8 +8,8 @@
    measure caps the text run with `--measure-prose`, not the page. */
 
 .ar-description {
+  font: var(--type-lead);
   color: var(--text-muted);
-  font-size: var(--font-size-lg);
   line-height: 1.6;
   margin: 0 0 var(--space-6) 0;
   max-width: var(--measure-prose);
@@ -32,14 +32,14 @@
 }
 
 .ar-summary-value {
-  font-size: var(--font-size-3xl);
+  font: var(--type-title);
   font-weight: 800;
   color: var(--text-strong);
   line-height: 1;
 }
 
 .ar-summary-label {
-  font-size: var(--font-size-2xs);
+  font: var(--type-label);
   color: var(--text-faint);
   font-weight: 600;
   text-transform: uppercase;
@@ -77,7 +77,7 @@
 }
 
 .ar-summary-bar-caption {
-  font-size: var(--font-size-2xs);
+  font: var(--type-caption);
   color: var(--text-faint);
   font-weight: 600;
 }
@@ -91,17 +91,17 @@
 }
 
 .ar-legend-row {
+  font: var(--type-ui);
   display: flex;
   align-items: baseline;
   gap: var(--space-3);
-  font-size: var(--font-size-base);
   color: var(--text-body);
   line-height: 1.45;
 }
 
 .ar-legend-text {
+  font: var(--type-caption);
   max-width: var(--measure-prose);
-  font-size: var(--font-size-base);
   flex: 1;
   min-width: 0;
 }
@@ -121,10 +121,10 @@
 }
 
 .ar-legend-scale-item {
+  font: var(--type-caption);
   display: inline-flex;
   align-items: center;
   gap: var(--space-1-5);
-  font-size: var(--font-size-sm);
   color: var(--text-muted);
 }
 
@@ -134,8 +134,9 @@
 }
 
 .ar-stage-title {
+  font: var(--type-running);
+  font-family: var(--font-display);
   margin: 0 0 var(--space-2) 0;
-  font-size: var(--font-size-lg);
   font-weight: 700;
   color: var(--text-strong);
 }
@@ -150,8 +151,8 @@
 }
 
 .ar-tool-id {
+  font: var(--type-caption);
   margin-left: var(--space-2);
-  font-size: var(--font-size-2xs);
   color: var(--text-faint);
   font-variant-numeric: tabular-nums;
 }
@@ -181,7 +182,7 @@
 }
 
 .ar-res-link {
-  font-size: var(--font-size-sm);
+  font: var(--type-caption);
   font-weight: 600;
   color: var(--brand-link);
   text-decoration: none;
@@ -198,8 +199,9 @@
 }
 
 .ar-crosslinks-title {
+  font: var(--type-caption);
+  font-family: var(--font-display);
   margin: 0 0 var(--space-2) 0;
-  font-size: var(--font-size-base);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
@@ -207,12 +209,12 @@
 }
 
 .ar-crosslinks-list {
+  font: var(--type-caption);
   margin: 0;
   padding-left: var(--space-4);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  font-size: var(--font-size-base);
   /* A list of sentences is a prose run: uncapped on a `--page-width-wide` page
      these reached 175 characters a line. Capped on the list rather than each
      `li`, and the list is where `font-size` is set, so the `em` resolves

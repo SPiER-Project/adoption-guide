@@ -8,8 +8,9 @@
    `.workflow-form-subtitle` — both of those are the shared PageHeader's job now,
    and the `.workflow-form-header` wrapper that held them is gone with them. */
 .workflow-form-title {
+  font: var(--type-running);
+  font-family: var(--font-display);
   margin: 0 0 var(--space-2) 0;
-  font-size: var(--font-size-lg);
   color: var(--text-strong);
 }
 
@@ -18,9 +19,9 @@
    at the same lede size, capped at the reading measure and sitting first in
    the card so the form is still introduced before it is asked. */
 .workflow-form__lede {
+  font: var(--type-lead);
   margin: 0 0 var(--space-4) 0;
   max-width: var(--measure-prose);
-  font-size: var(--font-size-lg);
   line-height: 1.6;
   color: var(--text-body);
 }
@@ -38,8 +39,8 @@
 }
 
 .workflow-field-label {
+  font: var(--type-ui);
   font-weight: 600;
-  font-size: var(--font-size-base);
   color: var(--text-strong);
 }
 
@@ -52,9 +53,9 @@
    is not self-evident from the label — e.g. what the caring-contact opt-out
    actually does to the Stage-8 adherence measure. */
 .workflow-field-help {
+  font: var(--type-caption);
   max-width: var(--measure-prose);
   font-weight: 400;
-  font-size: var(--font-size-base);
   color: var(--text-muted);
 }
 
@@ -64,8 +65,7 @@
    because a pill's end-caps eat the first line of a multi-line field. */
 .workflow-input {
   padding: var(--space-2) var(--space-4);
-  font: inherit;
-  font-size: var(--font-size-base);
+  font: var(--type-ui);
   color: var(--text-body);
   background: var(--surface-card);
   border: 1px solid var(--border-strong);
@@ -97,12 +97,12 @@
    =========================== */
 
 .consent-gate {
+  font: var(--type-caption);
   padding: var(--space-3);
   border: 1px solid var(--border-default);
   border-left-width: 4px;
   border-radius: var(--radius-md);
   background: var(--surface-muted);
-  font-size: var(--font-size-sm);
 }
 
 .consent-gate--neutral {
@@ -122,14 +122,14 @@
 }
 
 .consent-gate__title {
+  font: var(--type-ui);
   margin: 0 0 var(--space-1) 0;
   font-weight: 600;
-  font-size: var(--font-size-base);
 }
 
 .consent-gate__detail {
+  font: var(--type-caption);
   max-width: var(--measure-prose);
-  font-size: var(--font-size-base);
   margin: 0;
   line-height: 1.5;
 }
@@ -147,11 +147,11 @@
 }
 
 .withheld-option__tag {
+  font: var(--type-caption);
   margin-left: var(--space-2);
   padding: 0 var(--space-2);
   border-radius: var(--radius-sm);
   background: var(--status-warning-bg);
   color: var(--status-warning-text);
-  font-size: var(--font-size-sm);
   text-decoration: none;
 }

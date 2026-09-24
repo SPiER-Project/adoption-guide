@@ -256,12 +256,12 @@
    Footer
    =========================== */
 .app-shell__footer {
+  font: var(--type-caption);
   grid-area: footer;
   background: var(--surface-page);
   color: var(--text-muted);
   border-top: 1px solid var(--border-default);
   padding: var(--space-3) var(--space-6);
-  font-size: var(--font-size-sm);
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;

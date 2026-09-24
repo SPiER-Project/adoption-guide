@@ -8,8 +8,8 @@
    measure caps the text run with `--measure-prose`, not the page. */
 
 .dd-description {
+  font: var(--type-lead);
   color: var(--text-muted);
-  font-size: var(--font-size-lg);
   line-height: 1.6;
   margin: 0 0 var(--space-6) 0;
   max-width: var(--measure-prose);
@@ -24,12 +24,12 @@
 }
 
 .dd-search {
+  font: var(--type-ui);
   flex: 1;
   min-width: 200px;
   padding: var(--space-2) var(--space-4);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-pill);
-  font-size: var(--font-size-md);
   color: var(--text-strong);
   background: var(--surface-card);
 }
@@ -45,17 +45,17 @@
 }
 
 .dd-select {
+  font: var(--type-ui);
   padding: var(--space-2) var(--space-4);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-pill);
-  font-size: var(--font-size-md);
   color: var(--text-strong);
   background: var(--surface-card);
   cursor: pointer;
 }
 
 .dd-count {
-  font-size: var(--font-size-base);
+  font: var(--type-ui);
   color: var(--text-faint);
   margin-left: auto;
 }
@@ -69,8 +69,8 @@
 }
 
 .dd-cell-code {
+  font: var(--type-caption);
   font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
   color: var(--brand-primary);
   overflow-wrap: anywhere;
 }
@@ -81,11 +81,11 @@
  * which is exactly why fifteen LOINC displays drifted without anyone noticing.
  */
 .dd-code-display {
+  font: var(--type-caption);
   display: block;
   margin-top: var(--space-1);
   max-width: 22rem;
   font-family: inherit;
-  font-size: var(--font-size-xs);
   color: var(--text-muted);
   white-space: normal;
 }
@@ -99,13 +99,13 @@
  */
 
 .dd-cell-system {
-  font-size: var(--font-size-sm);
+  font: var(--type-caption);
   color: var(--text-muted);
 }
 
 .dd-cell-path {
+  font: var(--type-caption);
   font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
   color: var(--text-body);
   /* ⚠️ This was `white-space: nowrap`, and with the table's default auto layout
      that one line was the row-height bug: an unbreakable column takes whatever
@@ -173,7 +173,7 @@
 /* "+3" standing in for the Used-By chips a summary row does not show. Quieter
    than a chip on purpose: it is a count, not a tool. */
 .dd-tool-more {
-  font-size: var(--font-size-2xs);
+  font: var(--type-caption);
   color: var(--text-muted);
   white-space: nowrap;
 }
@@ -188,13 +188,13 @@
 }
 
 .dd-detail-toggle {
+  font: var(--type-caption);
   border: 0;
   background: none;
   cursor: pointer;
   padding: var(--space-0-5) var(--space-1);
   border-radius: var(--radius-sm);
   color: var(--text-muted);
-  font-size: var(--font-size-sm);
   line-height: 1;
 }
 
@@ -230,26 +230,26 @@
 /* 134 characters a line at the container's 52rem. The sentence takes the
    measure; the data lines keep the container. */
 .dd-detail-desc {
+  font: var(--type-caption);
   margin: 0;
   max-width: var(--measure-prose);
   line-height: 1.5;
   color: var(--text-body);
-  font-size: var(--font-size-base);
 }
 
 .dd-detail-line {
+  font: var(--type-caption);
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: var(--space-1-5);
   margin: 0;
-  font-size: var(--font-size-sm);
   color: var(--text-muted);
 }
 
 .dd-detail-label {
+  font: var(--type-label);
   flex: 0 0 8.5rem;
-  font-size: var(--font-size-2xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
@@ -281,8 +281,7 @@
   border-radius: var(--radius-pill);
   background: white;
   color: var(--text-body);
-  font: inherit;
-  font-size: var(--font-size-sm);
+  font: var(--type-caption);
   cursor: pointer;
 }
 
@@ -292,7 +291,7 @@
 }
 
 .dd-jump-count {
-  font-size: var(--font-size-2xs);
+  font: var(--type-caption);
   color: var(--text-faint);
   font-variant-numeric: tabular-nums;
 }

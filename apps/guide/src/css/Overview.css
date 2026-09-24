@@ -31,8 +31,8 @@
 }
 
 .overview__h3 {
+  font: var(--type-heading);
   margin: 0;
-  font-size: var(--font-size-xl);
   color: var(--brand-primary);
 }
 
@@ -48,9 +48,9 @@
 }
 
 .overview__lead {
+  font: var(--type-lead);
   max-width: var(--measure-prose);
   margin: 0;
-  font-size: var(--font-size-lg);
   line-height: 1.6;
   color: var(--text-body);
 }
@@ -96,6 +96,7 @@
 /* The step's number, in a tile. One tint per step in pathway order, so the
    trio reads as the logo's gradient walked left to right. */
 .overview__step-tile {
+  font: var(--type-heading);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -104,7 +105,6 @@
   margin-bottom: var(--space-3);
   border-radius: var(--radius-xl);
   font-family: var(--font-display);
-  font-size: var(--font-size-xl);
   font-weight: 600;
   color: var(--brand-primary);
 }
@@ -114,9 +114,9 @@
 .overview__step-tile--act       { background: var(--tint-sky); }
 
 .overview__step-index {
+  font: var(--type-label);
   display: block;
   margin-bottom: var(--space-1-5);
-  font-size: var(--font-size-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-wide);
@@ -124,14 +124,15 @@
 }
 
 .overview__step-name {
+  font: var(--type-running);
+  font-family: var(--font-display);
   margin: 0 0 var(--space-2);
-  font-size: var(--font-size-lg);
   color: var(--brand-primary);
 }
 
 .overview__step-body {
+  font: var(--type-ui);
   margin: 0;
-  font-size: var(--font-size-md);
   line-height: 1.55;
   color: var(--text-body);
 }
@@ -185,21 +186,22 @@
 }
 
 .overview__pick-name {
+  font: var(--type-running);
+  font-family: var(--font-display);
   margin: 0 0 var(--space-1);
-  font-size: var(--font-size-lg);
   color: var(--brand-primary);
 }
 
 .overview__pick-situation {
+  font: var(--type-ui);
   margin: 0 0 var(--space-2);
-  font-size: var(--font-size-base);
   line-height: 1.5;
   color: var(--text-muted);
 }
 
 .overview__pick-shows {
+  font: var(--type-ui);
   margin: 0;
-  font-size: var(--font-size-base);
   line-height: 1.55;
   color: var(--text-body);
 }
@@ -224,15 +226,15 @@
 }
 
 .overview__door-reader {
-  font-size: var(--font-size-md);
+  font: var(--type-ui);
   font-weight: 600;
   color: var(--brand-primary);
 }
 
 .overview__door-text {
+  font: var(--type-running);
   max-width: var(--measure-prose);
   margin: 0;
-  font-size: var(--font-size-md);
   line-height: 1.65;
   color: var(--text-body);
 }

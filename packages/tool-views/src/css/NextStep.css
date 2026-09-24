@@ -17,28 +17,28 @@
    uses for it — one screen's answer should not be typeset as a different
    claim from the next screen's. */
 .next-step__act {
+  font: var(--type-lead);
   margin: 0;
   max-width: var(--measure-prose);
   font-family: var(--font-display);
-  font-size: var(--font-size-lg);
   line-height: var(--line-height-tight);
   color: var(--text-strong);
 }
 
 .next-step__label {
+  font: var(--type-caption);
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
   font-family: var(--font-body);
-  font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--text-muted);
 }
 
 /* A standing instruction has no button, so its published sentence is the act. */
 .next-step__instruction {
+  font: var(--type-running);
   margin: var(--space-2) 0 0;
   max-width: var(--measure-prose);
-  font-size: var(--font-size-base);
   line-height: 1.5;
   color: var(--text-body);
 }

@@ -329,16 +329,33 @@
   --tracking-caps:      0.05em;
   --tracking-caps-wide: 0.08em;
 
-  --font-size-2xs:  0.625rem;   /* .pill--sm micro labels */
-  --font-size-xs:   0.6875rem;
-  --font-size-sm:   0.75rem;
-  --font-size-base: 0.8125rem;  /* most common body size in components */
-  --font-size-md:   0.875rem;   /* current default body */
-  --font-size-lg:   0.9375rem;
-  --font-size-xl:   1rem;
-  --font-size-2xl:  1.15rem;
-  --font-size-3xl:  1.5rem;
-  --font-size-4xl:  2rem;
+  /* ── Type roles ─────────────────────────────────────────────
+     Seven roles, each a `font` shorthand, so a rule names one token instead of
+     size + line-height + weight + family. They replaced ten size-named
+     --font-size-* tokens, six of which sat 1px apart between 10 and 15px, so
+     an author picked a size by eye.
+     ⚠️ **11px is uppercase labels only, and nothing is smaller.**
+     --type-label is set only in a rule that also sets `text-transform:
+     uppercase` (tests/typeRoles.test.ts), and --font-size-2xs (10px) is gone.
+     ⚠️ A `font` shorthand RESETS weight, family and line-height, including
+     values the element would have inherited. So a rule states the role FIRST
+     and any longhand after it, and a rule's own weight wins: a 600 caption is
+     `font: var(--type-caption); font-weight: 600`, not a new role.
+     --type-running and --type-page-title are the density's, set in the
+     [data-density] blocks below: the guide reads at body and titles at title;
+     the clinical apps read at ui and title at heading. A prose run is lead,
+     running or caption and nothing else (check:prose RULE 5).
+     There is no display role. The brief proposed one at 44px for the Overview
+     hero and the surface explainers, but both take their title from PageHeader
+     like every page, so it would have been a token nothing sets, which is the
+     defect --font-size-4xl was. */
+  --type-label:   700 0.6875rem/1.2  var(--font-body); /* 11px, uppercase ONLY, with --tracking-caps or -wide */
+  --type-caption: 400 0.75rem/1.4    var(--font-body); /* 12px */
+  --type-ui:      400 0.875rem/1.45  var(--font-body); /* 14px */
+  --type-body:    400 1rem/1.6       var(--font-body); /* 16px */
+  --type-lead:    400 1.125rem/1.55  var(--font-body); /* 18px */
+  --type-heading: 600 1.25rem/1.25   var(--font-display); /* 20px */
+  --type-title:   600 1.75rem/1.15   var(--font-display); /* 28px */
 
   --line-height-tight:  1.2;
   --line-height-normal: 1.5;
@@ -398,7 +415,7 @@
    box and margins as a blank gap; and --label-hairline and --label-underline,
    the pill eyebrow's outline and the crumb's resting underline, which were
    terracotta too. Running-text and page-title size join these with the type
-   roles; they are deliberately not here as --font-size-* values. */
+   roles: --type-running and --type-page-title. */
 [data-density="guide"] {
   --label-color: var(--brand-terracotta-text);
   --label-hairline: var(--brand-terracotta);
@@ -408,6 +425,8 @@
   --page-rule: var(--gradient-brand);
   --page-rule-display: block;
   --button-accent-allowed: 1;
+  --type-running: var(--type-body);
+  --type-page-title: var(--type-title);
 }
 
 [data-density="clinical"] {
@@ -419,6 +438,8 @@
   --page-rule: none;
   --page-rule-display: none;
   --button-accent-allowed: 0;
+  --type-running: var(--type-ui);
+  --type-page-title: var(--type-heading);
 }
 
 *,

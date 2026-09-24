@@ -29,6 +29,7 @@
    into the strip's band — so the popover has to win. 1 still beats ordinary
    page content, which sets no z-index at all. */
 .panel-shell__patient {
+  font: var(--type-caption);
   position: sticky;
   top: 0;
   z-index: 1;
@@ -39,7 +40,6 @@
   padding: var(--space-2) var(--space-4);
   background: var(--surface-banner);
   border-bottom: 1px solid var(--border-default);
-  font-size: var(--font-size-xs);
 }
 
 /* The panel's page inset — the second sanctioned owner alongside

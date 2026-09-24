@@ -18,16 +18,16 @@
 /* The reading a result carries, first on the page and the one thing on it a
    clinician may have come for — so it is the only surface here with an accent. */
 .record-reading__value {
+  font: var(--type-heading);
   margin: 0;
   font-family: var(--font-display);
-  font-size: var(--font-size-2xl);
   font-weight: 600;
   color: var(--text-strong);
 }
 
 .record-reading__note {
+  font: var(--type-ui);
   margin: var(--space-1) 0 0;
-  font-size: var(--font-size-base);
   color: var(--text-body);
 }
 
@@ -36,9 +36,9 @@
 }
 
 .record-answers__heading {
+  font: var(--type-caption);
   margin: 0 0 var(--space-2);
   font-family: var(--font-display);
-  font-size: var(--font-size-sm);
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
@@ -63,14 +63,14 @@
 }
 
 .record-answers__q {
+  font: var(--type-caption);
   margin: 0;
-  font-size: var(--font-size-sm);
   color: var(--text-muted);
 }
 
 .record-answers__a {
+  font: var(--type-ui);
   margin: var(--space-0-5) 0 0;
-  font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--text-strong);
 }
@@ -97,6 +97,6 @@
 }
 
 .record-link__note {
-  font-size: var(--font-size-sm);
+  font: var(--type-caption);
   color: var(--text-muted);
 }

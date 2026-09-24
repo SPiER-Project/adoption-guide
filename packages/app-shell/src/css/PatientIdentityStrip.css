@@ -5,16 +5,16 @@
    =========================== */
 
 .identity-strip {
+  font: var(--type-ui);
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: var(--space-3);
-  font-size: var(--font-size-md);
 }
 
 .identity-strip__name {
+  font: var(--type-running);
   font-weight: 700;
-  font-size: var(--font-size-lg);
   color: var(--text-strong);
 }
 
@@ -30,8 +30,8 @@
 }
 
 .identity-strip__label {
+  font: var(--type-caption);
   color: var(--text-muted);
-  font-size: var(--font-size-sm);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
@@ -43,19 +43,20 @@
 }
 
 .identity-strip__value--mono {
+  font: var(--type-ui);
   font-family: var(--font-mono);
-  font-size: var(--font-size-base);
 }
 
 /* The panel's one line. */
 .identity-strip--dense {
+  font: var(--type-caption);
   align-items: baseline;
   gap: var(--space-2);
-  font-size: var(--font-size-xs);
 }
 
 .identity-strip--dense .identity-strip__name {
-  font-size: var(--font-size-sm);
+  font: var(--type-caption);
+  font-weight: 700; /* a size override: restates .identity-strip__name's 700, which the shorthand resets */
 }
 
 .identity-strip__meta {
@@ -64,8 +65,8 @@
 
 @media (max-width: 767px) {
   .identity-strip {
+    font: var(--type-ui);
     gap: var(--space-2);
-    font-size: var(--font-size-base);
   }
 
   .identity-strip__divider:nth-child(n+4) {

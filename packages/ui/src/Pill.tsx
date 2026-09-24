@@ -8,8 +8,10 @@
  *
  *   shape    inline-flex, `--radius-pill`, `--space-0-5 --space-2`, an icon
  *            leads the text at `--gap-inline`
- *   size     `md` (default, `--font-size-xs`) or `sm` (`--font-size-2xs`,
- *            for table cells and dense lists)
+ *   size     `md` (default) or `sm` (tighter padding, for table cells and
+ *            dense lists). Both are `--type-label`: 11px is the floor, so
+ *            the 10px `sm` is gone. A `label` pill is `--type-caption`,
+ *            because 11px is uppercase only.
  *   variant  `status` (default): uppercase, tracked, 700 — a state word.
  *            `label`: sentence case, 600 — a name or a code.
  *   tone     the app's accent families, the three brand tints (`peach`,

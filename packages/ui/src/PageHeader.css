@@ -20,8 +20,8 @@
    terracotta label beside the high-risk orange reads as a risk statement.
    foundation.css's density note has the rest. */
 .page-header__eyebrow {
+  font: var(--type-label);
   margin: 0 0 var(--space-2);
-  font-size: var(--font-size-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps-wide);
@@ -76,9 +76,9 @@
    The display face at 600 and a tighter leading are the website's headline
    setting scaled to the app's title size. */
 .page-header__title {
+  font: var(--type-page-title);
   margin: 0;
   font-family: var(--font-display);
-  font-size: var(--font-size-3xl);
   font-weight: 600;
   line-height: 1.15;
   color: var(--brand-primary);
@@ -102,9 +102,9 @@
 }
 
 .page-header__lede {
+  font: var(--type-lead);
   margin: 0;
   max-width: var(--measure-prose);
-  font-size: var(--font-size-lg);
   line-height: 1.6;
   color: var(--text-body);
 }
@@ -126,7 +126,7 @@
    width below which the TITLE itself no longer fits on one line at its size, set by measurement. */
 @media (max-width: 340px) {
   .page-header__title {
-    font-size: var(--font-size-2xl);
+    font: var(--type-heading);
   }
 }
 
@@ -182,8 +182,10 @@
 }
 
 .panel-shell .page-header__title {
+  font: var(--type-ui);
+  font-family: var(--font-display);
+  font-weight: 600;
   margin: 0;
-  font-size: var(--font-size-base);
 }
 
 /* The lede keeps its content but leaves the header's line — most workflow views
@@ -192,9 +194,9 @@
    rather than meta, so it reads at the panel's body size rather than the footnote
    size. */
 .panel-shell .page-header__lede {
+  font: var(--type-caption);
   flex-basis: 100%;
   margin: 0;
-  font-size: var(--font-size-sm);
   color: var(--text-muted);
 }
 

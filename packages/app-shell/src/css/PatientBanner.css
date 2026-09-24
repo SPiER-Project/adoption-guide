@@ -48,13 +48,13 @@
 }
 
 .patient-banner-unassigned-hint {
+  font: var(--type-ui);
   color: var(--text-muted);
-  font-size: var(--font-size-base);
 }
 
 .patient-banner-population-link {
+  font: var(--type-ui);
   margin-left: auto;
-  font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--brand-primary);
   text-decoration: none;
@@ -78,15 +78,15 @@
 }
 
 .patient-banner-label {
+  font: var(--type-caption);
   color: var(--text-muted);
-  font-size: var(--font-size-sm);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
 }
 
 .patient-banner-switcher {
-  font-size: var(--font-size-base);
+  font: var(--type-ui);
   color: var(--border-emphasis);
   background: var(--surface-card);
   border: 1px solid var(--border-strong);
@@ -97,10 +97,10 @@
 }
 
 .patient-banner-close {
+  font: var(--type-caption);
   display: inline-flex;
   align-items: center;
   gap: var(--gap-inline);
-  font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--text-muted);
   background: transparent;
@@ -119,8 +119,8 @@
 }
 
 .patient-banner-smart {
+  font: var(--type-label);
   margin-left: auto;
-  font-size: var(--font-size-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);

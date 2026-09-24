@@ -25,16 +25,16 @@
 }
 
 .section-header__title {
+  font: var(--type-heading);
   margin: 0;
   font-family: var(--font-display);
-  font-size: var(--font-size-xl);
   font-weight: 600;
   color: var(--brand-primary);
 }
 
 .section-header__meta {
+  font: var(--type-ui);
   margin: 0;
-  font-size: var(--font-size-base);
   color: var(--text-muted);
   font-weight: 500;
   text-align: right;
@@ -74,6 +74,6 @@
 }
 
 .section-header__caret {
-  font-size: var(--font-size-2xs);
+  font: var(--type-caption);
   color: var(--text-muted);
 }

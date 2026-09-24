@@ -4,8 +4,9 @@
    =========================== */
 
 .empty-state {
+  font: var(--type-ui);
+  font-family: inherit; /* it sits in mono table cells too; the shorthand must not reset the cell's face */
   margin: 0;
-  font-size: var(--font-size-base);
   font-style: italic;
   color: var(--text-faint);
 }
