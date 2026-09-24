@@ -10,11 +10,11 @@
  * paddings, five header type signatures, two divider weights and three body
  * sizes (maintainability audit 2026-09-15, §2.4). The decisions, once:
  *
- *   header   `--font-size-xs`, 700, uppercase, `--tracking-caps`,
+ *   header   `--type-label` (11px, 700), uppercase, `--tracking-caps`,
  *            `--text-muted` on `--surface-muted`, no wrapping
  *   cells    `compact` (`--space-2 --space-3`, default) or `comfortable`
  *            (`--space-3 --space-4`, the caseload), body text at
- *            `--font-size-base`, top-aligned, tabular figures, a 1px
+ *            `--type-ui`, top-aligned, tabular figures, a 1px
  *            `--border-default` divider, and a `--surface-page` hover
  *   frame    `framed` puts the table in a Card-like box (1px border,
  *            `--radius-lg`, `--surface-card`); either way the wrapper scrolls

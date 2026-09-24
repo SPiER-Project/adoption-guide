@@ -35,9 +35,9 @@
 
 /* The act. The largest thing inside the node, because it is why it is open. */
 .next-action__act {
+  font: var(--type-running);
   margin: 0;
   font-family: var(--font-display);
-  font-size: var(--font-size-lg);
   line-height: var(--line-height-tight);
   color: var(--text-strong);
 }
@@ -45,9 +45,9 @@
 /* The trigger, in the clinician's words. One of the three prose sizes
    (`check:prose` RULE 5) with the measure capped against its own type. */
 .next-action__trigger {
+  font: var(--type-caption);
   margin: var(--space-2) 0 0;
   max-width: var(--measure-prose);
-  font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
   color: var(--text-body);
 }
@@ -56,9 +56,9 @@
    Same size as the trigger it follows: it is the second half of one statement,
    not a footnote to it. */
 .next-action__instruction {
+  font: var(--type-running);
   margin: var(--space-2) 0 0;
   max-width: var(--measure-prose);
-  font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
   color: var(--text-body);
 }
@@ -69,12 +69,12 @@
 
 /* The rest of the tier's obligations, as one line. */
 .next-action__also {
+  font: var(--type-caption);
   margin: var(--space-3) 0 0;
   max-width: var(--measure-prose);
   /* One of the three prose sizes (`check:prose` RULE 5) — it is a run of text
      with a reading measure on it, so `--font-size-sm` would narrow the column
      without shortening the line. */
-  font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
   color: var(--text-muted);
 }
@@ -85,6 +85,6 @@
 }
 
 .next-action__why {
+  font: var(--type-caption);
   margin: var(--space-2) 0 0;
-  font-size: var(--font-size-sm);
 }

@@ -27,8 +27,8 @@
 }
 
 .tool-page__id {
+  font: var(--type-caption);
   font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
   color: var(--text-faint);
 }
 
@@ -41,36 +41,36 @@
 }
 
 .tool-page__siblings {
+  font: var(--type-caption);
   margin: var(--space-4) 0 0;
   max-width: var(--measure-prose);
-  font-size: var(--font-size-base);
   line-height: 1.5;
   color: var(--text-muted);
 }
 
 /* ── About this tool: a muted Card holding the drawer set ── */
 .tool-page__about-title {
+  font: var(--type-heading);
   margin: 0 0 var(--space-2);
-  font-size: var(--font-size-xl);
   color: var(--brand-primary);
 }
 
 /* No margin: `Disclosure`'s body is a flex column and owns the gap between a
    drawer's children. A margin here would be a second opinion about it. */
 .tool-page__desc {
+  font: var(--type-running);
   margin: 0;
   max-width: var(--measure-prose);
-  font-size: var(--font-size-md);
   line-height: 1.55;
   color: var(--text-body);
 }
 
 .tool-page__chips {
+  font: var(--type-caption);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-1-5);
-  font-size: var(--font-size-sm);
 }
 
 .tool-page__chips-label {
@@ -82,11 +82,12 @@
 /* The implementation table's resource-type cell: a dark chip, as the data
    dictionary draws a resource type. */
 .tool-page__table code {
+  font: var(--type-caption);
+  font-family: var(--font-mono);
   padding: var(--space-0-5) var(--space-1-5);
   border-radius: var(--radius-sm);
   background: var(--text-strong);
   color: var(--border-default);
-  font-size: var(--font-size-sm);
 }
 
 .tool-page__when {
@@ -96,12 +97,12 @@
 }
 
 .tool-page__trigger {
+  font: var(--type-ui);
   margin: 0;
   padding: var(--space-2) var(--space-3);
   border-left: 3px solid var(--status-warning-edge);
   border-radius: var(--radius-sm);
   background: var(--status-warning-bg);
-  font-size: var(--font-size-base);
   color: var(--status-warning-text);
 }
 
@@ -115,6 +116,7 @@
 }
 
 .tool-page__elements li {
+  font: var(--type-ui);
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
@@ -123,7 +125,6 @@
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
   background: var(--surface-card);
-  font-size: var(--font-size-base);
 }
 
 .tool-page__element-name {
@@ -132,17 +133,17 @@
 }
 
 .tool-page__element-code {
+  font: var(--type-caption);
   padding: var(--space-0-5) var(--space-1-5);
   border-radius: var(--radius-xs);
   background: var(--border-default);
   color: var(--border-emphasis);
   font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
 }
 
 .tool-page__element-path {
+  font: var(--type-caption);
   font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
   color: var(--text-muted);
 }
 
@@ -157,9 +158,9 @@
 }
 
 .tool-page__licence {
+  font: var(--type-caption);
   margin: var(--space-3) 0 0;
   max-width: var(--measure-prose);
-  font-size: var(--font-size-base);
   line-height: 1.5;
   color: var(--text-body);
 }
@@ -173,9 +174,9 @@
 }
 
 .tool-page__ehr-note {
+  font: var(--type-caption);
   margin: 0;
   max-width: var(--measure-prose);
-  font-size: var(--font-size-base);
   line-height: 1.5;
   color: var(--text-muted);
 }

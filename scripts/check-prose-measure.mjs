@@ -231,7 +231,7 @@ if (files.length === 0) {
 const allRules = []        // { file, line, selector, body }
 const fontSizeSubjects = new Set()
 /**
- * The same subjects, mapped to the `--font-size-*` token they declare. RULE 4
+ * The same subjects, mapped to the `--type-*` role they declare. RULE 4
  * only needs to know that a size exists; RULE 5 needs to know which one.
  */
 const fontSizeOf = new Map()
@@ -243,8 +243,11 @@ for (const file of files) {
     if (!selector || selector.startsWith('@')) continue
     const line = css.slice(0, m.index).split('\n').length
     allRules.push({ file: rel(file), line, selector, body })
-    if (declares(body, 'font-size')) {
-      const token = /font-size:\s*var\((--font-size-[A-Za-z0-9-]+)\)/.exec(body)?.[1]
+    // A rule's type is its `font` shorthand since 2026-09-24, when the ten
+    // --font-size-* tokens became the --type-* roles. `font-size` is still
+    // read, because a raw `em` or `inherit` size can legitimately remain.
+    if (declares(body, 'font') || declares(body, 'font-size')) {
+      const token = /(?:^|[;{\s])font:\s*var\((--type-[A-Za-z0-9-]+)\)/.exec(body)?.[1]
       for (const part of selector.split(',')) {
         const key = typeKeyOf(rel(file), subjectOf(part))
         fontSizeSubjects.add(key)
@@ -407,8 +410,11 @@ for (const key of Object.keys(REVOKED_CAPS)) {
 // character counts were all inside the band, while prose was being set at seven
 // different sizes for one job.
 //
-// The three are the existing `--font-size-*` steps, not new aliases of them —
-// a role token that duplicates a size token is two names for one number.
+// ⚠️ **The three are ROLES now, and the scale took their shape** (2026-09-24).
+// They were three --font-size-* steps (lg / md / base) that this rule named
+// lede, body and note; the type roles made those the scale's own tokens.
+// `--type-running` is the density's body size (body in the guide, ui in the
+// clinical apps), so one prose rule reads at the right size in both.
 //
 // ⚠️ INHERITS_TYPE is exempt on purpose, and it is not a loophole: those four
 // entries are runs that deliberately track the page body size rather than pin
@@ -420,8 +426,8 @@ for (const key of Object.keys(REVOKED_CAPS)) {
 // cap at all is invisible to this file entirely, so it has no font-size for
 // this rule to check either. RULE 5 governs the runs that declared themselves
 // prose by capping; it cannot find the ones that never did.
-const PROSE_SIZES = ['--font-size-lg', '--font-size-md', '--font-size-base']
-const PROSE_ROLE = { '--font-size-lg': 'lede', '--font-size-md': 'body', '--font-size-base': 'note' }
+const PROSE_SIZES = ['--type-lead', '--type-running', '--type-caption']
+const PROSE_ROLE = { '--type-lead': 'lede', '--type-running': 'body', '--type-caption': 'note' }
 
 let checkedSizes = 0
 for (const { file, line, selector } of measureCapped) {
@@ -445,12 +451,12 @@ for (const { file, line, selector } of measureCapped) {
 
 console.log(
   `  ${checkedSizes} run(s) checked against the three prose sizes ` +
-  `(${PROSE_SIZES.map((t) => `${PROSE_ROLE[t]} ${t.replace('--font-size-', '')}`).join(', ')})`,
+  `(${PROSE_SIZES.map((t) => `${PROSE_ROLE[t]} ${t.replace('--type-', '')}`).join(', ')})`,
 )
 
 if (checkedSizes === 0) {
   fail(
-    'no rule caps with the reading measure AND declares a font-size — RULE 5 checked nothing. ' +
+    'no rule caps with the reading measure AND declares a type role — RULE 5 checked nothing. ' +
       'Either the token was renamed or the prose runs stopped declaring their type.',
   )
 }

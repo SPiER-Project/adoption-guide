@@ -166,11 +166,13 @@ and was false. See [`docs/internals/README.md`](README.md).
   sub-13px runs were on the Care Pathway page — the worst-measuring page in the
   app, worse than the ones that prompted the question. `--font-size-2xs`, whose
   own definition in `index.css` says it is for micro labels, was carrying one.
-  The three roles are `--font-size-lg` (lede), `--font-size-md` (body) and
-  `--font-size-base` (note), and deliberately not three new role tokens
-  aliasing them — that is two names for one number. RULE 5 in `check:prose`
-  enforces it; the floor across every route went 38% → 47% with the character
-  counts unmoved. INHERITS_TYPE stays exempt because choosing to track the page
+  The three roles were `--font-size-lg` (lede), `--font-size-md` (body) and
+  `--font-size-base` (note), deliberately not three new role tokens aliasing
+  them — that is two names for one number. On 2026-09-24 the scale itself took
+  that shape: they are `--type-lead`, `--type-running` and `--type-caption`,
+  and the size tokens are gone (see *Type is seven roles* below). RULE 5 in
+  `check:prose` enforces it; the floor across every route went 38% → 47% with
+  the character counts unmoved. INHERITS_TYPE stays exempt because choosing to track the page
   body size is a different act from picking a size outside the three.
   ⚠️ **What it cannot see is a run with no cap at all**, so a new paragraph on a
   wide page still wants measuring by hand. RULE 5 inherits that blind spot
@@ -355,6 +357,40 @@ one: they are about the panel's *height*, not its density. The one deleted is
 `.panel-shell .page-header__rule { display: none }`, which the clinical density
 now does for both clinical shells. The standalone clinical tab loses the
 gradient rule too; that is the brief's intent, not a side effect.
+
+**Type is seven roles, and 11px is uppercase labels only.**
+`--type-label` (11px/700), `--type-caption` (12), `--type-ui` (14),
+`--type-body` (16), `--type-lead` (18), `--type-heading` (20, display face) and
+`--type-title` (28, display). Each is a `font` shorthand, so a rule names one
+token for size, line-height, weight and family. The density adds two:
+`--type-running` (body in the guide, ui in the clinical apps) and
+`--type-page-title` (title in the guide, heading in the clinical apps). They
+replaced ten size-named `--font-size-*` tokens, six of them 1px apart between
+10 and 15px, where authors picked by eye: `--font-size-2xs` (10px) was set 37
+times and `--font-size-4xl` never. All ten were deleted, `font` joined
+stylelint's strict-value list, and `tests/typeRoles.test.ts` fails a label in
+a rule that doesn't set `text-transform: uppercase`.
+⚠️ **The shorthand resets what the element would otherwise have inherited, and
+that shipped as a regression in this PR's first draft.** The migration swapped
+298 `font-size` declarations for roles, then a computed-style diff of 6,017
+text elements (16 pages, two widths, `main` against the branch) found 24 kinds
+of element whose weight or face had changed. There were three causes:
+- **Class rules on headings** lost the display face the `h1`–`h6` element rule gives them. A class selector's `font` beats an element selector's `font-family`.
+- **Classes on `<code>` and `<pre>`** lost the browser's monospace.
+- **Size-only overrides** reset the weight their base rule set: `.panel-shell .pathway-node-title` lost 600, the dense identity strip's name lost 700.
+
+The first two were swept as a class: every rule whose class appears on a
+heading or code element in the TSX got its face restated, 18 rules, more
+than the sample showed. The role goes first in every rule for the same
+reason: a longhand after it still wins.
+⚠️ **Where the brief's table was not the whole answer:**
+- Prose runs follow `check:prose`'s own role names (lede → lead, body → running, note → caption). The exceptions are two instructions, the action card's and the post-submit next step, which are the thing to do, not a note.
+- `.pill--sm` shares the pill's 11px, because the 10px step is gone.
+- `.pill--label` is caption, because a name isn't uppercase.
+
+There is no `--type-display`: the 44px role the brief named for the Overview
+hero and the surface explainers would have been a token nothing sets. Both
+take their title from PageHeader, like every page.
 
 **Spacing is a 10-step scale**, `--space-0-5` … `--space-8`; the two half-steps
 exist because the 0.25rem grid is too coarse below 0.5rem, where pill and badge

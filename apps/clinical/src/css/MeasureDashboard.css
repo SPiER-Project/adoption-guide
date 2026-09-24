@@ -3,8 +3,8 @@
 }
 
 .md-description {
+  font: var(--type-lead);
   color: var(--text-muted);
-  font-size: var(--font-size-lg);
   line-height: 1.6;
   margin: 0 0 var(--space-6) 0;
   max-width: var(--measure-prose);
@@ -19,16 +19,16 @@
 }
 
 .md-control-label {
+  font: var(--type-caption);
   color: var(--text-muted);
-  font-size: var(--font-size-sm);
   font-weight: 600;
 }
 
 .md-select {
+  font: var(--type-ui);
   padding: var(--space-2) var(--space-4);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-pill);
-  font-size: var(--font-size-md);
   color: var(--text-strong);
   background: var(--surface-card);
   cursor: pointer;
@@ -41,8 +41,8 @@
 }
 
 .md-period {
+  font: var(--type-caption);
   color: var(--text-faint);
-  font-size: var(--font-size-sm);
   font-variant-numeric: tabular-nums;
 }
 
@@ -89,9 +89,9 @@
 }
 
 .md-score-fraction {
+  font: var(--type-caption);
   margin-left: var(--space-2);
   color: var(--text-faint);
-  font-size: var(--font-size-sm);
 }
 
 /* An empty denominator is not a zero score — it means the measure could not be

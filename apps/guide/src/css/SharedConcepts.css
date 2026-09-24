@@ -45,7 +45,7 @@
    `.dd-cell-desc` above now, and the font-size set here is what that `em` cap
    resolves against. */
 .dd-concept-body > .dd-cell-desc {
-  font-size: var(--font-size-md);
+  font: var(--type-caption);
   line-height: 1.6;
   color: var(--text-body);
 }
@@ -54,9 +54,9 @@
    the split `--measure-prose` exists for: the table keeps the page, the
    sentence gets a measure. */
 .dd-concept-intro {
+  font: var(--type-caption);
   margin: 0 0 var(--space-3);
   max-width: var(--measure-prose);
-  font-size: var(--font-size-base);
   color: var(--text-muted);
 }
 
@@ -71,6 +71,7 @@
    and it is now one control in `.dd-concept-head` beside the code link and the
    count. Left at full width it pushed both siblings out of the row. */
 .dd-concept-toggle {
+  font: var(--type-ui);
   display: inline-flex;
   align-items: baseline;
   gap: var(--space-2);
@@ -79,7 +80,6 @@
   background: none;
   color: var(--text-strong);
   font-family: inherit;
-  font-size: var(--font-size-md);
   font-weight: 700;
   text-align: left;
   cursor: pointer;
@@ -104,8 +104,8 @@
 }
 
 .dd-concept-count {
+  font: var(--type-caption);
   flex: none;
-  font-size: var(--font-size-xs);
   color: var(--text-faint);
   font-weight: 600;
 }
@@ -116,8 +116,8 @@
 }
 
 .dd-concept-valueset {
+  font: var(--type-caption);
   margin: var(--space-2) 0;
-  font-size: var(--font-size-xs);
   color: var(--text-muted);
   overflow-wrap: anywhere;
 }

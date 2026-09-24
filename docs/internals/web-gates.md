@@ -54,8 +54,8 @@ npm run check:prose    # the reading MEASURE — `--measure-prose`. Its five rul
                        # 46rem cap that a later `none` had always overridden); and an `em`
                        # cap must know what type it resolves against (`.tool-config-effect`
                        # sat at an inherited 16px while its paragraph was 14px); and RULE 5,
-                       # a prose run is set at one of THREE sizes — lg lede, md body, base
-                       # note. RULE 4 asks whether a capped run declares a size, RULE 5 asks
+                       # a prose run is set at one of THREE roles — --type-lead, --type-running
+                       # (the density's body size), --type-caption. RULE 4 asks whether a capped run declares a size, RULE 5 asks
                        # WHICH, and that was the gap: 53 runs were spread over seven sizes
                        # (10-15px plus six inheriting) with every character count in band,
                        # because an `em` cap holds the count at any size. It showed up as

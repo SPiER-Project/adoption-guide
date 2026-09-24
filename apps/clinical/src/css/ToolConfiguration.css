@@ -16,11 +16,11 @@
 }
 
 .tool-config-meta {
+  font: var(--type-ui);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
-  font-size: var(--font-size-md);
   color: var(--text-muted);
   margin: 0;
 }
@@ -49,10 +49,10 @@
 }
 
 .tool-config-effect__body {
+  font: var(--type-running);
   margin: 0;
   max-width: var(--measure-prose);
   color: var(--text-body);
-  font-size: var(--font-size-md);
   line-height: 1.55;
 }
 
@@ -66,7 +66,8 @@
 }
 
 .tool-config-section-title {
-  font-size: var(--font-size-base);
+  font: var(--type-caption);
+  font-family: var(--font-display);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
@@ -121,13 +122,13 @@
 }
 
 .preset-card-label {
-  font-size: var(--font-size-lg);
+  font: var(--type-running);
   font-weight: 600;
   color: var(--text-strong);
 }
 
 .preset-card-count {
-  font-size: var(--font-size-xs);
+  font: var(--type-label);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
@@ -135,7 +136,7 @@
 }
 
 .preset-card-desc {
-  font-size: var(--font-size-base);
+  font: var(--type-ui);
   color: var(--text-muted);
   line-height: 1.4;
 }
@@ -148,7 +149,7 @@
 }
 
 .tool-config-stage-title {
-  font-size: var(--font-size-xl);
+  font: var(--type-heading);
   font-weight: 600;
   color: var(--text-strong);
   margin: 0 0 var(--space-3) 0;
@@ -186,16 +187,16 @@
 }
 
 .tool-row-name {
+  font: var(--type-running);
   display: inline-flex;
   align-items: baseline;
   gap: var(--space-2);
-  font-size: var(--font-size-lg);
   font-weight: 600;
   color: var(--text-strong);
 }
 
 .tool-row-id {
-  font-size: var(--font-size-xs);
+  font: var(--type-caption);
   font-weight: 500;
   color: var(--text-faint);
   letter-spacing: var(--tracking-caps);

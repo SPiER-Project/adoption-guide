@@ -27,7 +27,8 @@
 }
 
 .cds-service-guide__pre code {
-  font-size: var(--font-size-sm);
+  font: var(--type-caption);
+  font-family: var(--font-mono);
   line-height: 1.5;
   color: var(--text-body);
   white-space: pre;
@@ -35,8 +36,8 @@
 
 /* The live discovery fetch, while it is in flight or after it failed. */
 .cds-service-guide__status {
+  font: var(--type-ui);
   margin: 0;
-  font-size: var(--font-size-md);
   line-height: 1.6;
   color: var(--text-muted);
 }

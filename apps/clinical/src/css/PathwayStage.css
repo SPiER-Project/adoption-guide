@@ -16,8 +16,8 @@
 }
 
 .pathway-stage__tool-name {
+  font: var(--type-ui);
   font-family: var(--font-display);
-  font-size: var(--font-size-md);
   color: var(--text-strong);
   margin-block: 0 var(--space-1);
 }
@@ -25,7 +25,7 @@
 /* `--measure-prose` is a CHARACTER count, not a width, which is why it is in
    `em` and why it sits on the text run rather than on the card around it. */
 .pathway-stage__tool-purpose {
-  font-size: var(--font-size-base);
+  font: var(--type-ui);
   color: var(--text-body);
   max-inline-size: var(--measure-prose);
   margin-block: 0;
@@ -46,15 +46,15 @@
    the page, and this is the way off it — visible to anyone looking for it,
    never competing with the thing above it. */
 .pathway-stage__alternatives-summary {
+  font: var(--type-ui);
   font-family: var(--font-display);
-  font-size: var(--font-size-base);
   color: var(--brand-link);
   cursor: pointer;
   padding-block: var(--space-1);
 }
 
 .pathway-stage__alternatives-note {
-  font-size: var(--font-size-base);
+  font: var(--type-ui);
   color: var(--text-muted);
   max-inline-size: var(--measure-prose);
   margin-block: var(--space-2) var(--space-3);

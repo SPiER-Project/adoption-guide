@@ -11,8 +11,9 @@
  * radii, four paddings and two hover recipes. The decisions, made once:
  *
  *   shape    inline-flex pill (`--radius-pill`), `--space-2 --space-5`, the
- *            display face at 600; `sm` steps to `--space-1-5 --space-4` and
- *            `--font-size-base` for a control inside a list row.
+ *            display face at 600, `--type-ui`; `sm` steps to `--space-1-5
+ *            --space-4` for a control inside a list row (same type since the
+ *            type roles: 13px and 14px were one step, 1px apart).
  *   variant  `primary` — plum fill, white label (the website's CTA).
  *            `secondary` — plum hairline, plum label, peach-soft on hover.
  *            `link` — no box; `--brand-link` text for the quiet exit beside a

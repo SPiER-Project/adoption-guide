@@ -10,7 +10,7 @@
         "margin-inline", "margin-block",
         "gap", "row-gap", "column-gap",
         "letter-spacing",
-        "font-family"
+        "font-family", "font"
       ],
       {
         "ignoreValues": [

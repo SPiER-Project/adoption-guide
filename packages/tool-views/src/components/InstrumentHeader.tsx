@@ -7,7 +7,7 @@
  * Measured in a 470px panel, the width the step-0 spike settled on (panel plan
  * §9.1), on C-SSRS Screener:
  *
- *   the renderer's <h1>        86px   the full instrument name, at --font-size-3xl,
+ *   the renderer's <h1>        86px   the full instrument name, at the old 24px title size,
  *                                     wrapping to three lines
  *   the renderer's <p>        240px   Questionnaire.description, at body size,
  *                                     wrapping to ten

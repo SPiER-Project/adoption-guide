@@ -55,13 +55,13 @@
 }
 
 .writeback-scorecard__rung-label {
+  font: var(--type-caption);
   font-weight: 600;
-  font-size: var(--font-size-sm);
   color: var(--text-strong);
 }
 
 .writeback-scorecard__badge {
-  font-size: var(--font-size-2xs);
+  font: var(--type-label);
   font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
@@ -69,23 +69,23 @@
 }
 
 .writeback-scorecard__blurb {
+  font: var(--type-caption);
   margin: var(--space-1) 0 0 0;
-  font-size: var(--font-size-xs);
   line-height: var(--line-height-normal);
   color: var(--text-muted);
 }
 
 .writeback-scorecard__detail {
+  font: var(--type-caption);
   margin: var(--space-2) 0 0 0;
-  font-size: var(--font-size-xs);
   line-height: var(--line-height-normal);
   color: var(--text-body);
   overflow-wrap: anywhere;
 }
 
 .writeback-scorecard__foot {
+  font: var(--type-caption);
   margin: var(--space-4) 0 0 0;
-  font-size: var(--font-size-xs);
   line-height: var(--line-height-normal);
   color: var(--text-faint);
 }

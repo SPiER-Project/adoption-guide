@@ -19,9 +19,9 @@
 }
 
 .data-table__table {
+  font: var(--type-ui);
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--font-size-base);
   font-variant-numeric: tabular-nums;
 }
 
@@ -43,7 +43,7 @@
 }
 
 .data-table__table thead th {
-  font-size: var(--font-size-xs);
+  font: var(--type-label);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);

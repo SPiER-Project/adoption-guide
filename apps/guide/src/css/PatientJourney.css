@@ -11,17 +11,17 @@
    =========================== */
 
 .tools-index__lede {
+  font: var(--type-lead);
   margin: 0 0 var(--space-3);
   max-width: var(--measure-prose);
-  font-size: var(--font-size-lg);
   line-height: 1.6;
   color: var(--text-body);
 }
 
 .tools-index__aside {
+  font: var(--type-caption);
   margin: 0 0 var(--space-5);
   max-width: var(--measure-prose);
-  font-size: var(--font-size-base);
   line-height: 1.5;
   color: var(--text-muted);
 }
@@ -40,6 +40,7 @@
 }
 
 .tools-index__stage-link {
+  font: var(--type-caption);
   display: inline-flex;
   align-items: center;
   gap: var(--space-1-5);
@@ -47,7 +48,6 @@
   border: 1px solid var(--border-default);
   border-radius: var(--radius-pill);
   background: var(--surface-card);
-  font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--text-body);
   text-decoration: none;
@@ -80,6 +80,7 @@
 }
 
 .tools-index__stage-number {
+  font: var(--type-ui);
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -89,21 +90,20 @@
   border-radius: var(--radius-circle);
   background: var(--brand-primary);
   color: var(--text-on-brand);
-  font-size: var(--font-size-md);
   font-weight: 700;
 }
 
 .tools-index__stage-title {
+  font: var(--type-heading);
   margin: 0;
-  font-size: var(--font-size-2xl);
   font-weight: 700;
   color: var(--text-strong);
 }
 
 .tools-index__stage-desc {
+  font: var(--type-caption);
   margin: var(--space-1) 0 0;
   max-width: var(--measure-prose);
-  font-size: var(--font-size-base);
   line-height: 1.5;
   color: var(--text-muted);
 }
@@ -138,7 +138,7 @@
 }
 
 .tools-index__name {
-  font-size: var(--font-size-md);
+  font: var(--type-ui);
   font-weight: 600;
   color: var(--brand-link);
   text-decoration: none;
@@ -156,7 +156,7 @@
 }
 
 .tools-index__purpose {
-  font-size: var(--font-size-base);
+  font: var(--type-ui);
   line-height: 1.4;
   color: var(--text-muted);
 }
@@ -188,8 +188,8 @@
 }
 
 .tools-index__trigger-group {
+  font: var(--type-label);
   margin: var(--space-3) 0 0;
-  font-size: var(--font-size-xs);
   font-weight: 700;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
@@ -206,12 +206,12 @@
 }
 
 .tools-index__trigger {
+  font: var(--type-ui);
   display: grid;
   grid-template-columns: 1fr 1fr 1.5fr;
   gap: var(--space-3);
   padding: var(--space-2) var(--space-4);
   border-top: 1px solid var(--surface-muted);
-  font-size: var(--font-size-base);
 }
 
 .tools-index__trigger:first-child {
@@ -240,9 +240,9 @@
 
 /* ── Zero Suicide alignment, last: context rather than a caveat ── */
 .tools-index__zero-suicide {
+  font: var(--type-caption);
   margin: var(--space-7) 0 0;
   max-width: var(--measure-prose);
-  font-size: var(--font-size-base);
   line-height: 1.5;
   color: var(--text-muted);
 }

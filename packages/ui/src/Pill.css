@@ -2,20 +2,19 @@
    Pill — see components/Pill.tsx for the four decisions and the rule that a
    page may add a COLOUR modifier and nothing else.
 
-   Tone colours are the app's existing families. The solid risk tones are
-   what RiskPill renders (and used to carry in RiskPill.css); the darker text
-   on the two muted grounds clears WCAG AA for small caps — `--risk-low-faded`
-   with `--risk-low-soft-text` landed at 3.54:1, with `--accent-success-text`
-   it is above 5:1.
+   Tone colours are the app's families: the risk ramp's solid and soft pairs
+   and the --status-* families. Every fill-and-text pair here is measured at
+   >= 4.5:1 by tests/colourContrast.test.ts. The solid risk tones are what
+   RiskPill renders (and used to carry in RiskPill.css).
    =========================== */
 
 .pill {
+  font: var(--type-label);
   display: inline-flex;
   align-items: center;
   gap: var(--gap-inline);
   padding: var(--space-0-5) var(--space-2);
   border-radius: var(--radius-pill);
-  font-size: var(--font-size-xs);
   font-weight: 700;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
@@ -28,11 +27,16 @@
 }
 
 .pill--sm {
+  font: var(--type-label);
+  text-transform: uppercase;
   padding: var(--space-0-5) var(--space-1-5);
-  font-size: var(--font-size-2xs);
 }
 
+/* A name is not uppercase, so it cannot be 11px: that size is labels only. It
+   is caption at 600, at the pill's own tight leading. */
 .pill--label {
+  font: var(--type-caption);
+  line-height: var(--line-height-tight);
   font-weight: 600;
   letter-spacing: normal;
   text-transform: none;
