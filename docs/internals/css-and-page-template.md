@@ -320,6 +320,42 @@ colour against 9 inside them, so the allowlist would have been longer than what
 it guarded, and it still could not see a *new* token spelled in blue. A link is
 `--brand-link` because this paragraph says so. Review is the gate.
 
+**One brand, two densities.** Each app sets `data-density` once, on `<html>`
+in its own `index.html`: `guide` for the Adoption Guide, `clinical` for both
+SMART apps, panel and standalone alike. `foundation.css` gives each a block of
+tokens: `--label-color`, `--card-pad`, `--card-radius`, `--page-rule` and
+`--button-accent-allowed`. The guide sits closer to thespierproject.org, with
+terracotta labels, roomier cards, the gradient rule and gradient button labels.
+The clinical apps run inside someone else's chart, often in a 470px dock, and
+are quieter: plum-muted labels (6.76:1 on white, 6.15:1 on the page), tighter
+cards, no rule, plain labels.
+⚠️ **The attribute is on `<html>`, not on the three shells the brief named.**
+The clinical app's `/launch` and `/redirect` render outside both shells, and a
+Card there would have resolved `--card-pad` to nothing. The HTML entry is the
+one element above every route.
+⚠️ **Terracotta is a guide colour.** In a clinical view a terracotta eyebrow
+(#a8572d) sits beside the high-risk orange (#b8501f) and reads as a statement
+about risk. `.pathway-node--attention`'s terracotta *border* is not text and
+was not in scope; it still shows in the clinical chart.
+⚠️ **Three companion tokens.** The approved set did not quite work in CSS on
+its own:
+- `--page-rule-display`: `--page-rule: none` still leaves the rule's 4px box and margins as a 36px gap, so the display switch takes the whole box.
+- `--label-hairline` and `--label-underline`: the pill eyebrow's outline and the crumb's resting underline were terracotta too.
+
+`--button-accent-allowed` is a number (1 or 0). Button mixes the label's
+colour between transparent, which shows the gradient, and the pill's own text
+colour, which paints over it. No component asks which app it is in.
+`check:template` RULE 7 holds that: no `[data-density]` selector outside
+`foundation.css`, no TypeScript reading the attribute, and every app's `<html>`
+setting a value the file defines, with no defined value left unused.
+`tests/colourContrast.test.ts` measures each density's label on the page and
+on a card.
+⚠️ **The panel's one-line header rules stayed in `PageHeader.css`**, all but
+one: they are about the panel's *height*, not its density. The one deleted is
+`.panel-shell .page-header__rule { display: none }`, which the clinical density
+now does for both clinical shells. The standalone clinical tab loses the
+gradient rule too; that is the brief's intent, not a side effect.
+
 **Spacing is a 10-step scale**, `--space-0-5` … `--space-8`; the two half-steps
 exist because the 0.25rem grid is too coarse below 0.5rem, where pill and badge
 padding lives. Don't add an eleventh — a step is a decision every later author

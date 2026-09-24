@@ -804,6 +804,65 @@ for (const [cls, owner] of containers) {
   }
 }
 
+// RULE 7 — density is a token, set once per app, and never branched on.
+//
+// The two apps share one brand at two densities (foundation.css,
+// `[data-density="guide" | "clinical"]`). The whole design is that a component
+// reads `--label-color` or `--card-pad` and never asks which app it is in —
+// the moment one stylesheet writes `[data-density="clinical"] .card`, or one
+// component reads the attribute, the density is a per-app fork again, spread
+// across files where no one can see both sides of it.
+//
+//   7a. No `[data-density…]` selector outside foundation.css.
+//   7b. No TypeScript reads or writes the attribute (tests excepted).
+//   7c. Every app's index.html sets it on <html>, to a value foundation.css
+//       defines — and every value foundation.css defines is used by an app.
+//       Without 7c the first two can pass over an app whose tokens resolve to
+//       nothing: a card with no padding, a label with no colour.
+const FOUNDATION_CSS = 'packages/ui/src/foundation.css'
+const DENSITY_SELECTOR = /\[data-density\b/
+const foundationSrc = readFileSync(join(STYLE_ROOTS.find(r => r.source === 'packages/ui/src').dir, 'foundation.css'), 'utf8')
+  .replace(/\/\*[\s\S]*?\*\//g, '')
+const densities = new Set([...foundationSrc.matchAll(/\[data-density="([a-z-]+)"\]\s*\{/g)].map(m => m[1]))
+if (densities.size === 0) fail(`${FOUNDATION_CSS}: defines no [data-density="…"] block — RULE 7 would check nothing`)
+
+for (const { name: file, path: cssPath } of cssFiles) {
+  if (file === FOUNDATION_CSS) continue
+  const src = readFileSync(cssPath, 'utf8')
+  for (const rule of styleRules(src)) {
+    if (DENSITY_SELECTOR.test(rule.selector)) {
+      fail(`${file}:${lineOf(src, rule.index)}: \`${rule.selector.trim()}\` branches on density — read a density token instead; only ${FOUNDATION_CSS} may select on [data-density]`)
+    }
+  }
+}
+
+let densityReaders = 0
+for (const root of STYLE_ROOTS) {
+  for (const path of walkExt(root.dir, ['.ts', '.tsx'])) {
+    if (/\.test\.tsx?$/.test(path)) continue
+    densityReaders++
+    const src = readFileSync(path, 'utf8')
+    const m = /data-density|dataset\.density|['"]density['"]/.exec(src)
+    if (m) fail(`${relRepo(path)}:${lineOf(src, m.index)}: reads the density attribute — a component reads density TOKENS, never which app it is in`)
+  }
+}
+if (densityReaders === 0) fail('RULE 7b read no TypeScript — the style roots moved')
+
+const usedDensities = new Set()
+for (const app of APP_ROOTS) {
+  const html = join(app.dir, '..', 'index.html')
+  const at = relRepo(html)
+  if (!existsSync(html)) { fail(`${at}: missing — RULE 7c cannot see this app's density`); continue }
+  const tag = /<html\b[^>]*>/i.exec(readFileSync(html, 'utf8'))?.[0] ?? ''
+  const value = /\bdata-density="([a-z-]+)"/.exec(tag)?.[1]
+  if (!value) fail(`${at}: <html> sets no data-density — every density token would resolve to nothing in this app`)
+  else if (!densities.has(value)) fail(`${at}: data-density="${value}" is not defined in ${FOUNDATION_CSS} (defined: ${[...densities].join(', ')})`)
+  else usedDensities.add(value)
+}
+for (const d of densities) {
+  if (!usedDensities.has(d)) fail(`${FOUNDATION_CSS}: [data-density="${d}"] is set by no app's index.html`)
+}
+
 // ── Report ────────────────────────────────────────────────────────────────────
 
 // ⚠️ Per ROOT — this gate read `web/src` alone through the packages/ui

@@ -73,11 +73,16 @@
    The website's signature: the label filled with the brand gradient on the
    plum pill. `color: transparent` plus the clipped background is the whole
    trick; every stop measures above 9:1 on plum, so the label stays legible.
-   The arrow keeps the pill's text colour — one gradient run, not two. */
+   The arrow keeps the pill's text colour — one gradient run, not two.
+   ⚠️ The gradient label is the guide's. It is marketing, and in a clinical
+   view the ramp reads as a clinical signal, so --button-accent-allowed (1 in
+   the guide, 0 in the clinical apps) mixes the label between transparent —
+   the gradient shows through — and the pill's own text colour, which paints
+   over it. A plain label, with no component asking which app it is in. */
 .button--accent .button__label {
   background: var(--gradient-brand);
   background-clip: text;
-  color: transparent;
+  color: color-mix(in srgb, transparent calc(var(--button-accent-allowed) * 100%), currentcolor);
 }
 
 /* ---- the arrow ---- */

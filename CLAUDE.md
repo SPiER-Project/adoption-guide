@@ -41,7 +41,7 @@ npm run lint:css                # stylelint: design-token enforcement
 npm run check:tokens            # every var(--token) resolves; reads BOTH style roots (scripts/lib/style-roots.mjs)
 npm run check:favicons          # the tab icons still match the brand tokens (they are generated copies)
 npm run check:css-dead          # every class selector is referenced by a component (or the formbox theme)
-npm run check:template          # one header implementation, one owner of the page inset, one owner of the width
+npm run check:template          # one header implementation, one owner of the page inset, one owner of the width, density only through tokens
 npm run check:prose             # --measure-prose is a character count, every cap declared, prose at one of three sizes
 npm run check:jargon            # no repo vocabulary in reader copy (the guide's strings AND the FSH's documentation displays), and no WIRE vocabulary in the clinician's (apps/clinical + packages/tool-views)
 npm run check:fhir-render       # the clinician sees no raw FHIR — in JSON (useInspect) or in a recorder's words

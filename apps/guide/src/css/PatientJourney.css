@@ -60,7 +60,7 @@
 }
 
 .tools-index__stage-n {
-  color: var(--brand-terracotta-text);
+  color: var(--label-color);
 }
 
 /* ── One stage ── */

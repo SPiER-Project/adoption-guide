@@ -192,3 +192,25 @@ describe('every rule that sets a status or risk fill AND a text colour', () => {
     expect(ratio, `${r.file}: \`${r.selector}\` sets ${r.text} on ${r.fill}, ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(AA)
   })
 })
+
+/**
+ * Each density's label colour, on the two grounds a label sits on. The block's
+ * own declarations override :root's, exactly as the cascade would, so a
+ * density that set --label-color to a var() of another density token is
+ * resolved inside its own block.
+ */
+describe('each density in foundation.css', () => {
+  const css = readFileSync(FOUNDATION, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
+  const blocks = [...css.matchAll(/\[data-density="([a-z-]+)"\]\s*\{([^}]*)\}/g)]
+    .map(m => ({ density: m[1], tokens: new Map([...tokens, ...tokensOf(m[2])]) }))
+
+  it('defines exactly guide and clinical — an empty scan would pass everything below', () => {
+    expect(blocks.map(b => b.density).sort()).toEqual(['clinical', 'guide'])
+  })
+
+  it.each(blocks.flatMap(b => ['--surface-page', '--surface-card'].map(g => [b.density, g, b] as const)))(
+    '%s: --label-color on %s at ≥ 4.5:1', (density, ground, b) => {
+      const ratio = contrast(resolve(b.tokens, '--label-color'), resolve(b.tokens, ground))
+      expect(ratio, `${density} --label-color on ${ground} measures ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(AA)
+    })
+})

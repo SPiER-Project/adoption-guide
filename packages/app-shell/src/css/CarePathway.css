@@ -154,7 +154,7 @@
   display: block;
   overflow-wrap: anywhere;
   margin-top: var(--space-1);
-  color: var(--brand-terracotta-text);
+  color: var(--label-color);
   font-size: var(--font-size-2xs);
 }
 
