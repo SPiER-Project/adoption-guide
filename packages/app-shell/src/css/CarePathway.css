@@ -322,9 +322,9 @@
   vertical-align: middle;
 }
 
-.pathway-matrix__tier--low .pathway-matrix__swatch { background-color: var(--risk-low); }
-.pathway-matrix__tier--moderate .pathway-matrix__swatch { background-color: var(--risk-moderate); }
-.pathway-matrix__tier--high .pathway-matrix__swatch { background-color: var(--risk-high); }
+.pathway-matrix__tier--low .pathway-matrix__swatch { background-color: var(--risk-low-edge); }
+.pathway-matrix__tier--moderate .pathway-matrix__swatch { background-color: var(--risk-moderate-edge); }
+.pathway-matrix__tier--high .pathway-matrix__swatch { background-color: var(--risk-high-edge); }
 
 .pathway-matrix__flag {
   font: var(--type-label);
@@ -497,10 +497,10 @@
   background-color: var(--surface-card);
 }
 
-.pathway-sim__result--low { border-color: var(--risk-low); background-color: var(--risk-low-soft); }
-.pathway-sim__result--moderate { border-color: var(--risk-moderate); background-color: var(--risk-moderate-soft); }
-.pathway-sim__result--high { border-color: var(--risk-high); background-color: var(--risk-high-soft); }
-.pathway-sim__result--imminent { border-color: var(--risk-acute); background-color: var(--risk-acute-soft); }
+.pathway-sim__result--low { border-color: var(--risk-low-edge); background-color: var(--risk-low-soft); }
+.pathway-sim__result--moderate { border-color: var(--risk-moderate-edge); background-color: var(--risk-moderate-soft); }
+.pathway-sim__result--high { border-color: var(--risk-high-edge); background-color: var(--risk-high-soft); }
+.pathway-sim__result--imminent { border-color: var(--risk-acute-edge); background-color: var(--risk-acute-soft); }
 
 .pathway-sim__result-label {
   font: var(--type-label);

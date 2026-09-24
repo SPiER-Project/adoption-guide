@@ -186,6 +186,21 @@
   --risk-low:                 #2f7a45;
   --risk-low-on:              #ffffff;
 
+  /* The ramp as a MARK: a card's left edge, a bar segment, a swatch, a dot, a
+     gradient stop — anywhere the colour carries meaning with no text on it,
+     where WCAG 1.4.11 asks 3:1 against the ground (white, the page, the
+     muted bar track). A solid fill is for text on it, with its -on.
+     ⚠️ Moderate is why this exists. Its fill (#e0b54a) is light by design, so
+     plum text reads on it at 8.47:1, and as a mark it measured 1.60-1.93:1.
+     Its edge is the same hue and saturation darkened to clear 3:1 on every
+     ground (3.16 on the track, 3.45 on the page, 3.80 on white), and no
+     further, so it keeps its lightness apart from high and low beside it in
+     a stepped bar. The other three already clear 3:1, so theirs is the fill. */
+  --risk-acute-edge:          var(--risk-acute);
+  --risk-high-edge:           var(--risk-high);
+  --risk-moderate-edge:       #a47d1c;
+  --risk-low-edge:            var(--risk-low);
+
   /* The soft ramp: a tinted fill and its text, for a banded scale or a tinted
      surface that is not itself a risk level. It replaced two tokens per step
      (-soft-bg and -faded); one fill per step is the whole vocabulary. */

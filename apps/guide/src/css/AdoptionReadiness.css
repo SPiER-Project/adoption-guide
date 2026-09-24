@@ -69,11 +69,11 @@
 }
 
 .ar-summary-fill--built {
-  background: linear-gradient(90deg, var(--risk-high), var(--risk-low));
+  background: linear-gradient(90deg, var(--risk-high-edge), var(--risk-low-edge));
 }
 
 .ar-summary-fill--depth {
-  background: linear-gradient(90deg, var(--risk-acute) 0% 25%, var(--risk-high) 25% 50%, var(--risk-moderate) 50% 75%, var(--risk-low) 75% 100%);
+  background: linear-gradient(90deg, var(--risk-acute-edge) 0% 25%, var(--risk-high-edge) 25% 50%, var(--risk-moderate-edge) 50% 75%, var(--risk-low-edge) 75% 100%);
 }
 
 .ar-summary-bar-caption {

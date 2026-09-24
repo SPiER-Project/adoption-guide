@@ -107,10 +107,10 @@
   border-left: 4px solid;
 }
 
-.submit-result-summary.alert--acute { background: var(--risk-acute-soft); border-left-color: var(--risk-acute); }
-.submit-result-summary.alert--high { background: var(--risk-high-soft); border-left-color: var(--risk-high); }
-.submit-result-summary.alert--moderate { background: var(--risk-moderate-soft); border-left-color: var(--risk-moderate); }
-.submit-result-summary.alert--low { background: var(--risk-low-soft); border-left-color: var(--risk-low); }
+.submit-result-summary.alert--acute { background: var(--risk-acute-soft); border-left-color: var(--risk-acute-edge); }
+.submit-result-summary.alert--high { background: var(--risk-high-soft); border-left-color: var(--risk-high-edge); }
+.submit-result-summary.alert--moderate { background: var(--risk-moderate-soft); border-left-color: var(--risk-moderate-edge); }
+.submit-result-summary.alert--low { background: var(--risk-low-soft); border-left-color: var(--risk-low-edge); }
 .submit-result-summary.alert--none { background: var(--surface-page); border-left-color: var(--text-faint); }
 
 .submit-result-header {
