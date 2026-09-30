@@ -213,7 +213,7 @@ export function PopulationView() {
   if (scope !== 'registry') {
     return (
       <div className="population-view">
-        <PageHeader eyebrow="SPiER" title="Caseload" lede="Who on your panel is owed an action." />
+        <PageHeader title="Caseload" lede="Who on your panel is owed an action." />
         <CohortScopeNotice scope={scope} />
       </div>
     )
@@ -225,12 +225,12 @@ export function PopulationView() {
           The dashboard PRODUCT is explained at /guide/dashboard; this page and
           /population/measures are its two screens, and naming this one after the
           product would leave the reader wondering which of the two they were on.
-          Eyebrow names the project rather than a lens: this is a single page, so
-          its parent is SPiER itself — same as the front door. See PageHeader.
+          No eyebrow: this is a root with no parent to name, like the Care
+          pathway beside it. See PageHeader.
           ⚠️ The lede STOPS EXPLAINING (audit §4.8). It used to spend 37 words on
           what a recommendation is and on tool enablement — a fact about the
           deployment, addressed to whoever configured it, above a worklist. */}
-      <PageHeader eyebrow="SPiER" title="Caseload" lede="Who on your panel is owed an action." />
+      <PageHeader title="Caseload" lede="Who on your panel is owed an action." />
 
       {isLoading && entries.length === 0 && (
         <Notice tone="info">Reading the caseload from the connected server…</Notice>

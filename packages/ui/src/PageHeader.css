@@ -13,8 +13,8 @@
   margin-bottom: var(--space-6);
 }
 
-/* Uppercase micro-trail: what the page sits inside. Always present — see the
-   prop docs in PageHeader.tsx for why it is not optional. `--label-color` is
+/* Uppercase micro-trail: what the page sits inside. Absent only on an app's
+   root page — see the prop docs in PageHeader.tsx for when that is allowed. `--label-color` is
    the density's label: terracotta in the guide (the website's section label,
    deepened to 4.69:1 for AA), plum-muted in the clinical apps, where a
    terracotta label beside the high-risk orange reads as a risk statement.
@@ -170,10 +170,10 @@
   display: inline;
 }
 
-/* A top-level panel page — the chart — has no ancestors, and its eyebrow then
-   names the PROJECT, which means nothing inside a host chart: the host's own
-   navigation says whose software this is. A trail with a link in it is the way
-   back out and stays; a bare label is a label for a sidebar that is not there.
+/* A bare label — a trail with no link in it — is a label for a sidebar that is
+   not there; a trail with a link in it is the way back out and stays. The root
+   pages' `SPiER` label was what this rule was written for, and they draw no
+   trail at all now, in either chrome; it still holds for any other bare one.
    ⚠️ `:has(a)` rather than `:has(.page-header__up)` since the trail's segments
    became links of their own — the old selector hid every breadcrumb that had no
    back-arrow, which after 2026-09-22 is all of them. */

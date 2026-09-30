@@ -145,10 +145,10 @@ export function PatientChart() {
   return (
     <div className="patient-chart">
       {/* ⚠️ **Drawn in BOTH chromes since 2026-09-22** — see the module header.
-          `eyebrow` is the trail and `title` is where you are; every page below
-          this one names it as its parent through `up`, so the header is the
-          breadcrumb rather than a second component beside one. */}
-      <PageHeader eyebrow="SPiER" title="Care pathway" />
+          No trail: this is a root, and every page below this one names it as
+          its parent, so the header is the breadcrumb rather than a second
+          component beside one. */}
+      <PageHeader title="Care pathway" />
 
       {dataSourceError && (
         <Notice tone="danger" title="EHR data error.">

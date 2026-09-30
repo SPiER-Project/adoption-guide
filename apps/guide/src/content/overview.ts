@@ -88,7 +88,8 @@ export interface OverviewSection {
   blocks: OverviewBlock[]
 }
 
-export const OVERVIEW_EYEBROW = 'SPiER'
+/** Its sidebar peers' first crumb, not the project: the logo is directly above. */
+export const OVERVIEW_EYEBROW = 'Adoption Guide'
 export const OVERVIEW_TITLE = 'Setting priorities for technology-enabled suicide-safer care'
 
 /**
