@@ -69,7 +69,7 @@ export function SharedConcepts({
   const routeCount = concepts.reduce((n, c) => n + bindingsForConcept(c.id).length, 0)
 
   return (
-    <Card as="section" padding="compact" tone="muted" accent className="dd-stage-section dd-concept-layer" id={NORMALIZATION_ANCHOR}>
+    <Card as="section" padding="compact" tone="muted" className="dd-stage-section dd-concept-layer" id={NORMALIZATION_ANCHOR}>
       <SectionHeader
         title="Cross-instrument normalization"
         meta={

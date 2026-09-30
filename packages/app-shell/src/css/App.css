@@ -14,6 +14,24 @@
 /* ===========================
    SMART on FHIR redirect (success / error states)
    =========================== */
+.smart-loading,
+.smart-error {
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+}
+
+.smart-loading {
+  font: var(--type-ui);
+  color: var(--text-muted);
+}
+
+.smart-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
 .smart-error-heading {
   color: var(--status-danger-text);
 }

@@ -115,6 +115,23 @@ describe('PatientPathway — what is due versus what is guidance', () => {
   })
 })
 
+describe('PatientPathway — the active stage says so once', () => {
+  it('draws no state pill on the active stage, and marks it aria-current instead', () => {
+    // ⚠️ It said "You are here" beside a plum border, an open card and a
+    // "1 due" pill. The border carries it visually; aria-current carries it
+    // to a screen reader; every OTHER stage keeps its state pill.
+    const { container } = renderRail('ehr', [], { [STAGES[3].id]: 1 })
+    const active = node(container, 3)
+    expect(active.querySelector('[class*="pathway-node-status--"]')).toBeNull()
+    expect(active.textContent).not.toContain('You are here')
+    expect(active.querySelector('.pathway-node-open')?.getAttribute('aria-current')).toBe('step')
+    for (const i of [0, 5]) {
+      expect(node(container, i).querySelector('[class*="pathway-node-status--"]'), `stage ${i}`).not.toBeNull()
+      expect(node(container, i).querySelector('.pathway-node-open')?.hasAttribute('aria-current')).toBe(false)
+    }
+  })
+})
+
 describe('PatientPathway — the row is a way into the stage', () => {
   it('links every row to its stage page, open or collapsed', () => {
     const { container } = renderRail('ehr', [])

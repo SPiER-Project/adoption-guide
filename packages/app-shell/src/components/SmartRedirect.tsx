@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import FHIR from 'fhirclient/browser'
 import type { SmartClient } from '@spier/core/types/smartClient'
+import { Button } from '@spier/ui/Button'
 import { describeError } from '../lib/describeError'
 import { useNavigate } from 'react-router-dom'
 import { useSmart } from '../context/SmartContext'
@@ -208,24 +209,21 @@ export function SmartRedirect() {
 
     if (error) {
         return (
-            <div className="smart-error" style={{ padding: '2rem', textAlign: 'center' }}>
+            <div className="smart-error">
                 <h2 className="smart-error-heading">Authorization Error</h2>
                 <p>{error}</p>
-                <button
-                    onClick={() => navigate('/')}
-                    style={{ marginTop: '1rem', padding: '0.5rem 1rem', cursor: 'pointer' }}
-                >
+                <Button variant="secondary" onClick={() => navigate('/')}>
                     Return to Tools
-                </button>
+                </Button>
             </div>
         )
     }
 
     return (
-        <div className="smart-loading" style={{ padding: '4rem', textAlign: 'center' }}>
-            <div className="spinner" style={{ fontSize: '2rem', marginBottom: '1rem' }}>🔄</div>
-            <h2>{status}</h2>
-            <p>Securely connecting to electronic health record...</p>
-        </div>
+        // The status sentence is the whole screen: it already says which step the
+        // launch is on. An emoji spinner and a "securely connecting" line under
+        // it said nothing the sentence did not, and styled themselves inline
+        // where no token gate could see them.
+        <p className="smart-loading" role="status">{status}</p>
     )
 }

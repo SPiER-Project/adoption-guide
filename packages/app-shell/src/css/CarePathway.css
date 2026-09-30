@@ -46,7 +46,6 @@
   max-width: var(--measure-prose);
   margin: 0;
   padding: var(--space-3) var(--space-4);
-  border-left: 4px solid var(--brand-primary);
   border-radius: var(--radius-sm);
   background-color: var(--surface-muted);
   color: var(--text-body);
@@ -287,10 +286,6 @@
    page. What this sheet adds is LAYOUT on the table (a minimum width, so four
    columns never crush below a readable measure) and the two things the table
    is about: which tier a column is, and which column the simulator lit. */
-.pathway-step--branch {
-  border-left-color: var(--brand-primary);
-}
-
 .pathway-branch {
   margin-top: var(--space-4);
 }
@@ -718,8 +713,6 @@
    weight; see components/PathwayView.tsx. */
 .pathway-provenance--lead {
   border-color: var(--tint-peach);
-  border-left-width: 4px;
-  border-left-color: var(--brand-primary);
   background-color: var(--tint-peach-soft);
 }
 

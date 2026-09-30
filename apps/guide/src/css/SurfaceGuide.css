@@ -113,7 +113,6 @@
   gap: var(--space-2);
   margin: var(--space-2) 0;
   padding: var(--space-4) var(--space-5);
-  border-left: 3px solid var(--tint-peach);
   border-radius: var(--radius-md);
   background: var(--surface-muted);
   list-style: none;

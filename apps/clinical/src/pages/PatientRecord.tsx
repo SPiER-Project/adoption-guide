@@ -213,7 +213,7 @@ export function PatientRecord() {
       />
 
       {reading && (reading.value || reading.interpretation) && (
-        <Card as="section" padding="compact" accent className="record-reading">
+        <Card as="section" padding="compact" className="record-reading">
           {reading.value && <p className="record-reading__value">{reading.value}</p>}
           {reading.interpretation && (
             <p className="record-reading__note">{reading.interpretation}</p>

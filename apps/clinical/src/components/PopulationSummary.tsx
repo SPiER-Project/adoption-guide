@@ -55,7 +55,7 @@ export function PopulationSummary({
   const breached = computable.filter(t => t.breached)
 
   return (
-    <Card as="section" padding="compact" tone="wash" className="pop-summary" aria-label="Caseload summary">
+    <Card as="section" padding="compact" className="pop-summary" aria-label="Caseload summary">
       <SectionHeader
         title="Summary"
         meta={open || breached.length === 0 ? undefined : `${breached.length} over goal`}
