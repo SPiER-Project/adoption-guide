@@ -80,7 +80,11 @@ and was false. See [`docs/internals/README.md`](README.md).
   `components/PageHeader.tsx` (eyebrow → title → accent rule → optional lede),
   the only definition of page-title typography in the app; a page never renders
   its own `<h2>`, so section headings start at `<h3>`. A drill-in page passes
-  `up` to make the first eyebrow segment its way back out.
+  `up` to make the first eyebrow segment its way back out. The eyebrow names
+  the page's parent, so an app's **root** page (Care pathway, Caseload) has
+  none; ⚠️ omit it only where every peer does — the guide's front page is a
+  peer of its sidebar sections and names `Adoption Guide` as they do, because
+  one lens without an eyebrow is a title 24px out of line with the rest.
   ⚠️ **Width has one owner per route, and the owner is whoever owns the header.**
   A page that renders its own `<PageHeader>` declares a root width, and it is
   `--page-width-prose` or `--page-width-wide` — those two are the whole

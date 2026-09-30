@@ -79,9 +79,9 @@ const INSET_OWNERS = {
 }
 
 const LENSES = {
-  'Overview.tsx': 'the front door: brand eyebrow + the project tagline as title',
+  'Overview.tsx': 'the front door: its sidebar peers\u2019 eyebrow + the project tagline as title',
   'AdoptionGuide.tsx': 'the /guide layout — renders the header for every sub-page in GUIDE_SECTIONS',
-  'PopulationView.tsx': 'the Population lens\u2019s index page; its eyebrow names the project rather than a section',
+  'PopulationView.tsx': 'the Population lens\u2019s index page; a root, so no eyebrow',
   // Added in step D (#391), when Measures moved out of the Adoption Guide to the
   // EHR side. It is a sub-page of the Population lens, but that lens has no
   // layout component to render a header for it the way AdoptionGuide does for
@@ -93,7 +93,7 @@ const LENSES = {
   // this is the page it opens. Third page of the same lens, same reason as
   // MeasureDashboard beside it, and its `up` is how a reader gets back.
   'PopulationAlerts.tsx': 'the Population lens\u2019s third page; the lens has no header-rendering layout',
-  'PatientChart.tsx': 'the Patient View lens; eyebrow names the lens, title the page',
+  'PatientChart.tsx': 'the Patient View lens; a root, so no eyebrow',
   // Added in Phase 4 of docs/plans/suicide-safer-care-pathway.md, when the
   // published protocol had to be reachable from the embedded SMART panel. Same
   // situation as MeasureDashboard above — a second page of a lens that has no

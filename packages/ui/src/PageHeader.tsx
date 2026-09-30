@@ -40,17 +40,24 @@ interface PageHeaderProps {
    * component's business, not the caller's, so a caller cannot introduce a
    * second punctuation style.
    *
-   * Required, and the rule is "name the page's parent" — what `up` points at
-   * for a drill-in (`Patient Chart` → an assessment; `Caseload` → Measures), the
-   * project for a page with no parent above it (`SPiER` → Patient Chart, and
-   * `SPiER` → Caseload). ⚠️ The examples here used to be `Patient View` and
-   * `Population View`, which were lens names, and the lenses are gone — a rule
-   * illustrated with a retired vocabulary teaches the wrong answer to whoever
-   * copies it next. It started out optional, and the
-   * one page that skipped it had its title sitting 24px higher than the other
-   * three: an absent eyebrow is a layout difference, not just a missing label.
+   * The rule is "name the page's parent" — what `up` points at for a drill-in
+   * (`Care pathway` → a stage; `Caseload` → Measures), the section for a guide
+   * page (`Adoption Guide / Learn`), and NOTHING for an app's root page (Care
+   * pathway, Caseload), which has no parent to name.
+   *
+   * ⚠️ **Roots used to name the project — `SPiER` — and that said nothing.** It
+   * sat directly under the SPiER logo, and the panel already hid it (a bare
+   * label inside a host chart names whose software it is, which the host
+   * says). So a root has no trail in either chrome now.
+   *
+   * ⚠️ **But omit it only on a ROOT, and only where every root does.** It
+   * started out optional, and the one lens that skipped it had its title 24px
+   * higher than its three peers: an absent eyebrow is a layout difference, not
+   * just a missing label. Peers must agree — the guide's front page is a peer
+   * of its sidebar sections, so it names `Adoption Guide` as they do rather
+   * than going bare; the clinical app's two roots go bare together.
    */
-  eyebrow: Crumb | Crumb[]
+  eyebrow?: Crumb | Crumb[]
   /**
    * Route to the page's parent. Turns the *first* eyebrow segment into a link
    * back to it, arrow included — so a drill-in page's way out is part of the
@@ -82,7 +89,7 @@ interface PageHeaderProps {
 const labelOf = (crumb: Crumb): string => (typeof crumb === 'string' ? crumb : crumb.label)
 
 export function PageHeader({ eyebrow, up, eyebrowStyle = 'text', title, lede }: PageHeaderProps) {
-  const trail = Array.isArray(eyebrow) ? eyebrow : [eyebrow]
+  const trail = eyebrow === undefined ? [] : Array.isArray(eyebrow) ? eyebrow : [eyebrow]
 
   return (
     <header className="page-header">
@@ -90,50 +97,52 @@ export function PageHeader({ eyebrow, up, eyebrowStyle = 'text', title, lede }: 
           what a breadcrumb is, and what lets a screen reader skip it. The
           element is chosen by the CONTENT rather than by a prop: a caller
           cannot render a trail of links and forget to say so. */}
-      <p
-        className={cx('page-header__eyebrow', eyebrowStyle === 'pill' && 'page-header__eyebrow--pill')}
-        role={trail.some(c => typeof c !== 'string') ? 'navigation' : undefined}
-        aria-label={trail.some(c => typeof c !== 'string') ? 'Breadcrumb' : undefined}
-      >
-        {trail.map((part, i) => (
-          <span key={labelOf(part)}>
-            {/* The slash is decoration; the spaces around it are real, so the
-                trail reads as "Adoption Guide Learn" to a screen reader
-                rather than running the two words together. */}
-            {i > 0 && (
-              <>
-                {' '}
-                <span className="page-header__eyebrow-sep" aria-hidden="true">
-                  /
-                </span>{' '}
-              </>
-            )}
-            {typeof part !== 'string' ? (
-              <Link to={part.to} className="page-header__crumb">
-                {part.label}
-              </Link>
-            ) : i === 0 && up !== undefined ? (
-              <Link to={up} className="page-header__up">
-                {/* The arrow is inside the link so the whole affordance is one
-                    target, and aria-hidden so the accessible name stays the
-                    destination's name. */}
-                <span aria-hidden="true">←</span> {part}
-              </Link>
-            ) : (
-              part
-            )}
+      {trail.length > 0 && (
+        <p
+          className={cx('page-header__eyebrow', eyebrowStyle === 'pill' && 'page-header__eyebrow--pill')}
+          role={trail.some(c => typeof c !== 'string') ? 'navigation' : undefined}
+          aria-label={trail.some(c => typeof c !== 'string') ? 'Breadcrumb' : undefined}
+        >
+          {trail.map((part, i) => (
+            <span key={labelOf(part)}>
+              {/* The slash is decoration; the spaces around it are real, so the
+                  trail reads as "Adoption Guide Learn" to a screen reader
+                  rather than running the two words together. */}
+              {i > 0 && (
+                <>
+                  {' '}
+                  <span className="page-header__eyebrow-sep" aria-hidden="true">
+                    /
+                  </span>{' '}
+                </>
+              )}
+              {typeof part !== 'string' ? (
+                <Link to={part.to} className="page-header__crumb">
+                  {part.label}
+                </Link>
+              ) : i === 0 && up !== undefined ? (
+                <Link to={up} className="page-header__up">
+                  {/* The arrow is inside the link so the whole affordance is one
+                      target, and aria-hidden so the accessible name stays the
+                      destination's name. */}
+                  <span aria-hidden="true">←</span> {part}
+                </Link>
+              ) : (
+                part
+              )}
+            </span>
+          ))}
+          {/* ⚠️ The separator between the trail and the TITLE, drawn only in panel
+              chrome — where `PageHeader.css` collapses the header onto one line,
+              so the title is the trail's last segment and reads as one without
+              it. In a standalone tab the title is a heading below the trail and a
+              trailing slash would be punctuation with nothing after it. */}
+          <span className="page-header__eyebrow-sep page-header__eyebrow-sep--title" aria-hidden="true">
+            {' '}
+            /
           </span>
-        ))}
-        {/* ⚠️ The separator between the trail and the TITLE, drawn only in panel
-            chrome — where `PageHeader.css` collapses the header onto one line,
-            so the title is the trail's last segment and reads as one without
-            it. In a standalone tab the title is a heading below the trail and a
-            trailing slash would be punctuation with nothing after it. */}
-        <span className="page-header__eyebrow-sep page-header__eyebrow-sep--title" aria-hidden="true">
-          {' '}
-          /
-        </span>
-      </p>
+        </p>
+      )}
       <h2 className="page-header__title">{title}</h2>
       <div className="page-header__rule" />
       {lede !== undefined && <p className="page-header__lede">{lede}</p>}
