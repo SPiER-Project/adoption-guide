@@ -272,7 +272,7 @@ export function PathwaySpine({ model, activeTierCode, exitNote }: PathwaySpinePr
   // every non-last `.pathway-step`, so it now shows up in a screen reader's
   // and a browser extension's DOM the same way any other icon does.
   const renderStep = (step: PathwayAction, showConnector: boolean) => (
-    <Card as="li" accent key={step.id} id={`pathway-${step.id}`} className="pathway-step">
+    <Card as="li" key={step.id} id={`pathway-${step.id}`} className="pathway-step">
       <div className="pathway-step__head">
         {step.stage && <span className="pathway-stage-chip">{step.stage.display ?? step.stage.code}</span>}
         <h4 className="pathway-step__title">{step.title}</h4>
@@ -294,7 +294,7 @@ export function PathwaySpine({ model, activeTierCode, exitNote }: PathwaySpinePr
     <ol className="pathway-spine">
       {before.map(step => renderStep(step, true))}
 
-      <Card as="li" accent id={`pathway-${branch.id}`} className="pathway-step pathway-step--branch">
+      <Card as="li" id={`pathway-${branch.id}`} className="pathway-step">
         <div className="pathway-step__head">
           {branch.stage && (
             <span className="pathway-stage-chip">{branch.stage.display ?? branch.stage.code}</span>

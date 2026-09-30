@@ -98,7 +98,7 @@ export function ToolConfiguration() {
           purposes each ending "Belongs to the … stage of the SPiER pathway".
           Its reader sets a deployment up once; what they need is the picker,
           the list and what flipping a switch does. */}
-      <Card as="aside" padding="compact" tone="muted" accent className="tool-config-effect">
+      <Card as="aside" padding="compact" tone="muted" className="tool-config-effect">
         <p className="tool-config-effect__body">
           {inPanel ? (
             <>

@@ -178,10 +178,17 @@ function CdsCardView({ card }: { card: Card }) {
  */
 type NodeState = 'done' | 'passed' | 'active' | 'upcoming'
 
-const NODE_STATE_LABEL: Record<NodeState, string> = {
+/**
+ * ⚠️ **The active stage has no pill.** It said "You are here", beside a plum
+ * border, an open card and — most of the time — a "1 due" pill: the one node
+ * the reader is already looking at carried three pills and two borders saying
+ * it was the one. The border says it to the eye and `aria-current="step"` on
+ * the title link says it to a screen reader; a pill is kept for the states
+ * the border does not draw.
+ */
+const NODE_STATE_LABEL: Record<Exclude<NodeState, 'active'>, string> = {
   done: 'Complete',
   passed: 'Nothing recorded',
-  active: 'You are here',
   upcoming: 'Upcoming',
 }
 
@@ -270,7 +277,11 @@ function StageNode({
             those two, and a `<Link>` nested inside the `<button>` the whole row
             used to be is not valid markup in the first place. */}
         <h4 className="pathway-node-heading">
-          <Link className="pathway-node-open" to={`/patient/pathway/${group.stageId}`}>
+          <Link
+            className="pathway-node-open"
+            to={`/patient/pathway/${group.stageId}`}
+            aria-current={state === 'active' ? 'step' : undefined}
+          >
             <span className="pathway-node-step">Step {index + 1}</span>
             <span className="pathway-node-title">{stage?.title}</span>
           </Link>
@@ -279,7 +290,9 @@ function StageNode({
               <Pill tone="brand">{dueCount === 1 ? '1 due' : `${dueCount} due`}</Pill>
             )}
             {hasCards && <Pill tone="neutral">Guidance</Pill>}
-            <Pill className={`pathway-node-status--${state}`}>{NODE_STATE_LABEL[state]}</Pill>
+            {state !== 'active' && (
+              <Pill className={`pathway-node-status--${state}`}>{NODE_STATE_LABEL[state]}</Pill>
+            )}
             <button
               type="button"
               className="pathway-node-toggle"

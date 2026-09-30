@@ -295,9 +295,8 @@
   color: var(--text-muted);
   line-height: 1.5;
   background: var(--surface-muted);
-  border-left: 3px solid var(--border-strong);
   padding: var(--space-3);
-  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  border-radius: var(--radius-md);
 }
 
 /* ===========================================================

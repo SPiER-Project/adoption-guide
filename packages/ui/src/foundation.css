@@ -107,10 +107,6 @@
   --tint-sky:        #a6dde8; /* sampled */
   --tint-sky-soft:   #c8ebf1; /* sampled */
 
-  /* The website's "Saving lives worldwide" band: the soft tints as a wash
-     behind a stat trio. `Card tone="wash"` is its one consumer. */
-  --gradient-wash: linear-gradient(135deg, var(--tint-peach-soft) 0%, var(--tint-sage-soft) 50%, var(--tint-sky-soft) 100%);
-
   /* The brand gradient. These five stops ARE the logo's dot — SpierLogo.tsx
      reads them from here, so the wordmark and every gradient rule or label in
      the app come from one definition. Exact, not sampled: they were lifted

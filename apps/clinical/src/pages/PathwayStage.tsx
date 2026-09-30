@@ -95,7 +95,7 @@ export function PathwayStage() {
         <EmptyState>SPiER has no tool for this stage yet.</EmptyState>
       ) : (
         lead.map(tool => (
-          <Card key={tool.id} accent>
+          <Card key={tool.id}>
             <h4 className="pathway-stage__tool-name">{tool.name}</h4>
             <p className="pathway-stage__tool-purpose">{toolPurposeLine(tool)}</p>
             <ToolActions tool={tool} />

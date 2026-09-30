@@ -10,16 +10,25 @@
  *            (the density's corner: the website's 2xl in the guide, lg in
  *            the clinical apps). Tone `muted` swaps the ground for
  *            `--surface-muted` (a panel that explains rather than holds);
- *            `brand` for a peach-soft ground (the pathway simulator);
- *            `wash` for the brand gradient at its soft weight, the website's
- *            stat band (the caseload summary).
+ *            `brand` for a peach-soft ground (the pathway simulator).
+ *            ⚠️ There was a `wash` tone — the brand gradient at its soft
+ *            weight, the website's stat band — and its one consumer was the
+ *            caseload summary, where a peach-to-sky ramp sat behind risk
+ *            counts and its peach end read as the high-risk tile. The same
+ *            reason the clinical apps turn off the gradient button label: a
+ *            colour ramp beside clinical data reads as a clinical signal.
  *   padding  `roomy` (`--card-pad`: `--space-6` in the guide, `--space-4` in
  *            the clinical apps) for a page section; `compact`
  *            (`--space-3 --space-4`) for an item inside one.
- *   accent   a 3px left edge in `--brand-primary`, for the panel that is the
- *            page's point (a pathway step, the concept layer). A page with
- *            a domain colour for that edge — a CDS card's indicator — keeps
- *            ONLY the `border-left-color` rule, as a className modifier.
+ *   accent   a 3px left edge, for a card whose edge colour MEANS something
+ *            and differs between cards — a CDS card's indicator. The page
+ *            supplies that colour as a `border-left-color` className
+ *            modifier and nothing else; the plum default is a fallback.
+ *            ⚠️ It was the plum edge on every pathway step, stage tool,
+ *            record reading and explainer aside: the same stripe on every
+ *            item of a list tells the items apart by nothing, and a rounded
+ *            card with a coloured left edge is the most-copied decoration
+ *            there is. An edge that does not vary is not an accent.
  *
  * A page may pass `className` for LAYOUT — where the card sits, how its
  * children flow, a state modifier — never for what it looks like. No radius,
@@ -45,7 +54,7 @@ export function Card({
 }: {
   as?: 'div' | 'section' | 'article' | 'aside' | 'li'
   padding?: 'roomy' | 'compact'
-  tone?: 'card' | 'muted' | 'brand' | 'wash'
+  tone?: 'card' | 'muted' | 'brand'
   accent?: boolean
   /** Layout and state only — see the header. */
   className?: string

@@ -145,9 +145,6 @@ export function SmartLaunch() {
     // The fhirclient library handles the redirect immediately,
     // so this UI is typically only visible for a split second.
     return (
-        <div className="smart-loading">
-            <h2>Redirecting to EHR...</h2>
-            <p>Please wait while we establish a secure connection.</p>
-        </div>
+        <p className="smart-loading" role="status">Redirecting to the EHR…</p>
     )
 }

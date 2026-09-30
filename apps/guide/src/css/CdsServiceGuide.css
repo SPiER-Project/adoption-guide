@@ -21,7 +21,6 @@
   margin: 0;
   padding: var(--space-4) var(--space-5);
   background: var(--surface-muted);
-  border-left: 3px solid var(--brand-primary);
   border-radius: var(--radius-md);
   overflow-x: auto;
 }

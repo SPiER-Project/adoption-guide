@@ -33,9 +33,8 @@
    activity list). Each node carries its own status, actions and records, so
    "what do I do next" is answered where the reader is already looking.
 
-   ⚠️ **"Current" is the brand accent, not --accent-info.** The "You are here"
-   pill, the active card's border, the "Do now" flag and the
-   recommended-actions count were all info blue — the same hue as the host EHR's
+   ⚠️ **"Current" is the brand accent, not --accent-info.** The active card's
+   border, the "Do now" flag and the recommended-actions count were all info blue — the same hue as the host EHR's
    primary button, on a demo whose whole subject is which pixels belong to whom
    (services/mock-ehr/README.md § The look of the host). Reviewed in the panel
    2026-09-02: SPiER's most visible state colour read as the host's. Raspberry
@@ -284,7 +283,6 @@
 }
 
 .pathway-node-status--done     { background: var(--risk-low-soft); color: var(--risk-low-soft-text); }
-.pathway-node-status--active   { background: var(--tint-peach-soft); color: var(--brand-primary); }
 .pathway-node-status--passed   { background: var(--surface-muted); color: var(--text-muted); }
 .pathway-node-status--upcoming { background: var(--surface-muted); color: var(--text-faint); }
 
