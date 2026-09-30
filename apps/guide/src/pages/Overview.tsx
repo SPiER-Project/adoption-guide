@@ -14,15 +14,19 @@ import { DEMO_CHART_PICKS, MOCK_EHR_LABEL, MOCK_EHR_URL } from '../data/surfaces
 import { renderInline } from '../content/renderInline'
 import '../css/Overview.css'
 
+/**
+ * ⚠️ **The name is the whole header of a cell.** Each one was led by a
+ * numbered tile in its own tint (peach, sage, sky) and a "STEP N" caps label,
+ * above a name that already said which step it was: three encodings of one
+ * position in a three-item list, in the shape every generated landing page's
+ * feature row takes. The `<ol>` carries the order to a screen reader and the
+ * left-to-right reading carries it to the eye.
+ */
 function StepCards() {
   return (
     <ol className="overview__steps">
-      {OVERVIEW_STEPS.map((step, i) => (
+      {OVERVIEW_STEPS.map(step => (
         <li key={step.key} className="overview__step-card">
-          <span className={`overview__step-tile overview__step-tile--${step.key}`} aria-hidden="true">
-            {i + 1}
-          </span>
-          <span className="overview__step-index">Step {i + 1}</span>
           <h4 className="overview__step-name">{step.name}</h4>
           <p className="overview__step-body">
             {step.lead} {step.body}

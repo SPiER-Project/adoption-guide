@@ -64,8 +64,8 @@
   list-style: none;
 }
 
-/* The website's three-up feature row: cells divided by hairlines, each led by
-   a tinted tile, on the section's own white ground. Stacked, the divider runs
+/* Three cells divided by hairlines, each led by its name alone, on the
+   section's own white ground. Stacked, the divider runs
    along the top of every cell but the first; side by side, along its left. */
 @media (min-width: 768px) {
   .overview__steps {
@@ -93,39 +93,10 @@
   }
 }
 
-/* The step's number, in a tile. One tint per step in pathway order, so the
-   trio reads as the logo's gradient walked left to right. */
-.overview__step-tile {
-  font: var(--type-heading);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  margin-bottom: var(--space-3);
-  border-radius: var(--radius-xl);
-  font-family: var(--font-display);
-  font-weight: 600;
-  color: var(--brand-primary);
-}
-
-.overview__step-tile--capture   { background: var(--tint-peach); }
-.overview__step-tile--translate { background: var(--tint-sage); }
-.overview__step-tile--act       { background: var(--tint-sky); }
-
-.overview__step-index {
-  font: var(--type-label);
-  display: block;
-  margin-bottom: var(--space-1-5);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-wide);
-  color: var(--label-color);
-}
-
 .overview__step-name {
   font: var(--type-running);
   font-family: var(--font-display);
+  font-weight: 600;
   margin: 0 0 var(--space-2);
   color: var(--brand-primary);
 }
