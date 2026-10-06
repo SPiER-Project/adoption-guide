@@ -5,7 +5,7 @@
  * ── The defect this exists for ──────────────────────────────────────────────
  *
  * The clinician-facing app shows no raw FHIR (2026-09-17). The invariant lives
- * in `src/context/InspectContext.ts` — inspection is ON inside `/guide` and OFF
+ * in `packages/tool-views/src/context/InspectContext.ts` — inspection is ON inside `/guide` and OFF
  * everywhere else — and `FhirJsonViewer` / `CodeDrawer` self-gate on it, so a
  * new call site gets the clinician's answer by default.
  *
@@ -146,7 +146,10 @@ function sources() {
 const PATTERNS = [
   {
     name: 'JSON.stringify',
-    re: /JSON\.stringify\s*\(/g,
+    // ⚠️ Every spelling of the same call: `JSON.stringify(`, the bracket form
+    // `JSON["stringify"](` (planted green on 2026-10-06), and a destructured
+    // `const { stringify } = JSON`, which makes the bare call unreadable.
+    re: /JSON\s*(?:\??\.\s*stringify|\[\s*(["'`])stringify\1\s*\])\s*\(|\{[^}]*\bstringify\b[^}]*\}\s*=\s*JSON\b/g,
     what: 'serializes an object to JSON',
   },
   {
@@ -160,7 +163,7 @@ const files = sources()
 if (files.length === 0) {
   // The #500 lesson: a gate handed an empty tree reports green having read
   // nothing. Refuse rather than congratulate.
-  throw new Error('check-fhir-render: found no .tsx under web/src — the scan is broken, not the code')
+  throw new Error('check-fhir-render: found no .tsx under any style root — the scan is broken, not the code')
 }
 
 const counts = Object.fromEntries(PATTERNS.map((p) => [p.name, 0]))
@@ -189,7 +192,7 @@ for (const rel of files) {
   fail(
     `${rel} ${hits.map((h) => h.what).join(' and ')}, ` +
       `but never calls useInspect().\n` +
-      `    Raw FHIR belongs in the Adoption Guide and nowhere else — see src/context/InspectContext.ts.\n` +
+      `    Raw FHIR belongs in the Adoption Guide and nowhere else — see packages/tool-views/src/context/InspectContext.ts.\n` +
       `    Either gate the output on useInspect(), render it through <FhirJsonViewer>, or add an entry to\n` +
       `    NOT_A_RESOURCE_VIEW in ${relative(root, join(here, 'check-fhir-render.mjs'))} saying why this is not a resource view.`,
   )
@@ -302,7 +305,7 @@ for (const rel of recorders) {
 // getting, and it is how an exemption outlives its reason.
 for (const rel of Object.keys(NOT_A_RESOURCE_VIEW)) {
   if (!files.includes(rel)) {
-    fail(`NOT_A_RESOURCE_VIEW names ${rel}, which is not a non-test .tsx under web/src — delete the entry or fix the path`)
+    fail(`NOT_A_RESOURCE_VIEW names ${rel}, which is not a non-test .tsx under any scanned tree — delete the entry or fix the path`)
     continue
   }
   const src = stripComments(readFileSync(join(root, rel), 'utf8'))

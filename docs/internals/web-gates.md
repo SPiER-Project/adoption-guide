@@ -92,7 +92,9 @@ npm run check:fhir-render # the clinician-facing app shows no raw FHIR. `Inspect
                        # a file that calls `useInspect()` and ignores the answer PASSES
                        # (disconnecting CarePlanDisplay's three `inspect &&` guards while
                        # leaving the hook call was green); a dump assembled in a `.ts` helper
-                       # and rendered by a `.tsx` that never writes `JSON.stringify`; and a
+                       # and rendered by a `.tsx` that never writes `JSON.stringify` (the
+                       # bracket form `JSON["stringify"](…)` and a destructured `stringify`
+                       # ARE matched since 2026-10-06 — the bracket form passed before); and a
                        # resource rendered without being serialized at all — a table over
                        # `Object.entries(resource)`, a `<code>` holding a coding; and an
                        # UNGUARDED WRAPPER around FhirJsonViewer, which HAD a live instance
@@ -153,12 +155,29 @@ npm run check:extract    # the SDC observationExtract contract. Three rules: a d
 npm run check:core-boundary # packages/core stays React-free and DOM-free — the constraint
                          # that makes the boundary worth drawing. A feature-detected
                          # browser API (`typeof BroadcastChannel === 'undefined'`) is
-                         # allowed; an unguarded one is not. `alert` is deliberately
-                         # NOT forbidden: `RiskAlert` values are named `alert`
+                         # allowed — PER USE, in the same function — an unguarded one is
+                         # not. `alert` is deliberately NOT forbidden: `RiskAlert` values
+                         # are named `alert`.
+                         # ⚠️ 2026-10-06: `globalThis.localStorage` passed (a dotted name
+                         # was taken for a property), as did `react/jsx-runtime`, an
+                         # `@spier/ui` import, and an unguarded `new BroadcastChannel`
+                         # in a file that guarded one elsewhere. It now parses: host-
+                         # qualified globals count, every React package and a relative
+                         # path into one is forbidden, the guard waives only its own
+                         # scope. Removing `DOM` from core's tsconfig `lib` (3 errors to
+                         # fix) is the stronger follow-up; @types/node still declares
+                         # `localStorage` and `navigator`, so this gate stays for those.
 npm run check:guide-boundary # the Adoption Guide holds no patient data — it explains and
                          # configures the pathway; the caseload lives on the EHR side
-                         # (#391). Walks the guide's pages TRANSITIVELY, so a guide page
-                         # importing a component that reads fixtures is caught too
+                         # (#391). Walks the WHOLE guide app from main.tsx and fails on
+                         # any RESOLVED file under packages/demo-population, however the
+                         # import was spelled; its pages must reach no `*DataSource.ts`.
+                         # ⚠️ 2026-10-06: it walked the PAGES only and matched specifier
+                         # TEXT, so the roster imported in App.tsx and a relative path to
+                         # patients.json both passed. ⚠️ The data-source half stays
+                         # page-scoped: App.tsx mounts PatientProvider, which builds the
+                         # unseeded localDataSource the guide's fillers write into, so the
+                         # app reaches both data sources by design
 npm run check:catalog    # tool-catalog wiring (stubs / UI metadata / ActivityDefinitions /
                          # questionnaire URLs BOTH ways / per-AD licensing metadata /
                          # per-AD tool-id identifiers).
@@ -395,12 +414,19 @@ the first.
 ## The clinical surface (in the CI build job, not in `verify`)
 
 ```
-npm run build:clinical   # VITE_SURFACE=clinical → dist-clinical/ (src/lib/surface.ts)
-npm run check:surface    # both bundles exist; every derived marker — the guide pages' chunks,
-                         # the "/guide" and "/overview" route literals, the demo patients'
-                         # display names — is ABSENT from the clinical bundle AND PRESENT in
-                         # the demo bundle
+npm run build:clinical   # VITE_SURFACE=clinical → dist-clinical/ (apps/clinical)
+npm run check:surface    # both bundles exist AND are newer than their sources; every derived
+                         # marker — the guide pages' chunks, the "/guide" and "/overview" route
+                         # literals — is ABSENT from the clinical bundle AND PRESENT in the guide
+                         # bundle; no demo patient's display name and no scenario resource id is
+                         # in either
 ```
+
+⚠️ **Names alone missed a whole record (2026-10-06).** The scenario files carry
+each patient's resources and no display name, so importing
+`scenarios/patient-001.json` into a guide page shipped that record in the guide
+bundle with this gate (and `check:guide-boundary`) green. The 190 scenario
+resource ids are now markers too.
 
 ⚠️ It reads build output, so it cannot live in `verify`, and it FAILS rather than
 skipping when a bundle is missing. The both-ways check is the load-bearing half:
@@ -651,10 +677,21 @@ pre-existing hole that only became visible because something else broke next to
 it.
 
 ⚠️ **`check:surface` reported a clean surface over builds that had just
-failed.** It asserts both `dist` directories exist, not that they are fresh, so
-it read output from the previous run. `check:outputs` guards its corpus with an
-mtime comparison for exactly this reason; `check:surface` does not, and that gap
-is unclosed.
+failed.** It asserted both `dist` directories exist, not that they are fresh, so
+it read output from the previous run. Closed 2026-10-06: each build's
+`index.html` must be newer than every source that build reads (its app, every
+`packages/*/src`, `vite.config.ts`) — the mtime comparison `check:outputs`
+makes for its corpus.
+
+⚠️ **The resolver was then rebuilt again (2026-10-06), for the same class of
+hole.** "Derived from the filesystem" meant `@spier/<pkg>/` → `packages/<pkg>/src`,
+which resolved nothing for the two aliases of a different shape
+(`@spier/fhir-artifacts/`, bare `@spier/demo-population`), and every walker
+dropped an unresolved import without a word — as it did any specifier with a
+query, so `…/asq-questionnaire.json?raw` put a form in the entry chunk with
+`check:eager-forms` green. The aliases are now read from Vite's resolved config,
+queries are stripped, specifiers come from the TypeScript parser, and an
+unresolved relative or `@spier/` import FAILS all three walkers.
 
 
 ## Notes moved from `CLAUDE.md`'s verify list (2026-09-20)
@@ -725,15 +762,21 @@ filesystem can.
 ⚠️ Replaced the `App.tsx` half of `toolViews.test.ts`, which read `../App.tsx`
 by relative path — a shape that can only ever check ONE table, while the
 invariant is every table. Iterates the roots in `lib/app-roots.mjs` instead.
+Since 2026-10-06 it reads a lookup in either quote style and any spacing, and
+fails when an app uses `TOOL_VIEWS` more times than it read lookups — a route
+written `element={TOOL_VIEWS["asq-peds"]}` (a key that does not exist) used to
+be invisible to it. Making that a type error instead (`as const satisfies`) is
+a follow-up.
 
 ### `npm run check:eager-forms`
 
 ⚠️ Every tool view was already `lazy()` when the 18 Questionnaires were IN the
 entry chunk — laziness of the component is not the property that matters,
 because `App.tsx` imports `TOOL_VIEWS` statically and an eagerly-imported map's
-CONTENTS are eager whatever they render. So this walks STATIC imports only (not
-`module-graph.mjs`'s reader, whose pattern also matches `import(`) from every
-declared app entry. Worth ~23.8 KB gzip off first paint on both surfaces.
+CONTENTS are eager whatever they render. So this walks STATIC imports only —
+the parser in `module-graph.mjs` tells `import x`, `import type` and `import(…)`
+apart, and only the first is followed — from every declared app entry. Worth
+~23.8 KB gzip off first paint on both surfaces.
 
 ⚠️ Its first version stripped block comments before line comments, and
 `/patient/*` in `App.tsx`'s own prose opened a fake block comment that
@@ -768,6 +811,17 @@ red three ways before trusting: a guide page linking `/settings`, a guide
 `<Navigate>` into `/population/measures`, and a clinical `chartHref` pointing at
 `/guide/tools` ([`docs/plans/archive/adoption-guide-ux-audit-2026-09-20.md`](../plans/archive/adoption-guide-ux-audit-2026-09-20.md) §1.1).
 
+⚠️ **2026-10-06: its link and redirect readers were regexes over one spelling,
+and both passed planted defects.** `<Link to={'/patient/onfile'}>` and a
+template-literal `to` were not targets; `<Navigate replace to="…"/>` and
+`element={ <Navigate …/> }` were not redirects. Targets are now read off the
+TypeScript AST in any literal form (a computed one is counted, not silently
+dropped), `App.tsx` itself is in RULE 1, `route-table.mjs` reads `<Navigate>`
+with any prop order and spacing and reports one whose target it cannot read,
+a relative target on a non-index route fails, and redirects have a floor. With
+that, the per-app RULE 2 is strictly stronger than `check:catalog`'s
+redirect-target check over the union of both tables, which was deleted.
+
 ### A green `check:*` is not proof of coverage
 
 ⚠️ Each gate has a rule it cannot see, and several were shipped in a form that
@@ -789,9 +843,22 @@ neighbour's helpers. `scripts/check-duplicate-code.mjs` parses every top-level
 normalized body in two files fails; the same body of five or more lines under
 DIFFERENT names fails; a deliberate same-name pair is listed in `ALLOWED` with
 its reason (the two `describeError`s, which differ on purpose; the per-app
-`Sidebar`, `AppRoutes` and `RouteFallback`), and an entry whose pair has
+`Sidebar` and `AppRoutes`), and an entry whose pair has
 merged or vanished fails as stale; and a floor of functions, files and areas
 parsed, so a broken parser cannot report ✓.
+
+⚠️ **Rebuilt on the TypeScript parser (2026-10-06), because three copies
+passed.** Renaming a parameter defeated rule 2 (the body was compared as
+text), an expression-bodied `const f = (x) => …` was never parsed (the head
+regex required `=> {`), and a copy in a file not yet `git add`ed was invisible
+locally. Now every name a function binds — parameters and locals — is renamed
+to its position before comparing, expression bodies count, and untracked
+non-ignored files are read. Its first run on the new parser found two live
+copies, both merged: `ms` in `measures.ts` (= `timeOf` in `recordQueries.ts`)
+and the mock EHR client's `message` in `home.ts` and `chart.ts` (now
+`errorText` in `client/config.ts`). `scripts/` is still out of scope — it holds
+live copies (`walkExt`/`relRepo`/`REPO_ROOT` in both root modules, `walkJson`
+in two gates) that are their own change.
 
 ⚠️ **Two parser defects were caught by the gate's own liveness rules before it
 was trusted.** The first version matched the body brace as "the first `{` after
@@ -813,7 +880,8 @@ the `ALLOWED` liveness rule checks.
 
 What it cannot see: a copy edited after copying (a fork — only a reader can
 tell a fork from a variant), a duplicated fragment inside a larger function,
-and an arrow assigned to an object property rather than a top-level binding.
+and a method or an arrow assigned to an object property rather than a
+top-level binding.
 
 ## `check:jargon` and the page budgets — the guide's two copy rules (2026-09-20)
 

@@ -52,7 +52,7 @@ import {
   RISK_TIER_SYSTEM,
 } from './riskEpisode'
 import { stageForArtifact, type FhirResourceLike } from './patientPathway'
-import { conformsTo } from './recordQueries'
+import { conformsTo, timeOf } from './recordQueries'
 // The per-tier cadence, read from PlanDefinition-SPiERReassessmentSchedule.
 // reassessment.ts imports RISK_TIER_SYSTEM from riskEpisode.ts, not from here,
 // so this direction introduces no cycle.
@@ -223,12 +223,6 @@ export function referencedCriteria(): string[] {
 // Helpers
 // ─────────────────────────────────────────────────────────────
 
-function ms(value: string | undefined): number {
-  if (!value) return NaN
-  const n = new Date(value).getTime()
-  return Number.isFinite(n) ? n : NaN
-}
-
 function extensionCode(resource: FhirResource | undefined, url: string): string | undefined {
   const exts = (resource as { extension?: Array<{ url?: string; valueCodeableConcept?: { coding?: Array<{ code?: string }> } }> } | undefined)?.extension
   return exts?.find(e => e.url === url)?.valueCodeableConcept?.coding?.[0]?.code
@@ -314,8 +308,8 @@ function recordedTier(o: ObservationResource): string | undefined {
 
 function episodePeriod(e: EpisodeOfCareResource | undefined): { start: number; end: number } {
   const p = (e as { period?: { start?: string; end?: string } } | undefined)?.period
-  const start = ms(p?.start)
-  const end = ms(p?.end)
+  const start = timeOf(p?.start)
+  const end = timeOf(p?.end)
   return {
     start: Number.isFinite(start) ? start : -Infinity,
     end: Number.isFinite(end) ? end : Infinity,
@@ -323,8 +317,8 @@ function episodePeriod(e: EpisodeOfCareResource | undefined): { start: number; e
 }
 
 function buildContext(slice: PatientSlice, period: MeasurementPeriod): Ctx {
-  const periodStart = ms(period.start)
-  const periodEnd = ms(period.end)
+  const periodStart = timeOf(period.start)
+  const periodEnd = timeOf(period.end)
   const communications = slice.communications ?? []
 
   const riskConcepts = (slice.observations ?? []).filter(
@@ -336,7 +330,7 @@ function buildContext(slice: PatientSlice, period: MeasurementPeriod): Ctx {
       inPeriodRaw(observationEffective(o)),
   )
   function inPeriodRaw(value: string | undefined): boolean {
-    const n = ms(value)
+    const n = timeOf(value)
     return Number.isFinite(n) && n >= periodStart && n <= periodEnd
   }
 
@@ -352,10 +346,10 @@ function buildContext(slice: PatientSlice, period: MeasurementPeriod): Ctx {
 
   const handoffDates = communications
     .filter(c => conformsTo(c, SAFETY_HANDOFF_PROFILE))
-    .map(c => ms(c.sent))
+    .map(c => timeOf(c.sent))
   const packetDates = (slice.documentReferences ?? [])
     .filter((d: DocumentReferenceResource) => conformsTo(d, PACKET_PROFILE))
-    .map((d: DocumentReferenceResource) => ms((d as { date?: string }).date))
+    .map((d: DocumentReferenceResource) => timeOf((d as { date?: string }).date))
   const transitionDates = [...handoffDates, ...packetDates].filter(
     n => Number.isFinite(n) && n >= periodStart && n <= periodEnd,
   )
@@ -391,8 +385,8 @@ function buildContext(slice: PatientSlice, period: MeasurementPeriod): Ctx {
       if (!latestEpisode) return false
       const { start, end } = episodePeriod(latestEpisode)
       const p = (e as { period?: { start?: string; end?: string } }).period
-      const encStart = ms(p?.start)
-      const encEnd = ms(p?.end)
+      const encStart = timeOf(p?.start)
+      const encEnd = timeOf(p?.end)
       // Overlap, not containment: the ED encounter typically starts before the
       // episode opens (triage precedes the positive screen that opens it).
       return (Number.isFinite(encStart) ? encStart : -Infinity) <= end &&
@@ -431,7 +425,7 @@ function dischargeDispositionCodes(encounter: EncounterResource): string[] {
 
 function sentWithin(messages: CommunicationResource[], from: number, windowMs: number): boolean {
   return messages.some(c => {
-    const n = ms(c.sent)
+    const n = timeOf(c.sent)
     return Number.isFinite(n) && n >= from && n <= from + windowMs
   })
 }
@@ -449,13 +443,13 @@ const CRITERIA: Record<string, (ctx: Ctx) => boolean> = {
   'Positive Screen Assessed Within 24 Hours': ctx => {
     // Tie-break: the most recent positive screen in the period is the index.
     const index = ctx.positiveScreens
-      .map(o => ms(observationEffective(o)))
+      .map(o => timeOf(observationEffective(o)))
       .filter(Number.isFinite)
       .sort((a, b) => a - b)
       .pop()
     if (index === undefined) return false
     return ctx.assessments.some(a => {
-      const n = ms(observationEffective(a))
+      const n = timeOf(observationEffective(a))
       return Number.isFinite(n) && n >= index && n <= index + 24 * HOUR_MS
     })
   },
@@ -472,7 +466,7 @@ const CRITERIA: Record<string, (ctx: Ctx) => boolean> = {
     if (!ctx.latestEpisode) return false
     const { start, end } = episodePeriod(ctx.latestEpisode)
     return ctx.riskConcepts.some(o => {
-      const n = ms(observationEffective(o))
+      const n = timeOf(observationEffective(o))
       return Number.isFinite(n) && n >= start && n <= end
     })
   },
@@ -485,9 +479,9 @@ const CRITERIA: Record<string, (ctx: Ctx) => boolean> = {
     const index = ctx.indexTransition
     if (index === undefined) return false
     return ctx.safetyPlans.some(p => {
-      const start = ms((p as { period?: { start?: string } }).period?.start)
+      const start = timeOf((p as { period?: { start?: string } }).period?.start)
       // Fall back to created/date where a plan carries no period.
-      const created = ms((p as { created?: string; date?: string }).created ?? (p as { date?: string }).date)
+      const created = timeOf((p as { created?: string; date?: string }).created ?? (p as { date?: string }).date)
       const at = Number.isFinite(start) ? start : created
       return Number.isFinite(at) && at <= index
     })
@@ -497,7 +491,7 @@ const CRITERIA: Record<string, (ctx: Ctx) => boolean> = {
     return (ctx.slice.documentReferences ?? []).some(
       d =>
         conformsTo(d, PACKET_PROFILE) &&
-        inPeriod(ctx, ms((d as { date?: string }).date)) &&
+        inPeriod(ctx, timeOf((d as { date?: string }).date)) &&
         contentItemCodes(d).includes('safety-plan-copy'),
     )
   },
@@ -514,7 +508,7 @@ const CRITERIA: Record<string, (ctx: Ctx) => boolean> = {
       if (!conformsTo(p, LETHAL_MEANS_PROFILE)) return false
       if ((p as { status?: string }).status !== 'completed') return false
       const r = p as { performedDateTime?: string; performedPeriod?: { start?: string } }
-      const n = ms(r.performedDateTime ?? r.performedPeriod?.start)
+      const n = timeOf(r.performedDateTime ?? r.performedPeriod?.start)
       return Number.isFinite(n) && n >= start && n <= end
     })
   },
@@ -603,7 +597,7 @@ const CRITERIA: Record<string, (ctx: Ctx) => boolean> = {
 /** Risk-concept Observations dated inside the period, oldest first. */
 function datedAssessments(ctx: Ctx): ObservationResource[] {
   return ctx.riskConcepts
-    .map(o => ({ o, t: ms(observationEffective(o)) }))
+    .map(o => ({ o, t: timeOf(observationEffective(o)) }))
     .filter(x => inPeriod(ctx, x.t))
     .sort((a, b) => a.t - b.t)
     .map(x => x.o)
@@ -621,13 +615,13 @@ function assessmentPair(
 ): { preceding: number; latest: number; precedingTier: string | undefined } | undefined {
   const dated = datedAssessments(ctx)
   if (dated.length < 2) return undefined
-  const latest = ms(observationEffective(dated[dated.length - 1]))
+  const latest = timeOf(observationEffective(dated[dated.length - 1]))
   const earlier = [...dated]
     .reverse()
-    .find(o => ms(observationEffective(o)) < latest)
+    .find(o => timeOf(observationEffective(o)) < latest)
   if (!earlier) return undefined
   return {
-    preceding: ms(observationEffective(earlier)),
+    preceding: timeOf(observationEffective(earlier)),
     latest,
     // Read off the EARLIER assessment: the interval a site owed is the one that
     // applied when the clock started, not the patient's tier today.

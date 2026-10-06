@@ -47,6 +47,7 @@ import { readFileSync, existsSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { APP_ROOTS, appRootFloors, REPO_ROOT } from './lib/app-roots.mjs'
 import { reportFloors } from './lib/floors.mjs'
+import { stripComments } from './lib/jsx-comments.mjs'
 
 const MAP = join(REPO_ROOT, 'packages/tool-views/src/data/toolViews.tsx')
 
@@ -73,14 +74,29 @@ function definedKeys() {
   }
   // Keys are quoted and start a line; the values are JSX containing colons, so
   // anchoring to the line start is what keeps this from matching inside one.
-  return [...mapSrc.slice(start, end).matchAll(/^\s{2}'([\w-]+)':/gm)].map((m) => m[1])
+  return [...mapSrc.slice(start, end).matchAll(/^\s{2}(["'])([\w-]+)\1:/gm)].map((m) => m[2])
 }
 
-/** Every `<Route path="assessments/x" element={TOOL_VIEWS['y']} />` in one app. */
+/**
+ * Every `<Route path="assessments/x" element={TOOL_VIEWS['y']} />` in one app.
+ *
+ * ⚠️ Either quote style, any spacing, and the `TOOL_VIEWS.y` member form. The
+ * first version matched one exact spelling, so a route written
+ * `element={TOOL_VIEWS["asq-peds"]}` — a key that does not exist, a blank page —
+ * was not a lookup at all and passed (2026-10-06). And because a spelling this
+ * misses is a lookup it never checks, every other `TOOL_VIEWS` reference in the
+ * file is counted (`toolViewRefs`) and must be one it read.
+ */
+const LOOKUP =
+  /<Route\s+path=(["'])(assessments|workflow)\/([\w-]+)\1\s+element=\{\s*TOOL_VIEWS(?:\[\s*(["'`])([\w-]+)\4\s*\]|\.([\w$]+))\s*\}\s*\/>/g
 function routeLookups(appSrc) {
-  const re = /<Route path="(assessments|workflow)\/([\w-]+)" element=\{TOOL_VIEWS\['([\w-]+)'\]\} \/>/g
-  return [...appSrc.matchAll(re)].map((m) => ({ path: `${m[1]}/${m[2]}`, key: m[3] }))
+  return [...appSrc.matchAll(LOOKUP)].map((m) => ({ path: `${m[2]}/${m[3]}`, key: m[5] ?? m[6] }))
 }
+
+/** Every use of `TOOL_VIEWS` in an app's route table that is not its import. */
+const toolViewRefs = (appSrc) =>
+  [...appSrc.matchAll(/\bTOOL_VIEWS\b/g)].length -
+  [...appSrc.matchAll(/^import\s+\{[^}]*\bTOOL_VIEWS\b[^}]*\}\s+from/gm)].length
 
 const defined = definedKeys()
 const definedSet = new Set(defined)
@@ -96,8 +112,17 @@ for (const root of APP_ROOTS) {
     fail(`${root.source}: no App.tsx — a declared app root with no route table cannot be checked, and this gate would pass over it`)
     continue
   }
-  const lookups = routeLookups(readFileSync(app, 'utf8'))
+  const appSrc = stripComments(readFileSync(app, 'utf8'))
+  const lookups = routeLookups(appSrc)
   totalLookups += lookups.length
+  const refs = toolViewRefs(appSrc)
+  if (refs !== lookups.length) {
+    fail(
+      `${root.source}/App.tsx uses TOOL_VIEWS ${refs} time(s) but this gate read ${lookups.length} route lookup(s) — ` +
+        'a reference it cannot read is a route it never checks. Write it as ' +
+        `\`<Route path="assessments/<slug>" element={TOOL_VIEWS['<slug>']} />\`, or teach LOOKUP the new form.`,
+    )
+  }
   perApp.push(`${root.source} ${lookups.length}`)
 
   for (const r of lookups) {

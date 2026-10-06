@@ -63,6 +63,14 @@ because rule 2 alone passes on a name typed into a comment — the same shape
 type` satisfied a gate that only looked for a mention. All five were planted
 and watched go red.
 
+⚠️ **And four more plants passed all five (2026-10-06)**, each a job that exists
+and never ships: the deploy line commented out (`# run: npm run deploy` still
+matched), `wrangler deploy --dry-run`, `if: false` on the job, and
+`on.push.branches: [release]` — "ships from main" was the header's claim, not a
+rule. YAML comments are now stripped first, a dry run fails, an `if:` on a
+deploying job (unless `ALLOWED_JOB_GUARDS`, empty, names it) or on its deploy
+step fails, and `on.push.branches` must include `main`.
+
 ⚠️ **The mock EHR's job needs `copy-fhir` even though its patients are not
 generated.** The 14 Patients come from `packages/demo-population`, but
 `src/validate.ts` globs the generated conformance resources and
@@ -253,7 +261,8 @@ adoption-guide Worker after the API had left it. They come from
 `deploy-origins.json` at the repo root now, typed through
 `packages/core/src/lib/deployOrigins.ts`, and `scripts/check-deploy-origins.mjs`
 (`npm run check:origins`, in the root `verify`) holds the two places that
-cannot import.
+cannot import. It reads the apps' `index.html` too since 2026-10-06 — a stale
+host in a `<link rel="preconnect">` passed before.
 
 ⚠️ **Two importers read the JSON relatively, and that is the alias cost of
 #387 showing through, not a shortcut.** `packages/worker-http/src/spaAssets.ts`

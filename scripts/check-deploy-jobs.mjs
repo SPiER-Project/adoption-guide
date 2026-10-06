@@ -30,6 +30,10 @@
  *      deploy jobs matched, and the workflow parsed into jobs at all. A gate
  *      that reads no services and reports ✓ has checked nothing — the failure
  *      this repo keeps finding (#232, #261).
+ *   6. A deploy is a deploy: YAML comments are stripped before any rule reads
+ *      a line, a `--dry-run` deploy fails, and so does an `if:` on a deploying
+ *      job (unless ALLOWED_JOB_GUARDS names it) or on the deploy step itself.
+ *   7. "From main" is read, not assumed: `on.push.branches` must include main.
  *
  * Offline. Text-scanned rather than YAML-parsed on purpose: no YAML parser is a
  * declared dependency of this repo, and a gate that depends on a transitive one
@@ -89,8 +93,16 @@ if (!existsSync(workflowPath)) {
   console.error(`✗ ${WORKFLOW} is missing — every Worker is deployed by hand and nothing says so`)
   process.exit(1)
 }
+/**
+ * A YAML comment is not configuration. ⚠️ The first version matched the deploy
+ * command on every line, so `# run: npm run deploy` — a step commented out "for
+ * now" — still counted as shipping the Worker (planted green 2026-10-06). A `#`
+ * starts a comment at a line start or after whitespace; one inside a word or
+ * right after a quote (`"### Cloudflare"`) does not.
+ */
+const stripYamlComment = (line) => line.replace(/(^|\s)#.*$/, '$1').replace(/\s+$/, '')
 const workflow = readFileSync(workflowPath, 'utf8')
-const lines = workflow.split('\n')
+const lines = workflow.split('\n').map(stripYamlComment)
 
 const jobsAt = lines.findIndex((l) => /^jobs:\s*$/.test(l))
 if (jobsAt === -1) {
@@ -126,30 +138,86 @@ const DEPLOYS = /(?:^|\s)(?:npx\s+)?wrangler\s+deploy\b|npm\s+run\s+deploy\b/
  * is a working-directory and a deploy command inside ONE step. Steps are the
  * `- ` list items at six spaces.
  */
-function deployedDirs(jobLines) {
+function deployedDirs(id, jobLines) {
   const dirs = new Set()
-  /** @type {{ dir: string | null, deploys: boolean }} */
-  let step = { dir: null, deploys: false }
+  /** @type {{ dir: string | null, deploys: boolean, dryRun: boolean, guard: string | null }} */
+  let step = { dir: null, deploys: false, dryRun: false, guard: null }
   const flush = () => {
-    if (step.dir && step.deploys) dirs.add(step.dir)
-    step = { dir: null, deploys: false }
+    if (step.dir && step.deploys) {
+      dirs.add(step.dir)
+      // A rehearsal is not a deploy: `wrangler deploy --dry-run` builds and
+      // uploads nothing, and it matched DEPLOYS until 2026-10-06.
+      if (step.dryRun) fail(`${WORKFLOW} job "${id}": the deploy step in ${step.dir} runs with --dry-run — it ships nothing`)
+      if (step.guard !== null) {
+        fail(`${WORKFLOW} job "${id}": the deploy step in ${step.dir} is conditional (\`if: ${step.guard}\`) — a deploy that can be skipped is a Worker that can fall behind main`)
+      }
+    }
+    step = { dir: null, deploys: false, dryRun: false, guard: null }
   }
   for (const line of jobLines) {
     if (/^ {6}- /.test(line)) flush()
     const wd = line.match(/working-directory:\s*\.?\/?(services\/[A-Za-z0-9_-]+)\/?\s*$/)
     if (wd) step.dir = wd[1]
+    const guard = line.match(/^ {6}(?:- | {2})if:\s*(.+)$/)
+    if (guard) step.guard = guard[1]
     // `run:` may be inline or a block scalar; either way the command text is on
     // this line or the ones under it, and both are inside the same step.
-    if (DEPLOYS.test(line)) step.deploys = true
+    if (DEPLOYS.test(line)) {
+      step.deploys = true
+      if (/--dry-run\b/.test(line)) step.dryRun = true
+    }
   }
   flush()
   return dirs
 }
 
+/**
+ * Job-level `if:` guards a deploying job may carry, each with its reason —
+ * EMPTY today, because no deploy job is conditional. ⚠️ `if: false` on the
+ * `mock-ehr` job passed this gate until 2026-10-06 while every other rule held:
+ * the job existed, ran in its directory and named the deploy, and never ran.
+ */
+const ALLOWED_JOB_GUARDS = new Map()
+
 const deployedByJob = new Map()
 for (const [id, jobLines] of jobs) {
-  const dirs = deployedDirs(jobLines)
-  if (dirs.size > 0) deployedByJob.set(id, dirs)
+  const dirs = deployedDirs(id, jobLines)
+  if (dirs.size === 0) continue
+  deployedByJob.set(id, dirs)
+  for (const line of jobLines) {
+    const guard = line.match(/^ {4}if:\s*(.+)$/)
+    if (guard && !ALLOWED_JOB_GUARDS.has(guard[1])) {
+      fail(`${WORKFLOW} job "${id}" deploys ${[...dirs].join(', ')} but is conditional (\`if: ${guard[1]}\`) — add the guard to ALLOWED_JOB_GUARDS with a reason, or remove it`)
+    }
+  }
+}
+
+// ─── "from main": the workflow's own trigger ────────────────────────────────
+//
+// ⚠️ Nothing read the trigger until 2026-10-06, so `branches: [release]`
+// passed while the header promised "every Worker ships from main".
+function pushBranches() {
+  const onAt = lines.findIndex((l) => /^on:\s*$/.test(l))
+  if (onAt === -1) return null
+  const out = []
+  let inPush = false
+  let inBranches = false
+  for (const line of lines.slice(onAt + 1)) {
+    if (/^\S/.test(line)) break
+    if (/^ {2}\S/.test(line)) { inPush = /^ {2}push:\s*$/.test(line); inBranches = false; continue }
+    if (!inPush) continue
+    const inline = line.match(/^ {4}branches:\s*\[(.*)\]\s*$/)
+    if (inline) { out.push(...inline[1].split(',').map((b) => b.trim().replace(/^['"]|['"]$/g, ''))); continue }
+    if (/^ {4}\S/.test(line)) { inBranches = /^ {4}branches:\s*$/.test(line); continue }
+    const item = inBranches && line.match(/^\s+-\s*['"]?([^'"\s]+)['"]?\s*$/)
+    if (item) out.push(item[1])
+  }
+  return out
+}
+const branches = pushBranches()
+if (branches === null) fail(`${WORKFLOW} has no top-level \`on:\` block — nothing says when it deploys`)
+else if (!branches.includes('main')) {
+  fail(`${WORKFLOW}: \`on.push.branches\` is [${branches.join(', ')}], which does not include main — no Worker ships from main`)
 }
 const allDeployed = new Set([...deployedByJob.values()].flatMap((s) => [...s]))
 

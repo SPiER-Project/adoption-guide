@@ -105,7 +105,7 @@ by `services/clinical` and framed by the mock EHR.
 ⚠️ **The guide carries no patient data and no data source** — its fillers write
 into an unseeded local store, which is the blank "play with forms" state. The
 chart experience belongs to the mock EHR. `check:guide-boundary` walks the
-guide's pages transitively to hold that.
+whole guide app from `main.tsx` to hold that, by resolved path.
 
 ⚠️ **Two route tables, and `IS_DEMO` is GONE.** One `App.tsx` used to serve
 both surfaces with `IS_DEMO ?` folding the other's pages out at build time;

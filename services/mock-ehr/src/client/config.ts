@@ -14,6 +14,11 @@ export function must<T extends HTMLElement = HTMLElement>(id: string): T {
   return el as T
 }
 
+/** A caught value as a line of status text. One copy for every page module (`check:dupes`). */
+export function errorText(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
 /** One piece of an inline message: plain text, or text to set in `<code>`. */
 export type InlinePart = string | { code: string }
 

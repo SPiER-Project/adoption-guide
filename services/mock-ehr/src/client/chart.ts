@@ -8,7 +8,7 @@
  * values arrive as `ChartClientConfig` now (types.ts); see clientAssets.ts for
  * why that was the change that let this be a module.
  */
-import { must, readConfig, renderInline } from './config'
+import { errorText, must, readConfig, renderInline } from './config'
 import { rankCards } from './cdsRanking'
 import type { ChartClientConfig } from './types'
 
@@ -25,8 +25,6 @@ const MRN_SYSTEM = config.mrnSystem
 // routes/cds.ts. This stays because it is what the page SHOWS the reader, and
 // because chartPage.test.ts asserts the three origins stay distinct through it.
 const CDS_ENDPOINT = config.cdsEndpoint
-
-const message = (error: unknown): string => (error instanceof Error ? error.message : String(error))
 
 /**
  * The FHIRcast session topic, held in sessionStorage for the TAB.
@@ -133,9 +131,9 @@ function launch(intent: string | null, label: string): Promise<void> {
     dockContext.textContent = ''
     // In the dock itself, not only the drawer: a failure has to be visible
     // without opening anything.
-    dockError.textContent = 'Could not mint a launch: ' + message(err)
+    dockError.textContent = 'Could not mint a launch: ' + errorText(err)
     dockError.hidden = false
-    dockSent.textContent = 'Could not mint a launch: ' + message(err)
+    dockSent.textContent = 'Could not mint a launch: ' + errorText(err)
   })
 }
 
@@ -202,7 +200,7 @@ fetch('/fhircast', {
     castStatus.textContent = 'The hub connection closed.'
   })
 }).catch((err: unknown) => {
-  castStatus.textContent = 'Could not subscribe to the hub: ' + message(err)
+  castStatus.textContent = 'Could not subscribe to the hub: ' + errorText(err)
 })
 
 castForm.addEventListener('submit', (e) => {
@@ -269,7 +267,7 @@ function postEvent(event: Record<string, unknown>, who: string): void {
     ])
     logCast(`patient-open → ${who}  (published by this chart)`)
   }).catch((err: unknown) => {
-    castStatus.textContent = 'Could not announce: ' + message(err)
+    castStatus.textContent = 'Could not announce: ' + errorText(err)
   })
 }
 
@@ -401,7 +399,7 @@ fetch('/_admin/cds', {
   // failures a reader has to tell apart are "the service refused my identity"
   // (401, from the service) and "this host never got there" (anything else).
   must('cds-status').textContent =
-    `This EHR could not get recommendations from the CDS service at ${CDS_ENDPOINT} (${message(err)}).`
+    `This EHR could not get recommendations from the CDS service at ${CDS_ENDPOINT} (${errorText(err)}).`
 })
 
 /**

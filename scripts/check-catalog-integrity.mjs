@@ -717,7 +717,7 @@ console.log(
 // keeps compatibility redirects for published paths on purpose, and a redirect
 // is a working button. The `*` catch-all deliberately does NOT count: landing
 // there IS the failure.
-const { paths: routePaths, redirects: routeRedirects, redirectTargets } = readAllRouteTables()
+const { paths: routePaths, redirects: routeRedirects } = readAllRouteTables()
 let launchChecked = 0
 let viaRedirect = 0
 // Failures counted for THIS section, so the summary line below cannot print a ✓
@@ -871,52 +871,14 @@ if (failures === launchFailuresBefore) {
   )
 }
 
-// ─── Every compatibility redirect still points somewhere ──
+// ─── Redirect targets: not here ──
 //
-// The check above asks whether a published path RESOLVES, and counts landing on
-// a `<Navigate>` as resolving — correctly, because the repo keeps those
-// redirects on purpose. This asks the other half: does the redirect still point
-// at a real route?
-//
-// The two questions come apart the moment a target is renamed. `/patient/chart`,
-// `/guide/measures`, `/guide/roadmap` and `/guide/tool-configuration` are all
-// kept because the path was PUBLISHED — linked from CDS cards in the wild, from
-// the demo script, from both surface explainers. A redirect whose target no
-// longer exists sends exactly the reader it was kept for to the catch-all, and
-// every other gate stays green: the source path resolves, the route table parses,
-// the links type-check.
-//
-// ⚠️ This does NOT see a target that still resolves but now means something
-// else — the class CLAUDE.md flags for the app routes, where a path can land on
-// an explainer instead of the app. That one still needs a grep.
-let redirectsChecked = 0
-const redirectFailuresBefore = failures
-for (const [from, to] of redirectTargets) {
-  const routePart = to.split(/[?#]/)[0]
-  if (!routePart.startsWith('/')) {
-    fail(
-      `App.tsx: the redirect at "${from}" navigates to "${to}", which is relative on a ` +
-        `non-index route — React Router resolves that against the current pathname, so this gate ` +
-        `cannot say where it lands. Write the target as an absolute path.`,
-    )
-    continue
-  }
-  redirectsChecked++
-  if (!routeResolves(routePart, routePaths)) {
-    fail(
-      `App.tsx: the redirect at "${from}" points to "${to}", which resolves to no route — ` +
-        `a published path kept for compatibility now lands on the catch-all.`,
-    )
-  }
-}
-if (redirectsChecked === 0) {
-  fail(
-    'App.tsx: no redirect targets were read, so this check verified nothing — ' +
-      'the route-table scanner has stopped seeing <Navigate> elements.',
-  )
-} else if (failures === redirectFailuresBefore) {
-  console.log(`✓ redirect targets: ${redirectsChecked} compatibility redirect(s) still point at a real route`)
-}
+// "Does each compatibility redirect still point at a real route?" was asked
+// here until 2026-10-06, against the UNION of both apps' tables — so a guide
+// redirect into the clinical app's /settings resolved and stranded the reader.
+// `check:surface-links` RULE 2 asks it per app, with the same scanner, fails on
+// a relative target and on a <Navigate> whose target it cannot read, and holds
+// a redirect floor: strictly stronger, so this copy went.
 
 // The catalog is assembled from two trees that both moved in the reshape. ADs
 // come from the generated tree, launch paths from the UI metadata in

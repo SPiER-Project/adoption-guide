@@ -51,12 +51,12 @@ npm run check:crosswalk         # concept-crosswalk validation
 npm run check:extract           # the SDC observationExtract contract, and EVERY mapper's Questionnaire classified
 npm run check:core-boundary     # packages/core stays React-free and DOM-free
 npm run check:dupes             # no function is defined twice: same name + same body across files fails, and so does a renamed copy of 5+ lines
-npm run check:guide-boundary    # the Adoption Guide holds no patient data (walks guide pages transitively)
-npm run check:catalog           # tool-catalog wiring; every launch path, landing route and <Navigate> target resolves
+npm run check:guide-boundary    # the Adoption Guide holds no patient data (walks the whole guide app from main.tsx, by resolved path)
+npm run check:catalog           # tool-catalog wiring; every launch path and landing route resolves
 npm run check:tool-view-routes  # the 29 tool views are ONE definition and EVERY app's route table agrees, both ways
 npm run check:eager-forms       # the 18 Questionnaires stay OUT of the entry chunk (walks STATIC imports)
-npm run check:surface-links     # every in-app link on EACH app resolves on THAT app's route table (both apps walked; shared views hold no route literal)
-npm run check:origins           # every hosted origin comes from deploy-origins.json; no literal in TypeScript
+npm run check:surface-links     # every in-app link and <Navigate> target on EACH app resolves on THAT app's route table (both apps walked; shared views hold no route literal)
+npm run check:origins           # every hosted origin comes from deploy-origins.json: no literal in TypeScript, every wrangler/workflow/html copy matches
 npm run check:deploy-jobs       # every services/*/wrangler.jsonc is deployed from main by deploy.yml
 npm run check:stages            # stage ids in population data vs the canonical FSH stage list
 npm run check:pathway           # the pathway PlanDefinition's codes and definitionCanonicals resolve
@@ -120,7 +120,6 @@ node scripts/check-md-paths.mjs              # every backticked repo-rooted path
 node scripts/check-plan-status.mjs           # a plan whose status says it shipped is in docs/plans/archive/, with a banner
 node scripts/check-worker-csp.mjs            # ONE frame-ancestors policy across every asset-serving Worker
 node scripts/check-service-toolchain.mjs     # ONE Worker toolchain: identical devDependencies, every config consumes worker-tooling
-node scripts/check-deploy-origins.mjs        # every wrangler/workflow copy of a hosted origin matches deploy-origins.json
 node scripts/validate-fhir.mjs               # HL7 validator_cli over the generated tree, the Questionnaires and the scenarios (Java 17+)
 node scripts/check-fml.mjs --tx https://tx.fhir.org   # FHIR Mapping Language gate (Java + network)
 node scripts/build-use-case-workbook.mjs [--check]    # docs/use-cases/<id>.json → dist/*.xlsx + *.csv + <id>.md

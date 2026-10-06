@@ -29,6 +29,7 @@
  * nothing in the second to contradict it. `embed: false` becomes `embed=0` in
  * the query and the app clears what it remembered.
  */
+import { errorText } from './config'
 
 interface LaunchResponse {
   launchUrl?: string
@@ -46,8 +47,6 @@ async function mintLaunch(body: Record<string, unknown>): Promise<string> {
   return parsed.launchUrl
 }
 
-const message = (error: unknown): string => (error instanceof Error ? error.message : String(error))
-
 // The framed activity: mint a user-scoped launch and point the iframe at it.
 void (async () => {
   const frame = document.getElementById('activity') as HTMLIFrameElement | null
@@ -60,7 +59,7 @@ void (async () => {
     // The frame stays at about:blank rather than showing a broken page. The bar
     // says so, because an empty bordered box with no explanation reads as a
     // layout bug rather than a failed handshake.
-    if (status) status.textContent = 'Could not launch: ' + message(error)
+    if (status) status.textContent = 'Could not launch: ' + errorText(error)
   }
 })()
 
@@ -87,7 +86,7 @@ for (const button of document.querySelectorAll<HTMLButtonElement>('[data-launch-
     } catch (error) {
       button.disabled = false
       button.textContent = original
-      alert('Could not start the launch: ' + message(error))
+      alert('Could not start the launch: ' + errorText(error))
     }
   })
 }

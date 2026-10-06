@@ -2,13 +2,15 @@
 /**
  * The clinical surface is clean — asserted from the BUILD OUTPUT.
  *
- * `VITE_SURFACE=clinical` (src/lib/surface.ts) is supposed to produce a build
- * with no guide route registered and no synthetic patient compiled in
- * (docs/plans/surfaces-and-distribution.md §3). That is a property of the
- * emitted bundle, not of the source: a `IS_DEMO && …` block that the bundler
- * did not fold, or an alias that did not switch, ships the guide and fourteen
- * fake patients into a client's EHR with every source gate green. So this
- * reads `dist/` (demo) and `dist-clinical/` and compares them.
+ * `npm run build` builds the guide (`apps/guide` → `dist/`) and
+ * `npm run build:clinical` the two SMART apps (`apps/clinical` →
+ * `dist-clinical/`); neither may compile in a synthetic patient, and each must
+ * hold only its own pages (docs/plans/surfaces-and-distribution.md §3). That is
+ * a property of the emitted bundle, not of the source: an import the source
+ * gates cannot follow, or an alias that resolves somewhere unexpected, ships
+ * fixtures into a client's EHR with every source gate green. So this reads
+ * both output directories and compares them. ("demo" below is the guide build,
+ * the name it had when `IS_DEMO` folded one tree two ways.)
  *
  * Every marker is DERIVED from the source that defines it — the demo-only
  * page names from the guide sections' route elements (NOT from the guards
@@ -58,14 +60,50 @@ for (const [name, dir] of [['demo', DEMO_DIST], ['clinical', CLINICAL_DIST]]) {
 
 const walk = (dir, out = []) => {
   for (const e of readdirSync(dir)) {
+    if (e === 'node_modules' || e === 'dist' || e === 'dist-clinical') continue
     const p = join(dir, e)
     if (statSync(p).isDirectory()) walk(p, out)
     else out.push(p)
   }
   return out
 }
+
+// ⚠️ A STALE build is this gate's most exposed false green: it once reported a
+// clean surface over output from a build that had just FAILED, because it
+// asserted only that the directories exist (docs/internals/web-gates.md). Each
+// build's `index.html` — rewritten by every build, `emptyOutDir` — must be newer
+// than every source that build reads: its own app, the shared packages, the
+// vite config. The same comparison check:outputs makes for its emitted tree.
+for (const [name, dir, app] of [['guide', DEMO_DIST, 'apps/guide'], ['clinical', CLINICAL_DIST, 'apps/clinical']]) {
+  const builtAt = statSync(join(dir, 'index.html')).mtimeMs
+  const inputs = [
+    ...walk(join(repoRoot, app)),
+    ...readdirSync(join(repoRoot, 'packages')).flatMap((p) => {
+      const src = join(repoRoot, 'packages', p, 'src')
+      return existsSync(src) ? walk(src) : []
+    }),
+    join(repoRoot, 'vite.config.ts'),
+  ]
+  const newest = inputs.reduce((a, p) => { const m = statSync(p).mtimeMs; return m > a.m ? { m, p } : a }, { m: 0, p: '' })
+  if (newest.m > builtAt) {
+    console.error(
+      `✗ the ${name} build at ${rel(dir)} is OLDER than ${rel(newest.p)} — it describes source that has since ` +
+        `changed. Rebuild (\`npm run build\` / \`npm run build:clinical\`); a gate reading a stale bundle reports on a build nobody has.`,
+    )
+    process.exit(1)
+  }
+}
+
+const walkAll = (dir, out = []) => {
+  for (const e of readdirSync(dir)) {
+    const p = join(dir, e)
+    if (statSync(p).isDirectory()) walkAll(p, out)
+    else out.push(p)
+  }
+  return out
+}
 const bundle = (dir) => {
-  const files = walk(dir).filter((f) => /\.(js|html)$/.test(f))
+  const files = walkAll(dir).filter((f) => /\.(js|html)$/.test(f))
   return { files, text: files.map((f) => readFileSync(f, 'utf8')).join('\n'), names: files.map((f) => relative(dir, f)) }
 }
 const demo = bundle(DEMO_DIST)
@@ -163,7 +201,7 @@ const pageFiles = readdirSync(join(appRoot('apps/clinical/src'), 'pages'))
 // side list is gone — a page the derivation cannot see is a page to declare,
 // not to hand-list here.
 const clinicalOnlyPages = pageFiles.filter((p) => !demoOnlyPages.includes(p))
-if (clinicalOnlyPages.length < 5) fail(`only ${clinicalOnlyPages.length} clinical-only page(s) derived from web/src/pages (floor 5)`)
+if (clinicalOnlyPages.length < 5) fail(`only ${clinicalOnlyPages.length} clinical-only page(s) derived from apps/clinical/src/pages (floor 5)`)
 for (const page of clinicalOnlyPages) {
   const chunk = (b) => b.names.some((n) => new RegExp(`(^|/)${page}-[\\w-]+\\.js$`).test(n))
   bothWays(`clinical-only page chunk ${page}-*.js`, chunk(clinical), chunk(demo), 'CLINICAL', 'DEMO')
@@ -209,8 +247,34 @@ for (const name of patientNames) {
   if (lit(clinical)) fail(`demo patient "${name}": present in the CLINICAL build`)
 }
 
+// RULE 3b — and no scenario RESOURCE either.
+//
+// ⚠️ **A name is the roster's marker, not the scenarios'.** The 14 scenario
+// files hold each patient's QuestionnaireResponses, Observations, CarePlans and
+// the rest, and carry no display name — so importing
+// `scenarios/patient-001.json` into a guide page shipped that patient's whole
+// record in the guide bundle with this gate green (2026-10-06). Every scenario
+// resource has an id written for the fixture (`p001-phq9-item9`, …) that no
+// app module spells, so the ids are the marker. The same positive control as
+// rule 3 applies.
+const scenarioDir = join(repoRoot, 'packages/demo-population/src/scenarios')
+const scenarioIds = new Set()
+for (const f of readdirSync(scenarioDir).filter((f) => f.endsWith('.json'))) {
+  const scenario = JSON.parse(readFileSync(join(scenarioDir, f), 'utf8'))
+  for (const bucket of Object.values(scenario)) {
+    if (Array.isArray(bucket)) for (const r of bucket) if (typeof r?.id === 'string') scenarioIds.add(r.id)
+  }
+}
+if (scenarioIds.size < 100) fail(`only ${scenarioIds.size} scenario resource id(s) read from ${rel(scenarioDir)} (floor 100) — the marker set has collapsed`)
+for (const [label, b] of [['DEMO', demo], ['CLINICAL', clinical]]) {
+  const leaked = [...scenarioIds].filter((id) => b.text.includes(`"${id}"`))
+  if (leaked.length) {
+    fail(`${leaked.length} demo scenario resource(s) present in the ${label} build — e.g. ${leaked.slice(0, 3).map((i) => `"${i}"`).join(', ')}. Neither build may carry a patient's record.`)
+  }
+}
+
 if (failures) {
   console.error(`\nsurface check FAILED (${failures} problem(s)).`)
   process.exit(1)
 }
-console.log(`\nsurface check passed: ${demoOnlyPages.length} guide page(s) + ${guideRoots.length} route root(s) in the demo build only, ${clinicalOnlyPages.length} SMART-app page(s) in the clinical build only, and ${patientNames.length} demo patient(s) in NEITHER.`)
+console.log(`\nsurface check passed: ${demoOnlyPages.length} guide page(s) + ${guideRoots.length} route root(s) in the demo build only, ${clinicalOnlyPages.length} SMART-app page(s) in the clinical build only, and ${patientNames.length} demo patient(s) and ${scenarioIds.size} scenario resource(s) in NEITHER.`)

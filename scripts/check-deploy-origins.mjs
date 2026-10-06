@@ -17,9 +17,14 @@
  *      tests stripped/excluded). Code imports the origin; a literal is the
  *      copy this gate exists to stop, whether or not it currently agrees.
  *   2. Every hosted-origin literal in the configs that cannot import
- *      (`wrangler.jsonc`, workflow YAML, other JSON) is one of the file's
- *      origins, optionally followed by a path. A typo'd or renamed host in a
- *      wrangler var is otherwise a deploy that points at nothing.
+ *      (`wrangler.jsonc`, workflow YAML, other JSON, scripts, and the apps'
+ *      `index.html`) is one of the file's origins, optionally followed by a
+ *      path. A typo'd or renamed host in a wrangler var is otherwise a deploy
+ *      that points at nothing. ⚠️ `.html` was not read until 2026-10-06: a
+ *      stale `https://spier-cds-old…` preconnect in `apps/clinical/index.html`
+ *      passed. Rule 1 cannot catch a host COMPOSED at runtime
+ *      (`` `https://spier-x.${account}.workers.dev` ``); no such string exists,
+ *      and building one is what `@spier/core/lib/deployOrigins` is for.
  *   3. Every asset-serving Worker's `PANEL_FRAME_ANCESTORS` var, when set,
  *      names only `'self'`-style keywords and origins from the file — the
  *      clinical Worker's header is a clickjacking surface, and an override that
@@ -94,6 +99,7 @@ const literalsIn = (code) => {
 const used = new Set()
 let wranglerFiles = 0
 let wranglerLiterals = 0
+let htmlFiles = 0
 
 for (const f of tracked) {
   if (f === ORIGINS_FILE || f.endsWith('package-lock.json') || isTest(f) || isDoc(f)) continue
@@ -111,10 +117,11 @@ for (const f of tracked) {
     continue
   }
 
-  if (/\.(?:jsonc?|ya?ml|mjs|js)$/.test(f)) {
+  if (/\.(?:jsonc?|ya?ml|mjs|js|html)$/.test(f)) {
     const text = readFileSync(abs, 'utf8')
     const isWrangler = /(^|\/)wrangler\.jsonc$/.test(f)
     if (isWrangler) wranglerFiles++
+    if (f.endsWith('.html')) htmlFiles++
     const code = /\.(?:mjs|js|jsonc)$/.test(f) ? stripComments(text) : text
     // Scripts and workflows may quote an origin as a literal only if it is a known one (rule 2).
     for (const lit of code.match(ORIGIN_RE) ?? []) {
@@ -145,6 +152,8 @@ for (const k of Object.keys(origins)) {
 // Rule 6
 if (wranglerFiles < MIN_WRANGLER_FILES) fail(`read ${wranglerFiles} wrangler.jsonc file(s), below the floor of ${MIN_WRANGLER_FILES} — the scan is broken, not the configs`)
 if (wranglerLiterals === 0) fail('found no hosted-origin literal in any wrangler.jsonc — services/cds names several, so the reader is broken')
+// Both apps' index.html — the read that was missing until 2026-10-06.
+if (htmlFiles < 2) fail(`read ${htmlFiles} tracked .html file(s), below the floor of 2 (one per app) — the scan is not reaching them`)
 
 const summary = `check-deploy-origins: ${values.length} origins in ${ORIGINS_FILE}, ${wranglerFiles} wrangler configs (${wranglerLiterals} origin literals), ${used.size}/${values.length} keys used`
 if (failures.length) {

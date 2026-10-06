@@ -33,11 +33,11 @@
  * config that forces a module into the entry chunk. Neither exists today; both
  * would show up as the entry chunk growing by ~24 KB gzip with this gate green.
  */
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { APP_ROOTS } from './lib/app-roots.mjs'
-import { resolveImport, spierPackageRoots } from './lib/module-graph.mjs'
+import { chainTo, createResolver, walkGraph } from './lib/module-graph.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = resolve(here, '..')
@@ -51,60 +51,20 @@ function fail(msg) {
 }
 
 /**
- * STATIC import specifiers only — `import … from 'x'`, bare `import 'x'`, and
- * `export … from 'x'`. Deliberately NOT `lib/module-graph.mjs`'s
- * `importSpecifiers`, whose pattern has an optional `\(` and so also matches
- * `import('x')`. Following a dynamic import here would report every lazily
- * loaded form as eager, which is the opposite of the question.
+ * STATIC imports only — what the bundler puts in the importing chunk. A dynamic
+ * `import('x')` is the lazy boundary this gate wants forms behind, and an
+ * `import type` is erased; following either would report a lazily loaded form
+ * as eager, which is the opposite of the question. The parser
+ * (`lib/module-graph.mjs`) makes that distinction, so a commented-out import
+ * or a `/*` inside a line comment can no longer hide or invent an edge — the
+ * failure the regex version of this walk had twice.
  */
-function staticSpecifiers(src) {
-  const out = []
-  // ⚠️ **Line comments are stripped BEFORE block comments, and the order is not
-  // cosmetic.** App.tsx's own comments say things like "the clinician's
-  // /patient/* paths", and `/*` inside a line comment opens a block comment that
-  // a later `*/` closes — swallowing every import in between. Stripping blocks
-  // first made this gate walk 104 modules while missing the ONE static import it
-  // exists to police (`@spier/tool-views/data/toolViews`), and it passed the
-  // planted defect. Line comments first; then blocks.
-  const code = src.replace(/^[ \t]*\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '')
-  // Anchored to a line start, so a commented-out import cannot match even if the
-  // stripping above misses it. A static import is always at a line start in this
-  // codebase; an indented one inside a block would be a syntax error.
-  for (const m of code.matchAll(/^[ \t]*import\s+[^;'"]*?from\s*['"]([^'"]+)['"]/gm)) out.push(m[1])
-  for (const m of code.matchAll(/^[ \t]*import\s*['"]([^'"]+)['"]/gm)) out.push(m[1])
-  for (const m of code.matchAll(/^[ \t]*export\s+[^;'"]*?from\s*['"]([^'"]+)['"]/gm)) out.push(m[1])
-  return out
-}
+const resolveImport = await createResolver(REPO_ROOT)
+const staticClosure = (entry) =>
+  walkGraph([entry], resolveImport, { follow: new Set(['static']) })
 
-const packageRoots = spierPackageRoots(REPO_ROOT)
-
-/** Walk static imports from `entry`, returning every module reached and its path back. */
-function staticClosure(entry) {
-  const parent = new Map([[entry, null]])
-  const queue = [entry]
-  while (queue.length) {
-    const file = queue.shift()
-    let src
-    try {
-      src = readFileSync(file, 'utf8')
-    } catch {
-      continue
-    }
-    if (file.endsWith('.json')) continue // a resource is a leaf
-    for (const spec of staticSpecifiers(src)) {
-      const target = resolveImport(spec, file, REPO_ROOT, packageRoots)
-      if (!target || parent.has(target)) continue
-      parent.set(target, file)
-      queue.push(target)
-    }
-  }
-  return parent
-}
-
-function chain(parent, file) {
-  const out = []
-  for (let c = file; c; c = parent.get(c)) out.unshift(rel(c))
-  return out
+function chain(reached, file) {
+  return chainTo(reached, file).map(rel)
 }
 
 // ---------------------------------------------------------------------------
@@ -129,8 +89,14 @@ if (entries.length === 0) {
 
 let reachedTotal = 0
 for (const { root, file } of entries) {
-  const parent = staticClosure(file)
+  const { reached: parent, unresolved } = staticClosure(file)
   reachedTotal += parent.size
+  for (const u of unresolved) {
+    fail(
+      `${rel(u.from)} imports "${u.spec}", which resolves to no file — the walk cannot follow it, ` +
+        'so whatever it reaches would be eager without this gate seeing it',
+    )
+  }
   const forms = [...parent.keys()].filter(
     (p) => p.startsWith(FORMS_DIR + '/') && p.endsWith('.json'),
   )
