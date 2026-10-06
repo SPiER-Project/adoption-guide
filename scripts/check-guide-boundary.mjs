@@ -6,40 +6,60 @@
  * on the reasoning that the guide explains and configures the pathway while the
  * caseload lives where a caseload would live. That is an easy property to
  * re-break: one `import registryPatients from '@spier/demo-population'` in a
- * guide page and it is gone, with nothing to notice.
+ * guide module and it is gone, with nothing to notice.
  *
- * The check walks the guide's page components TRANSITIVELY through `web/src`, so
- * it also catches a guide page importing a component that reads fixtures — the
- * shallow version of this rule would have missed that, which is the difference
- * between a gate and a comment.
+ * RULES
+ *   1. Nothing the guide APP reaches — walked from `apps/guide/src/main.tsx`,
+ *      every import kind, through every package — is a file under
+ *      `packages/demo-population/` or the registry-wide `useRegistrySlices`.
+ *   2. Nothing the guide's PAGES reach (the layout plus every section's
+ *      component, derived from `guideSections.ts` and the route table) is a
+ *      concrete data source (`*DataSource.ts`). See "the data-source half".
+ *   3. Every `@spier/…` or relative import on the way resolves; an import the
+ *      walk cannot follow is a module it never read, and fails.
+ *
+ * ⚠️ **Both rules match the RESOLVED file, not the specifier text.** The first
+ * version tested `/@spier\/demo-population/` against what was written, so a
+ * relative `../../../../packages/demo-population/src/patients.json` walked
+ * straight into the fixtures and passed; and it started from the guide's
+ * PAGES only, so the same import in `App.tsx` passed too. Both were planted
+ * green on 2026-10-06 — as was a whole patient's scenario shipped in the guide
+ * bundle, which `check:surface` did not see either.
+ *
+ * ⚠️ **The data-source half stays page-scoped, and that is a known limit rather
+ * than a loosening.** The guide app mounts `PatientProvider` (App.tsx), which
+ * constructs the UNSEEDED `localDataSource` its fillers write into
+ * (docs/internals/repo-layout.md) — so "the app reaches no data source" is false
+ * by design today, while "no guide PAGE reaches one" is the rule this gate has
+ * always held. Rule 1 is what keeps that local store empty.
  *
  * What counts as patient DATA rather than patient CONTEXT is the line that
  * matters: `usePatient()` for `activePatientId` is fine and is used by Tool
- * Configuration to build a link into the Patient lens. Reading fixtures or a
- * data source is not.
+ * Configuration to build a link into the Patient lens.
  */
 import { readFileSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { dirname, join, relative, resolve } from 'node:path'
+import { basename, dirname, join, relative, resolve } from 'node:path'
 import { appRoot, appRootFloors } from './lib/app-roots.mjs'
-import { resolveImport, spierPackageRoots } from './lib/module-graph.mjs'
+import { chainTo, createResolver, walkGraph } from './lib/module-graph.mjs'
 import { reportFloors } from './lib/floors.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
 const SRC = appRoot('apps/guide/src')
+const MAIN = join(SRC, 'main.tsx')
 
 let failures = 0
 const fail = (msg) => { console.error(`✗ ${msg}`); failures++ }
 
-// Forbidden inside the guide's reachable graph. Patterns, not paths, so a move
-// does not silently disarm them.
-const FORBIDDEN = [
-  { re: /@spier\/demo-population/, why: 'the demo patient fixtures' },
-  { re: /dataSource\/localDataSource/, why: 'a concrete data source' },
-  { re: /dataSource\/smartDataSource/, why: 'a concrete data source' },
-  { re: /useRegistrySlices/, why: 'a registry-wide slice read' },
+const DEMO_POPULATION = join(root, 'packages/demo-population') + '/'
+/** Rule 1, over the whole app: patient fixtures and registry reads. */
+const PATIENT_DATA = [
+  { test: (f) => f.startsWith(DEMO_POPULATION), why: 'the demo patient fixtures' },
+  { test: (f) => /^useRegistrySlices\.tsx?$/.test(basename(f)), why: 'a registry-wide slice read' },
 ]
+/** Rule 2, over the guide's pages. */
+const DATA_SOURCE = { test: (f) => /DataSource\.tsx?$/.test(basename(f)), why: 'a concrete data source' }
 
 /** The guide's own pages: the layout plus every section's component. */
 function guideEntryPoints() {
@@ -73,60 +93,59 @@ function guideEntryPoints() {
   return entries
 }
 
-// ⚠️ Resolves `@spier/<pkg>/…` as well as relative specifiers, and that is
-// load-bearing rather than a convenience. When the tool views moved into
-// packages/tool-views, a relative-only resolver stopped this walk at the
-// package boundary and the graph fell from 47 modules to 20 — while the gate
-// still printed ✓. See lib/module-graph.mjs.
-const PACKAGE_ROOTS = spierPackageRoots(root)
-const resolveSpec = (spec, fromFile) => resolveImport(spec, fromFile, root, PACKAGE_ROOTS)
+const resolveImport = await createResolver(root)
+const trail = (reached, file) => chainTo(reached, file).map((f) => relative(root, f)).join(' → ')
 
-const entries = guideEntryPoints()
-const seen = new Set()
-const stack = []
-for (const e of entries) {
-  const p = join(SRC, e)
-  if (existsSync(p)) stack.push([p, [e]])
-  else fail(`guide entry point ${e} does not exist`)
-}
-if (stack.length === 0 && failures === 0) {
-  fail('no guide entry points resolved — refusing to report a clean guide having read nothing')
-}
-
-while (stack.length) {
-  const [file, trail] = stack.pop()
-  if (seen.has(file)) continue
-  seen.add(file)
-  const src = readFileSync(file, 'utf8')
-  for (const m of src.matchAll(/(?:from|import)\s*\(?\s*['"]([^'"]+)['"]/g)) {
-    const spec = m[1]
-    const hit = FORBIDDEN.find((f) => f.re.test(spec))
-    if (hit) {
-      fail(
-        `the Adoption Guide reaches ${hit.why}: "${spec}" in ${relative(root, file)}\n` +
-          `    via ${trail.join(' → ')}\n` +
-          `    The guide explains and configures the pathway; the caseload lives on the EHR side (#391).`,
-      )
-    }
-    const next = resolveSpec(spec, file)
-    if (next) stack.push([next, [...trail, relative(SRC, next)]])
+function report(reached, unresolved, rules) {
+  for (const u of unresolved) {
+    fail(`${relative(root, u.from)} imports "${u.spec}", which resolves to no file — this walk cannot follow it, so whatever it reaches is unchecked`)
+  }
+  for (const file of reached.keys()) {
+    const hit = rules.find((r) => r.test(file))
+    if (!hit) continue
+    // Name where the guide ENTERS the forbidden tree, not every file inside it.
+    const parent = reached.get(file)
+    if (parent && hit.test(parent)) continue
+    fail(
+      `the Adoption Guide reaches ${hit.why}: ${relative(root, file)}\n` +
+        `    via ${trail(reached, file)}\n` +
+        '    The guide explains and configures the pathway; the caseload lives on the EHR side (#391).',
+    )
   }
 }
 
+// ── RULE 1 (and 3): the whole app ───────────────────────────────────────────
+if (!existsSync(MAIN)) fail(`${relative(root, MAIN)} does not exist — this gate walks the guide app from it`)
+const app = existsSync(MAIN) ? walkGraph([MAIN], resolveImport) : { reached: new Map(), unresolved: [] }
+report(app.reached, app.unresolved, PATIENT_DATA)
+
+// ── RULE 2: the guide's pages ───────────────────────────────────────────────
+const entries = guideEntryPoints()
+const pageFiles = []
+for (const e of entries) {
+  const p = join(SRC, e)
+  if (existsSync(p)) pageFiles.push(p)
+  else fail(`guide entry point ${e} does not exist`)
+}
+if (pageFiles.length === 0 && failures === 0) {
+  fail('no guide entry points resolved — refusing to report a clean guide having read nothing')
+}
+const pages = walkGraph(pageFiles, resolveImport)
+// Unresolved imports and patient data are reported once, by the app walk —
+// every page is in it.
+report(pages.reached, [], [DATA_SOURCE])
+
 // ── Liveness ────────────────────────────────────────────────────────────────
 //
-// ⚠️ This gate had NO floor, and its two real dimensions are both collapsible
-// without the directory going anywhere. The entry points come from parsing
-// guideSections.ts and App.tsx; the reach comes from a regex over relative
-// import specifiers. Either can narrow to almost nothing and still print a ✓ —
-// "1 guide page, 2 modules reachable, none reading patient fixtures" is a true
-// sentence about a check that inspected nothing. The zero cases are already
-// guarded above; these catch the partial ones, which is the likelier accident.
+// ⚠️ Each dimension is collapsible without the directory going anywhere: the
+// entry points come from parsing guideSections.ts and App.tsx, the reach from
+// the import walk. Either can narrow to almost nothing and still print a ✓.
 reportFloors(
   [
     ...appRootFloors(),
     { source: 'guide entry points', dimension: 'guide page(s)', actual: entries.length, floor: 4 },
-    { source: 'guide import graph', dimension: 'module(s) reached', actual: seen.size, floor: 75 },
+    { source: 'guide page graph', dimension: 'module(s) reached', actual: pages.reached.size, floor: 75 },
+    { source: 'guide app graph', dimension: 'module(s) reached from main.tsx', actual: app.reached.size, floor: 120 },
   ],
   fail,
 )
@@ -136,6 +155,6 @@ if (failures) {
   process.exit(1)
 }
 console.log(
-  `✓ guide boundary: ${entries.length} guide page(s), ${seen.size} module(s) reachable from them, ` +
-    `none reading patient fixtures or a data source`,
+  `✓ guide boundary: ${app.reached.size} module(s) reachable from the guide app, none reading patient fixtures; ` +
+    `${entries.length} guide page(s) reaching ${pages.reached.size} module(s), none reading a data source`,
 )

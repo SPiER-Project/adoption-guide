@@ -42,17 +42,29 @@
  * ── What it checks, per surface ───────────────────────────────────────────
  *
  * RULE 1  Every literal navigation target in a module reachable from that
- *         app's App.tsx resolves against that app's routes. Five forms:
- *         `to="…"`, `navigate('…')`, the object property `to: '…'`, any
- *         object property ending in `href`/`Href` whose value is an absolute
- *         path — see the note on the fourth below — and the content modules'
- *         inline `[text](/route)` markup, see the note on the fifth.
+ *         app's App.tsx (App.tsx included) resolves against that app's routes.
+ *         Five forms, read by the TypeScript parser rather than a regex: the
+ *         `to` attribute, a `navigate(…)` call, the object property `to:`,
+ *         any object property ending in `href`/`Href` whose value is an
+ *         absolute path — see the note on the fourth below — and the content
+ *         modules' inline `[text](/route)` markup, see the note on the fifth.
+ *         A value is read when it is a string literal or a template with no
+ *         substitution, in any quoting (`to="…"`, `to={'…'}`, `` to={`…`} ``);
+ *         anything else is COMPUTED, and counted in the summary. The regex
+ *         version read only `to="…"`, and `<Link to={'/patient/onfile'}>`
+ *         passed (planted 2026-10-06).
  * RULE 2  Every `<Navigate>` registered in that app points at a path that
  *         resolves there — a redirect that strands the reader is the same
- *         defect one level up. A redirect whose destination is the OTHER app
- *         is not a `<Navigate>` at all: it is a cross-origin hop
+ *         defect one level up. A redirect whose target cannot be read, or is
+ *         relative on a non-index route, FAILS rather than being skipped, and
+ *         the redirect count has a floor. A redirect whose destination is the
+ *         OTHER app is not a `<Navigate>` at all: it is a cross-origin hop
  *         (`apps/guide/src/components/ClinicalRedirect.tsx`), which this rule
- *         does not read and the router never sees.
+ *         does not read and the router never sees. (`check:catalog` asked this
+ *         against the UNION of both tables until 2026-10-06; this per-app rule
+ *         is strictly stronger and replaced it.)
+ * RULE 3  Every import on the way resolves — a module the walk cannot follow
+ *         is a module whose links were never read.
  *
  * ── The shared views, and why the fourth form exists ──────────────────────
  *
@@ -108,10 +120,10 @@
  */
 import { readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
+import ts from 'typescript'
 import { readSurfaceRoutes, routeResolves } from './lib/route-table.mjs'
-import { stripComments } from './lib/jsx-comments.mjs'
 import { appRoot, appRootFloors, REPO_ROOT } from './lib/app-roots.mjs'
-import { resolveImport, spierPackageRoots } from './lib/module-graph.mjs'
+import { chainTo, createResolver, walkGraph } from './lib/module-graph.mjs'
 import { reportFloors } from './lib/floors.mjs'
 
 let failures = 0
@@ -122,11 +134,11 @@ function fail(msg) {
 
 const { byApp } = readSurfaceRoutes()
 
-// ⚠️ Resolves `@spier/<pkg>/…` too — a relative-only resolver stopped this walk
-// at packages/tool-views and the reach fell from 89 modules to 61 with the gate
+// ⚠️ Resolves every vite.config.ts alias, and FAILS on an import it cannot
+// follow — a relative-only resolver once stopped this walk at
+// packages/tool-views and the reach fell from 89 modules to 61 with the gate
 // still green. See lib/module-graph.mjs.
-const PACKAGE_ROOTS = spierPackageRoots(REPO_ROOT)
-const resolveSpec = (spec, fromFile) => resolveImport(spec, fromFile, REPO_ROOT, PACKAGE_ROOTS)
+const resolveImport = await createResolver(REPO_ROOT)
 
 /**
  * The ROUTE part of a navigation target — everything before `#` or `?`.
@@ -156,7 +168,8 @@ const SURFACES = [
     landing: 'the patient record',
     // Floors from the first green run after the apps split; a narrowing of the
     // walk, the route parser or the target scanner shows up as a drop below.
-    floors: { modules: 105, routes: 20, targets: 13 },
+    // Redirects: 10 read on 2026-10-06, floored at roughly half.
+    floors: { modules: 105, routes: 20, targets: 13, redirects: 5 },
   },
   {
     id: 'guide',
@@ -166,14 +179,13 @@ const SURFACES = [
     // From this gate's first run over the guide (2026-09-20): 206 modules, 37
     // routes, 25 absolute targets. Set below those so a lazy page being folded
     // into the walk or a route being added does not move them, and a collapse
-    // of the reach does.
-    floors: { modules: 150, routes: 30, targets: 18 },
+    // of the reach does. Redirects: 12 read on 2026-10-06.
+    floors: { modules: 150, routes: 30, targets: 18, redirects: 6 },
   },
 ]
 
 /**
- * Every module the app reaches from its App.tsx, with the import trail that
- * reached it.
+ * Every module the app reaches from its App.tsx, every import kind.
  *
  * Walked from App.tsx rather than from the routes' components, because the
  * shell is a LAYOUT route (`<Route element={<Shell/>}>`) with no `path` —
@@ -182,44 +194,70 @@ const SURFACES = [
  * There is nothing to skip: a page an app does not import is not in that app's
  * graph at all, so the walk is the whole surface by construction.
  */
-function reach(src, app) {
-  const seen = new Map()
-  const stack = [[app, ['App.tsx']]]
-  while (stack.length) {
-    const [file, trail] = stack.pop()
-    if (seen.has(file)) continue
-    seen.set(file, trail)
-    const text = stripComments(readFileSync(file, 'utf8'))
-    for (const m of text.matchAll(/(?:from|import)\s*\(?\s*['"]([^'"]+)['"]/g)) {
-      const next = resolveSpec(m[1], file)
-      if (next && !next.includes('.test.')) stack.push([next, [...trail, relative(src, next)]])
-    }
-  }
-  return seen
+function reach(app) {
+  return walkGraph([app], resolveImport, { skip: (p) => p.includes('.test.') })
 }
 
-/** Every literal navigation target in one module's source — the five forms. */
-function targetsIn(text) {
-  return [
-    ...[...text.matchAll(/\bto=["']([^"']+)["']/g)].map((m) => m[1]),
-    ...[...text.matchAll(/\bnavigate\(\s*['"]([^'"]+)['"]/g)].map((m) => m[1]),
-    // ⚠️ **The object-property form, and leaving it out made this gate miss the
-    // four links that matter most.** `Sidebar` builds the CLINICAL nav —
-    // Patient record, Caseload, Measures, Settings — as an array of
-    // `{ to: '/…', label }` mapped into `<NavLink to={item.to}>`, so no `to="…"`
-    // attribute exists to match. The first green run of this gate checked 19
-    // targets and not one of them was the clinical sidebar.
-    ...[...text.matchAll(/\bto:\s*['"]([^'"]+)['"]/g)].map((m) => m[1]),
-    // The `SurfaceLinks` form — `href:`, `chartHref:`, `registryHref:` — and
-    // the Overview's lens cards. See the header for why this is scanned and
-    // the `href="…"` attribute is not.
-    ...[...text.matchAll(/\b\w*[hH]ref:\s*['"]([^'"]+)['"]/g)].map((m) => m[1]),
-    // The content modules' inline markup — `[Care Pathway](/guide/pathway)` in
-    // a plain string, rendered by `content/renderInline.tsx`. See the header
-    // for the regression that made this form necessary, and for why it matches
-    // only an href that starts with `/`.
-    ...[...text.matchAll(/\[[^\]\n]+\]\((\/[^)\s]*)\)/g)].map((m) => m[1]),
-  ]
+const MARKUP_LINK = /\[[^\]\n]+\]\((\/[^)\s]*)\)/g
+
+/**
+ * Every navigation target in one module — the five forms — as `{ value }` for
+ * a literal, or `{ computed: true }` for anything the parser cannot reduce to
+ * one (a variable, a call, a template with a substitution).
+ *
+ * Read off the TypeScript AST, so quoting and spacing are the parser's
+ * problem: `to="x"`, `to={'x'}`, `to={"x"}` and `` to={`x`} `` are one form.
+ */
+function targetsIn(file) {
+  if (!/\.tsx?$/.test(file)) return []
+  const kind = file.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS
+  const sf = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true, kind)
+  const out = []
+  /** A literal's text, or `null` when the expression is computed. */
+  const literal = (node) => {
+    if (!node) return null
+    if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) return node.text
+    if (ts.isJsxExpression(node) || ts.isParenthesizedExpression(node) || ts.isAsExpression(node) ||
+        ts.isSatisfiesExpression(node)) {
+      return literal(node.expression)
+    }
+    return null
+  }
+  const take = (node) => {
+    const v = literal(node)
+    out.push(v === null ? { computed: true } : { value: v })
+  }
+  const nameOf = (n) => (ts.isIdentifier(n) || ts.isStringLiteral(n) ? n.text : n.getText(sf))
+  const visit = (node) => {
+    if (ts.isJsxAttribute(node) && nameOf(node.name) === 'to' && node.initializer) {
+      take(node.initializer)
+    } else if (
+      ts.isCallExpression(node) && ts.isIdentifier(node.expression) &&
+      node.expression.text === 'navigate' && node.arguments[0]
+    ) {
+      // `navigate(-1)` is history, not a route.
+      const arg = node.arguments[0]
+      if (!ts.isPrefixUnaryExpression(arg) && !ts.isNumericLiteral(arg)) take(arg)
+    } else if (ts.isPropertyAssignment(node)) {
+      const name = nameOf(node.name)
+      if (name === 'to') take(node.initializer)
+      else if (/[hH]ref$/.test(name)) {
+        // An `href` property is either a router path or something the router
+        // never sees (`https://…`, `${BASE_URL}ig/`): only an absolute literal
+        // is a route. See the header.
+        const v = literal(node.initializer)
+        if (v !== null && v.startsWith('/')) out.push({ value: v })
+      }
+    }
+    // The content modules' inline markup, in any string the module holds.
+    if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node) || ts.isTemplateHead(node) ||
+        ts.isTemplateMiddle(node) || ts.isTemplateTail(node)) {
+      for (const m of node.text.matchAll(MARKUP_LINK)) out.push({ value: m[1] })
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(sf)
+  return out
 }
 
 const summaries = []
@@ -228,25 +266,34 @@ for (const surface of SURFACES) {
   const otherTable = byApp[surface.other]
   const src = appRoot(table.source)
   const app = join(src, 'App.tsx')
-  const seen = reach(src, app)
+  const { reached, unresolved } = reach(app)
+  const trail = (file) => chainTo(reached, file).map((f) => relative(src, f)).join(' → ')
+
+  // ── RULE 3 ────────────────────────────────────────────────────────────────
+  for (const u of unresolved) {
+    fail(
+      `${relative(REPO_ROOT, u.from)} imports "${u.spec}", which resolves to no file — the ` +
+        `${surface.id} walk cannot follow it, so its links are unchecked`,
+    )
+  }
 
   // ── RULE 1 ────────────────────────────────────────────────────────────────
   let checked = 0
   let skipped = 0
-  for (const [file, trail] of seen) {
-    if (file === app) continue // RULE 2 owns the route table itself
-    const text = stripComments(readFileSync(file, 'utf8'))
-    for (const t of targetsIn(text)) {
-      if (!t.startsWith('/')) { skipped++; continue }
+  let computed = 0
+  for (const file of reached.keys()) {
+    for (const t of targetsIn(file)) {
+      if (t.computed) { computed++; continue }
+      if (!t.value.startsWith('/')) { skipped++; continue }
       checked++
-      const path = routePart(t)
+      const path = routePart(t.value)
       if (routeResolves(path, table.paths)) continue
       const why = routeResolves(path, otherTable.paths)
-        ? `"${t}" is a route of apps/${surface.other}, which is another origin since the apps split`
-        : `"${t}" resolves to no route on either surface`
+        ? `"${t.value}" is a route of apps/${surface.other}, which is another origin since the apps split`
+        : `"${t.value}" resolves to no route on either surface`
       fail(
         `${relative(REPO_ROOT, file)} navigates to a path ${surface.reader} cannot reach: ${why}.\n` +
-          `    reached from ${trail.join(' → ')}\n` +
+          `    reached from ${trail(file)}\n` +
           `    A missing route falls to the \`*\` catch-all, which redirects to \`/\` — so this does ` +
           `not 404, it silently returns the reader to ${surface.landing}.\n` +
           `    Point it at a route apps/${surface.id} registers, or — if the view is shared — read it ` +
@@ -257,16 +304,28 @@ for (const surface of SURFACES) {
   if (checked === 0) {
     fail(
       `no absolute navigation targets were read from any ${surface.id} module, so RULE 1 verified ` +
-        'nothing there. The link scanner has stopped matching its four forms.',
+        'nothing there. The link reader has stopped matching its five forms.',
     )
   }
 
   // ── RULE 2 ────────────────────────────────────────────────────────────────
+  for (const from of table.unreadRedirects) {
+    fail(
+      `apps/${surface.id}/src/App.tsx: the redirect at "${from}" has a <Navigate> whose target this ` +
+        'gate cannot read — write `to` as a string literal, or this redirect is unchecked.',
+    )
+  }
   let redirectsChecked = 0
-  for (const from of table.redirects) {
-    const to = table.redirectTargets.get(from)
-    if (to === undefined || !to.startsWith('/')) continue
+  for (const [from, to] of table.redirectTargets) {
     redirectsChecked++
+    if (!to.startsWith('/')) {
+      fail(
+        `apps/${surface.id}/src/App.tsx: the redirect at "${from}" navigates to "${to}", which is ` +
+          'relative on a non-index route — React Router resolves that against the current pathname, ' +
+          'so this gate cannot say where it lands. Write the target as an absolute path.',
+      )
+      continue
+    }
     if (routeResolves(routePart(to), table.paths)) continue
     fail(
       `apps/${surface.id}/src/App.tsx: the redirect at "${from}" sends the reader to "${to}", ` +
@@ -274,31 +333,27 @@ for (const surface of SURFACES) {
         `If the destination is the other app's, it is a cross-origin hop, not a <Navigate>.`,
     )
   }
-  if (redirectsChecked === 0) {
-    fail(`no ${surface.id} redirects were read, so RULE 2 verified nothing there.`)
-  }
 
   // ── Liveness ──────────────────────────────────────────────────────────────
   //
-  // ⚠️ Three collapsible dimensions per surface. The reach is a regex walk from
-  // App.tsx, the route set is parsed out of the same file, and the targets are
-  // literals scraped from the modules — a narrowing in any one of them leaves
-  // this printing a confident ✓ over a fraction of the surface. The
-  // `checked === 0` guards above cover the collapse-to-nothing cases; these
-  // cover the collapse-to-a-few.
+  // ⚠️ Four collapsible dimensions per surface. The reach is a walk from
+  // App.tsx, the routes and redirects are parsed out of the same file, and the
+  // targets are literals read from the modules — a narrowing in any one of
+  // them leaves this printing a confident ✓ over a fraction of the surface.
   reportFloors(
     [
-      { source: `${surface.id} import graph`, dimension: 'module(s) reached', actual: seen.size, floor: surface.floors.modules },
+      { source: `${surface.id} import graph`, dimension: 'module(s) reached', actual: reached.size, floor: surface.floors.modules },
       { source: `${surface.id} route table`, dimension: 'route(s)', actual: table.paths.size, floor: surface.floors.routes },
+      { source: `${surface.id} route table`, dimension: 'redirect(s) read', actual: redirectsChecked, floor: surface.floors.redirects },
       { source: `${surface.id} import graph`, dimension: 'absolute link target(s)', actual: checked, floor: surface.floors.targets },
     ],
     fail,
   )
 
   summaries.push(
-    `${surface.id}: ${seen.size} module(s) reached, ${checked} absolute target(s) and ` +
+    `${surface.id}: ${reached.size} module(s) reached, ${checked} absolute target(s) and ` +
       `${redirectsChecked} redirect(s) resolve against ${table.paths.size} route(s) ` +
-      `(${skipped} relative/external target(s) skipped)`,
+      `(${skipped} relative and ${computed} computed target(s) not checked)`,
   )
 }
 

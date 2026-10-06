@@ -75,10 +75,6 @@ export function walkExt(dir, exts) {
 
 const isTest = (f) => /\.test\.[cm]?[jt]sx?$/.test(f)
 
-/** Every non-test `.ts`/`.tsx` across every declared root. */
-export const allAppFiles = () =>
-  APP_ROOTS.flatMap((r) => walkExt(r.dir, ['.ts', '.tsx'])).filter((f) => !isTest(f))
-
 /** The single root a gate should read when it only knows how to read one. */
 export function appRoot(source) {
   const root = APP_ROOTS.find((r) => r.source === source)

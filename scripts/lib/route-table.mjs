@@ -88,7 +88,8 @@ function readTag(src, i) {
 /**
  * Every path `App.tsx` registers, fully composed through nesting.
  *
- * Returns `{ paths, redirects, redirectTargets }` — `paths` is every registered
+ * `readRouteTable` returns `{ paths, redirects, redirectTargets, unreadRedirects }`
+ * — `paths` is every registered
  * pattern (including `:params` and the `*` catch-all as written), `redirects` is
  * the subset whose element is a `<Navigate>`. A launch path that resolves only
  * to a redirect still resolves, which is what keeps compatibility redirects from
@@ -107,7 +108,9 @@ function readTag(src, i) {
  * the index routes that use one (`<Route index element={<Navigate to="pathway"/>}>`
  * under `/guide` → `/guide/pathway`) and is the only relative form in the table.
  * A relative `to` on a non-index route would resolve differently in React Router,
- * so it is reported as unresolvable rather than guessed at.
+ * so it is reported as unresolvable rather than guessed at. `unreadRedirects` is
+ * every redirect whose `<Navigate>` has no literal `to` this reader can read —
+ * a caller must fail on it, not skip it.
  */
 /**
  * The union of every app's route table — see APP_TSX_FILES.
@@ -116,18 +119,18 @@ function readTag(src, i) {
  * caller that already knew how to read one table reads all of them unchanged.
  */
 export function readAllRouteTables() {
-  const tables = APP_TSX_FILES.map((f) => ({ file: f, table: readRouteTable(f) }))
   const paths = new Set()
   const redirects = new Set()
-  const redirectTargets = new Map()
-  for (const { table } of tables) {
+  for (const f of APP_TSX_FILES) {
+    const table = readRouteTable(f)
     for (const p of table.paths) paths.add(p)
     for (const r of table.redirects) redirects.add(r)
-    for (const [from, to] of table.redirectTargets) redirectTargets.set(from, to)
   }
-  // `offsets` is per-file and meaningless merged; a caller that needs it must
-  // read one table, which is why this returns the file list alongside.
-  return { paths, redirects, redirectTargets, tables }
+  // ⚠️ No merged `redirectTargets`: "does this redirect land somewhere" is a
+  // PER-APP question (a guide redirect into /settings resolves in the union and
+  // strands the reader in the guide), and check:surface-links RULE 2 asks it
+  // per app. The union version lived in check:catalog until 2026-10-06.
+  return { paths, redirects }
 }
 
 export function readRouteTable(file = APP_TSX) {
@@ -141,26 +144,15 @@ export function readRouteTable(file = APP_TSX) {
 /**
  * The scan itself, over source whose comments are already blanked.
  *
- * Split out from `readRouteTable` so `readSurfaceRoutes` can run it over the
- * SAME string it computes `IS_DEMO` regions from — the two have to agree on
- * character offsets, and re-reading the file to get a second copy is exactly
- * how they would stop agreeing.
+ * Split out from `readRouteTable`, which blanks the comments first.
  */
 function scanRoutes(src) {
   const paths = new Set()
   const redirects = new Set()
   /** Registered redirect path → where its <Navigate> sends the reader. */
   const redirectTargets = new Map()
-  /**
-   * Registered path → the offset of every `<Route` tag that registers it.
-   *
-   * A LIST, not a single offset, because a path is legitimately registered
-   * twice: `{IS_DEMO ? (<Route path="/" …/>) : (<Route path="/" …/>)}` gives `/`
-   * one registration per surface. Collapsing that to one offset would make the
-   * path look demo-only or clinical-only depending on which branch won the
-   * assignment, which is the opposite of what the ternary means.
-   */
-  const offsets = new Map()
+  /** Registered redirect paths whose `<Navigate>` target this reader could not read. */
+  const unreadRedirects = new Set()
   /** Stack of enclosing route paths; '' for a layout route with no path. */
   const stack = []
 
@@ -178,18 +170,30 @@ function scanRoutes(src) {
 
     const { attrs, end, selfClosing } = readTag(src, open)
     const parent = stack.length ? stack[stack.length - 1] : ''
-    const own = attrs.match(/\spath="([^"]*)"/)?.[1]
+    const own = literalAttr(attrs, 'path')
+    if (own === undefined && /\spath=/.test(attrs)) {
+      throw new Error(
+        `route-table: a <Route> at offset ${open} declares a path this reader cannot read ` +
+          `(${attrs.match(/\spath=\S*/)[0]}). Write it as a string literal — a route this ` +
+          'scanner skips is a route every caller treats as absent.',
+      )
+    }
     const isIndex = /\sindex(\s|$|=)/.test(attrs)
     // An index route registers its parent's path, not a path of its own.
     const full = own !== undefined ? joinPaths(parent, own) : isIndex ? parent : parent
 
     if (own !== undefined || isIndex) {
       paths.add(full)
-      offsets.set(full, [...(offsets.get(full) ?? []), open])
-      if (/element=\{<Navigate\b/.test(attrs)) {
+      // ⚠️ Any whitespace before `<Navigate`, and `to` in any position and any
+      // literal form. The first version required `element={<Navigate to="…"`
+      // exactly, so `<Navigate replace to="/x" />` or `element={ <Navigate … /> }`
+      // was not a redirect at all and its target was never checked.
+      const navAt = attrs.search(/element=\{\s*<Navigate\b/)
+      if (navAt !== -1) {
         redirects.add(full)
-        const to = attrs.match(/<Navigate\s+to="([^"]*)"/)?.[1]
-        if (to !== undefined) {
+        const to = literalAttr(attrs.slice(navAt), 'to')
+        if (to === undefined) unreadRedirects.add(full)
+        else {
           // Relative only on an index route, where the parent IS the current
           // path; anything else is left as written so the caller reports it
           // rather than this function inventing a resolution for it.
@@ -208,7 +212,19 @@ function scanRoutes(src) {
         'checking nothing — fix the parser rather than the caller.',
     )
   }
-  return { paths, redirects, redirectTargets, offsets }
+  return { paths, redirects, redirectTargets, unreadRedirects }
+}
+
+/**
+ * A JSX attribute's value when it is a literal — `a="x"`, `a='x'`, `a={"x"}`,
+ * `a={'x'}` or a template with no substitution, `` a={`x`} ``. `undefined`
+ * when the attribute is absent or computed.
+ */
+function literalAttr(text, name) {
+  const m = text.match(
+    new RegExp(`\\s${name}=(?:"([^"]*)"|'([^']*)'|\\{\\s*(?:"([^"]*)"|'([^']*)'|\`([^\`$]*)\`)\\s*\\})`),
+  )
+  return m?.slice(1).find((v) => v !== undefined)
 }
 
 /**
@@ -253,7 +269,6 @@ export function readSurfaceRoutes() {
 
   const demoOnly = new Set([...guide.paths].filter((p) => !clin.paths.has(p)))
   const clinical = new Set(clin.paths)
-  const paths = new Set([...guide.paths, ...clin.paths])
 
   if (!demoOnly.has('/guide/cds-service')) {
     throw new Error(
@@ -269,19 +284,12 @@ export function readSurfaceRoutes() {
     )
   }
   return {
-    paths,
-    clinical,
-    demoOnly,
-    redirects: clin.redirects,
-    redirectTargets: clin.redirectTargets,
-    // Each app's own table, whole, for a rule that runs per surface rather than
-    // "X must be in clinical". check:surface-links walks BOTH apps since
-    // 2026-09-20 — the guide's links into /patient/* were dead for a day with
-    // this reader returning only the clinical redirects — so a surface rule
-    // reads its own paths, redirects and targets from here.
+    // Each app's own table, whole, for a rule that runs per surface. The
+    // top-level union / `clinical` / `demoOnly` sets this used to return had no
+    // reader left; `demoOnly` and `clinical` survive above as the self-checks.
     byApp: {
-      clinical: { source: 'apps/clinical/src', paths: clinical, redirects: clin.redirects, redirectTargets: clin.redirectTargets },
-      guide: { source: 'apps/guide/src', paths: new Set(guide.paths), redirects: guide.redirects, redirectTargets: guide.redirectTargets },
+      clinical: { source: 'apps/clinical/src', paths: clinical, redirects: clin.redirects, redirectTargets: clin.redirectTargets, unreadRedirects: clin.unreadRedirects },
+      guide: { source: 'apps/guide/src', paths: new Set(guide.paths), redirects: guide.redirects, redirectTargets: guide.redirectTargets, unreadRedirects: guide.unreadRedirects },
     },
   }
 }

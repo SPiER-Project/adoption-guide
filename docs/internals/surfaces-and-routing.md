@@ -78,9 +78,10 @@ explainer holds no patient data" is gated rather than merely intended. A
 hand-rolled route outside the list would be unchecked.
 
 ⚠️ **Renaming either app route needs the redirects too.** `check:catalog`
-covers the catalog's launch paths, the panel's landing route, and (since
-2026-09-15) every redirect's target — so a rename that strands a `<Navigate>`
-now fails. What still nothing can see is a path that *resolves* but now lands
+covers the catalog's launch paths and the panel's landing route;
+`check:surface-links` RULE 2 checks every redirect's target against its OWN
+app's table (moved there from `check:catalog`'s union check on 2026-10-06) —
+so a rename that strands a `<Navigate>` fails. What still nothing can see is a path that *resolves* but now lands
 on the explainer rather than the app — that class needs a grep.
 
 ## A shared view holds no route literal; the app supplies its links (2026-09-20)
