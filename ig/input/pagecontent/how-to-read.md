@@ -1,10 +1,8 @@
-# Reading the artifacts
-
 This guide follows the layout of [HL7 US Core](https://hl7.org/fhir/us/core/),
 so if you have read a FHIR IG before it will be familiar. This page explains
 the model the artifacts share and the clinical terms they use.
 
-## Reading a profile page
+### Reading a profile page
 
 Each profile (for example *SPiER ASQ Screening Result Observation*) shows the
 base resource it constrains, a formal element table (cardinality, type,
@@ -20,7 +18,7 @@ bindings) and links to examples.
 
 <a id="two-layer-model"></a>
 
-## The Capture → Translate → Act model {#capture-translate-act}
+### The Capture → Translate → Act model {#capture-translate-act}
 
 The artifacts fall into three steps that build on each other:
 
@@ -41,7 +39,7 @@ follow-up, not a diagnosis. The pattern follows the HL7
 already calls for in published guidelines; the clinician, or the institution's
 configured policy, remains the decision-maker.
 
-### Where the tier comes from {#tier-derivation}
+#### Where the tier comes from {#tier-derivation}
 
 Every instrument lands on the same tier, carried on LOINC `93374-7`, but not
 by the same route — and the route decides whether a form filler is expected
@@ -72,7 +70,7 @@ the two apart without knowing which tool it is holding.
 The conformance consequence — a `computed` item is never `required` — is
 stated on [Conformance](conformance.html#tier-derivation).
 
-## Clinical primer (for non-clinical engineers) {#clinical-primer}
+### Clinical primer (for non-clinical engineers) {#clinical-primer}
 
 You do not need clinical training to implement SPiER. The instruments, one
 line each:

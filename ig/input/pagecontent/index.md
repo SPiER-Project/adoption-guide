@@ -1,4 +1,4 @@
-# The SPiER Project
+### The SPiER Project
 
 | | |
 |---|---|
@@ -20,7 +20,7 @@ Written for **software developers and integrators** — EHR vendors, HIE teams
 moving suicide-risk data between organizations, and HL7 work groups evaluating
 the artifacts.
 
-## Find what you need
+### Find what you need
 
 | You want to… | Go to |
 |---|---|
@@ -33,7 +33,7 @@ the artifacts.
 | Understand the model and the clinical terms | [Reading the artifacts](how-to-read.html) |
 | Browse everything | [Artifacts](artifacts.html), in eight groups |
 
-## Status
+### Status
 
 Profiles, crosswalks and CapabilityStatements are `draft` / `experimental` and
 may change before Trial-Use; if you implement now, pin version `0.1.0`. The

@@ -6,7 +6,7 @@ It is the *Act* layer of the
 course of care a machine can read, a CDS engine can evaluate, and a quality
 measure can be scored against.
 
-## What it encodes
+### What it encodes
 
 Four steps, in order:
 
@@ -25,7 +25,7 @@ Four steps, in order:
    performs: the problem-list entry, and the tier's frequency of patient
    contact.
 
-## The branch reads the tier, not the tool
+### The branch reads the tier, not the tool
 
 Each tier group is gated on an applicability condition over the episode's
 `episode-current-risk-tier` extension, which caches the most recent
@@ -59,7 +59,7 @@ interval by `definitionCanonical` to
 the pathway references the cadence and never restates it. There is no
 `timingDuration` and no numeric interval anywhere in the pathway artifact.
 
-## What is deliberately not encoded
+### What is deliberately not encoded
 
 A published protocol must not encode what is not settled. Each of these is
 stated by the source diagram and absent from the artifact, blocked on an open
@@ -76,7 +76,7 @@ The tier branch therefore covers **low, moderate and high**. `imminent` is
 active escalation rather than a routine protocol, and `no-risk` is not on the
 pathway at all.
 
-## SPiER never writes a diagnosis code
+### SPiER never writes a diagnosis code
 
 The problem-list step carries no `definition[x]` — the FHIR shape for "the
 clinician does this and SPiER prompts". A problem-list entry is a clinician's
@@ -86,7 +86,7 @@ carry is the verified coding: SNOMED CT as primary, which is what US problem
 lists store, with the billable ICD-10-CM crosswalk named in the documentation
 text for sites that need it.
 
-## Measurement, and the KPI gaps
+### Measurement, and the KPI gaps
 
 The source diagram states three KPIs. The pathway names the Stage-8 Measures
 that answer them as `relatedArtifact`, and **no Measure was invented to make
@@ -98,7 +98,7 @@ the list look complete**:
 | Positive assessment → problem-list entry / risk flag | [SPiERRiskStatusDocumented](Measure-SPiERRiskStatusDocumented.html) | **Partial.** The risk-status half is measured; the problem-list half cannot be, because SPiER never writes a `Condition` from a screen and so has no numerator. |
 | Safety plan / resources provided, per tier | [SPiERSafetyPlanBeforeDischarge](Measure-SPiERSafetyPlanBeforeDischarge.html) | **Partial.** Anchored on a care transition, not stratified by tier, and not counting crisis-resource sharing — the two gaps. |
 
-## Related artifacts
+### Related artifacts
 
 - [SPiERReassessmentSchedule](PlanDefinition-SPiERReassessmentSchedule.html) —
   the per-tier reassessment cadence this pathway references.

@@ -16,8 +16,32 @@
 //
 // To move to a newer publisher: `node scripts/lib/ig-publisher-release.mjs
 // --latest` prints HL7's current latest; bump IG_PUBLISHER_VERSION in its own
-// PR, with the IG Publisher job's findings triaged. 2.3.5's ELM failure is
-// open — see the PR that introduced this pin.
+// PR, with the IG Publisher job's findings triaged.
+//
+// ─── What 2.3.5 found, and what still blocks it (triaged 2026-10-06) ───────
+//
+// A probe run on 2.3.5 sorted the failure into two halves:
+//
+//   OURS, fixed: the ELM failure was "Unknown FHIRTypes code 'Any'". The
+//   publisher reports a define whose type it cannot name as `Any`, and 2.3.5's
+//   R6 type enum has no `Any`. Our "Care Transition Dates" was a
+//   List<Choice<dateTime, instant>>; it now returns System.DateTime. 2.3.5's new
+//   WCAG checks also flagged 37 headings; IG pages now start at `###`.
+//
+//   UPSTREAM, still blocking: with both fixed, 2.3.5 still reports 5 errors and
+//   19 "broken links", none of them caused by our source:
+//     - HL7/fhir-ig-publisher#1384: every FML map loses the R4-required
+//       group.typeMode (2.3.4 emitted "none" from the same .fml).
+//     - HL7/fhir-ig-publisher#1386: "Broken Links" now counts HTML-checker
+//       WARNINGS (template searchform.html, duplicate FHIRHelpers anchors on
+//       Measure pages). The link check itself finds 0 broken links.
+//     - HL7/fhir-ig-publisher#1385: the ELM failure is only a log line and
+//       never a QA error. Our CQL gate caught it; the publisher's QA did not.
+//
+// Bump when a release fixes #1384 and #1386. Having ig-publish.yml read the
+// link check's own "N links, M broken links" line would get past #1386 sooner,
+// but that is a gate change and needs its own decision. Do not slip it into a
+// bump.
 //
 // One definition, for the same reason sushi-version.mjs and validator-jar.mjs
 // are one definition: this is consumed by TWO workflows on two different paths
