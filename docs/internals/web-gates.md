@@ -312,17 +312,29 @@ npm run check:scenarios  # BOTH halves of the population-scenario gate:
                          #    also slipped past the #303 rule above. The bucket table
                          #    comes from core (`PATIENT_SLICE_FHIR_BUCKETS`, typed
                          #    against PatientSlice), not a copy
-npm run check:dates      # nothing that already happened is dated AFTER the anchor —
-                         # a `fulfilled` appointment next week, a QR authored or a
-                         # Procedure performed next month. An UPPER bound only:
-                         # ⚠️ it cannot see staleness (a fixture back-dated a year,
-                         # or the whole set drifting behind today), deliberately — a
-                         # bound tied to today would go red by the calendar alone.
-                         # Until 2026-10-06 it read the `responses` WRAPPERS rather
-                         # than the QRs inside them, and so checked no QR date at all.
-                         # Default is --check (validates what is on disk and writes
-                         # nothing); `--apply` is the separate re-dating command, so
-                         # the script's name says "shift" while the gate only reads
+npm run check:dates      # nothing that already happened is dated AFTER the START of
+                         # the anchor day — a `fulfilled` appointment next week, a QR
+                         # authored or a Procedure performed next month — and no date
+                         # is written into prose. The Workers serve the scenarios
+                         # `populationScenariosAsOf(today)` (packages/demo-population/
+                         # src/scenarioDates.ts): every date moved by the whole UTC
+                         # days since the anchor, so the anchor day IS today. Hence
+                         # the start-of-day bound — a 09:30 QR on it was served in
+                         # the future until 09:30 UTC, and dropped out of the measure
+                         # period with it — and the prose rule: the shift moves
+                         # strings that ARE dates, so "seen 2026-03-20" goes stale
+                         # (three had, unnoticed, since the August re-date).
+                         # ⚠️ It cannot see whether a patient still shows the STATE
+                         # it was designed for — that is the reassessment math, and
+                         # tests/scenarioDates.test.ts pins it for all 14 on any day.
+                         # Four already differ from their design (001/003/006/008,
+                         # since the row reads the harmonized tier). It reads the
+                         # anchor and the shift through load-core, so it checks the
+                         # shift the Workers serve with. Until 2026-10-06 it read
+                         # the `responses` WRAPPERS rather than the QRs inside them,
+                         # and so checked no QR date at all. Default is --check
+                         # (writes nothing); `--apply` re-dates the FILES, now only
+                         # to change a scenario's designed state
 npm run check:measures   # Stage-8 Measure criteria vs the measures.ts engine
 npm run check:reassessment # the per-tier reassessment cadence agrees across all THREE
                          # places it is stated: the PlanDefinition (FHIRPath condition

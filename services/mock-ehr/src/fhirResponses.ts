@@ -3,7 +3,7 @@
  * OperationOutcome, the base URL, a searchset Bundle, and the merged view of
  * fixtures plus writes that read and search both serve from.
  */
-import { HELD_RESOURCES, type MockResource } from './fixtures'
+import { heldResourcesAsOf, type MockResource } from './fixtures'
 import { storeFor } from './store'
 import { envOf, type Env } from './env'
 
@@ -31,9 +31,12 @@ export function operationOutcome(severity: 'error' | 'warning', code: string, di
  */
 export async function servableFor(c: { env?: Env }): Promise<MockResource[]> {
   const store = storeFor(envOf(c))
-  if (!store) return HELD_RESOURCES.map(h => h.resource)
+  // Dated as of today: writes are minted on the real clock, so the fixtures
+  // beside them must be too (`scenarioDates.ts` in packages/demo-population).
+  const held = heldResourcesAsOf()
+  if (!store) return held.map(h => h.resource)
   const written = await store.list()
-  if (written.length === 0) return HELD_RESOURCES.map(h => h.resource)
+  if (written.length === 0) return held.map(h => h.resource)
 
   // ⚠️ Keyed by `Type/id`, with the written version REPLACING a fixture of the
   // same id — not appended beside it. The app closing an episode it read out of
@@ -42,7 +45,7 @@ export async function servableFor(c: { env?: Env }): Promise<MockResource[]> {
   // episode as open and closed at once. Insertion order is preserved so a
   // just-written resource still lands after the fixtures.
   const byKey = new Map<string, MockResource>()
-  for (const { resource } of HELD_RESOURCES) {
+  for (const { resource } of held) {
     byKey.set(`${resource.resourceType}/${String(resource.id)}`, resource)
   }
   for (const { resource } of written) {

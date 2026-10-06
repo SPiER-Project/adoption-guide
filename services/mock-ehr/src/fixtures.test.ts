@@ -5,7 +5,7 @@
  * look like a working server returning a well-formed empty Bundle.
  */
 import { describe, expect, it } from 'vitest'
-import { HELD_RESOURCES, HELD_TYPES, RESOURCES_BY_KEY } from './fixtures'
+import { HELD_RESOURCES, HELD_TYPES, RESOURCES_BY_KEY, heldResourcesAsOf, resourceByKeyAsOf } from './fixtures'
 
 describe('fixtures', () => {
   it('holds the 14 minted Patients', () => {
@@ -96,6 +96,32 @@ describe('fixtures', () => {
       'Procedure', 'Encounter',
     ]) {
       expect(HELD_TYPES, `${type} missing from the dataset`).toContain(type)
+    }
+  })
+})
+
+describe('fixtures as served — dated as of today', () => {
+  // 56 days after the anchor: the day the drift was reported.
+  const NOW = new Date('2026-10-06T15:00:00Z')
+  const keyOf = (r: { resourceType: string; id?: string }) => `${r.resourceType}/${String(r.id)}`
+
+  it('serves exactly the resources it holds — a shift moves dates, never membership', () => {
+    expect(heldResourcesAsOf(NOW).map(h => `${h.patientId} ${keyOf(h.resource)}`))
+      .toEqual(HELD_RESOURCES.map(h => `${h.patientId} ${keyOf(h.resource)}`))
+  })
+
+  it('moves a scenario date by the whole days since the anchor', () => {
+    expect(RESOURCES_BY_KEY.get('Encounter/p011-enc-ed')).toMatchObject({
+      period: { start: '2026-08-02T08:15:00.000Z' },
+    })
+    expect(resourceByKeyAsOf('Encounter/p011-enc-ed', NOW)).toMatchObject({
+      period: { start: '2026-09-27T08:15:00.000Z' },
+    })
+  })
+
+  it('never moves a Patient — a shifted birthDate would make everyone younger', () => {
+    for (const id of ['patient-001', 'patient-011']) {
+      expect(resourceByKeyAsOf(`Patient/${id}`, NOW)).toEqual(RESOURCES_BY_KEY.get(`Patient/${id}`))
     }
   })
 })
