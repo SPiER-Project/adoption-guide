@@ -1,5 +1,3 @@
-# Zero Suicide ↔ SPiER mapping
-
 [Zero Suicide](https://zerosuicide.edc.org/) is a framework for systematic
 suicide-safer care organized around seven elements. SPiER is a FHIR
 implementation of the framework's **clinical workflow layers** — the ones an
@@ -10,7 +8,7 @@ models and which are organizational concerns it deliberately does not encode.
 > from publicly available Zero Suicide materials; the Institute has not yet
 > reviewed it.
 
-## The seven elements
+### The seven elements
 
 | # | Element | What it means | SPiER scope |
 |---|---|---|---|
@@ -22,7 +20,7 @@ models and which are organizational concerns it deliberately does not encode.
 | 6 | **Transition** | Continuous contact and support, especially after acute care | In scope |
 | 7 | **Improve** | A data-driven quality-improvement approach | In scope (measures and population views) |
 
-## SPiER stages ↔ Zero Suicide elements
+### SPiER stages ↔ Zero Suicide elements
 
 SPiER's eight technical stages decompose *Identify*, *Engage*, *Treat*,
 *Transition* and *Improve* into EHR workflow steps, each published as a

@@ -1,8 +1,6 @@
-# Getting Started
-
 From zero to validating your own resources against SPiER.
 
-## 1. Get the artifacts
+### 1. Get the artifacts
 
 - **Browse** — the [Artifacts](artifacts.html) page lists everything in eight
   groups. The first, [Screening and assessment instruments](artifacts.html#1),
@@ -19,7 +17,7 @@ From zero to validating your own resources against SPiER.
   then from `ig/` run [SUSHI](https://fshschool.org/docs/sushi/) to compile the
   FSH sources to FHIR JSON and the HL7 IG Publisher to render this site.
 
-## 2. Validate a resource against a SPiER profile
+### 2. Validate a resource against a SPiER profile
 
 Use the official HL7 validator. Download `validator_cli.jar` from the
 [validator releases](https://github.com/hapifhir/org.hl7.fhir.core/releases),
@@ -39,7 +37,7 @@ US Core alone, so the local `validator_cli.jar` route is the reliable one. A
 good first instance is one of the published examples — the ASQ result
 Observation, say — edited to your own data.
 
-## 3. Decide which role you are
+### 3. Decide which role you are
 
 SPiER states conformance per system role, each with a CapabilityStatement:
 
@@ -54,7 +52,7 @@ SPiER states conformance per system role, each with a CapabilityStatement:
 
 [Conformance](conformance.html) defines what Must-Support means for each.
 
-## 4. See it working
+### 4. See it working
 
 The **[companion app](https://spier-project.github.io/adoption-guide/)** is a
 runnable reference implementation: it captures each instrument, persists the
@@ -63,7 +61,7 @@ suicide-risk concept) and walks the eight-stage pathway in a simulated chart.
 Use it to see the expected shapes end to end before you build. Its source, and
 this guide's, is the same [repository](https://github.com/SPiER-Project/adoption-guide).
 
-## 5. Give feedback
+### 5. Give feedback
 
 File questions and issues on
 [GitHub Issues](https://github.com/SPiER-Project/adoption-guide/issues); build
