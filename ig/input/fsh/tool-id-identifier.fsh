@@ -35,7 +35,7 @@
 //
 // ─── Decision: yes, a NamingSystem ───────────────────────────────────────────
 //
-// The plan for this change (`docs/plans/docs-and-ig-content-consolidation.md`,
+// The plan for this change (`docs/plans/archive/docs-and-ig-content-consolidation.md`,
 // task C2) asked whether the id system should itself be published as a
 // NamingSystem, and to record the decision either way here. It is published,
 // below, for two reasons:

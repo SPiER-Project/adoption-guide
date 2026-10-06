@@ -82,6 +82,14 @@ const ALLOWED = [
     // their standard category slice. See the docblock above before widening
     // this back out to `[A-Za-z]+`.
     pattern: /^Sliced element Communication\.category is being accessed via numeric index\./,
+    // ⚠️ The MESSAGE cannot tell the benign shape from the data-loss one — both
+    // print this exact text. The SOURCE line can: the warning's File/Line must
+    // be a sub-element write (`* category[+].text = …`). A whole-value
+    // `* category[+] = <coding>` on a Communication instance is overwritten by
+    // the domain slice exactly as the Observations were, and is not allowed
+    // (2026-10-06 audit: planted on ExampleCrisisResourcesShared, it passed and
+    // the generated resource lost the coding).
+    source: /^\*\s*category\[\+\]\.text\s*=/,
     why: 'Communication example Instances set `category[+].text` — a SUB-ELEMENT of '
        + 'index 0, so the concept-domain coding merges into that same '
        + 'CodeableConcept rather than replacing it. Both survive; verified against '
@@ -175,9 +183,34 @@ if (reportedErrors > 0 || errors.length > 0) {
   if (errors.length === 0) fail(`SUSHI reported ${reportedErrors} error(s)`)
 }
 
+/**
+ * The FSH line a warning points at, read from its `File:` / `Line:` context.
+ * A CI log carries the runner's absolute path, so it is re-rooted at `ig/`.
+ * Returns null when the line cannot be read — and an allowlist entry that needs
+ * the source then refuses to vouch for the warning.
+ */
+function sourceLine(context) {
+  const file = context.find((c) => c.startsWith('File:'))?.slice(5).trim()
+  const line = Number(context.find((c) => c.startsWith('Line:'))?.slice(5).trim().split(/\D/)[0])
+  if (!file || !line) return null
+  const tail = file.split(/[\\/]ig[\\/]/).pop()
+  const local = resolve(igDir, tail)
+  if (!existsSync(local)) return null
+  return readFileSync(local, 'utf8').split('\n')[line - 1]?.trim() ?? null
+}
+
 const tally = new Map(ALLOWED.map((a) => [a.id, 0]))
 for (const w of warnings) {
   const match = ALLOWED.find((a) => a.pattern.test(w.message))
+  if (match && match.source) {
+    const src = sourceLine(w.context)
+    if (src === null || !match.source.test(src)) {
+      fail(`a "${match.id}" warning points at a source line this allowlist entry does not cover:\n` +
+        `    ${w.context.join('  ')}\n    → ${src ?? '(could not read the FSH line)'}\n` +
+        `    The entry allows only ${match.source}; a whole-value \`category[+] = <coding>\` loses the coding — name the slice instead.`)
+      continue
+    }
+  }
   if (match) {
     tally.set(match.id, tally.get(match.id) + 1)
     continue
@@ -188,6 +221,13 @@ for (const w of warnings) {
 
 for (const [id, count] of tally) {
   const entry = ALLOWED.find((a) => a.id === id)
+  // An entry that matched nothing has outlived its reason, and an exemption
+  // that outlives its reason reads as "checked" forever — the same expiry rule
+  // as check-md-paths.mjs's allowlist.
+  if (count === 0) {
+    fail(`allowlist entry "${id}" matched no warning — the warning it explains is gone; delete the entry`)
+    continue
+  }
   console.log(`  ${count} × ${id} — expected. ${entry.why}`)
 }
 

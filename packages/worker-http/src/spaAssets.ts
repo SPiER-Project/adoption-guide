@@ -25,7 +25,7 @@
  *
  * The embedded-panel work launches the app INSIDE a host chart on a different
  * origin, so framing has to be permitted deliberately.
- * [`docs/plans/embedded-panel-smart-launch.md`](../../../docs/plans/embedded-panel-smart-launch.md)
+ * [`docs/plans/archive/embedded-panel-smart-launch.md`](../../../docs/plans/archive/embedded-panel-smart-launch.md)
  * §6 calls this "the first thing that will break", and it is worth knowing which
  * direction the breakage runs: with no CSP at all a browser frames these apps
  * from anywhere, so this header can only ever REDUCE what works. If a panel

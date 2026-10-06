@@ -41,9 +41,9 @@ deliberately deeper than the design for WCAG AA at app sizes.
 ## The gates travel with it
 
 `check:tokens`, `check:css-dead`, `check:prose` and `check:template` all read
-this tree **and** `web/src` — the components live here and the pages that use
-them live there, so every one of those questions spans both. They stay in
-`scripts` and run in `web`'s `npm run verify`, the same arrangement
+this tree **and** the app trees (`apps/guide/src`, `apps/clinical/src`) — the
+components live here and the pages that use them live there, so every one of those questions spans both. They stay in
+`scripts` and run in the root's `npm run verify`, the same arrangement
 `packages/core` uses for its tests: **one pipeline, not a fourth.**
 
 ⚠️ Every one of them fails when it reads nothing, and each was re-proven against

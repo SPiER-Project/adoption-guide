@@ -21,10 +21,18 @@
  *      `vitest.config.ts` value-imports its body from packages/worker-tooling,
  *      and its `tsconfig.json` `extends` the shared base. A file that stops
  *      importing the shared body is a copy coming back, whatever it contains.
+ *   1b. …and the versions each service's OWN `package-lock.json` resolves for
+ *      those devDependencies are identical too, and so are any `overrides`. CI
+ *      runs `npm ci` per service from its own lock, so identical RANGES were
+ *      still four different installs: on 2026-10-06 eslint resolved to 10.8.0,
+ *      10.8.0, 10.10.0 and 10.8.1, and typescript-eslint to 8.65–8.70, with this
+ *      gate green.
  *   3. No service config re-declares what the shared body owns: no `find:` /
- *      `replacement:` alias entry, no `compilerOptions`, no `paths`. Rule 2
- *      cannot see a file that imports the body AND adds a local alias on top;
- *      this can.
+ *      `replacement:` alias entry, no object-form `alias`, no eslint `rules`,
+ *      no `compilerOptions`, no `paths`. Rule 2 cannot see a file that imports
+ *      the body AND adds a local alias or rule override on top; this can. (The
+ *      object-form alias and the `rules` override both passed planted until
+ *      2026-10-06.)
  *   4. `tsconfig.worker.json`'s `paths` and `aliases.mjs` name the SAME set of
  *      `@spier/*` packages, and every target exists on disk. tsc resolves
  *      through one list and the bundler through the other; a package in only
@@ -125,6 +133,31 @@ if (reference) {
 }
 
 // ─── Rules 2 + 3: every config consumes the shared body, and adds nothing ────
+// Rule 1b — what the lockfiles actually install, and any overrides.
+if (reference) {
+  const [refDir, refManifest] = reference
+  const lockOf = (dir) => readJsonc(join(dir, 'package-lock.json'))?.packages ?? null
+  const refLock = lockOf(refDir)
+  if (!refLock) fail(`${rel(refDir)}/package-lock.json is missing or unreadable — the installed toolchain cannot be compared`)
+  for (const [dir, j] of manifests) {
+    if (JSON.stringify(j.overrides ?? null) !== JSON.stringify(refManifest.overrides ?? null)) {
+      fail(`overrides differ between ${rel(refDir)}/package.json and ${rel(dir)}/package.json — an override re-pins what the shared ranges say`)
+    }
+    if (dir === refDir || !refLock) continue
+    const lock = lockOf(dir)
+    if (!lock) { fail(`${rel(dir)}/package-lock.json is missing or unreadable`); continue }
+    for (const name of Object.keys(refManifest.devDependencies ?? {})) {
+      const want = refLock[`node_modules/${name}`]?.version
+      const got = lock[`node_modules/${name}`]?.version
+      if (!want || !got) {
+        fail(`${name} is not installed by ${!want ? rel(refDir) : rel(dir)}/package-lock.json`)
+      } else if (want !== got) {
+        fail(`${name} resolves to ${want} in ${rel(refDir)}/package-lock.json but ${got} in ${rel(dir)}/package-lock.json — same range, different install; align the lockfiles`)
+      }
+    }
+  }
+}
+
 const STRIP_COMMENTS = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '')
 for (const dir of services) {
   for (const [file, want] of Object.entries(CONFIGS)) {
@@ -152,8 +185,11 @@ for (const dir of services) {
     if (!new RegExp(`\\b${want.symbol}\\s*\\(`).test(code)) {
       fail(`${rel(path)}: imports ${want.symbol} but never calls it`)
     }
-    for (const forbidden of ['find:', 'replacement:', 'compilerOptions', '"paths"']) {
-      if (code.includes(forbidden)) {
+    // `alias:` (Vite's object form, beside the array form's `find:`) and `rules:`
+    // (an eslint override appended after the shared body) are keys, matched as such.
+    const FORBIDDEN_KEYS = [['find:'], ['replacement:'], ['compilerOptions'], ['"paths"'], ['alias', /\balias\s*:/], ['rules', /\brules\s*:/]]
+    for (const [forbidden, re] of FORBIDDEN_KEYS) {
+      if (re ? re.test(code) : code.includes(forbidden)) {
         fail(`${rel(path)}: contains \`${forbidden}\` — a per-service alias or option set is the drift this gate exists to stop; it belongs in packages/worker-tooling`)
       }
     }

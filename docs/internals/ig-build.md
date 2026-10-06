@@ -46,6 +46,17 @@ output format fails loudly instead of passing vacuously. `ig.yml` runs it on the
 tee'd output of its compile step; a new expected warning belongs in `ALLOWED`,
 with the reason it is expected.
 
+⚠️ **Two rules added 2026-10-06, both after a planted defect passed.** An entry
+can also name the **source line** its warning must point at (`source:` in
+`ALLOWED`), because the message cannot tell the benign shape from the data-loss
+one: a whole-value `* category[+] = <coding>` on a Communication prints exactly
+the text the allowed `category[+].text` advisory does, and it passed the gate
+while the generated resource lost the coding. And an entry that matches **no**
+warning now fails — an exemption that outlives its warning reads as checked
+forever. `ig.yml`'s compile step runs under an explicit `shell: bash`:
+GitHub's default shell has no pipefail, so `sushi . | tee` used to report
+tee's exit status, not SUSHI's.
+
 Also at the repo root, and dependency-free — `ig/sushi-config.yaml`'s `menu:`
 and `pages:` blocks each have to be right, and right about each other:
 ```
@@ -97,9 +108,13 @@ runs after. Making F and H degrade when `fsh-generated/` is absent would have
 been the worse trade — a gate that quietly checks less is the #232/#261 shape
 exactly. Its four checks:
 
-- **E. No repo internals** in `ig/input/pagecontent/*.md` — `apps/`,
-  `packages/`, `npm run`, `scripts/`, `.mjs`, `vitest`, `sushi-config`,
-  `path-binary`, a bare `check:<name>` gate name, and `#NNN` issue references. An IG page is read by
+- **E. No repo internals** in `ig/input/pagecontent/*.md` — a repo path
+  (`apps/`, `services/`, `packages/`, `scripts/`, `web/`), `npm run`, `.mjs`,
+  `vitest`, `sushi-config`, `path-binary`, a bare `check:<name>` gate name,
+  `#NNN` issue references of any length and GitHub issue/PR URLs. ⚠️ Until
+  2026-10-06 the path rule was `web/src` alone and issue numbers stopped at four
+  digits, so `apps/guide/src/App.tsx`, `#12345` and an issues URL all passed
+  (this paragraph claimed `apps/` was covered). An IG page is read by
   implementers who do not have this repo; build and gate prose lives in
   `CLAUDE.md` and `docs/internals/`, never in an IG page. No opt-out marker
   until a real need appears.
@@ -108,9 +123,16 @@ exactly. Its four checks:
   — an id named nothing a reader could look up, so A3 stripped them all out.
   Zero mentions is still a legitimate state and today's: the prose links AD
   pages under the tool's **name**, which is better for a reader than a bare id.
-- **G. Every `#/route` link resolves** to a **non-legacy** route in
-  `apps/guide/src/App.tsx`, and `#/guide/<x>` is also a section in
-  `apps/guide/src/data/guideSections.ts`. ⚠️ *Non-legacy* is the whole point:
+- **G. Every `#/route` link resolves** to a **non-legacy** route **on the app
+  its host serves** — `deploy-origins.json`'s `guide` and `pages` serve
+  `apps/guide`, `clinical` serves `apps/clinical`, an unknown host is a finding —
+  and `#/guide/<x>` is also a section in `apps/guide/src/data/guideSections.ts`.
+  A link that matches only a `:param` route must name a real value (a
+  published tool id or form slug, a stage code, a demo patient); a param with no
+  resolver in the gate is a finding. ⚠️ Until 2026-10-06 G read the UNION of
+  both route tables and let any param match anything, so a guide-host link to
+  the clinical-only `#/patient/record` and `#/guide/tools/no-such-tool` both
+  passed. ⚠️ *Non-legacy* is the whole point:
   `/guide/roadmap` and `/guide/measures` still exist as `<Navigate>` redirects,
   so a naive route scan calls a link to a page #440 deleted perfectly fine —
   and three pages linked `#/guide/roadmap` for exactly that reason. The one
@@ -118,11 +140,15 @@ exactly. Its four checks:
   **index** route navigating to a **relative** target is picking its parent's
   default child (`/patient` → `chart`), so the parent really does land
   somewhere; an **absolute** target is a redirect away from a page that is gone.
-  ⚠️ Because G reads `apps/guide/src`, `ig.yml` triggers on those two files — a route
-  rename breaks the IG's links with **no `ig/` change at all**.
+  ⚠️ Because G reads both `App.tsx` files, `guideSections.ts`, the tool views,
+  `patients.json` and `deploy-origins.json`, `ig.yml` triggers on all of them — a
+  route rename breaks the IG's links with **no `ig/` change at all**.
 - **H. Every internal `.html` link resolves** to a `pages:` entry, an artifact
-  page the publisher will emit, or a `GENERATED_PAGES` entry. ⚠️ **H is the
-  owner of `.html` links** — `check-md-links.mjs` skips them on purpose
+  page the publisher will emit, or a `GENERATED_PAGES` entry — in every link
+  form: plain, angle-bracketed, with a title, a reference definition,
+  `<a href>` and `./p.html` (only the first was read before 2026-10-06; the
+  other five passed planted). ⚠️ **H is the owner of `.html` links under
+  `ig/input/`** — `check-md-links.mjs` skips those on purpose
   (see [`docs-gates.md`](docs-gates.md)), because the publisher resolves them at render time and a
   file-existence test cannot model that. Its artifact index is built from
   `resourceType` + `id` read out of each resource rather than from filenames,
@@ -216,6 +242,15 @@ Questionnaires, the two CarePlan templates and the ASQ yes/no ValueSet are
 loaded, validated and rendered as IG artifacts. The app imports the same files
 at runtime through `packages/core/src/data/questionnaires.ts`, the single owner
 of those import paths.
+
+⚠️ **`validate-fhir.mjs` and `check-canonical-uniqueness.mjs` read their
+hand-authored directories from `path-resource`** (`scripts/lib/ig-config.mjs`),
+like the narrative gate always did. Until 2026-10-06 both hardcoded this tree,
+so an invalid resource or a duplicate canonical dropped into
+`input/resources/maps/` — which the publisher also loads — passed both. The
+canonical gate also holds CLAUDE.md's **no CodeSystem in the JSON tree** rule
+now; a new CodeSystem with a fresh URL collides with nothing, so uniqueness
+alone never caught it.
 
 ⚠️ **These folders hold resource JSON and nothing else.** Reference material —
 READMEs, licensing memos, PDFs, transcripts, spreadsheets — lives in

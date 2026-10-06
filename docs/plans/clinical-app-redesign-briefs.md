@@ -1,7 +1,7 @@
 # Clinical app redesign — one session brief per PR
 
 **Status:** briefs written 2026-09-21 for the PR sequence in
-[`clinical-app-ux-audit-2026-09-21.md`](clinical-app-ux-audit-2026-09-21.md) §6.
+[`clinical-app-ux-audit-2026-09-21.md`](archive/clinical-app-ux-audit-2026-09-21.md) §6.
 PR 1 shipped from the audit's own session; PRs 2–7 are each meant to run in a
 **fresh chat**, so a session never needs the audit session's context — only
 this file and the repo.
@@ -26,7 +26,7 @@ the docs/internals/ file it names for the area you are changing. Every ⚠️ in
 those files is a defect that shipped.
 
 This session is ONE pull request of the clinical-app redesign. The audit that
-scoped it is docs/plans/clinical-app-ux-audit-2026-09-21.md — read the sections
+scoped it is docs/plans/archive/clinical-app-ux-audit-2026-09-21.md — read the sections
 the brief names, and §4 (the target design) and §7 (the decisions Brad made on
 2026-09-21) in full. The decisions are settled; do not re-open them.
 
@@ -56,7 +56,7 @@ Working rules:
 - Measure before and after in a real browser at 375×812 and 470×900. The
   audit's numbers are in its §3; yours go in the PR description.
 - When the PR is up, add a dated "**Status YYYY-MM-DD (PR n):**" paragraph to
-  the top of docs/plans/clinical-app-ux-audit-2026-09-21.md saying what shipped
+  the top of docs/plans/archive/clinical-app-ux-audit-2026-09-21.md saying what shipped
   and what was deliberately not done, the way
   docs/plans/archive/adoption-guide-ux-audit-2026-09-20.md does. Do NOT write
   the words done, complete, merged or implemented on the file's own
@@ -413,7 +413,7 @@ CaseloadTable, caseloadColumns), hooks/useRegistrySlices.ts and
 useCaseloadSummary.ts, and packages/core/src/lib/registry.ts and measures.ts.
 
 Part 1 — AUDIT FIRST, as a new section appended to
-docs/plans/clinical-app-ux-audit-2026-09-21.md. Launch the caseload from the
+docs/plans/archive/clinical-app-ux-audit-2026-09-21.md. Launch the caseload from the
 demo EHR's front door ("Open the full caseload", a user-scoped launch) at
 375×812 and desktop, and the measures via "Launch measures". For each screen:
 who the reader is, the words they meet on arrival, the pixel offset of the

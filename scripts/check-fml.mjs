@@ -43,7 +43,7 @@
  *   Executes StanleyBrownQRToCarePlan over a committed QuestionnaireResponse
  *   and compares the result to `scripts/fixtures/stanley-brown/`
  *   `careplan-expected.json`. The TypeScript half of the same contract is
- *   asserted offline by `web/src/lib/carePlanMappers/stanleyBrown.parity.test.ts`,
+ *   asserted offline by `packages/core/src/lib/carePlanMappers/stanleyBrown.parity.test.ts`,
  *   which compares the runtime mapper against that same golden file. Between
  *   them, either side drifting from the declared transformation goes red.
  *

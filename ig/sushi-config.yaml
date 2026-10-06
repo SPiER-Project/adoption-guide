@@ -138,7 +138,7 @@ parameters:
 # `node scripts/build-ig-groups.mjs` from one rule per FSH file / tool folder /
 # .fml map (the RULES table in that script); `--check` fails in ig.yml when the
 # block is stale or a source has no rule. The eight groups and why the page is
-# grouped by purpose rather than by resource type: docs/plans/ig-cleanup-audit-2026-09-16.md §4.
+# grouped by purpose rather than by resource type: docs/plans/archive/ig-cleanup-audit-2026-09-16.md §4.
 # The FML StructureMaps sit under `resources:` rather than `groups:` because SUSHI
 # never loads .fml and rejects a group member it did not load.
 # ── BEGIN generated groups — node scripts/build-ig-groups.mjs; do not edit by hand ──

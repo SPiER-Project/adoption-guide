@@ -12,7 +12,7 @@ name: IG — Sushi compile + validate
 # The two are complementary, not redundant:
 #   - ig-publish.yml is triggered by `ig/**` only, and gates on a coarse
 #     `err = N` / `Broken Links: N` parse of qa.txt.
-#   - this workflow additionally covers `packages/demo-population/src/scenarios/**`, the demo registry's
+#   - this workflow additionally covers `packages/demo-population/src/**`, the demo registry's
 #     hand-authored FHIR, which the Stage-8 measure engine reads (#226). It
 #     reports per-resource conformance with inline PR annotations.
 
@@ -22,11 +22,24 @@ on:
       - main
     paths:
       - 'ig/**'
-      - 'packages/demo-population/src/scenarios/**'
+      # The whole demo-population tree, not only scenarios/: validate-fhir also
+      # reads the 14 Patients under patients/, the runtime emitter imports the
+      # package index, and check G resolves `:patientId` against patients.json.
+      - 'packages/demo-population/src/**'
       - 'scripts/validate-fhir.mjs'
       - 'scripts/check-ig-menu.mjs'
       - 'scripts/check-ig-narrative.mjs'
       - 'scripts/lib/ig-config.mjs'
+      # Every gate script this workflow runs, and every lib it imports — a PR
+      # that widens an allowlist must re-run the gate it widened (2026-10-06
+      # gates audit: these four were missing, so editing them ran nothing).
+      - 'scripts/check-sushi-output.mjs'
+      - 'scripts/build-ig-groups.mjs'
+      - 'scripts/check-canonical-uniqueness.mjs'
+      - 'scripts/lib/jsx-comments.mjs'
+      - 'scripts/lib/stage-codes.mjs'
+      - 'scripts/lib/validator-jar.mjs'
+      - 'scripts/lib/floors.mjs'
       # check-ig-narrative's check G resolves the IG's `#/route` links against
       # the app's live routes and the guide's own section list. A route rename
       # or a deleted guide section breaks those links with NO `ig/` change at
@@ -35,6 +48,12 @@ on:
       # idle for the only change that can break what it checks.
       - 'apps/guide/src/App.tsx'
       - 'apps/guide/src/data/guideSections.ts'
+      # …and since check G places each link on the app its HOST serves: the
+      # clinical route table, the origins file that maps host → app, and the
+      # tool views that are the legal `:toolRef` values.
+      - 'apps/clinical/src/App.tsx'
+      - 'deploy-origins.json'
+      - 'packages/tool-views/src/data/toolViews.tsx'
       - 'scripts/check-concept-crosswalk.mjs'
       # The runtime corpus (#302) is produced by the app's own builders, so a
       # builder change has to re-run the validator. Without these the gate would
@@ -43,16 +62,30 @@ on:
       - 'packages/core/src/types/**'
       - 'package.json'
       - 'scripts/copy-fhir.mjs'
+      - 'tests/runtimeFhir.emit.test.ts'
       - 'scripts/lib/sushi-version.mjs'
       - '.github/workflows/ig.yml'
   pull_request:
     paths:
       - 'ig/**'
-      - 'packages/demo-population/src/scenarios/**'
+      # The whole demo-population tree, not only scenarios/: validate-fhir also
+      # reads the 14 Patients under patients/, the runtime emitter imports the
+      # package index, and check G resolves `:patientId` against patients.json.
+      - 'packages/demo-population/src/**'
       - 'scripts/validate-fhir.mjs'
       - 'scripts/check-ig-menu.mjs'
       - 'scripts/check-ig-narrative.mjs'
       - 'scripts/lib/ig-config.mjs'
+      # Every gate script this workflow runs, and every lib it imports — a PR
+      # that widens an allowlist must re-run the gate it widened (2026-10-06
+      # gates audit: these four were missing, so editing them ran nothing).
+      - 'scripts/check-sushi-output.mjs'
+      - 'scripts/build-ig-groups.mjs'
+      - 'scripts/check-canonical-uniqueness.mjs'
+      - 'scripts/lib/jsx-comments.mjs'
+      - 'scripts/lib/stage-codes.mjs'
+      - 'scripts/lib/validator-jar.mjs'
+      - 'scripts/lib/floors.mjs'
       # check-ig-narrative's check G resolves the IG's `#/route` links against
       # the app's live routes and the guide's own section list. A route rename
       # or a deleted guide section breaks those links with NO `ig/` change at
@@ -61,6 +94,12 @@ on:
       # idle for the only change that can break what it checks.
       - 'apps/guide/src/App.tsx'
       - 'apps/guide/src/data/guideSections.ts'
+      # …and since check G places each link on the app its HOST serves: the
+      # clinical route table, the origins file that maps host → app, and the
+      # tool views that are the legal `:toolRef` values.
+      - 'apps/clinical/src/App.tsx'
+      - 'deploy-origins.json'
+      - 'packages/tool-views/src/data/toolViews.tsx'
       - 'scripts/check-concept-crosswalk.mjs'
       # The runtime corpus (#302) is produced by the app's own builders, so a
       # builder change has to re-run the validator. Without these the gate would
@@ -69,6 +108,7 @@ on:
       - 'packages/core/src/types/**'
       - 'package.json'
       - 'scripts/copy-fhir.mjs'
+      - 'tests/runtimeFhir.emit.test.ts'
       - 'scripts/lib/sushi-version.mjs'
       - '.github/workflows/ig.yml'
   workflow_dispatch:
@@ -146,9 +186,12 @@ jobs:
       # capture is scoped to this one command on purpose: the `npm install -g
       # fsh-sushi` step above prints its own `npm warn deprecated …` lines, and
       # a whole-job grep for "warn" false-positives on every one of them.
-      # GitHub's default shell runs with pipefail, so a failing compile still
-      # fails this step rather than being masked by tee.
+      # ⚠️ `shell: bash` is load-bearing. GitHub's DEFAULT shell is `bash -e
+      # {0}` — no pipefail — so `sushi . | tee` took tee's exit status and a
+      # failing compile passed this step (this comment used to claim otherwise).
+      # An explicit `shell: bash` runs `bash --noprofile --norc -eo pipefail`.
       - name: Compile FSH
+        shell: bash
         run: sushi . 2>&1 | tee sushi-output.log
 
       # #273: "SUSHI is quiet" stopped being a usable signal when #271 took the

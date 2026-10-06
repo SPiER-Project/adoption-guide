@@ -10,7 +10,7 @@
 **Short name / abbreviation:** CARS (catalogued in SPiER as **CARS-S**, TL-028)
 **SPiER tool ID:** TL-028
 **SPiER pathway stage(s):** clarify-risk (Clarify Risk)
-**Repository location:** `ig/input/resources/questionnaires/CARS-S/` (licensing audit only; no Questionnaire/FSH authored)
+**Repository location:** `docs/instruments/CARS-S/` (licensing audit only; no Questionnaire/FSH authored)
 **Placeholder ActivityDefinition:** `AdministerCARSS` in `ig/input/fsh/pathway-tool-placeholders.fsh` (unchanged — remains a placeholder)
 
 ## Instrument provenance

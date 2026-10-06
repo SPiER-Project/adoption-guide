@@ -69,7 +69,7 @@ to the owning section, which the tool page never asks anyway.
 `/patient/chart` and `/population` are **redirects to guide pages that explain
 the two SMART apps** (`/guide/provider-app`, `/guide/dashboard`); the apps
 themselves answer on `/patient/record` and `/population/caseload`. See
-[`docs/plans/embedded-panel-smart-launch.md`](../plans/embedded-panel-smart-launch.md)
+[`docs/plans/archive/embedded-panel-smart-launch.md`](../plans/archive/embedded-panel-smart-launch.md)
 §6.3, *"The explainer is the page, and the app is a launch"*.
 
 ⚠️ **An explainer is a `guideSections.ts` entry, and that is load-bearing** —

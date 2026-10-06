@@ -324,7 +324,7 @@ boundary it cannot exist.
 
 The mock EHR is the same shape from the other side. It shares
 `packages/core/fhir-resource-rules.mjs` with `check-scenario-resources.mjs`, and
-[`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) §1 *requires*
+[`embedded-panel-smart-launch.md`](archive/embedded-panel-smart-launch.md) §1 *requires*
 that it do so "rather than inventing a second, laxer opinion" — a lenient mock
 accepts writes a real EHR rejects, so the demo looks better while proving less.
 Its own repository makes that module a published package or a copy, and a copy is
@@ -868,7 +868,7 @@ under the old version.
   SMART (`PopulationView.tsx` imports `localDataSource` directly, bypassing the
   `FhirDataSource` abstraction). ⚠️ **That line turned out to be the gate on the
   whole reshape** — see §9.5 step C. `MeasureDashboard.tsx` does the same thing.
-- [`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) — the six
+- [`embedded-panel-smart-launch.md`](archive/embedded-panel-smart-launch.md) — the six
   merged panel steps that produced the second Worker, and §6.3 there for why the
   embedded population dashboard is labelled rather than claimed. Its decision 1
   (one shell, two chrome modes) independently re-derives §5.

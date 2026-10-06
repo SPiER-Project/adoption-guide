@@ -1,3 +1,5 @@
+> Archived 2026-10-06: every decision in its status table is proven or decided and all seven phases (0–6) were done by 2026-08-20; the host it planned is `services/mock-ehr/`. Moved by the tightened plan-status gate, which until then could not read a `## Status` table.
+
 # The embedded panel: SPiER as a SMART app launched from a host chart
 
 Written 2026-08-18, from the proposal *"deliver the care path and its tools as a
@@ -17,7 +19,7 @@ a clinical reviewer has to be *told* which half is for them.
 | Decision | State |
 |---|---|
 | **1 — panel is a chrome mode of the existing app, not a second app** | **PROVEN 2026-08-19.** One route table, one shell switch; the panel ran embedded in a host chart with no second app and no forked routes. §3 |
-| **2 — the host is a mock EHR we write, serving real FHIR** | **DECIDED 2026-08-18.** Reverses [`mock-patient-smart-launch.md`](mock-patient-smart-launch.md) §6; the Medplum variant is rejected. Reason, guardrails and costs in §8. |
+| **2 — the host is a mock EHR we write, serving real FHIR** | **DECIDED 2026-08-18.** Reverses [`mock-patient-smart-launch.md`](../mock-patient-smart-launch.md) §6; the Medplum variant is rejected. Reason, guardrails and costs in §8. |
 | **3 — cross-origin: host and panel on separate `workers.dev` hostnames** | **PROVEN 2026-08-19** in a browser, both directions: the panel renders framed from the permitted origin, and a non-permitted origin is refused by `frame-ancestors`. §6 |
 | **4 — claim the demo makes is "SMART activity", not "persistent sidebar"** | **DECIDED.** §2 |
 | **5 — panel submit drives the writeback ladder** | **PROVEN 2026-08-20.** A real submit against the mock wrote QR + 4 Observations; flipping the profile degraded the same submit to QR + the DocumentReference floor. §5.1 |
@@ -26,7 +28,7 @@ a clinical reviewer has to be *told* which half is for them.
 | Phase | State |
 |---|---|
 | 0 — width spike: one long instrument at panel width | **DONE 2026-08-18 — passes at 470px.** §9.1 |
-| 1 — mock EHR read API over the existing fixtures | **DONE** — `services/mock-ehr/`. Spec + what building it found: [`mock-ehr-read-api.md`](archive/mock-ehr-read-api.md). §7 |
+| 1 — mock EHR read API over the existing fixtures | **DONE** — `services/mock-ehr/`. Spec + what building it found: [`mock-ehr-read-api.md`](mock-ehr-read-api.md). §7 |
 | 2 — SMART authorize/token stub, cross-origin iframe launch | **DONE.** `/authorize` + `/token` with PKCE S256 verified, launch contexts, patient-bound tokens, `frame-ancestors` on the panel host. The iframe half was unproven until step 5 framed it; **both halves are now observed in a browser — §6.1.** §4 |
 | 3 — `PanelShell`, navigation stack, code drawer | **DONE 2026-08-18.** `PanelShell` in #358 (`3832e18`): 252px of chrome above the first question → **76px**, chrome-mode context, `INSET_OWNERS` declared to `check:template`. Code drawer in #360 (`1901c0e`): the stranded sidebar (§9.1 finding 3) becomes a bottom drawer, one tap from any scroll position. §3 |
 | 4 — writes + the capability-degradation demo | **DONE 2026-08-20.** `POST /fhir/{Type}` + `PUT /fhir/{Type}/{id}`, validated against the SAME rules as `check-scenario-resources.mjs`, capability-gated, persisted in a Durable Object with a visible reset. What a browser found: §5.1 |
@@ -37,7 +39,7 @@ a clinical reviewer has to be *told* which half is for them.
 
 ## 1. This reverses a decision made five days ago
 
-[`mock-patient-smart-launch.md`](mock-patient-smart-launch.md) §6 evaluated
+[`mock-patient-smart-launch.md`](../mock-patient-smart-launch.md) §6 evaluated
 "write our own mock FHIR + SMART auth endpoints on the existing Worker" and
 recorded it **NOT RECOMMENDED**. Its argument is not about effort, and it is
 good:
@@ -99,7 +101,7 @@ Two entry points, and the second is the interesting one:
 
 - an EHR-native activity button (vendor-configured; boring; real), and
 - **a CDS Hooks card whose link is `type: "smart"`.** `CdsLink.type` in
-  [`packages/core/src/lib/cdsHooks/types.ts`](../../packages/core/src/lib/cdsHooks/types.ts) already
+  [`packages/core/src/lib/cdsHooks/types.ts`](../../../packages/core/src/lib/cdsHooks/types.ts) already
   declares `'smart'` with the comment *"unused by SPiER today"*. This is what it
   was left open for: `patient-view` fires → a card says "positive PSS-3, C-SSRS
   Full indicated" → the link opens the panel already scoped to that tool. It
@@ -143,7 +145,7 @@ honoring it is two lines and tells an informaticist the spec was read.
 ### The code drawer
 
 Today the FHIR view is a `.debug-sidebar` `<aside>` inside `.form-wrapper`
-([`QuestionnaireView.tsx`](../../packages/tool-views/src/components/QuestionnaireView.tsx)). It
+([`QuestionnaireView.tsx`](../../../packages/tool-views/src/components/QuestionnaireView.tsx)). It
 cannot survive beside a form at panel width. It becomes a **bottom drawer with
 three tabs**:
 
@@ -172,7 +174,7 @@ to that domain.
 
 The mock EHR serves the *same* `packages/demo-population/src/scenarios/patient-0NN.json`
 fixtures the app ships. No second copy of any patient. `collectScenarioResources`
-in [`scripts/validate-fhir.mjs`](../../scripts/validate-fhir.mjs) already does
+in [`scripts/validate-fhir.mjs`](../../../scripts/validate-fhir.mjs) already does
 the bucket-unwrapping walk the read path needs.
 
 ### One shell, two chrome modes
@@ -188,7 +190,7 @@ what the *demo* is; it does not answer what a client receives, and a client does
 not want the guide lenses or the 14 synthetic patients that
 `PatientProvider` bundles eagerly on every build. A third axis — **build
 surface** (`demo` / `clinical`) — is orthogonal to chrome mode and belongs in
-the same seam. See [`surfaces-and-distribution.md`](surfaces-and-distribution.md)
+the same seam. See [`surfaces-and-distribution.md`](../surfaces-and-distribution.md)
 §3, which also corrects the scope of `repo-and-package-boundaries.md` §5 that
 this section inherited.
 
@@ -215,11 +217,11 @@ The read side is mechanical. The SMART stub is where the credibility is.
 | `GET /fhir/metadata` | **load-bearing — see below** |
 | `GET /fhir/Patient/{id}`, `GET /fhir/{Type}?patient=` | `SmartDataSource.getSlice` issues 14 patient-scoped searches across 13 resource types; that list *is* the required surface, and it is not small |
 | `POST /fhir/{Type}` | strict — §1 guardrail 1 |
-| `PUT /fhir/{Type}/{id}` | ⚠️ **missing from this table until step 4 built it.** `saveArtifact` PUTs the eight lifecycle types so open→close converges; without it the panel's save aborts on the CORS preflight. §5.1 ⚠️ **It was update-as-create until #531** — a host may now answer 404 to a `PUT` at an id it does not hold, and SPiER creates with POST first. [`medplum-spike-2026-09-17.md`](archive/medplum-spike-2026-09-17.md) |
+| `PUT /fhir/{Type}/{id}` | ⚠️ **missing from this table until step 4 built it.** `saveArtifact` PUTs the eight lifecycle types so open→close converges; without it the panel's save aborts on the CORS preflight. §5.1 ⚠️ **It was update-as-create until #531** — a host may now answer 404 to a `PUT` at an id it does not hold, and SPiER creates with POST first. [`medplum-spike-2026-09-17.md`](medplum-spike-2026-09-17.md) |
 | `GET /authorize`, `POST /token` | PKCE S256, launch context |
 
 **`/metadata` is the one to get right.** `parseCapabilityStatement`
-([`packages/core/src/lib/writeback/capability.ts`](../../packages/core/src/lib/writeback/capability.ts))
+([`packages/core/src/lib/writeback/capability.ts`](../../../packages/core/src/lib/writeback/capability.ts))
 reads it to decide what SPiER may create. Make the CapabilityStatement
 **runtime-configurable from the mock EHR's own UI** and the writeback ladder
 stops being a slide — see §5.
@@ -236,7 +238,7 @@ open UX questions directly:
   already reads a `?tool=` param for `stampLaunchStage`; `intent` is the outer,
   spec-blessed form of the same information.) **Live since step 5.** The
   vocabulary is `open-<launch-path-slug>` and is **derived from the tool catalog
-  in both directions** ([`packages/core/src/lib/smartIntent.ts`](../../packages/core/src/lib/smartIntent.ts)),
+  in both directions** ([`packages/core/src/lib/smartIntent.ts`](../../../packages/core/src/lib/smartIntent.ts)),
   so a new tool is reachable by intent the day it has a launch action and nothing
   has to be kept in sync. An intent this build does not know resolves to null and
   lands on the pathway — the host is a different system on a different release
@@ -399,7 +401,7 @@ script is Node reading StructureDefinitions off a filesystem)". That was true of
 the script and false of the rules: the rules need the conformance resources only
 as **data**, and `import.meta.glob` inlines them into a Worker exactly as it
 already inlines the Patients. So the rules moved to
-[`packages/core/fhir-resource-rules.mjs`](../../packages/core/fhir-resource-rules.mjs)
+[`packages/core/fhir-resource-rules.mjs`](../../../packages/core/fhir-resource-rules.mjs)
 and both callers share them **verbatim** — the bodies were moved unchanged into a
 closure that supplies `fail` and `structureDefs`, so the diff on the rules
 themselves is empty and this refactor cannot have quietly loosened one. Proven by
@@ -870,7 +872,7 @@ launching itself so it can show a caseload was an artifact of the guide owning
 the screen. Phase A step 3 already anticipated this button.
 
 Recorded here rather than at the end of the work, deliberately: this doc and
-[`user-scoped-smart-launch.md`](user-scoped-smart-launch.md) held opposite
+[`user-scoped-smart-launch.md`](../user-scoped-smart-launch.md) held opposite
 directions for two days, and "record the reversal when it lands" is what let
 that sit. The work itself is still unstarted.
 
@@ -896,17 +898,17 @@ gain.
 `patients.json` is app-shaped (`id`, `displayName`, `dob`, `mrn`, `gender`,
 `recommendedNextStep`). Every `subject: Patient/patient-001` across the scenarios
 points at an id with nothing behind it; the only real `Patient` in the tree is
-`DEMO_PATIENT` in [`packages/tool-views/src/data/demoPatient.ts`](../../packages/tool-views/src/data/demoPatient.ts).
+`DEMO_PATIENT` in [`packages/tool-views/src/data/demoPatient.ts`](../../../packages/tool-views/src/data/demoPatient.ts).
 There are no `Practitioner` or `Organization` resources either, though artifacts
 name performers.
 
 ⚠️ **Measured 2026-08-18: that does not block a mock EHR.** Performers are
 `display` text only, so nothing dangles but `Patient`. The prerequisite below is
 14 `Patient` resources, which is smaller than this section implies — see
-[`mock-patient-smart-launch.md`](mock-patient-smart-launch.md) §2 deficit 1.
+[`mock-patient-smart-launch.md`](../mock-patient-smart-launch.md) §2 deficit 1.
 
 A mock EHR cannot serve `GET /fhir/Patient/patient-001` from resources that do
-not exist. So **phases 1–2 of [`mock-patient-smart-launch.md`](mock-patient-smart-launch.md)
+not exist. So **phases 1–2 of [`mock-patient-smart-launch.md`](../mock-patient-smart-launch.md)
 — mint the subject resources, emit validated per-patient Bundles — are a
 dependency of this plan, not an alternative to it.** That earlier plan already
 recommends doing them "regardless of everything below," on their own conformance
@@ -917,7 +919,7 @@ and `MeasureDashboard.tsx` import `localDataSource` **directly**, bypassing the
 `FhirDataSource` abstraction. Those are implementer lenses and therefore outside
 the panel, so this plan does not need them — but "the whole demo runs on the
 connected server" is not true until they are fixed
-([`mock-patient-smart-launch.md`](mock-patient-smart-launch.md) §8, phase 4).
+([`mock-patient-smart-launch.md`](../mock-patient-smart-launch.md) §8, phase 4).
 
 ## 8. DECIDED — the mock serves FHIR
 
@@ -1029,7 +1031,7 @@ Sequenced to kill unknowns first.
 | # | Step | Why here |
 |---|---|---|
 | **0** | ~~Width spike~~ — **done, §9.1** | C-SSRS Full renders at 470px with zero horizontal overflow. Geometry confirmed; nothing downstream shifts. |
-| 1 | Mock EHR read API + `/metadata` + discovery, no auth | Prove `SmartDataSource` reads a scenario patient over HTTP. **Unblocked** — #356 minted the `Patient` resources. Executable spec: [`mock-ehr-read-api.md`](archive/mock-ehr-read-api.md) |
+| 1 | Mock EHR read API + `/metadata` + discovery, no auth | Prove `SmartDataSource` reads a scenario patient over HTTP. **Unblocked** — #356 minted the `Patient` resources. Executable spec: [`mock-ehr-read-api.md`](mock-ehr-read-api.md) |
 | 2 | SMART stub: authorize, token, PKCE, `patient` / `intent` / `need_patient_banner` | Prove `/launch` → `/redirect` → chart works cross-origin *in an iframe*. Where `frame-ancestors` bites. |
 | 3 | ~~`PanelShell`, navigation stack, code drawer~~ **DONE (#358, #360)** | Now it looks like the product. Measured: 252px → 76px of chrome, and the FHIR view from ~3000px below the form to one tap away. |
 | 4 | ~~Writes on the mock; degradation demo~~ **DONE — §5.1** | It was a server, as predicted, plus three defects the spec's endpoint table hid (a PUT path, a second capability axis, upsert-aware reads). Guardrail 2 landed here: six planted rejections, and the validator fails to load rather than accept everything when its inputs are missing. |
@@ -1048,7 +1050,7 @@ reads through `FhirDataSource` as the chart already does, a directed launch work
 from a query param when there is no `intent`, and the *Written* tab degrades
 honestly to "what would be written" rather than implying a write that did not
 happen. Cheap now, expensive later. See
-[`surfaces-and-distribution.md`](surfaces-and-distribution.md) §8.
+[`surfaces-and-distribution.md`](../surfaces-and-distribution.md) §8.
 
 Steps 1–2 are UI-independent and can run in parallel with 0 and 3.
 
@@ -1219,17 +1221,17 @@ honest, because it claims nothing about what happens if you say no to part of it
 
 ## Related
 
-- [`mock-patient-smart-launch.md`](mock-patient-smart-launch.md) — **read
+- [`mock-patient-smart-launch.md`](../mock-patient-smart-launch.md) — **read
   §6 alongside §1 here.** Its phases 1–2 are this plan's prerequisite (§7); its
   §8 is the scope this plan deliberately excludes.
-- [`docs/smart-sandbox-testing.md`](../smart-sandbox-testing.md) — the current
+- [`docs/smart-sandbox-testing.md`](../../smart-sandbox-testing.md) — the current
   SMART walkthrough and its three known limitations.
-- [`surfaces-and-distribution.md`](surfaces-and-distribution.md) — the corrected
+- [`surfaces-and-distribution.md`](../surfaces-and-distribution.md) — the corrected
   surface inventory, the demo/clinical build split (§3 here is scoped by it), and
   the hosting topology.
-- [`repo-and-package-boundaries.md`](repo-and-package-boundaries.md) — a mock
+- [`repo-and-package-boundaries.md`](../repo-and-package-boundaries.md) — a mock
   server as a third consumer of shared code.
-- [`ux-navigation-improvements.md`](archive/ux-navigation-improvements.md) — the
+- [`ux-navigation-improvements.md`](ux-navigation-improvements.md) — the
   navigation work the panel's stack builds on.
 - #350 / PR #351 (`6f37e0d`) — the ladder's caller and scorecard, and the
   tier-model correction. **On `main` since 2026-08-18**; phase 4 builds on it.

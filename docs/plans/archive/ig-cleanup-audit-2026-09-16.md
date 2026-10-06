@@ -1,3 +1,5 @@
+> Archived 2026-10-06: all eight PRs merged on 2026-09-16 (#512–#522). Moved by the tightened plan-status gate, which until then could not read a `## Status` table.
+
 # IG cleanup audit: what an implementer can find, and what is in the way
 
 Written 2026-09-16 from a full read of the ten IG pages, the FSH prose that
@@ -192,7 +194,7 @@ narrative gate was built against, and it must be planted-and-verified.
 Brad asked whether the IG should pull its prose from some other content
 repository. Two recorded decisions bear on it, and one real case for it exists.
 
-- [`repo-and-package-boundaries.md`](repo-and-package-boundaries.md) §1: the IG
+- [`repo-and-package-boundaries.md`](../repo-and-package-boundaries.md) §1: the IG
   is **upstream** of everything else — "the canonical, machine-readable source
   everything else derives from". The consolidation plan states in *What this
   plan deliberately does not do* that it does not move `pagecontent/` out of

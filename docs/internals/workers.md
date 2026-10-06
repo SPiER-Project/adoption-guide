@@ -112,6 +112,17 @@ the note was the whole guard. `scripts/check-service-toolchain.mjs`
 any two `services/*/package.json` devDependency maps differ, so "bump the set"
 is a rule the gate holds rather than a sentence to remember.
 
+⚠️ **Identical ranges were still four installs.** CI runs `npm ci` per service
+from that service's own `package-lock.json`, and on 2026-10-06 the same
+`^10.8.0` resolved to eslint 10.8.0, 10.8.0, 10.10.0 and 10.8.1 (typescript-eslint
+8.65–8.70, globals and @types/node apart too) with the gate green. It now also
+compares the version each LOCKFILE resolves for every devDependency, and any
+`overrides`; the four were aligned the same day (eslint 10.10.0, typescript-eslint
+8.70.0, globals 17.12.0, @types/node 22.20.3). Bump a tool in all four
+services in one change, or the gate goes red. Its config rule also forbids an
+object-form `alias:` and an eslint `rules:` override on top of the shared body —
+both passed planted before.
+
 ⚠️ **The version ranges were the visible fork; the config files were the quiet
 one.** Each service also carried its own `eslint.config.js`, `tsconfig.json`,
 `vite.config.ts` and `vitest.config.ts` — twelve files meant to be identical.
@@ -173,8 +184,8 @@ npm install && npm run verify   # typecheck + eslint + check:csp + vitest
 ```
 It serves `dist-clinical` (`VITE_SURFACE=clinical`) and nothing else. Its
 verify is the odd one out for a reason worth protecting: **no `copy-fhir`, no
-web install.** This Worker imports nothing from `web/src` — it serves the built
-bytes — so it runs offline in seconds. The day something here needs the catalog
+web install.** This Worker imports nothing but `packages/worker-http` — it serves the
+built bytes — so it runs offline in seconds. The day something here needs the catalog
 is the day it grows the FHIR-cache dance the other two carry; until then, adding
 it for symmetry buys a slower job and nothing else.
 
@@ -192,12 +203,16 @@ Two Workers now serve a SPiER SMART surface over Static Assets, and a header
 that drifts between them is a clickjacking surface on the clinical one
 specifically — which is also the copy nobody thinks to re-read after editing the
 guide's. `node scripts/check-worker-csp.mjs` runs from both services' verify
-(it scans the whole repo, so either caller is sufficient) and holds five rules:
+(it scans the whole repo, so either caller is sufficient) and holds six rules:
 
 1. **Liveness** — the shared module still sets the header. Without it the other
    four pass trivially against a module that does nothing.
-2. **No second copy** — no service source may put `content-security-policy` or
-   `frame-ancestors` in a *string*. Comments are stripped first: every Worker's
+2. **No second copy** — no source may put `content-security-policy` or
+   `frame-ancestors` in a *string*: every `.ts/.tsx/.js/.mjs/.cjs` under
+   `services/<name>/src` and `packages/worker-http/src` (the shared module
+   aside), and no such header in `public/_headers`, the Static Assets header
+   file both builds ship. (Only `.ts` under `services/` was read until
+   2026-10-06.) Comments are stripped first: every Worker's
    prose legitimately discusses the header, and a gate that fires on its own
    documentation gets switched off inside a week — the lesson
    `check-core-boundary.mjs` already records.
@@ -213,8 +228,17 @@ guide's. `node scripts/check-worker-csp.mjs` runs from both services' verify
    404; under `"single-page-application"` the binding answers every miss with
    index.html and a 200, so that branch is dead code and a dropped file comes
    back as HTML (#533 → #534). A wrangler edit is exactly how that returns.
-5. It **fails when it reads nothing** — no `services/`, no asset host, or a
+5. **No wider override** — `PANEL_FRAME_ANCESTORS` may name only `'self'`,
+   `'none'` and origins in `deploy-origins.json`, in the top-level `vars`
+   **and every `env.<name>.vars`**. `check:origins` holds the top-level copy as
+   well; an env-scoped `"*"` passed both until 2026-10-06.
+6. It **fails when it reads nothing** — no `services/`, no asset host, or a
    missing shared module are all hard errors rather than a green count of zero.
+
+⚠️ **Rule 3 also checks the helper is CALLED and that no source calls
+`ASSETS.fetch` itself** (2026-10-06): a route answering straight from the binding
+— `app.get('/x', (c) => c.env.ASSETS.fetch(c.req.raw))` beside the real one —
+ships its bytes with no header, and the import-only rule passed it.
 
 All five were planted and watched go red before the gate was trusted, and rule 3
 is on this list in the form the plant forced rather than the form it was written

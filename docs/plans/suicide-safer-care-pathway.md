@@ -84,7 +84,7 @@ Related prior work this plan must stay consistent with:
 - Issue [#128](https://github.com/SPiER-Project/adoption-guide/issues/128)
   (export a configured pathway as a FHIR Bundle) — the Phase 2 artifact is a
   prerequisite-shaped step toward it, not a competitor.
-- [`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) — Phase 4
+- [`embedded-panel-smart-launch.md`](archive/embedded-panel-smart-launch.md) — Phase 4
   renders inside the surface that plan built.
 
 ---

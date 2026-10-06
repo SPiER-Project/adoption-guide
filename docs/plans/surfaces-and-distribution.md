@@ -1,7 +1,7 @@
 # Surfaces and distribution: what is an app, what ships to whom, and where it runs
 
 Written 2026-08-18, from two questions asked while reviewing
-[`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md):
+[`embedded-panel-smart-launch.md`](archive/embedded-panel-smart-launch.md):
 
 > we are headed towards 3–4 different applications, I think … can all of these
 > live on Cloudflare Workers?
@@ -24,7 +24,7 @@ measurements it rests on.
 | **2 — guide and clinical demo stay ONE app** | **UPHELD, and its scope corrected.** §5 of that doc answered a demo question, not a distribution one. §2 |
 | **3 — a third axis: build surface (`demo` / `clinical`)** | ~~SHIPPED 2026-09-15~~ → **RETIRED 2026-09-19.** It was one route table folded two ways by `IS_DEMO`; there are two apps now (`apps/guide`, `apps/clinical`) and the module that exported the flag is deleted. `VITE_SURFACE` survives as a build TARGET — which `index.html` vite starts from — read only by `vite.config.ts`. §3 |
 | **4 — the IG stays on GitHub Pages** | **PROPOSED.** §4 |
-| **5 — mock EHR gets its own Worker** | **PROPOSED**, per [`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) §3. §4 |
+| **5 — mock EHR gets its own Worker** | **PROPOSED**, per [`embedded-panel-smart-launch.md`](archive/embedded-panel-smart-launch.md) §3. §4 |
 
 | Phase | State |
 |---|---|
@@ -75,7 +75,7 @@ cross-lens links point at pages the client has no business seeing.
 
 So the decision stands and its scope was too broad. The conclusion "one app" is
 right; the unstated premise "therefore one build" is not.
-[`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) §3 inherited
+[`embedded-panel-smart-launch.md`](archive/embedded-panel-smart-launch.md) §3 inherited
 that premise and needs the same correction.
 
 ## 3. The missing axis: build surface
@@ -365,7 +365,7 @@ one more reason the `clinical` surface should not carry guide routes at all.
 Two Workers give two `*.workers.dev` hostnames at no cost and with no DNS —
 which matters, because there is no DNS access to `thespierproject.org`. The mock
 EHR must be its own Worker rather than another route on the existing one, since
-[`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) §6 depends on
+[`embedded-panel-smart-launch.md`](archive/embedded-panel-smart-launch.md) §6 depends on
 a genuine origin boundary.
 
 Note the standing constraint it inherits: **the browser talks to FHIR directly.**
@@ -412,7 +412,7 @@ the claim that the whole app runs on a connected server.
   PoC only — sandboxes, public client + PKCE, no app gallery. The near-term goal
   is a conference demo.** That reorders everything below; see §8.
 - **Does the `clinical` surface include the code drawer?**
-  ([`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) §2 —
+  ([`embedded-panel-smart-launch.md`](archive/embedded-panel-smart-launch.md) §2 —
   "nice for the demo, hidden in real life.") Likely a third setting rather than
   a property of the surface.
 - **Per-deployment instrument allowlist** — §6.
@@ -426,7 +426,7 @@ failure mode.
 
 ### The tension worth naming
 
-[`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) optimizes for
+[`embedded-panel-smart-launch.md`](archive/embedded-panel-smart-launch.md) optimizes for
 architectural honesty: cross-origin, real SMART launch, real FHIR reads and
 writes, real capability negotiation. That is also, precisely, the most fragile
 thing to run in a conference hall — captive-portal wifi, someone else's laptop,
@@ -444,7 +444,7 @@ versions, and it is the demo's single highest-variance dependency.
 This section proposed splitting the work into an **offline Track 1** for the
 conference and a **Track 2** that added the real claim later. **Track 1 as a
 rehearsed offline demo is retired.** The conference demo runs against the mock
-EHR ([`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) §8), and
+EHR ([`embedded-panel-smart-launch.md`](archive/embedded-panel-smart-launch.md) §8), and
 per Brad, 2026-08-18: *"don't try and solve for problems involving lack of
 network connectivity."*
 
@@ -494,7 +494,7 @@ smaller job than the full backlog.
 
 ## Related
 
-- [`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) — the panel;
+- [`embedded-panel-smart-launch.md`](archive/embedded-panel-smart-launch.md) — the panel;
   its §3 "one app, two chrome modes" is scoped to the demo surface and is amended
   to say so.
 - [`repo-and-package-boundaries.md`](repo-and-package-boundaries.md) — §1 (the IG

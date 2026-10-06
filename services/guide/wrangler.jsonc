@@ -56,7 +56,7 @@
     // is 'self' plus the mock EHR's origin from deploy-origins.json (repo root).
     // A non-blank override may name only origins in that file — `npm run
     // check:origins` fails any other host. See
-    // docs/plans/embedded-panel-smart-launch.md §6.
+    // docs/plans/archive/embedded-panel-smart-launch.md §6.
     "PANEL_FRAME_ANCESTORS": ""
 
     // ⚠️ The CDS_JWT_* vars left with the API on 2026-09-20 — they are in

@@ -1,3 +1,5 @@
+> Archived 2026-10-06: all fifteen tasks in its status table (A0–C5) are done. Moved by the tightened plan-status gate, which until then could not read a `## Status` table.
+
 # Docs and IG content consolidation: one home per kind of prose
 
 Written 2026-09-03 from a review of every narrative file in the repo — the eight
@@ -170,7 +172,7 @@ and MANIFEST line; `ig.yml` is green; `git diff origin/main...HEAD --stat`
 shows no `web/`, `packages/` or handoff changes.
 
 Prompt:
-> Read `docs/plans/docs-and-ig-content-consolidation.md`, task A0. Create the
+> Read `docs/plans/archive/docs-and-ig-content-consolidation.md`, task A0. Create the
 > rebased branch from `origin/main`, cherry-pick A3 and A5, redo A1/A2/A4
 > against `main` as the task specifies, add the plan doc, and open a new PR
 > superseding #468. Do not merge or conflict-resolve `fc9d334`. Update the
@@ -226,7 +228,7 @@ Done when: each of the six items is fixed, `npx fsh-sushi .` is clean, and a
 `grep -rn 'implementation-guide' ig/input/pagecontent` returns nothing.
 
 Prompt:
-> Read `docs/plans/docs-and-ig-content-consolidation.md`, task A1. Apply the
+> Read `docs/plans/archive/docs-and-ig-content-consolidation.md`, task A1. Apply the
 > six corrections to the IG pages, verifying each claim against the FSH before
 > writing it. Do not touch `measurement.md` or `quick-starts.md` (A2/A3).
 > Run `npx fsh-sushi .` in `ig/`. Update the plan's Status table.
@@ -265,7 +267,7 @@ Run `node scripts/validate-fhir.mjs` if Java is available, since the page's
 canonicals should match what the validator resolves.
 
 Prompt:
-> Read `docs/plans/docs-and-ig-content-consolidation.md`, task A2. Extend the
+> Read `docs/plans/archive/docs-and-ig-content-consolidation.md`, task A2. Extend the
 > IG Quick Starts page so every published instrument has a block, taking every
 > code, canonical and profile id from the FSH and Questionnaire JSON rather than
 > from memory. Keep the existing blocks' style. Update the Status table.
@@ -304,7 +306,7 @@ returns nothing except the `getting-started.md` "clone the repo" line, and
 `npx fsh-sushi .` is clean. (C1 turns this grep into a gate.)
 
 Prompt:
-> Read `docs/plans/docs-and-ig-content-consolidation.md`, task A3. Remove repo
+> Read `docs/plans/archive/docs-and-ig-content-consolidation.md`, task A3. Remove repo
 > internals and `TL-` ids from the two IG pages as specified, replacing each
 > tool id with a link to the artifact it denotes (resolve the id through
 > `packages/core/src/data/catalog/tools.ts`). Run the done-when grep. Update the Status
@@ -340,7 +342,7 @@ Done when: every command in `ig/README.md` runs as written from `ig/` in a
 fresh worktree, and no path it names is missing.
 
 Prompt:
-> Read `docs/plans/docs-and-ig-content-consolidation.md`, task A4. Rewrite
+> Read `docs/plans/archive/docs-and-ig-content-consolidation.md`, task A4. Rewrite
 > `ig/README.md` and `ig/drafts/README.md` as specified. Verify every command
 > and path you write by running or `ls`-ing it. Update the Status table.
 
@@ -364,7 +366,7 @@ returns nothing (MEMOs are dated evidence; leave them), and `README.md`'s list
 order matches the CodeSystem.
 
 Prompt:
-> Read `docs/plans/docs-and-ig-content-consolidation.md`, task A5. Replace
+> Read `docs/plans/archive/docs-and-ig-content-consolidation.md`, task A5. Replace
 > retired stage names in the three named files with the displays from
 > `ig/input/fsh/spier-codesystem.fsh`. Leave historical documents alone. Run
 > the done-when grep. Update the Status table.
@@ -412,7 +414,7 @@ five-line node script or a `for` loop over `grep -o '](…)'`), and
 `node scripts/build-onepager.mjs --check` still pass.
 
 Prompt:
-> Read `docs/plans/docs-and-ig-content-consolidation.md`, task B1. Merge the
+> Read `docs/plans/archive/docs-and-ig-content-consolidation.md`, task B1. Merge the
 > two docs indexes into one accurate `docs/README.md`, archive `repo-audit.md`
 > into the existing `docs/plans/archive/` with #443's banner, retarget inbound
 > links, and verify every link resolves. Update the Status table.
@@ -447,7 +449,7 @@ every other Markdown copy is a link or a two-sentence summary, and the outreach
 `--check` still passes.
 
 Prompt:
-> Read `docs/plans/docs-and-ig-content-consolidation.md`, task B2. Make
+> Read `docs/plans/archive/docs-and-ig-content-consolidation.md`, task B2. Make
 > `README.md` the single home for the project narrative, reduce the IG index
 > and `docs/one-pager.md` to summaries or pointers as specified, and retarget
 > inbound links. Do not touch the app or the outreach HTML. Update the Status
@@ -485,7 +487,7 @@ Done when: `node scripts/validate-fhir.mjs` still passes (it reads
 `pathway-stages.fsh` for every tool's stage(s).
 
 Prompt:
-> Read `docs/plans/docs-and-ig-content-consolidation.md`, task B3. Trim each
+> Read `docs/plans/archive/docs-and-ig-content-consolidation.md`, task B3. Trim each
 > per-tool README to provenance and folder contents, removing only what the FSH
 > or Questionnaire JSON already states — confirm each removal against the
 > artifact first. Update the Status table.
@@ -546,7 +548,7 @@ Done when: the gate passes on `main` after A0, fails on each of four planted
 defects (captured in the PR body), and `ig.yml` runs it on both path sets.
 
 Prompt:
-> Read `docs/plans/docs-and-ig-content-consolidation.md`, task C1. Extend
+> Read `docs/plans/archive/docs-and-ig-content-consolidation.md`, task C1. Extend
 > `scripts/check-ig-menu.mjs` with checks E–H (or a sibling sharing its
 > parsers), keep fail-when-nothing-read, plant one defect per check and record
 > each failure in the PR body, add the `web/src` path triggers to `ig.yml`, and
@@ -594,7 +596,7 @@ Done when: `npm run verify` passes at the repo root, in `services/guide/` and
 passes, and deleting one identifier from the FSH fails `check:catalog`.
 
 Prompt:
-> Read `docs/plans/docs-and-ig-content-consolidation.md`, task C2. Give every
+> Read `docs/plans/archive/docs-and-ig-content-consolidation.md`, task C2. Give every
 > catalogued ActivityDefinition a `tool-id` identifier read from the existing
 > map in `tools.ts`, derive the app's ids from it, delete the hand map, extend
 > `check:catalog`, and verify both packages plus the workbook check. Prove the
@@ -644,7 +646,7 @@ otherwise), `npx fsh-sushi .` and
 passes on the new page.
 
 Prompt:
-> Read `docs/plans/docs-and-ig-content-consolidation.md`, task C3. Sort the
+> Read `docs/plans/archive/docs-and-ig-content-consolidation.md`, task C3. Sort the
 > comment blocks in the six named FSH files into rationale / mechanics /
 > history; move rationale into `^purpose` or a new Design decisions page,
 > trim mechanics, delete history. Change no artifact structure. Verify with
@@ -682,7 +684,7 @@ text, `npm run verify` passes, and the rendered page is visually unchanged
 (screenshot before and after in the preview).
 
 Prompt:
-> Read `docs/plans/docs-and-ig-content-consolidation.md`, task C4. Move the
+> Read `docs/plans/archive/docs-and-ig-content-consolidation.md`, task C4. Move the
 > Overview page's narrative into a typed content module modeled on
 > `guideSections.ts`, render it from `Overview.tsx`, and confirm the page is
 > visually unchanged and `npm run verify` passes. Update the Status table.
@@ -711,7 +713,7 @@ from `ignoreWarnings.txt`'s comment.
 Done when: the issue exists and `ignoreWarnings.txt` names it.
 
 Prompt:
-> Read `docs/plans/docs-and-ig-content-consolidation.md`, task C5. Confirm no
+> Read `docs/plans/archive/docs-and-ig-content-consolidation.md`, task C5. Confirm no
 > issue tracks the IG's Questionnaire-rendering suppression, then file one with
 > the content specified and reference it from `ig/input/ignoreWarnings.txt`.
 > Use `--body-file -` for the body (`--body -` stores a literal dash). Update

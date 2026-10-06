@@ -1,3 +1,5 @@
+> Archived 2026-10-06: all seven PRs it planned shipped (#574–#580); §4.1 and §4.3 were superseded on 2026-09-22, as the status addendum below records. Moved by the tightened plan-status gate, which until then could not read "shipped".
+
 # Clinical app — copy, layout and UX audit
 
 **Date:** 2026-09-21 · **Branch audited:** `main` at `c246f11` · **Surfaces:** the
@@ -8,7 +10,7 @@ views in `packages/tool-views/`, and the mock EHR that launches them
 
 **Status:** all seven PRs have shipped. §7 records the decisions Brad made on
 2026-09-21; the briefs to run PRs 5–7 each in a fresh session are in
-[`clinical-app-redesign-briefs.md`](clinical-app-redesign-briefs.md). §8 is
+[`clinical-app-redesign-briefs.md`](../clinical-app-redesign-briefs.md). §8 is
 PR 7's own audit of the care manager's two screens, written before they were
 touched.
 
@@ -556,7 +558,7 @@ and nothing under `apps/` or `packages/` — §1.4, §4.1 and §4.5 are PR 3's, 
 with an empty prefetch the service still takes its fallback and surfaces the
 patient's curated `recommendedNextStep`, which is the half of §7 item 1
 ("otherwise, screening") that PR 3 answers. Two stale claims in
-[`mock-ehr-demo-script.md`](../mock-ehr-demo-script.md) were corrected while
+[`mock-ehr-demo-script.md`](../../mock-ehr-demo-script.md) were corrected while
 that file was open — it still said the front door's caseload frame is *not* a
 SMART launch, which stopped being true at #401.
 
@@ -1112,7 +1114,7 @@ card, and building the screen first would mean building it twice. PRs 2 and 3
 are independent of each other; PR 6 and PR 7 need only PR 3.
 
 Each PR has a paste-ready brief for a fresh session in
-[`clinical-app-redesign-briefs.md`](clinical-app-redesign-briefs.md).
+[`clinical-app-redesign-briefs.md`](../clinical-app-redesign-briefs.md).
 
 ---
 

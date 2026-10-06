@@ -73,7 +73,7 @@ npm run deploy              # build + `wrangler deploy`
 ```
 
 `npm run verify` is **fast and offline** — unlike the other two services it
-needs no `copy-fhir`, because this Worker imports nothing from `web/src`. Its
+needs no `copy-fhir`, because this Worker imports nothing but `packages/worker-http`. Its
 own CI job is in `.github/workflows/web-lint.yml`; the deploy is the `clinical`
 job in `.github/workflows/deploy.yml`, which is independent of the Pages/IG jobs
 because this Worker holds no IG.

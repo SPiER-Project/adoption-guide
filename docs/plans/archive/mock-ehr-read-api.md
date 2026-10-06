@@ -6,7 +6,7 @@ Written 2026-08-18 against `main` at `ad3ffe0`. The executable spec for **panel
 step 1** — `services/mock-ehr/` serving the reads `SmartDataSource` issues, so
 the panel can be launched against a server holding SPiER's own patients.
 
-This is the *next* piece: [`embedded-panel-smart-launch.md`](../embedded-panel-smart-launch.md)
+This is the *next* piece: [`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md)
 §9 step 1. Its two blockers are gone — the `Patient` resources landed in #356,
 and §8 was settled 2026-08-18.
 
@@ -30,7 +30,7 @@ confirmed against a running server.
 
 ## What is settled, and is not to be relitigated here
 
-- **The mock serves FHIR** ([panel §8](../embedded-panel-smart-launch.md), decided
+- **The mock serves FHIR** ([panel §8](embedded-panel-smart-launch.md), decided
   2026-08-18). Medplum rejected. Reason: scope of what the host must be — a
   patient list, a patient page, an encounter page.
 - **Its own Worker, its own origin.** `spier-mock-ehr.*.workers.dev`. Cross-origin
@@ -275,7 +275,7 @@ to `/fhir` and `/fhir/*`, and asserted.
 
 ## Related
 
-- [`embedded-panel-smart-launch.md`](../embedded-panel-smart-launch.md) — §4 the
+- [`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) — §4 the
   endpoint surface, §8 the decision, §9 the build order.
 - [`mock-patient-smart-launch.md`](../mock-patient-smart-launch.md) — §6, whose
   objection this must keep honoring, and §8's phases 4–5 (the population lens

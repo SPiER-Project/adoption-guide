@@ -24,11 +24,14 @@
  * ─── What it asserts ─────────────────────────────────────────────────────────
  *
  *   E. No repo internals. An IG page is read by implementers who do not have
- *      this repo, so `web/src`, `packages/`, `npm run`, `scripts/`, `.mjs`,
- *      `vitest`, `sushi-config`, `path-binary`, `check:<name>` gate names and
- *      `#NNN` issue references are
- *      all addressed to the wrong reader. Per the content contract in
- *      docs/plans/docs-and-ig-content-consolidation.md, build/gate/tooling
+ *      this repo, so a repo path (`apps/`, `services/`, `packages/`,
+ *      `scripts/`, `web/`), `npm run`, `.mjs`, `vitest`, `sushi-config`,
+ *      `path-binary`, `check:<name>` gate names, `#NNN` issue references of
+ *      any length and GitHub issue/PR URLs are all addressed to the wrong
+ *      reader. ⚠️ Until 2026-10-06 the path rule was `web/src` alone — the
+ *      tree the apps/ split deleted — so `apps/guide/src/App.tsx` on an IG
+ *      page passed, as did a five-digit `#12345` and an issues URL. Per the content contract in
+ *      docs/plans/archive/docs-and-ig-content-consolidation.md, build/gate/tooling
  *      prose has one home — CLAUDE.md — and "never in an IG page". A3 cleaned
  *      these out by hand; this keeps them out. There is deliberately no opt-out
  *      marker until a real need appears.
@@ -46,20 +49,32 @@
  *      id. F does not enforce that preference — it enforces that an id, if
  *      used, resolves.
  *
- *   G. Every link into the demo app resolves to a live route. `#/<route>` must
- *      match a NON-LEGACY route in `web/src/App.tsx`, and `#/guide/<x>` must
- *      also be a section in `web/src/data/guideSections.ts`. "Non-legacy"
+ *   G. Every link into the demo app resolves to a live route ON THE APP ITS HOST
+ *      SERVES. The host is read from `deploy-origins.json` (`guide` and `pages`
+ *      serve `apps/guide`, `clinical` serves `apps/clinical`); a bare `#/…`
+ *      with no host resolves against either. `#/<route>` must match a
+ *      NON-LEGACY route in that app's `App.tsx`, and `#/guide/<x>` must
+ *      also be a section in `apps/guide/src/data/guideSections.ts`. A link that
+ *      matches only through a `:param` segment must name a real value — a
+ *      published tool id or form slug for `:toolRef`, a stage code for
+ *      `:stageId`, a demo patient for `:patientId` — because a param route
+ *      matches anything, and `#/guide/tools/no-such-tool` passed before
+ *      2026-10-06 while rendering "Nothing is catalogued". "Non-legacy"
  *      matters: `/guide/roadmap` and `/guide/measures` still *exist* as
  *      `<Navigate>` redirects, so a naive route scan would call a link to a
  *      deleted page fine. Three pages linked `#/guide/roadmap` after #440
  *      removed that section; A1 retargeted them, and this keeps them fixed.
  *
- *      ⚠️ This reads `web/src`, so `ig.yml` triggers on those two files too — a
+ *      ⚠️ This reads both `App.tsx` files, `guideSections.ts`, the tool views
+ *      and `deploy-origins.json`, so `ig.yml` triggers on all of them — a
  *      route rename breaks the IG's links with no `ig/` change at all.
  *
- *   H. Every internal `.html` link resolves. A `](<name>.html)` must be a
- *      `pages:` entry, an artifact page the publisher will emit, or one of the
- *      generated pages check C already allowlists.
+ *   H. Every internal `.html` link resolves. A `.html` target — in any link
+ *      form: `[x](p.html)`, `[x](<p.html>)`, `[x](p.html "title")`, a
+ *      reference definition `[r]: p.html`, `<a href="p.html">`, or `./p.html`
+ *      — must be a `pages:` entry, an artifact page the publisher will emit, or
+ *      one of the generated pages check C already allowlists. (Only the first
+ *      form was read before 2026-10-06; the other five passed planted.)
  *
  *      H is the OWNER of `.html` links. `scripts/check-md-links.mjs` (C1a)
  *      checks relative *file* links across every tracked `.md` and skips
@@ -93,6 +108,7 @@
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs'
 import { resolve, join } from 'node:path'
 import { stripComments } from './lib/jsx-comments.mjs'
+import { readStageCodes } from './lib/stage-codes.mjs'
 
 import {
   ROOT,
@@ -110,13 +126,12 @@ import {
 const bail = makeBail('check-ig-narrative')
 
 // ⚠️ TWO route tables since the apps/ split. The IG's prose links at whichever
-// app serves the path, so check G resolves against the UNION — reading one app
-// would report every link into the other as broken.
+// app serves the path, so check G resolves each link against the app its HOST
+// serves (deploy-origins.json); only a bare `#/…` with no host may match either.
 const APP_TSX_FILES = [
   resolve(ROOT, 'apps/guide/src/App.tsx'),
   resolve(ROOT, 'apps/clinical/src/App.tsx'),
 ]
-const APP_TSX = APP_TSX_FILES[0]
 const GUIDE_SECTIONS_TS = resolve(ROOT, 'apps/guide/src/data/guideSections.ts')
 
 const problems = []
@@ -146,10 +161,16 @@ const at = (doc, i, msg) => flag(`ig/input/pagecontent/${doc.file}:${i + 1} — 
 // gate failure that only says "matched /packages\//" leaves the author guessing
 // at what to write instead.
 const INTERNALS = [
-  ['app source paths', /\bweb\/src\b/g, 'the app is a demo of the artifacts, not part of them; describe the behaviour or link the running app'],
-  ['monorepo package paths', /\bpackages\//g, 'the reader does not have this repo checked out'],
+  // A repo path, rooted at any of the trees an implementer does not have. The
+  // lookbehind keeps a URL's own path segment out (`https://x.org/packages/`
+  // is not this repo's `packages/`). `web/` stays for the deleted tree; the
+  // first version matched ONLY `web/src`, so after the apps/ split
+  // `apps/guide/src/App.tsx` on an IG page passed (2026-10-06 audit).
+  ['app source paths', /(?<![\w./:-])(?:apps|web)\/[\w.-]/g, 'the app is a demo of the artifacts, not part of them; describe the behaviour or link the running app'],
+  ['Worker source paths', /(?<![\w./:-])services\/[\w.-]/g, 'the reader does not have this repo checked out; name the service by what it does'],
+  ['monorepo package paths', /(?<![\w./:-])packages\//g, 'the reader does not have this repo checked out'],
   ['npm commands', /\bnpm run\b/g, 'build and gate instructions belong in CLAUDE.md, which is the one home for them'],
-  ['repo script paths', /\bscripts\//g, 'a script name tells an implementer nothing they can run'],
+  ['repo script paths', /(?<![\w./:-])scripts\//g, 'a script name tells an implementer nothing they can run'],
   ['Node script filenames', /\.mjs\b/g, 'these are this repo\'s gates, not part of the specification'],
   ['the test runner', /\bvitest\b/gi, 'how SPiER tests itself is not IG content'],
   ['the SUSHI config', /\bsushi-config\b/g, 'how this IG is built is not part of what it specifies'],
@@ -161,9 +182,13 @@ const INTERNALS = [
   // must start with a letter and be kebab-case, like every gate this repo has.
   ['a repo gate name', /(?<![\w/])check:[a-z][a-z-]+\b/g, 'a gate is this repo\'s discipline, not part of the specification; state the rule the gate protects'],
   // GitHub issue references. The lookarounds keep LOINC/SNOMED codes and page
-  // anchors out: `#93374-7` must not match as `#93374`, and `#harmonization`
-  // is letters. Bounded to four digits for the same reason.
-  ['GitHub issue references', /(?<![\w#-])#\d{1,4}(?![\d-])/g, 'issue numbers are repo history; state the decision itself, or cite the artifact that carries it'],
+  // anchors out: `#93374-7` must not match as `#93374` (a LOINC code always
+  // carries its check digit), `SCT#225337009` is a coding, and
+  // `#harmonization` is letters. ⚠️ It was bounded to four digits, which let
+  // `#12345` through; issue numbers will pass four digits, codes keep their
+  // hyphen or their system prefix.
+  ['GitHub issue references', /(?<![\w#&/-])#\d+(?![\d-])/g, 'issue numbers are repo history; state the decision itself, or cite the artifact that carries it'],
+  ['GitHub issue or PR links', /github\.com\/[^/\s]+\/[^/\s]+\/(?:issues|pull)\/\d+/g, 'an issue thread is repo history; state the decision itself, or cite the artifact that carries it'],
 ]
 
 let internalsScanned = 0
@@ -261,15 +286,14 @@ for (const { dir, recursive } of pathResourceDirs) {
         `directory, so check H cannot resolve links to what is in it`,
     )
   }
-  // ⚠️ The Questionnaires are listed one tool FOLDER at a time (see the
-  // path-resource comment in sushi-config.yaml for why not `/*`), so a new tool
-  // folder that nobody adds to the list is a Questionnaire the IG silently does
-  // not publish — SUSHI compiles clean, the app imports the file, and only the
-  // Artifacts page is missing an entry. The forgotten folder is a SIBLING of the
-  // listed ones (questionnaires/CRP beside questionnaires/ASQ), so the walk is
-  // over each listed directory's parent: any sibling directory that no entry
-  // names and that holds resource JSON at its top level is a bail. Subfolders
-  // of a listed directory get the same test, for the same reason.
+  // ⚠️ A NON-recursive entry (today only `input/resources/maps`) loads one
+  // directory, so a sibling or subfolder holding resource JSON that no entry
+  // names is a resource the IG silently does not publish — SUSHI compiles
+  // clean and only the Artifacts page is missing an entry. This rule was written
+  // when the Questionnaires were listed one tool folder at a time; they are one
+  // recursive `questionnaires/*` entry since 2026-09-19 (#473), which this walk
+  // skips, so it now guards the non-recursive entries only. Any sibling or
+  // subfolder that no entry names and that holds resource JSON is a bail.
   if (!recursive) {
     for (const parent of [resolve(abs, '..'), abs]) {
       for (const entry of readdirSync(parent, { withFileTypes: true })) {
@@ -352,7 +376,7 @@ for (const doc of pageDocs) {
 // regex, because a JSX attribute list wraps across lines and `element={…}`
 // nests its own tags: `path="assessments/phq-9"` and its element sit on
 // different lines throughout that file.
-function parseRoutes(src) {
+function parseRoutes(src, file) {
   /** @type {{ path: string, live: boolean, index: boolean }[]} */
   const routes = []
   /** @type {string[]} */
@@ -386,7 +410,7 @@ function parseRoutes(src) {
       if (c === '>' && depth === 0) break
     }
     if (j >= src.length) {
-      bail(`${rel(APP_TSX)}: unterminated <Route> tag — the route tree cannot be parsed, so check G would report nothing`)
+      bail(`${rel(file)}: unterminated <Route> tag — the route tree cannot be parsed, so check G would report nothing`)
     }
     const attrs = src.slice(i + 6, j)
     const selfClosing = src[j - 1] === '/'
@@ -428,7 +452,7 @@ function parseRoutes(src) {
   }
 
   if (tagsRead === 0) {
-    bail(`${rel(APP_TSX)}: parsed 0 <Route> tags — refusing to report every app link as broken (or as fine)`)
+    bail(`${rel(file)}: parsed 0 <Route> tags — refusing to report every app link as broken (or as fine)`)
   }
   return routes
 }
@@ -436,33 +460,107 @@ function parseRoutes(src) {
 // ⚠️ Comments are blanked FIRST. A comment in App.tsx quoting `<Route …>` was
 // read as a real unclosed route, mis-nested every route after it, and made this
 // gate report a live section as a dead link. See scripts/lib/jsx-comments.mjs.
-const routes = APP_TSX_FILES.flatMap((f) => parseRoutes(stripComments(readFileSync(f, 'utf8'))))
+// Per app, because a host serves ONE of them. The first version read the UNION,
+// so a guide-host link to a clinical-only route (`#/patient/record`) passed and
+// 404'd for the reader (2026-10-06 audit).
+const APPS = {
+  guide: APP_TSX_FILES[0],
+  clinical: APP_TSX_FILES[1],
+}
 
 // A path resolves if a live route sits at it, or if its index child is live.
 // Both shapes occur: `/population` has no element of its own and gets its page
 // from `<Route index element={<PopulationView />} />`, while `/patient` gets
 // its page from an index that redirects to the relative `chart`.
-const livePaths = new Set()
-for (const r of routes) {
-  if (!r.live) continue
-  livePaths.add(r.path)
-}
-if (livePaths.size === 0) {
-  bail(`${rel(APP_TSX)}: parsed routes but none is live — check G would call every app link broken`)
+/** @type {Record<string, Set<string>>} */
+const livePathsByApp = {}
+for (const [app, file] of Object.entries(APPS)) {
+  const live = new Set(parseRoutes(stripComments(readFileSync(file, 'utf8')), file).filter((r) => r.live).map((r) => r.path))
+  if (live.size === 0) {
+    bail(`${rel(file)}: parsed routes but none is live — check G would call every app link broken`)
+  }
+  // The catch-all cannot be a destination; it would match anything.
+  live.delete('/*')
+  livePathsByApp[app] = live
 }
 
-// The catch-all cannot be a destination; it would match anything.
-livePaths.delete('/*')
+// Which app a host serves — from deploy-origins.json, never a typed literal.
+// `pages` is the GitHub Pages copy of the guide build (`npm run build`).
+const ORIGINS_FILE = resolve(ROOT, 'deploy-origins.json')
+const origins = JSON.parse(readFileSync(ORIGINS_FILE, 'utf8'))
+const APP_FOR_ORIGIN = { guide: 'guide', pages: 'guide', clinical: 'clinical' }
+/** `https://host/path` prefix → app, longest first so `pages`' repo path wins. */
+const hostApps = Object.entries(APP_FOR_ORIGIN)
+  .map(([key, app]) => {
+    if (typeof origins[key] !== 'string') bail(`${rel(ORIGINS_FILE)} has no "${key}" origin — check G cannot place a link on an app`)
+    return [origins[key].replace(/\/$/, ''), app]
+  })
+  .sort((a, b) => b[0].length - a[0].length)
 
-/** Does `link` match a route path, allowing `:param` segments? */
-function matchesRoute(link) {
+/**
+ * Values a `:param` segment may take in a link, per param name. A param route
+ * matches ANY value, so a link that resolves only through one must name a real
+ * thing: before 2026-10-06 `#/guide/tools/no-such-tool` passed, and the page it
+ * opens says "Nothing is catalogued under that name". A param with no resolver
+ * here is a finding, not a pass — this gate does not vouch for what it cannot see.
+ */
+function toolViewSlugs() {
+  const file = resolve(ROOT, 'packages/tool-views/src/data/toolViews.tsx')
+  const src = readFileSync(file, 'utf8')
+  const block = /export const TOOL_VIEWS[^=]*=\s*\{([\s\S]*?)\n\}/.exec(src)?.[1]
+  const slugs = [...(block ?? '').matchAll(/^\s*'?([a-z0-9-]+)'?\s*:\s*</gm)].map((m) => m[1])
+  if (slugs.length === 0) bail(`${rel(file)}: read 0 TOOL_VIEWS slugs — :toolRef links would resolve against nothing`)
+  return new Set(slugs)
+}
+function demoPatientIds() {
+  const file = resolve(ROOT, 'packages/demo-population/src/patients.json')
+  const ids = JSON.parse(readFileSync(file, 'utf8')).map((p) => p.id).filter(Boolean)
+  if (ids.length === 0) bail(`${rel(file)}: read 0 patient ids — :patientId links would resolve against nothing`)
+  return new Set(ids)
+}
+const slugs = toolViewSlugs()
+const stageCodes = new Set(readStageCodes())
+const patientIds = demoPatientIds()
+const PARAM_VALUES = {
+  toolRef: (v) => publishedToolIds.has(v.toUpperCase()) || slugs.has(v),
+  stageId: (v) => stageCodes.has(v),
+  patientId: (v) => patientIds.has(v),
+}
+
+/**
+ * Does `link` resolve on `app`? A literal route wins over a param route (that
+ * is React Router's ranking too: `/guide/tools/readiness` is its own page, not
+ * a `:toolRef`). Returns null when it resolves, else the reason it does not.
+ */
+function resolveRoute(link, app) {
   const want = link.replace(/\/$/, '').split('/')
-  for (const path of livePaths) {
+  const viaParam = []
+  for (const path of livePathsByApp[app]) {
     const have = path.replace(/\/$/, '').split('/')
     if (have.length !== want.length) continue
-    if (have.every((seg, k) => seg.startsWith(':') || seg === want[k])) return true
+    if (!have.every((seg, k) => seg.startsWith(':') || seg === want[k])) continue
+    if (!have.some((seg) => seg.startsWith(':'))) return null
+    viaParam.push(have)
   }
-  return false
+  if (viaParam.length === 0) return `is not a live route in ${rel(APPS[app])}`
+  const problems = []
+  for (const have of viaParam) {
+    const bad = have
+      .map((seg, k) => [seg, want[k]])
+      .filter(([seg]) => seg.startsWith(':'))
+      .filter(([seg, value]) => !(PARAM_VALUES[seg.slice(1)]?.(value) ?? false))
+    if (bad.length === 0) return null
+    problems.push(
+      bad
+        .map(([seg, value]) =>
+          PARAM_VALUES[seg.slice(1)]
+            ? `"${value}" is not a real ${seg}`
+            : `${seg} has no resolver in this gate, so "${value}" cannot be vouched for`,
+        )
+        .join('; '),
+    )
+  }
+  return `matches only a \`:param\` route in ${rel(APPS[app])}, and ${problems.join(' / ')}`
 }
 
 // GUIDE_SECTIONS — the sidebar's own list. A /guide/<x> that is a route but not
@@ -488,19 +586,37 @@ for (const doc of pageDocs) {
   doc.lines.forEach((line, i) => {
     // The prose links the deployed app absolutely
     // (`https://…/adoption-guide/#/guide/…`), so match the HashRouter fragment
-    // wherever it appears rather than only a bare `#/…` link target.
-    for (const m of line.matchAll(/#(\/[A-Za-z0-9/_:-]*)/g)) {
-      const route = m[1].replace(/\/$/, '')
+    // wherever it appears, and read the URL in front of it for the host.
+    for (const m of line.matchAll(/(https?:\/\/[^\s)<>"'#]*)?#(\/[A-Za-z0-9/_:-]*)/g)) {
+      const route = m[2].replace(/\/$/, '')
       if (route === '') continue // `#/` is the app root
-      if (!matchesRoute(route)) {
+      let apps
+      if (m[1]) {
+        const base = m[1].replace(/\/$/, '')
+        const hit = hostApps.find(([prefix]) => base === prefix || base.startsWith(`${prefix}/`))
+        if (!hit) {
+          at(
+            doc,
+            i,
+            `links \`${m[1]}#${route}\`, but that host is none of the app origins in ${rel(ORIGINS_FILE)} ` +
+              `(${Object.keys(APP_FOR_ORIGIN).join(', ')}) — check G cannot tell which app it opens.`,
+          )
+          continue
+        }
+        apps = [hit[1]]
+      } else {
+        apps = Object.keys(APPS) // a bare `#/…` names no host
+      }
+      const reasons = apps.map((app) => resolveRoute(route, app))
+      if (reasons.every((r) => r !== null)) {
         at(
           doc,
           i,
-          `links the app at \`#${route}\`, which is not a live route in ${rel(APP_TSX)}. It may have ` +
-            `been moved or deleted — a \`<Navigate>\` or \`Legacy*Redirect\` route does not count, ` +
-            `because linking one means linking something that no longer exists.`,
+          `links the app at \`#${route}\`, which ${reasons.join('; and ')}. It may have been moved or ` +
+            `deleted — a \`<Navigate>\` or \`Legacy*Redirect\` route does not count, because linking one ` +
+            `means linking something that no longer exists.`,
         )
-        return
+        continue
       }
       const guide = /^\/guide\/([A-Za-z0-9_-]+)$/.exec(route)
       if (guide && !guideSections.has(guide[1])) {
@@ -520,29 +636,49 @@ for (const doc of pageDocs) {
 const pages = parsePages(configText, bail)
 const pageTargets = new Set(pages.map((p) => p.replace(/\.md$/, '.html')))
 
+/**
+ * Every link TARGET on a line, in every markdown and HTML form a page can use.
+ * The first version read only `](name.html)`, so `[x](<…html>)`, a title, a
+ * reference definition, `<a href>` and `./name.html` all passed planted.
+ */
+const LINK_FORMS = [
+  /\]\(\s*<([^>]*)>/g, //                       [x](<target>)
+  /\]\(\s*([^)\s<]+)(?:\s+["'][^)]*["'])?\s*\)/g, // [x](target) / [x](target "title")
+  /^ {0,3}\[[^\]]+\]:\s*<?([^\s>]+)>?/g, //        [ref]: target
+  /<(?:a|img)\b[^>]*?\b(?:href|src)\s*=\s*["']([^"']*)["']/gi, // <a href="target">
+]
+
 let htmlLinks = 0
 for (const doc of pageDocs) {
   doc.lines.forEach((line, i) => {
-    for (const m of line.matchAll(/\]\(([A-Za-z0-9_.-]+\.html)(#[A-Za-z0-9_.-]*)?\)/g)) {
-      const target = m[1]
-      htmlLinks++
-      if (pageTargets.has(target)) continue
-      if (artifactPages.has(target)) continue
-      if (GENERATED_PAGES[target]) continue
+    for (const re of LINK_FORMS) {
+      for (const m of line.matchAll(re)) {
+        const raw = m[1].trim()
+        if (/^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(raw)) continue // absolute URLs and same-page anchors
+        const target = raw.split('#')[0].replace(/^\.\//, '')
+        if (!target.endsWith('.html')) continue
+        htmlLinks++
+        if (pageTargets.has(target)) continue
+        if (artifactPages.has(target)) continue
+        if (GENERATED_PAGES[target]) continue
 
-      // Distinguish the two ways this goes wrong, since the fixes differ.
-      const looksLikeArtifact = /^[A-Z][A-Za-z]*-/.test(target)
-      at(
-        doc,
-        i,
-        looksLikeArtifact
-          ? `links ${target}, but no resource with that type and id is in ${rel(FSH_GENERATED)} or in a ` +
-            `\`path-resource\` directory — the publisher will emit no such page. Check the id, or author ` +
-            `the artifact.`
-          : `links ${target}, but ${target.replace(/\.html$/, '.md')} is not a \`pages:\` entry and ` +
-            `${target} is not in GENERATED_PAGES — the publisher renders no such page. A page needs a ` +
-            `\`pages:\` entry to be rendered at all (see check D in check-ig-menu.mjs).`,
-      )
+        // Distinguish the ways this goes wrong, since the fixes differ.
+        const looksLikeArtifact = /^[A-Z][A-Za-z]*-/.test(target)
+        at(
+          doc,
+          i,
+          target.includes('/')
+            ? `links ${raw}, a path the publisher does not emit — every page this IG renders sits at its ` +
+              `top level, so a link into a directory resolves to nothing.`
+            : looksLikeArtifact
+              ? `links ${target}, but no resource with that type and id is in ${rel(FSH_GENERATED)} or in a ` +
+                `\`path-resource\` directory — the publisher will emit no such page. Check the id, or author ` +
+                `the artifact.`
+              : `links ${target}, but ${target.replace(/\.html$/, '.md')} is not a \`pages:\` entry and ` +
+                `${target} is not in GENERATED_PAGES — the publisher renders no such page. A page needs a ` +
+                `\`pages:\` entry to be rendered at all (see check D in check-ig-menu.mjs).`,
+        )
+      }
     }
   })
 }
@@ -564,7 +700,8 @@ console.log(
 )
 console.log(
   `  tool ids: ${publishedToolIds.size} published by ActivityDefinitions; app links resolved against ` +
-    `${livePaths.size} live route(s) and ${guideSections.size} guide section(s).`,
+    `${Object.values(livePathsByApp).reduce((n, set) => n + set.size, 0)} live route(s) in ${Object.keys(APPS).length} apps and ` +
+    `${guideSections.size} guide section(s).`,
 )
 console.log(
   `  ${htmlLinks} internal .html link(s) resolve to ${pageTargets.size} page(s), ` +

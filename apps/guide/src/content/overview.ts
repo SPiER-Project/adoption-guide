@@ -3,7 +3,7 @@
  *
  * ─── Why a TypeScript module and not Markdown ────────────────────────────────
  *
- * The alternative considered (task C4 of docs/plans/docs-and-ig-content-consolidation.md)
+ * The alternative considered (task C4 of docs/plans/archive/docs-and-ig-content-consolidation.md)
  * was Markdown imported with Vite's `?raw` and rendered by a small renderer.
  * A typed module wins here for one reason that matters more than authoring
  * comfort: `tsc` and eslint stay pointed at the content. A section that loses
