@@ -28,7 +28,7 @@
 //   List<Choice<dateTime, instant>>; it now returns System.DateTime. 2.3.5's new
 //   WCAG checks also flagged 37 headings; IG pages now start at `###`.
 //
-//   UPSTREAM, still blocking: with both fixed, 2.3.5 still reports 5 errors and
+//   UPSTREAM: with both fixed, 2.3.5 still reports 5 errors and
 //   19 "broken links", none of them caused by our source:
 //     - HL7/fhir-ig-publisher#1384: every FML map loses the R4-required
 //       group.typeMode (2.3.4 emitted "none" from the same .fml).
@@ -38,10 +38,10 @@
 //     - HL7/fhir-ig-publisher#1385: the ELM failure is only a log line and
 //       never a QA error. Our CQL gate caught it; the publisher's QA did not.
 //
-// Bump when a release fixes #1384 and #1386. Having ig-publish.yml read the
-// link check's own "N links, M broken links" line would get past #1386 sooner,
-// but that is a gate change and needs its own decision. Do not slip it into a
-// bump.
+// #1386 no longer blocks: the QA gate (scripts/lib/ig-qa-counts.mjs) now reads
+// the HTML check's own counts instead of the summary's "Broken Links", so those
+// warnings are reported and not gated. With it, 2.3.5's probe run fails ONLY on
+// #1384's 5 typeMode errors. Bump when a release fixes #1384.
 //
 // One definition, for the same reason sushi-version.mjs and validator-jar.mjs
 // are one definition: this is consumed by TWO workflows on two different paths
