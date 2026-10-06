@@ -495,6 +495,12 @@ SSR loader on a CommonJS-ambiguous dependency, so `TOOL_VIEWS`' slugs are still
 scanned as text (`check:outputs`, `check:tool-view-routes`) with their zero-parse
 guards. Keep data a gate needs in `packages/core` where that is a real choice.
 
+⚠️ **A gate that loads core needs the generated tree, so it cannot run in the
+fast `lint-css` job.** Core imports `packages/fhir-artifacts/generated/`, which
+only `copy-fhir` builds and that job deliberately skips. `check:extract` and
+`check:readers` ran there until this change and moved out — they still run in
+`verify`; CI's `lint-css` failure on the first push is how that was found.
+
 ⚠️ **The server closes before the modules are returned.** Every glob in core is
 `eager`, so a module is fully evaluated when it loads; a module that imported
 lazily at call time would throw after the close — loudly, the acceptable failure.
