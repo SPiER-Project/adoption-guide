@@ -4,276 +4,192 @@
  *
  * The screening Questionnaires DECLARE which items yield Observations via the
  * SDC `sdc-questionnaire-observationExtract` extension; the per-instrument
- * mappers (packages/core/src/lib/observationMappers/*) are the reference IMPLEMENTATION
- * of that contract. The two can silently drift. This script asserts:
+ * mappers (packages/core/src/lib/observationMappers/*) are the reference
+ * IMPLEMENTATION of that contract. The two can silently drift. For EVERY
+ * Questionnaire in the mapper registry, this script builds a response answering
+ * every item (the way the app's own form shapes one —
+ * `buildNativeQuestionnaireResponse`), RUNS the mapper on it through
+ * lib/load-core.mjs, and asserts:
  *
  *   1. every item declaring observationExtract also carries a `code`
- *      (otherwise the extracted Observation would have no Observation.code),
- *   2. the set of declared extract codes per Questionnaire matches EXPECTED —
- *      the literal per-answer / total-score Observation codes the mapper emits,
- *      and
- *   3. EVERY mapper's Questionnaire is classified — listed in EXPECTED, or in
- *      NO_LITERAL_EXTRACTS with the reason it has none.
+ *      (otherwise the extracted Observation would have no Observation.code);
+ *   2. every declared extract code is a code the mapper actually EMITS as an
+ *      Observation.code — a mapper that renamed or dropped one fails;
+ *   3. every Observation the mapper emits under the code of one of that
+ *      Questionnaire's items is declared — unless it is in COMPUTED, with the
+ *      reason it is derived rather than extracted;
+ *   4. a Questionnaire-level observationExtract counts: SDC applies it to every
+ *      descendant item (an item-level `false` overrides), so it declares every
+ *      coded item, and rule 2 then holds it to what the mapper emits.
  *
- * Computed/derived Observations (ASQ composite disposition, C-SSRS risk level,
- * PHQ-9 item-9 ordinal) are NOT literal extractions and are intentionally NOT
- * declared with observationExtract; they live only in the mapper. See README.
+ * ⚠️ **Rule 2 compared against a hand list until 2026-10-06, not the mapper.**
+ * `EXPECTED` mapped each Questionnaire path to "the codes its mapper emits",
+ * kept in sync by hand. Changing `phq9.ts` to emit `44261-7` left both the
+ * Questionnaire and EXPECTED saying `44261-6`, and the gate passed. Running the
+ * mapper removes the copy; the only list left is COMPUTED, which records a
+ * judgement rather than restating a value.
  *
- * ⚠️ **Rule 3 is the one that was missing, and its absence was the whole hole.**
- * EXPECTED is a hand-written list of paths, and a Questionnaire simply absent
- * from it was checked by nothing — not "checked and found empty", but never
- * opened. Four of the fourteen mappers were in that state: `camsSectionA` and
- * `camsOutcomeDisposition` each emit six literal per-item SSF-vital Observations
- * (plus, for the latter, a coded disposition) and their Questionnaires declared
- * ZERO observationExtract items; `camsSectionB` and `cssrsFull` genuinely have
- * none, but nothing recorded that as a decision rather than an oversight. The
- * gate printed a green ✓ for ten files and said nothing about the other four.
+ * ⚠️ **Rule 3 is what the old "every mapper's Questionnaire is classified" rule
+ * was for.** Four mappers once emitted per-item Observations from Questionnaires
+ * declaring none, and nothing opened those files. The set checked here is the
+ * registry itself, so a fifteenth mapper is run the day it is registered, and a
+ * literal per-item Observation from an undeclaring Questionnaire is rule 3's
+ * failure — it no longer depends on someone having listed the file.
  *
- * This is the same shape as `check:outputs`' first run and as the emitter's
- * fixture coverage: a per-item list that nothing compares against the set of
- * things that ought to be in it. The fix is always the same — derive the set
- * from the registry, and make every absence explicit.
+ * ⚠️ **Rule 4 is the shape the item-only walk could not see.** A root-level
+ * `observationExtract: true` on the C-SSRS full form (whose mapper emits only a
+ * computed tier) was green, while `$extract` would have produced an Observation
+ * for every one of its coded items.
  *
- * Exits non-zero on drift so it can gate CI / copy-fhir.
+ * What it still cannot see: whether a declared extraction is the RIGHT one —
+ * `camsSectionA`'s seventh Observation re-codes the `6-score` answer under LOINC
+ * 93374-7 and is deliberately undeclared, because `$extract` yields ONE
+ * Observation per item; that is a judgement, and it is not an item code, so
+ * rule 3 does not reach it. And an item the synthetic response cannot answer (a
+ * type `buildNativeQuestionnaireResponse` does not build) is not exercised —
+ * which rule 2 reports as declared-but-not-emitted rather than skipping.
+ *
+ * Exits non-zero on drift so it can gate CI.
  */
-import { readFileSync, readdirSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
-import { dirname, join, resolve } from 'node:path'
 import { loadCore } from './lib/load-core.mjs'
-
-const here = dirname(fileURLToPath(import.meta.url))
-const root = resolve(here, '..') // repo root
+import { reportFloors } from './lib/floors.mjs'
+import { endorseAll, respond } from './lib/mapper-probes.mjs'
 
 const EXTRACT_URL =
   'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract'
 
-// Questionnaire file → the Observation codes its mapper extracts as LITERAL
-// per-item / total-score Observations (i.e. the items that should declare
-// observationExtract). Keep in sync with packages/core/src/lib/observationMappers/*.
-const EXPECTED = {
-  'ig/input/resources/questionnaires/PHQ-9/phq9-questionnaire.json': ['44261-6'],
-  'ig/input/resources/questionnaires/SBQ-R/sbqr-questionnaire.json': ['225337009'],
-  'ig/input/resources/questionnaires/C-SSRS/cssrs-screener.json': [
-    '93246-7', '93247-5', '93248-3', '93249-1', '93250-9', '93267-3',
-  ],
-  // C-SSRS Since Last Visit shares the screener's 6-item set but NOT its coding.
-  // LOINC codes C-SSRS items only per timeframe (Lifetime / 1 month / 3 months)
-  // and has nothing for "since last contact", so these bind to the SPiER-local
-  // http://thespierproject.org/fhir/CodeSystem/cssrs-interval-item instead of reusing the
-  // screener's 1-month LOINC codes, which would assert a window the instrument
-  // does not claim (issue #220). These are NOT LOINC codes; they match
-  // packages/core/src/lib/observationMappers/cssrsSinceLastContact.ts.
-  'ig/input/resources/questionnaires/C-SSRS/cssrs-since-last-contact.json': [
-    'wish-to-be-dead', 'non-specific-active-thoughts', 'active-ideation-any-methods',
-    'active-ideation-some-intent', 'active-ideation-plan-and-intent', 'suicidal-behavior',
-  ],
-  // C-SSRS Pediatric / Adolescent reuses the validated screener item set + LOINC
-  // codes. Matches packages/core/src/lib/observationMappers/cssrsPediatric.ts (shared core).
-  'ig/input/resources/questionnaires/C-SSRS/cssrs-pediatric.json': [
-    '93246-7', '93247-5', '93248-3', '93249-1', '93250-9', '93267-3',
-  ],
-  // ASQ items carry published LOINC codes as of LOINC 2.83, which added the ASQ
-  // panel 115564-7 and its eight item codes. Until then the ASQ had none and the
-  // five screening items bound to the SPiER-local asq-item CodeSystem, now
-  // deleted. Match packages/core/src/lib/observationMappers/asq.ts.
-  'ig/input/resources/questionnaires/ASQ/asq-questionnaire.json': [
-    '115566-2', '115567-0', '115568-8', '115569-6', '115571-2',
-  ],
-  // BSSA has NO published panel/per-item LOINC codes. The disposition item
-  // carries the generic LOINC 93374-7 ("Suicide risk level"); the discrete
-  // interview findings bind to the SPiER-local http://thespierproject.org/fhir/CodeSystem/bssa-item.
-  // These match packages/core/src/lib/observationMappers/bssa.ts.
-  'ig/input/resources/questionnaires/BSSA/bssa-questionnaire.json': [
-    '93374-7', 'current-ideation', 'suicide-plan', 'intent-scale',
-    'past-suicide-attempt', 'needs-help-to-be-safe',
-  ],
-  // PSS-3 has NO published panel/per-item LOINC codes. The three screening
-  // items bind to the SPiER-local http://thespierproject.org/fhir/CodeSystem/pss3-item; the
-  // result is COMPUTED (not observationExtract-declared). Match packages/core/src/lib/observationMappers/pss3.ts.
-  'ig/input/resources/questionnaires/PSS-3/pss3-questionnaire.json': [
-    'depression-2wk', 'active-ideation-2wk', 'lifetime-attempt',
-  ],
-  // SAFE-T is a clinical-judgment formulation; only the risk-level item is a
-  // literal extraction (LOINC 93374-7). Its value binds directly to the shared
-  // suicide-risk tier (no crosswalk). Matches packages/core/src/lib/observationMappers/safet.ts.
-  'ig/input/resources/questionnaires/SAFE-T/safet-questionnaire.json': ['93374-7'],
-  // PSS Full: only the site-defined risk-level (93374-7) is a literal extraction;
-  // the PSS-3 screen items are recorded in the QR for context. Matches packages/core/src/lib/observationMappers/pssFull.ts.
-  'ig/input/resources/questionnaires/PSS-Full/pss-full-questionnaire.json': ['93374-7'],
-  // CAMS SSF-5 Section A: the six SSF Core Assessment ratings ARE literal
-  // extractions — the Observation's value is the 1–5 answer and its code is the
-  // item's. No LOINC concepts exist for the SSF scale, so they bind to the
-  // SPiER-local cams-ssf CodeSystem. Added 2026-09-17: this Questionnaire
-  // declared none, and was absent from this list, so nothing looked.
-  // ⚠️ The SEVENTH Observation the mapper emits is deliberately NOT declared.
-  // It re-codes the same `6-score` answer under LOINC 93374-7, and `$extract`
-  // produces ONE Observation per item — an item with two codes yields one
-  // Observation with two codings, not two resources. A second resource from one
-  // answer is mapper logic, not an extraction.
-  'ig/input/resources/questionnaires/CAMS/cams-ssf5-section-a.json': [
-    'psychological-pain', 'stress', 'agitation', 'hopelessness', 'self-hate', 'overall-risk',
-  ],
-  // CAMS SSF-5 Outcome/Disposition: the same six re-rated vitals, plus the
-  // disposition — also literal, since the Observation's valueCodeableConcept is
-  // the answer's own coding and its code is the item's (LOINC 93374-7).
-  // Matches packages/core/src/lib/observationMappers/camsOutcomeDisposition.ts.
-  'ig/input/resources/questionnaires/CAMS/cams-ssf5-outcome-disposition.json': [
-    'psychological-pain', 'stress', 'agitation', 'hopelessness', 'self-hate', 'overall-risk',
-    '93374-7',
-  ],
-}
-
 /**
- * Mappers whose Questionnaire declares NO observationExtract, with the reason.
- *
- * ⚠️ An entry here is a claim that every Observation the mapper emits is
- * COMPUTED — derived from several answers, or a re-coding — rather than the
- * answer itself. It is not "we have not got to it yet": rule 3 exists precisely
- * because absence from EXPECTED used to mean both, indistinguishably.
+ * Observations a mapper emits under the code of one of its Questionnaire's items
+ * WITHOUT that item declaring observationExtract — because the value is derived
+ * from several answers or re-scored, not the answer itself. Keyed by
+ * version-stripped canonical, then by code. An entry must be emitted and must
+ * not be declared, or it fails as stale.
  */
-const NO_LITERAL_EXTRACTS = {
-  // Emits one Observation: the risk tier, computed by walking the published
-  // C-SSRS triage ladder across twelve lifetime/recent items. No single answer
-  // becomes an Observation, so there is nothing to extract.
-  'ig/input/resources/questionnaires/C-SSRS/cssrs-full-lifetime-recent.json':
-    'one computed risk tier from the C-SSRS triage ladder over twelve items — no per-answer Observation',
-  // Emits Conditions, not Observations: one suicide-driver Condition per
-  // described driver, whose `code.text` is the free-text description and whose
-  // categories come from a different item. `observationExtract` is defined for
-  // Observations, so it cannot express this even in principle.
-  'ig/input/resources/questionnaires/CAMS/cams-ssf5-section-b.json':
-    'emits SPiERCAMSSuicideDriver Conditions, not Observations — observationExtract does not apply',
-}
-
-function* walk(items) {
-  for (const it of items ?? []) {
-    yield it
-    yield* walk(it.item)
-  }
+const COMPUTED = {
+  'http://thespierproject.org/fhir/Questionnaire/PHQ-9': {
+    '44260-8': 'item 9 re-scored as its 0–3 ordinal (valueInteger) — the suicide-risk gateway, not the coded answer',
+  },
+  'http://thespierproject.org/fhir/Questionnaire/ASQ-Screening-Tool': {
+    '93374-7': 'the composite disposition, derived from q1–q5 (and q5 acuity), not the result-category answer',
+  },
+  'http://thespierproject.org/fhir/Questionnaire/PSS-3': {
+    '93374-7': 'the screen result, derived from the three screening items and the attempt recency',
+  },
+  'http://thespierproject.org/fhir/Questionnaire/C-SSRS-Screener': {
+    '93374-7': 'the risk level, computed by the published C-SSRS triage ladder over q1–q6',
+  },
+  'http://thespierproject.org/fhir/Questionnaire/C-SSRS-Since-Last-Contact': {
+    '93374-7': 'the risk level, computed by the published C-SSRS triage ladder over the six items',
+  },
+  'http://thespierproject.org/fhir/Questionnaire/C-SSRS-Pediatric': {
+    '93374-7': 'the risk level, computed by the published C-SSRS triage ladder over q1–q6',
+  },
 }
 
 let failures = 0
 const fail = (msg) => { console.error(`✗ ${msg}`); failures++ }
 
-// ─── RULE 3 — every mapper's Questionnaire is classified ────────────────────
-//
-// The "ought to be checked" set is DERIVED from the mapper registry rather than
-// restated here, so a fifteenth mapper is classified or this gate goes red.
-// Read from the registry itself (`MAPPED_QUESTIONNAIRE_URLS`, through
-// lib/load-core.mjs) rather than regexed out of index.ts, which matched only the
-// one way an entry happened to be written.
-const [mappers] = await loadCore(['@spier/core/lib/observationMappers'])
-const mappedCanonicals = [...mappers.MAPPED_QUESTIONNAIRE_URLS]
-if (mappedCanonicals.length === 0) {
-  fail('the mapper registry reports no canonicals — a registry with nothing in it is not a pass')
-}
+const [mappers, registry, native] = await loadCore([
+  '@spier/core/lib/observationMappers',
+  '@spier/core/data/questionnaires',
+  '@spier/core/lib/nativeQuestionnaireResponse',
+])
 
-/** Questionnaire canonical → its path under ig/input/resources/questionnaires/. */
-const pathByCanonical = new Map()
-function* jsonFiles(dir) {
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const full = join(dir, entry.name)
-    if (entry.isDirectory()) yield* jsonFiles(full)
-    else if (entry.name.endsWith('.json')) yield full
+const mapped = Object.entries(mappers.MAPPER_BY_QUESTIONNAIRE_URL)
+if (mapped.length === 0) fail('the mapper registry is empty — a registry with nothing in it is not a pass')
+
+const extractFlag = (node) =>
+  (node.extension ?? []).find((e) => e.url === EXTRACT_URL && typeof e.valueBoolean === 'boolean')?.valueBoolean
+
+/** Every item with its EFFECTIVE observationExtract (SDC inheritance: nearest ancestor-or-self wins). */
+function* itemsWithExtract(items, inherited) {
+  for (const item of items ?? []) {
+    const own = extractFlag(item)
+    const effective = own ?? inherited
+    yield { item, extract: effective === true }
+    yield* itemsWithExtract(item.item, effective)
   }
 }
-for (const full of jsonFiles(resolve(root, 'ig/input/resources/questionnaires'))) {
-  let doc
-  try { doc = JSON.parse(readFileSync(full, 'utf8')) } catch { continue }
-  if (doc.resourceType !== 'Questionnaire' || typeof doc.url !== 'string') continue
-  pathByCanonical.set(doc.url.split('|')[0], full.slice(resolve(root).length + 1))
-}
 
-const classified = new Map()
-for (const k of Object.keys(EXPECTED)) classified.set(k, 'EXPECTED')
-for (const k of Object.keys(NO_LITERAL_EXTRACTS)) {
-  if (classified.has(k)) {
-    fail(`${k} is in BOTH EXPECTED and NO_LITERAL_EXTRACTS — it cannot be both, and the second would win silently`)
-  }
-  classified.set(k, 'NO_LITERAL_EXTRACTS')
-}
+const strip = (canonical) => canonical.split('|')[0]
+let declaredChecked = 0
+let questionnairesRun = 0
 
-for (const canonical of mappedCanonicals) {
-  const relPath = pathByCanonical.get(canonical)
-  if (!relPath) {
-    fail(
-      `observationMappers/index.ts maps "${canonical}", which resolves to no Questionnaire JSON under ` +
-        `ig/input/resources/questionnaires/. check:catalog owns that relation; this rule needs it to find the file.`,
-    )
+for (const [canonical, mapper] of mapped) {
+  const q = registry.QUESTIONNAIRE_BY_URL[canonical]
+  if (!q) {
+    fail(`observationMappers/index.ts maps "${canonical}", which QUESTIONNAIRE_BY_URL does not hold — check:catalog owns that relation; this gate needs the Questionnaire to run the mapper`)
     continue
   }
-  if (classified.has(relPath)) continue
-  fail(
-    `${relPath} has a mapper but appears in NEITHER EXPECTED NOR NO_LITERAL_EXTRACTS, so this gate ` +
-      `never opened it. If its mapper emits an Observation whose VALUE is an answer and whose CODE is ` +
-      `that item's, declare observationExtract on those items and list the codes in EXPECTED. If every ` +
-      `Observation it emits is computed from several answers, say so in NO_LITERAL_EXTRACTS with the ` +
-      `reason — "absent" used to mean both, which is how four mappers went unchecked.`,
-  )
-}
+  const label = canonical.split('/').pop()
+  const rootExtract = extractFlag(q)
 
-// And the classifications expire: an entry for a Questionnaire no mapper serves
-// is a rule about nothing.
-const mappedPaths = new Set(mappedCanonicals.map((c) => pathByCanonical.get(c)).filter(Boolean))
-for (const [relPath, where] of classified) {
-  if (mappedPaths.has(relPath)) continue
-  fail(
-    `${where} names ${relPath}, which no mapper in observationMappers/index.ts serves. Delete the ` +
-      `entry — a classification for a Questionnaire nothing maps is checking nothing.`,
-  )
-}
-console.log(
-  `✓ coverage: ${mappedCanonicals.length} mapper(s), each classified ` +
-    `(${Object.keys(EXPECTED).length} with literal extracts, ${Object.keys(NO_LITERAL_EXTRACTS).length} without)`,
-)
-
-for (const [relPath, expected] of Object.entries(EXPECTED)) {
-  const q = JSON.parse(readFileSync(resolve(root, relPath), 'utf8'))
-  const declared = []
-  for (const item of walk(q.item)) {
-    const hasExtract = (item.extension ?? []).some(
-      e => e.url === EXTRACT_URL && e.valueBoolean === true,
-    )
-    if (!hasExtract) continue
+  // Rules 1 + 4 — what the Questionnaire declares, with SDC inheritance.
+  const declared = new Map() // code -> linkId
+  const itemCode = new Map() // every item's first code -> linkId
+  for (const { item, extract } of itemsWithExtract(q.item, rootExtract)) {
     const code = item.code?.[0]?.code
-    if (!code) {
-      fail(`${relPath}: item "${item.linkId}" declares observationExtract but has no code`)
+    if (code) itemCode.set(code, item.linkId)
+    if (!extract) continue
+    if (item.type === 'group' || item.type === 'display') {
+      // Inherited onto a container: not an extraction of its own.
+      if (extractFlag(item) === true) fail(`${label}: ${item.type} item "${item.linkId}" declares observationExtract — only an answered item can be extracted`)
       continue
     }
-    declared.push(code)
+    if (!code) {
+      if (extractFlag(item) === true) fail(`${label}: item "${item.linkId}" declares observationExtract but has no code`)
+      else fail(`${label}: item "${item.linkId}" inherits observationExtract from the Questionnaire root but has no code — an extracted Observation would have no Observation.code`)
+      continue
+    }
+    declared.set(code, item.linkId)
   }
-  const exp = new Set(expected)
-  const dec = new Set(declared)
-  const missing = [...exp].filter(c => !dec.has(c))
-  const extra = [...dec].filter(c => !exp.has(c))
-  if (missing.length || extra.length) {
-    fail(`${relPath}: observationExtract codes drift from mapper`)
-    if (missing.length) console.error(`    expected (mapper emits) but not declared: ${missing.join(', ')}`)
-    if (extra.length) console.error(`    declared but mapper does not emit:        ${extra.join(', ')}`)
-  } else {
-    console.log(`✓ ${relPath}: ${declared.length} observationExtract item(s) match mapper`)
+
+  // Run the mapper on a response that answers everything.
+  let result
+  try {
+    // Every item endorsed (lib/mapper-probes.mjs), so a mapper that emits an
+    // item's Observation only on a positive answer still emits it.
+    result = mapper(respond(native, q, endorseAll(q, native)))
+  } catch (e) {
+    fail(`${label}: could not build or map a fully-answered response — ${e.message}`)
+    continue
   }
+  questionnairesRun++
+  const emitted = new Set(
+    (result?.observations ?? []).flatMap((o) => (o.code?.coding ?? []).map((c) => c.code)).filter(Boolean),
+  )
+  const computed = COMPUTED[strip(canonical)] ?? {}
+
+  // Rule 2 — declared ⊆ emitted.
+  for (const [code, linkId] of declared) {
+    declaredChecked++
+    if (!emitted.has(code)) {
+      fail(`${label}: item "${linkId}" declares observationExtract with code ${code}, but the mapper emits no Observation with that code (emits: ${[...emitted].join(', ') || 'none'})` +
+        (rootExtract === true ? ' — the Questionnaire-level observationExtract declares every coded item' : ''))
+    }
+    if (code in computed) fail(`${label}: COMPUTED lists ${code}, but item "${linkId}" declares it extracted — it cannot be both`)
+  }
+
+  // Rule 3 — an emitted Observation under an item's code is declared, or COMPUTED.
+  for (const code of emitted) {
+    if (!itemCode.has(code) || declared.has(code) || code in computed) continue
+    fail(`${label}: the mapper emits an Observation coded ${code}, item "${itemCode.get(code)}"'s code, which does not declare observationExtract. If the Observation's value IS that answer, declare it; if it is derived, add it to COMPUTED with the reason.`)
+  }
+  for (const code of Object.keys(computed)) {
+    if (!emitted.has(code)) fail(`${label}: COMPUTED lists ${code}, which the mapper no longer emits — delete the entry`)
+  }
+
+  console.log(`✓ ${label}: ${declared.size} declared extract(s) emitted; ${emitted.size} emitted code(s) accounted for`)
 }
 
-// A NO_LITERAL_EXTRACTS claim is checkable: the file must really declare none.
-for (const [relPath, reason] of Object.entries(NO_LITERAL_EXTRACTS)) {
-  if (!reason || reason.length < 20) {
-    fail(`NO_LITERAL_EXTRACTS["${relPath}"] carries no usable reason. An exemption without one is indistinguishable from an oversight.`)
-  }
-  const q = JSON.parse(readFileSync(resolve(root, relPath), 'utf8'))
-  const declared = [...walk(q.item)].filter((it) =>
-    (it.extension ?? []).some((e) => e.url === EXTRACT_URL && e.valueBoolean === true),
-  )
-  if (declared.length) {
-    fail(
-      `${relPath} is classified NO_LITERAL_EXTRACTS but declares observationExtract on ` +
-        `${declared.map((d) => `"${d.linkId}"`).join(', ')}. Move it to EXPECTED with the codes its ` +
-        `mapper emits.`,
-    )
-  } else {
-    console.log(`✓ ${relPath}: no literal extracts, as classified — ${reason}`)
-  }
+for (const canonical of Object.keys(COMPUTED)) {
+  if (!mappers.MAPPER_BY_QUESTIONNAIRE_URL[canonical]) fail(`COMPUTED names ${canonical}, which no mapper serves — delete the entry`)
 }
+
+reportFloors([
+  { source: 'observationMappers registry', dimension: 'Questionnaire(s) run', actual: questionnairesRun, floor: 7 },
+  { source: 'observationMappers registry', dimension: 'declared extract(s) checked', actual: declaredChecked, floor: 24 },
+], fail)
 
 if (failures) {
   console.error(`\nobservationExtract drift check FAILED (${failures} issue(s)).`)

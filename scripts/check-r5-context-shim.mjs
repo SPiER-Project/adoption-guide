@@ -18,7 +18,8 @@
  *          because the app would look and behave completely normally.
  *
  * ⚠️ Plant a defect and watch it fail before trusting it: `fhirVersion="r5"`,
- * a computed `fhirVersion={version}`, deleting the alias while keeping the shim,
+ * a computed `fhirVersion={version}`, a spread `{...{ fhirVersion: 'r5' }}`, a
+ * `createElement(Renderer, …)`, deleting the alias while keeping the shim,
  * and a renderer that no longer imports the R5 context.
  */
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
@@ -28,6 +29,7 @@ import { aliasedModules } from './lib/vite-alias.mjs'
 import { REPO_ROOT, appRootFloors } from './lib/app-roots.mjs'
 import { STYLE_ROOTS, walkExt, relRepo } from './lib/style-roots.mjs'
 import { reportFloors } from './lib/floors.mjs'
+import ts from 'typescript'
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const VITE_CONFIG = join(REPO, 'vite.config.ts')
@@ -69,37 +71,99 @@ if (errors.length > 0) report()
 // instead of a shim reported safe on the strength of having checked nothing.
 const sources = STYLE_ROOTS.flatMap(r => walkExt(r.dir, ['.ts', '.tsx']))
 
+// ⚠️ **Parsed, not regexed.** Until 2026-10-06 this was a text match for
+// `fhirVersion=…`, and it counted the doc comment in QuestionnaireView.tsx as
+// one of its "2 props" — so replacing the real prop with a spread,
+// `{...{ fhirVersion: 'r5' }}`, left the comment holding the zero-guard up and
+// the gate reported "1 fhirVersion prop(s) all r4". An AST has no comments, and
+// the rule is now stated over the renderer itself:
+//
+//   (a) every JSX element whose tag is the `Renderer` imported from
+//       @formbox/renderer carries exactly one `fhirVersion` attribute whose
+//       value is the literal "r4", and no spread attribute (a spread can carry a
+//       version this gate cannot read);
+//   (b) `Renderer` is used ONLY as a JSX tag — passing it as a value
+//       (`createElement(Renderer, props)`, a wrapper map) hides its props;
+//   (c) the identifier `fhirVersion` appears nowhere except as such an
+//       attribute — an object key, a variable, a shorthand property would carry
+//       a version to the renderer by a route (a) cannot see.
+const RENDERER_PACKAGE = '@formbox/renderer'
 let versionProps = 0
+let rendererElements = 0
 for (const path of sources) {
   const src = readFileSync(path, 'utf8')
+  if (!src.includes('fhirVersion') && !src.includes(RENDERER_PACKAGE)) continue
   const rel = relRepo(path)
-  for (const match of src.matchAll(/fhirVersion\s*=\s*(\{[^}]*\}|"[^"]*"|'[^']*')/g)) {
-    versionProps++
-    const raw = match[1]
-    const line = src.slice(0, match.index).split('\n').length
-    const literal = /^["'](.+)["']$/.exec(raw)
-    if (!literal) {
-      // A computed value cannot be checked here, and this gate must not approve
-      // what it cannot read.
-      fail(
-        `${rel}:${line}: fhirVersion=${raw} is computed — the R5 model is stubbed out, so this ` +
-          'prop has to be a literal the gate can verify. Pass "r4", or drop the alias.',
-      )
-      continue
-    }
-    if (literal[1] !== SUPPORTED_VERSION) {
-      fail(
-        `${rel}:${line}: fhirVersion="${literal[1]}" — only "${SUPPORTED_VERSION}" works while the ` +
-          'R5 model is stubbed out (it resolves to an empty object). Drop the alias in vite.config.ts.',
-      )
+  const sf = ts.createSourceFile(path, src, ts.ScriptTarget.Latest, true,
+    path.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS)
+  const at = (node) => `${rel}:${sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1}`
+
+  // Local names the renderer component is imported under.
+  const rendererNames = new Set()
+  for (const stmt of sf.statements) {
+    if (ts.isImportDeclaration(stmt) && ts.isStringLiteral(stmt.moduleSpecifier) &&
+        stmt.moduleSpecifier.text === RENDERER_PACKAGE) {
+      if (stmt.importClause?.isTypeOnly) continue
+      // The package's default export IS the Renderer (QuestionnaireView imports it that way).
+      if (stmt.importClause?.name) rendererNames.add(stmt.importClause.name.text)
+      const named = stmt.importClause?.namedBindings
+      if (named && ts.isNamedImports(named)) {
+        for (const el of named.elements) {
+          if ((el.propertyName ?? el.name).text === 'Renderer') rendererNames.add(el.name.text)
+        }
+      }
     }
   }
+
+  const visit = (node) => {
+    // (a) the renderer's own JSX elements
+    if ((ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) &&
+        ts.isIdentifier(node.tagName) && rendererNames.has(node.tagName.text)) {
+      rendererElements++
+      const attrs = node.attributes.properties
+      for (const a of attrs) {
+        if (ts.isJsxSpreadAttribute(a)) {
+          fail(`${at(a)}: <${node.tagName.text}> takes a spread attribute — it could carry a fhirVersion this gate cannot read. Pass the props explicitly.`)
+        }
+      }
+      const versions = attrs.filter(a => ts.isJsxAttribute(a) && a.name.getText(sf) === 'fhirVersion')
+      if (versions.length !== 1) {
+        fail(`${at(node)}: <${node.tagName.text}> has ${versions.length} fhirVersion attribute(s); it needs exactly one, the literal "${SUPPORTED_VERSION}".`)
+      }
+    }
+    // (b) the renderer used as a value
+    if (ts.isIdentifier(node) && rendererNames.has(node.text) &&
+        !ts.isImportSpecifier(node.parent) && !ts.isImportClause(node.parent) &&
+        !((ts.isJsxOpeningElement(node.parent) || ts.isJsxSelfClosingElement(node.parent) ||
+           ts.isJsxClosingElement(node.parent)) && node.parent.tagName === node)) {
+      fail(`${at(node)}: ${node.text} (from ${RENDERER_PACKAGE}) is used as a value, not a JSX tag — its fhirVersion cannot be verified. Render it as <${node.text} fhirVersion="${SUPPORTED_VERSION}" …>.`)
+    }
+    // (c) every other mention of fhirVersion
+    if (ts.isIdentifier(node) && node.text === 'fhirVersion') {
+      const attr = node.parent
+      if (ts.isJsxAttribute(attr) && attr.name === node) {
+        versionProps++
+        let init = attr.initializer
+        if (init && ts.isJsxExpression(init)) init = init.expression
+        if (!init || !ts.isStringLiteral(init)) {
+          fail(`${at(attr)}: fhirVersion=${attr.initializer?.getText(sf) ?? '(boolean)'} is computed — the R5 model is stubbed out, so this prop has to be a literal the gate can verify. Pass "${SUPPORTED_VERSION}", or drop the alias.`)
+        } else if (init.text !== SUPPORTED_VERSION) {
+          fail(`${at(attr)}: fhirVersion="${init.text}" — only "${SUPPORTED_VERSION}" works while the R5 model is stubbed out (it resolves to an empty object). Drop the alias in vite.config.ts.`)
+        }
+      } else if (!ts.isTypeReferenceNode(attr) && !ts.isQualifiedName(attr) && !ts.isIndexedAccessTypeNode(attr)) {
+        fail(`${at(node)}: \`fhirVersion\` outside a JSX attribute (${ts.SyntaxKind[attr.kind]}) — a version handed to the renderer this way cannot be verified. Pass the literal attribute fhirVersion="${SUPPORTED_VERSION}" on <Renderer>.`)
+      }
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(sf)
 }
 
-if (versionProps === 0) {
+if (versionProps === 0 || rendererElements === 0) {
   fail(
-    'no fhirVersion prop found in any component tree — either nothing renders a Questionnaire any ' +
-      'more (delete the shim) or this scan has stopped matching, in which case RULE 2 is checking nothing.',
+    `found ${rendererElements} <Renderer> element(s) and ${versionProps} fhirVersion attribute(s) in the ` +
+      'component trees — either nothing renders a Questionnaire any more (delete the shim) or this scan ' +
+      'has stopped matching, in which case RULE 2 is checking nothing.',
   )
 }
 
@@ -141,7 +205,7 @@ function report() {
     process.exit(1)
   }
   console.log(
-    `✓ fhir-r5: shim active, ${versionProps} fhirVersion prop(s) all "${SUPPORTED_VERSION}", ` +
+    `✓ fhir-r5: shim active, ${rendererElements} <Renderer> element(s), ${versionProps} fhirVersion prop(s) all "${SUPPORTED_VERSION}", ` +
       'renderer still imports the aliased specifier',
   )
 }

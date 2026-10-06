@@ -19,6 +19,7 @@ import {
 } from '@spier/tool-views/context/PatientContext'
 import { localDataSource } from '../lib/dataSource/localDataSource'
 import { SmartDataSource } from '@spier/core/lib/dataSource/smartDataSource'
+import { MRN_SYSTEM } from '@spier/core/lib/fhircast'
 import type { FhirDataSource } from '@spier/core/lib/dataSource/types'
 import type { RegistryPatient } from '@spier/core/lib/registry'
 import { useActivePatientId } from '../hooks/useActivePatientId'
@@ -37,12 +38,14 @@ import type { PatientResource, ScenarioEncounter } from '@spier/core/types/fhir'
 // useCorrelatedSave, the last of which carries all the clinical decisions.
 
 /**
- * ⚠️ `npm run check:patients` SCRAPES the MRN system out of this function — it
- * is the third of the three sites that gate reconciles (the FSH is canonical,
- * `patients.json` holds the display copies). The gate exits non-zero with an
- * explanation if the builder is moved or reshaped, so **update it deliberately**
- * rather than deleting the check. That coupling is why this stayed in the
- * provider when the rest was extracted.
+ * ⚠️ The MRN system is core's `MRN_SYSTEM`, IMPORTED — never a literal here.
+ * `npm run check:patients` loads that constant and compares it with the canonical
+ * Patient JSON in packages/demo-population/src/patients/ (`patients.json` holds
+ * the display copies), and it fails if an identifier `system` in this file is
+ * anything but that import. Until 2026-10-06 the gate regex-scraped the first
+ * `identifier: [{ system: '…' }]` literal in this file instead — which, once the
+ * builder used a local constant, was BLANK_PATIENT's literal below, so a typo in
+ * the constant the app actually emitted passed.
  */
 function populationToFhir(p: PopulationPatient) {
   const [given, ...familyParts] = p.displayName.split(' ')
@@ -59,7 +62,7 @@ function populationToFhir(p: PopulationPatient) {
     birthDate: p.dob,
     gender: p.gender.toLowerCase(),
     identifier: [
-      { system: 'http://thespierproject.org/fhir/identifier/mrn', value: p.mrn },
+      { system: MRN_SYSTEM, value: p.mrn },
     ],
   }
 }
@@ -72,7 +75,7 @@ const BLANK_PATIENT = {
   name: [{ use: 'official' as const, given: [''], family: '' }],
   birthDate: '',
   gender: '',
-  identifier: [{ system: 'http://thespierproject.org/fhir/identifier/mrn', value: '' }],
+  identifier: [{ system: MRN_SYSTEM, value: '' }],
 }
 
 export function PatientProvider({

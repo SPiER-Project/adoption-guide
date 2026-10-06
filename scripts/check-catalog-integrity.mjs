@@ -38,7 +38,8 @@
  *      directions, version-stripped:
  *        - every Questionnaire canonical referenced by an ActivityDefinition
  *          (relatedArtifact or SDC sdc-questionnaire extension) resolves to a
- *          Questionnaire JSON in ig/input/resources/questionnaires/
+ *          Questionnaire JSON in ig/input/resources/questionnaires/ — and where
+ *          the reference pins `|version`, to THAT version
  *        - every Questionnaire JSON in ig/input/resources/questionnaires/ is referenced by some
  *          ActivityDefinition. Check B stops a *tool* from reaching the app
  *          without an AD behind it; this stops the artifact one layer down —
@@ -361,6 +362,8 @@ function* jsonFiles(dir) {
 // the path is what makes the reverse failure below actionable, and a canonical
 // declared twice makes the reverse check unable to tell the two files apart.
 const questionnaireFiles = new Map()
+/** version-stripped canonical -> the Questionnaire's own `version` */
+const questionnaireVersions = new Map()
 for (const p of jsonFiles(questionnairesDir)) {
   let res
   try { res = JSON.parse(readFileSync(p, 'utf8')) } catch { continue }
@@ -375,6 +378,7 @@ for (const p of jsonFiles(questionnairesDir)) {
   }
   const stripped = stripVersion(res.url)
   questionnaireFiles.set(stripped, [...(questionnaireFiles.get(stripped) ?? []), rel])
+  questionnaireVersions.set(stripped, res.version)
 }
 // A check that reads nothing must fail, not pass (#232 / #261): a moved or
 // renamed ig/input/resources/questionnaires/ would otherwise make both directions vacuous.
@@ -397,6 +401,19 @@ for (const ad of activityDefs) {
     referencedQuestionnaires.add(stripped)
     if (!questionnaireFiles.has(stripped)) {
       fail(`ActivityDefinition ${ad.id}: questionnaire "${canonical}" resolves to no Questionnaire JSON in ig/input/resources/questionnaires/`)
+      continue
+    }
+    // ⚠️ A PINNED version must be the Questionnaire's version (2026-10-06). Every
+    // AD reference is pinned (`…/PHQ-9|1.0.0`), and this rule used to strip the
+    // pin and compare the rest — so bumping the Questionnaire to 1.1.0 left the
+    // AD naming a version that exists nowhere, with every gate green. A consumer
+    // resolving canonical|version gets nothing.
+    const pinned = canonical.includes('|') ? canonical.slice(canonical.indexOf('|') + 1) : undefined
+    if (pinned !== undefined && pinned !== questionnaireVersions.get(stripped)) {
+      fail(
+        `ActivityDefinition ${ad.id}: pins questionnaire "${canonical}", but that Questionnaire's version is ` +
+          `"${questionnaireVersions.get(stripped) ?? '(none)'}" — update the pin in ig/input/fsh/ in the same change as the version`,
+      )
     }
   }
 }

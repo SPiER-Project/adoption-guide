@@ -34,7 +34,10 @@
  *     (a renamed item otherwise reads `undefined` forever, in silence);
  *  3. the reader applied to it is legal for that item's declared `type` — with
  *     `getYesNoBoolean` additionally requiring that a `choice` item really is
- *     bound to the SNOMED Yes/No pair.
+ *     bound to the SNOMED Yes/No pair;
+ *  4. every `.answer` / `.value<Type>` access in a mapper IS one of those reads —
+ *     rooted at a `walkItems(…)` call or a `const` bound to one (2026-10-06:
+ *     reads that bypassed walkItems were invisible to rules 2–3).
  *
  * ── What it does NOT do ──────────────────────────────────────
  *
@@ -413,6 +416,7 @@ const yesNoBound = (item) => {
 }
 
 let totalReads = 0
+let auditedAccesses = 0
 for (const file of mapperFiles) {
   const canonicals = canonicalsForFile.get(file) ?? []
   if (!canonicals.length) continue
@@ -461,6 +465,73 @@ for (const file of mapperFiles) {
     ts.forEachChild(node, visit)
   }
   ts.forEachChild(sourceFile, visit)
+
+  // ── Every answer read is one of the reads above ─────────────────────────
+  //
+  // ⚠️ Added 2026-10-06. Everything above starts from a `walkItems(…)` call, so
+  // a read that does not go through one was simply never seen: replacing
+  // cssrsScreener's q1 read with `items.find(i => i.linkId === 'q1')?.answer?.[0]?.valueBoolean`
+  // — #327 itself — passed, as did `const a = descItem?.answer?.[0]` followed
+  // by `a?.valueBoolean`. So the inventory runs the other way too: every
+  // `.answer` and every `.value<Type>` access in a mapper must sit on a chain
+  // rooted at a `walkItems(…)` call or at a `const` bound directly to one, and
+  // a `.value<Type>` must be reached THROUGH that chain's `.answer`. Anything
+  // else is a read this gate cannot attribute to a linkId, and it fails rather
+  // than being skipped. (Binding names are matched per file, not per scope.)
+  const walkBound = new Set()
+  const collectBound = (node) => {
+    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer) {
+      let init = node.initializer
+      while (ts.isNonNullExpression(init) || ts.isParenthesizedExpression(init)) init = init.expression
+      if (isWalkItems(init)) walkBound.add(node.name.text)
+    }
+    ts.forEachChild(node, collectBound)
+  }
+  collectBound(sourceFile)
+  const isAnswerName = (name) => name === 'answer' || /^value[A-Z]\w*$/.test(name)
+  const accessName = (node) =>
+    ts.isPropertyAccessExpression(node) ? node.name.text
+      : ts.isElementAccessExpression(node) && ts.isStringLiteralLike(node.argumentExpression) ? node.argumentExpression.text
+        : undefined
+  /** Walk down an access chain; report whether it passes `.answer` and where it is rooted. */
+  const chainOf = (node) => {
+    let throughAnswer = false
+    let n = node.expression
+    for (;;) {
+      if (ts.isNonNullExpression(n) || ts.isParenthesizedExpression(n)) { n = n.expression; continue }
+      if (ts.isPropertyAccessExpression(n) || ts.isElementAccessExpression(n)) {
+        if (accessName(n) === 'answer') throughAnswer = true
+        n = n.expression
+        continue
+      }
+      break
+    }
+    const rooted = isWalkItems(n) || (ts.isIdentifier(n) && walkBound.has(n.text))
+    return { rooted, throughAnswer }
+  }
+  const audit = (node) => {
+    const name = accessName(node)
+    if (name && isAnswerName(name)) {
+      const { rooted, throughAnswer } = chainOf(node)
+      const ok = name === 'answer' ? rooted : rooted && throughAnswer
+      if (ok) auditedAccesses++
+      if (!ok) {
+        fail(`${file}:${sourceFile.getLineAndCharacterOfPosition(node.getStart()).line + 1}: \`.${name}\` read that ` +
+          `does not go through walkItems(…)${name === 'answer' ? '' : '.answer'} — this gate cannot attribute it to a ` +
+          `linkId, so it cannot check the reader against the item's declared type (#327). Read the item with ` +
+          `walkItems(items, '<linkId>') and the answer off that.`)
+      }
+    }
+    if (ts.isBindingElement(node)) {
+      const bound = (node.propertyName ?? node.name)
+      if (ts.isIdentifier(bound) && isAnswerName(bound.text)) {
+        fail(`${file}:${sourceFile.getLineAndCharacterOfPosition(node.getStart()).line + 1}: \`${bound.text}\` read by ` +
+          'destructuring — this gate cannot attribute it to a linkId. Read it as walkItems(…)?.answer?.[0]?.value<Type>.')
+      }
+    }
+    ts.forEachChild(node, audit)
+  }
+  audit(sourceFile)
   totalReads += checked
   console.log(`✓ ${relative(root, join(mapperDir, file))}: ${checked} read(s) checked against ${canonicals.length} Questionnaire(s)`)
 }
@@ -472,6 +543,7 @@ console.log(`\n${totalReads} answer read(s) checked across ${mapperFiles.length}
 reportFloors([
   { source: 'observationMappers', dimension: 'answer read(s)', actual: totalReads, floor: 45 },
   { source: 'observationMappers', dimension: 'mapper file(s)', actual: mapperFiles.length, floor: 7 },
+  { source: 'observationMappers', dimension: 'attributed .answer/.value[x] access(es)', actual: auditedAccesses, floor: 9 },
   { source: 'Questionnaire trees', dimension: 'Questionnaire(s)', actual: questionnaireByUrl.size, floor: 9 },
 ], fail)
 if (failures > 0) {

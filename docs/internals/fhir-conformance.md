@@ -157,3 +157,10 @@ is deliberately pointed at PSS-3 items offering the SNOMED pair **plus**
 `unable-to-complete` / `patient-refused`; the rule is containment, not equality,
 because a non-response must stay `undefined` rather than becoming a "No".
 
+⚠️ "Fails on anything it cannot follow" covered only reads that START at
+`walkItems`. A read that never touched it — `items.find(i => i.linkId === 'q1')?.answer?.[0]?.valueBoolean`,
+#327 verbatim — or an answer stored in a local and read on a later line, was
+not seen at all until 2026-10-06. The gate now also inventories every
+`.answer` and `.value<Type>` access in a mapper and fails any it cannot root at
+a `walkItems(…)` call or a `const` bound to one.
+

@@ -10,24 +10,28 @@
  *
  *   1. `packages/demo-population/src/patients.json` — display copies of name / dob /
  *      gender / mrn, read by the caseload table and the patient banner.
- *   2. `populationToFhir` in `web/src/context/PatientProvider.tsx` — builds a
- *      runtime `Patient` from patients.json, and hardcodes the MRN system.
+ *   2. `populationToFhir` in `packages/app-shell/src/context/PatientProvider.tsx` —
+ *      builds a runtime `Patient` from patients.json, stamping its MRN with core's
+ *      `MRN_SYSTEM` (packages/core/src/lib/fhircast.ts).
  *
  * That is exactly the hand-duplication CLAUDE.md warns about, and the failure is
- * silent in the worst way: patients.json feeds what a human SEES, the FSH feeds
- * what a server would RECEIVE, and a drifted birthDate would show one age on the
- * caseload while writing another into an EHR. Nothing else compares them —
+ * silent in the worst way: patients.json feeds what a human SEES, the Patient JSON
+ * is what the mock EHR SERVES, and a drifted birthDate would show one age on the
+ * caseload while the EHR holds another. Nothing else compares them —
  * `check:scenarios` proves the subject *exists* (check 8), not that it agrees.
  *
- * Eliminating the duplication would mean rewiring the caseload and banner to read
- * generated FHIR, which is a bigger change than this is worth today. So this
- * follows the repo's established pattern instead — `check:stages`,
- * `check:fallback`, `check:catalog`, `check:measures` all gate duplication rather
- * than pretend it is not there.
+ * ⚠️ **Site 3 is now a VALUE, loaded, plus one structural rule.** Until
+ * 2026-10-06 the MRN system was regex-scraped from the first
+ * `identifier: [{ system: '…' }]` literal in PatientProvider.tsx. Moving the
+ * builder's system into a local constant (with a typo) made the regex fall
+ * through to BLANK_PATIENT's literal further down, and the gate passed while the
+ * app emitted the typo. Now core's `MRN_SYSTEM` is loaded through
+ * lib/load-core.mjs and compared with the Patient JSON, and every identifier
+ * `system` in PatientProvider.tsx must be that import — not a literal, not a
+ * local constant.
  *
- * ⚠️ Note what makes site 3 covered rather than merely mentioned: the MRN system
- * is SCRAPED from the TypeScript, not restated here. A gate that hardcoded the
- * URI would agree with itself forever while the app drifted.
+ * Deriving the display copies from the Patient JSON at import time would delete
+ * site 1 and most of this gate; that is a proposal, not done here.
  *
  * ⚠️ Fails when it reads nothing, rather than passing over an unread input. That
  * is the #232 / #261 failure mode and it is the whole reason a gate like this can
@@ -38,6 +42,8 @@ import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { reportFloors } from './lib/floors.mjs'
 import { REPO_ROOT } from './lib/app-roots.mjs'
+import { loadCore } from './lib/load-core.mjs'
+import ts from 'typescript'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..') // repo root
 const patientsDir = join(root, 'packages/demo-population/src/patients')
@@ -85,18 +91,61 @@ if (!Array.isArray(registry) || registry.length === 0) {
   process.exit(1)
 }
 
-// ── Site 3: the MRN system the app emits, scraped not restated ────────────
-const providerSrc = readFileSync(providerPath, 'utf8')
-const mrnMatch = providerSrc.match(/identifier:\s*\[\s*\{\s*system:\s*'([^']+)'/)
-if (!mrnMatch) {
-  console.error(
-    '[check:patients] could not find the MRN identifier system in ' +
-      'PatientProvider.tsx (populationToFhir). If that builder was removed or ' +
-      'reshaped, update this gate deliberately — do not delete the check.',
-  )
+// ── Site 3: the MRN system the app emits — core's constant, imported ─────
+const [fhircast] = await loadCore(['@spier/core/lib/fhircast'])
+const appMrnSystem = fhircast.MRN_SYSTEM
+if (typeof appMrnSystem !== 'string' || !appMrnSystem) {
+  console.error('[check:patients] @spier/core/lib/fhircast exports no MRN_SYSTEM — refusing to compare MRNs against nothing.')
   process.exit(1)
 }
-const appMrnSystem = mrnMatch[1]
+{
+  const providerSrc = readFileSync(providerPath, 'utf8')
+  const sf = ts.createSourceFile(providerPath, providerSrc, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+  const rel = 'packages/app-shell/src/context/PatientProvider.tsx'
+  const line = (n) => sf.getLineAndCharacterOfPosition(n.getStart(sf)).line + 1
+  // The local name core's MRN_SYSTEM is imported under, if it is.
+  let importedAs
+  for (const stmt of sf.statements) {
+    if (ts.isImportDeclaration(stmt) && ts.isStringLiteral(stmt.moduleSpecifier) &&
+        stmt.moduleSpecifier.text === '@spier/core/lib/fhircast' &&
+        stmt.importClause?.namedBindings && ts.isNamedImports(stmt.importClause.namedBindings)) {
+      for (const el of stmt.importClause.namedBindings.elements) {
+        if ((el.propertyName ?? el.name).text === 'MRN_SYSTEM') importedAs = el.name.text
+      }
+    }
+  }
+  let identifierSystems = 0
+  const visit = (node) => {
+    // `identifier: [ { system: … } ]`
+    if (ts.isPropertyAssignment(node) && node.name.getText(sf) === 'identifier' &&
+        ts.isArrayLiteralExpression(node.initializer)) {
+      for (const el of node.initializer.elements) {
+        if (!ts.isObjectLiteralExpression(el)) continue
+        for (const prop of el.properties) {
+          if (!(ts.isPropertyAssignment(prop) || ts.isShorthandPropertyAssignment(prop)) || prop.name.getText(sf) !== 'system') continue
+          identifierSystems++
+          const init = ts.isPropertyAssignment(prop) ? prop.initializer : prop.name
+          if (!importedAs || !ts.isIdentifier(init) || init.text !== importedAs) {
+            fail(`${rel}:${line(prop)}: identifier system is \`${init.getText(sf)}\`, not core's MRN_SYSTEM imported from @spier/core/lib/fhircast — a second spelling of the MRN namespace this gate cannot hold to the Patient JSON`)
+          }
+        }
+      }
+    }
+    // A local re-declaration would shadow the import's meaning even if spelled alike.
+    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.name.text === importedAs) {
+      fail(`${rel}:${line(node)}: declares its own ${importedAs} — use the import from @spier/core/lib/fhircast`)
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(sf)
+  if (identifierSystems === 0) {
+    console.error(
+      `[check:patients] found no identifier \`system\` in ${rel} — if populationToFhir moved or ` +
+        'was reshaped, update this gate deliberately; do not delete the check.',
+    )
+    process.exit(1)
+  }
+}
 
 // ── Both directions of the id sets ────────────────────────────────────────
 for (const p of registry) {
@@ -133,7 +182,7 @@ for (const p of registry) {
   if (!ident) {
     fail(
       `${p.id}: no identifier with system "${appMrnSystem}" — that is the system ` +
-        `populationToFhir emits, so the FSH and the app disagree on this patient's MRN`,
+        `populationToFhir emits (core's MRN_SYSTEM), so the Patient JSON and the app disagree on this patient's MRN`,
     )
   } else if (ident.value !== p.mrn) {
     fail(`${p.id}: mrn "${p.mrn}" vs FHIR identifier value "${ident.value}"`)

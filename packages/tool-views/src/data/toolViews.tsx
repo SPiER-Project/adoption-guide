@@ -42,12 +42,7 @@
  */
 import { lazy, type ReactNode } from 'react'
 import { QUESTIONNAIRE_URLS } from '@spier/fhir-artifacts/generated/questionnaire-urls.generated'
-import {
-  generateCarePlan,
-  generateStabilizationCarePlan,
-  generateTherapeuticCarePlan,
-  generateCrisisResponseCarePlan,
-} from '@spier/core/lib/carePlanMappers'
+import { CAREPLAN_MAPPER_BY_QUESTIONNAIRE_URL } from '@spier/core/lib/carePlanMappers'
 
 const QuestionnaireView = lazy(() => import('../components/QuestionnaireView').then(m => ({ default: m.QuestionnaireView })))
 const SafetyHandoffView = lazy(() => import('../components/SafetyHandoffView').then(m => ({ default: m.SafetyHandoffView })))
@@ -90,13 +85,13 @@ export const TOOL_VIEWS: Record<string, ReactNode> = {
   // plan's `isEmpty`. It also imported the Questionnaire JSON straight out of
   // `ig/input/resources/questionnaires/`, the only instrument to bypass the core registry. See
   // docs/internals/tool-views.md §2.
-  'stanley-and-brown': <QuestionnaireView title="Stanley-Brown Safety Plan" questionnaireUrl={QUESTIONNAIRE_URLS['StanleyBrownSafetyPlan']} persistName="Stanley-Brown Safety Plan" carePlanMapper={generateCarePlan} />,
+  'stanley-and-brown': <QuestionnaireView title="Stanley-Brown Safety Plan" questionnaireUrl={QUESTIONNAIRE_URLS['StanleyBrownSafetyPlan']} persistName="Stanley-Brown Safety Plan" carePlanMapper={CAREPLAN_MAPPER_BY_QUESTIONNAIRE_URL[QUESTIONNAIRE_URLS['StanleyBrownSafetyPlan']]} />,
   'cams-section-a': <QuestionnaireView title="CAMS SSF-5: Section A" questionnaireUrl={QUESTIONNAIRE_URLS['CAMS-SSF5-SectionA']} persistName="CAMS SSF-5: Section A" />,
   'cams-section-b': <QuestionnaireView title="CAMS SSF-5: Section B" questionnaireUrl={QUESTIONNAIRE_URLS['CAMS-SSF5-SectionB']} persistName="CAMS SSF-5: Section B" />,
   'cams-outcome-disposition': <QuestionnaireView title="CAMS SSF-5: Outcome / Disposition" questionnaireUrl={QUESTIONNAIRE_URLS['CAMS-SSF5-OutcomeDisposition']} persistName="CAMS SSF-5: Outcome/Disposition" />,
-  'cams-stabilization-plan': <QuestionnaireView title="CAMS: Stabilization Plan" questionnaireUrl={QUESTIONNAIRE_URLS['CAMS-Stabilization-Plan']} persistName="CAMS Stabilization Plan" carePlanMapper={generateStabilizationCarePlan} />,
-  'cams-therapeutic-worksheet': <QuestionnaireView title="CAMS: Therapeutic Worksheet" questionnaireUrl={QUESTIONNAIRE_URLS['CAMS-Therapeutic-Worksheet']} persistName="CAMS Therapeutic Worksheet" carePlanMapper={generateTherapeuticCarePlan} />,
-  'crisis-response-plan': <QuestionnaireView title="Crisis Response Plan (CRP)" questionnaireUrl={QUESTIONNAIRE_URLS['CrisisResponsePlan']} persistName="Crisis Response Plan" carePlanMapper={generateCrisisResponseCarePlan} />,
+  'cams-stabilization-plan': <QuestionnaireView title="CAMS: Stabilization Plan" questionnaireUrl={QUESTIONNAIRE_URLS['CAMS-Stabilization-Plan']} persistName="CAMS Stabilization Plan" carePlanMapper={CAREPLAN_MAPPER_BY_QUESTIONNAIRE_URL[QUESTIONNAIRE_URLS['CAMS-Stabilization-Plan']]} />,
+  'cams-therapeutic-worksheet': <QuestionnaireView title="CAMS: Therapeutic Worksheet" questionnaireUrl={QUESTIONNAIRE_URLS['CAMS-Therapeutic-Worksheet']} persistName="CAMS Therapeutic Worksheet" carePlanMapper={CAREPLAN_MAPPER_BY_QUESTIONNAIRE_URL[QUESTIONNAIRE_URLS['CAMS-Therapeutic-Worksheet']]} />,
+  'crisis-response-plan': <QuestionnaireView title="Crisis Response Plan (CRP)" questionnaireUrl={QUESTIONNAIRE_URLS['CrisisResponsePlan']} persistName="Crisis Response Plan" carePlanMapper={CAREPLAN_MAPPER_BY_QUESTIONNAIRE_URL[QUESTIONNAIRE_URLS['CrisisResponsePlan']]} />,
   'pss-full': <QuestionnaireView title="Patient Safety Screener / Suicide Risk Screener (Full)" questionnaireUrl={QUESTIONNAIRE_URLS['PSS-Full']} persistName="PSS Full" />,
 
   // ── Workflow recorders (clinician route: /patient/workflow/<slug>) ───────

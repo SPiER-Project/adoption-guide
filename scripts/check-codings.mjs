@@ -43,7 +43,7 @@
  * ─── Why it is not in `npm run verify` ───────────────────────
  *
  * It needs a terminology server, so it cannot be offline-reproducible the way the
- * other seven drift checks are. It runs weekly, and on every PR that touches
+ * `npm run verify` drift checks are. It runs weekly, and on every PR that touches
  * terminology-authoring paths (#480), instead
  * (.github/workflows/terminology.yml), which is also why every failure
  * mode below exits non-zero rather than warning: a scheduled check nobody watches
@@ -435,9 +435,62 @@ const field = (objText, name) => {
 
 const found = new Map() // key -> {system, code, display, files:Set}
 let systemLiteralHits = 0
+let constantSystemHits = 0
 const noCodeSites = []
+const unresolvedSystemSites = [] // `system: SOME_NAME` whose value this scan cannot read
 const perSource = new Map() // SCAN path -> { [family]: count of codings extracted }
 const filesScanned = new Map() // SCAN path -> number of files walkFiles actually read
+
+// ─── System CONSTANTS ─────────────────────────────────────────
+//
+// ⚠️ Until 2026-10-06 only a system written as a LITERAL beside its code was
+// extracted. `{ system: LOINC_SYSTEM, code: '87626-8', display: … }` — the
+// form carePlanMappers, lethalMeans.ts and asq.ts use — was never seen: the
+// literal sits in the constant's declaration, whose enclosing "object" is none,
+// so it was dropped before even the not-checkable note. Mutating both of those
+// displays left this gate green. So every `const NAME = '<url>'` in the scanned
+// trees is indexed, and a `system: NAME` resolves when NAME is declared in that
+// file or imported into it and the name has ONE value repo-wide. A
+// `system: NAME` that does not resolve is listed below as not checkable rather
+// than dropped.
+const CONST_DECL_RE = /(?:^|\n)\s*(?:export\s+)?const\s+([A-Za-z_]\w*)\s*(?::\s*[\w.<>[\]]+\s*)?=\s*['"]([^'"\n]+)['"]/g
+const constantValues = new Map() // name -> Set(values) across every scanned file
+const TS_TYPE_WORDS = new Set(['string', 'number', 'boolean', 'unknown', 'any', 'never', 'undefined'])
+const allFiles = [...new Set(SCAN.flatMap(e => walkFiles(e)))]
+for (const file of allFiles) {
+  for (const m of readFileSync(file, 'utf8').matchAll(CONST_DECL_RE)) {
+    if (!constantValues.has(m[1])) constantValues.set(m[1], new Set())
+    constantValues.get(m[1]).add(m[2])
+  }
+}
+/** The value `name` has in `text`, or undefined when it cannot be established. */
+function resolveConstant(name, text) {
+  const local = [...text.matchAll(CONST_DECL_RE)].filter(m => m[1] === name).map(m => m[2])
+  if (local.length) return new Set(local).size === 1 ? local[0] : undefined
+  const imported = new RegExp(`import\\s*(?:type\\s*)?\\{[^}]*\\b${name}\\b[^}]*\\}\\s*from`).test(text)
+  const values = constantValues.get(name)
+  return imported && values?.size === 1 ? [...values][0] : undefined
+}
+
+function record({ system, obj, rel, sourceCount, label }) {
+  const code = field(obj, 'code')
+  if (!code) { noCodeSites.push(`${rel} (${label}, no sibling code)`); return }
+  // A system matched by the union regex must anchor-match exactly one family.
+  // If a future pattern breaks that (one family matching a prefix of another,
+  // say), the miscount would land under the key `undefined` and every real
+  // family would look starved — or worse, not. Fail on the ambiguity instead.
+  const family = familyOf(system)
+  if (!family) {
+    console.error(`✗ ${rel}: '${system}' matched an external family pattern but no single family.`)
+    console.error('  EXTERNAL_FAMILIES patterns must be mutually exclusive and individually anchorable.')
+    process.exit(1)
+  }
+  sourceCount[family]++
+  const display = field(obj, 'display')
+  const key = `${system}|${code}|${display ?? ''}`
+  if (!found.has(key)) found.set(key, { system, code, display, files: new Set() })
+  found.get(key).files.add(rel)
+}
 
 for (const entry of SCAN) {
   const sourceCount = Object.fromEntries(EXTERNAL_FAMILIES.map(f => [f.name, 0]))
@@ -455,23 +508,22 @@ for (const entry of SCAN) {
       // The object must actually name this system — guards against a literal that
       // merely sits inside some larger unrelated object.
       if (field(obj, 'system') !== system) continue
-      const code = field(obj, 'code')
-      if (!code) { noCodeSites.push(`${rel} (${system}, no sibling code)`); continue }
-      // A system matched by the union regex must anchor-match exactly one family.
-      // If a future pattern breaks that (one family matching a prefix of another,
-      // say), the miscount would land under the key `undefined` and every real
-      // family would look starved — or worse, not. Fail on the ambiguity instead.
-      const family = familyOf(system)
-      if (!family) {
-        console.error(`✗ ${rel}: '${system}' matched an external family pattern but no single family.`)
-        console.error('  EXTERNAL_FAMILIES patterns must be mutually exclusive and individually anchorable.')
-        process.exit(1)
+      record({ system, obj, rel, sourceCount, label: system })
+    }
+    for (const m of text.matchAll(/\bsystem\s*:\s*([A-Za-z_]\w*)\s*[,}\n]/g)) {
+      const name = m[1]
+      // `system: string` is a type annotation (an interface field), not a coding.
+      if (TS_TYPE_WORDS.has(name)) continue
+      const value = resolveConstant(name, text)
+      if (value === undefined) {
+        unresolvedSystemSites.push(`${rel} (system: ${name})`)
+        continue
       }
-      sourceCount[family]++
-      const display = field(obj, 'display')
-      const key = `${system}|${code}|${display ?? ''}`
-      if (!found.has(key)) found.set(key, { system, code, display, files: new Set() })
-      found.get(key).files.add(rel)
+      if (!familyOf(value)) continue // a SPiER-local or other non-external system: not this gate's
+      const obj = enclosingObject(text, m.index)
+      if (!obj) continue
+      constantSystemHits++
+      record({ system: value, obj, rel, sourceCount, label: `${name} = ${value}` })
     }
   }
   perSource.set(entry.path, sourceCount)
@@ -531,7 +583,7 @@ for (const entry of SCAN) {
   }
   console.log(`scanned ${entry.path}: ${parts.join(', ')}`)
 }
-console.log(`found ${codings.length} distinct external coding(s) from ${systemLiteralHits} system literal(s)\n`)
+console.log(`found ${codings.length} distinct external coding(s) from ${systemLiteralHits} system literal(s) and ${constantSystemHits} system constant reference(s)\n`)
 
 // Guard 1: a source that yields almost nothing must never look like a pass. Checked
 // per source AND per vocabulary family, so neither a healthy source nor a healthy
@@ -621,6 +673,11 @@ const pendingDead = [...PENDING_TX.keys()].filter(k => !pendingSeen.has(k))
 // spot. A coding whose `code` comes from a variable or template cannot be checked
 // without evaluating the program, so it is reported as uncovered instead of being
 // quietly folded into the pass. If this number climbs, static coverage is falling.
+if (unresolvedSystemSites.length) {
+  console.log(`\nnote: ${unresolvedSystemSites.length} \`system: <name>\` site(s) not statically checkable — the name is not a`)
+  console.log('      string constant declared in, or imported into, that file with one value repo-wide:')
+  for (const site of [...new Set(unresolvedSystemSites)].sort()) console.log(`        ${site}`)
+}
 if (noCodeSites.length) {
   console.log(`\nnote: ${noCodeSites.length} system literal(s) not statically checkable — no literal sibling \`code\``)
   console.log('      (system constants, comparisons, or a code bound to a variable):')

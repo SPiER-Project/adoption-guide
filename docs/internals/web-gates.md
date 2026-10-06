@@ -126,30 +126,47 @@ npm run check:fhir-render # the clinician-facing app shows no raw FHIR. `Inspect
                        # "TL-032" were all fixed by hand in the same pass and none is gated.
                        # See `docs/internals/tool-views.md` §4
 npm run check:ucum     # the UCUM shim is still safe: no quantities in the Questionnaires,
-                       # and the shim still covers every method its consumers call
+                       # and the shim still covers every method its consumers call.
+                       # ⚠️ "No quantities" means EVERY expression in the resource — root
+                       # `sdc-questionnaire-variable`, nested toggle expressions, a
+                       # `questionnaire-constraint`'s `expression` sub-extension — not just
+                       # `item.extension[].valueExpression`, which is all it read until
+                       # 2026-10-06 (a root `toQuantity('mg')` passed). The UCUM method list
+                       # is READ off the installed `UcumLhcUtils` class; the hand list it
+                       # replaced named two methods that do not exist and missed three
 npm run check:fhir-r5  # the R5-model shim is still safe: every fhirVersion is "r4",
-                       # and the renderer still imports the specifier we alias
-npm run check:crosswalk  # concept-crosswalk validation
-npm run check:extract    # the SDC observationExtract contract. Three rules: a declaring item
-                         # carries a `code`; the declared code set equals the literal Observation
-                         # codes its mapper emits; and EVERY mapper's Questionnaire is classified.
-                         # ⚠️ The third was missing and was the whole hole — EXPECTED is a hand
-                         # list of paths, and a Questionnaire simply absent from it was not
-                         # "checked and found empty" but NEVER OPENED. Four of the fourteen
-                         # mappers were in that state, and the gate printed ten green ✓ lines and
-                         # said nothing about them. `camsSectionA` and `camsOutcomeDisposition`
-                         # each emit six literal per-item SSF-vital Observations (plus, for the
-                         # latter, a coded disposition) against Questionnaires declaring ZERO
-                         # extracts; `cssrsFull` and `camsSectionB` genuinely have none, but
-                         # nothing recorded that as a decision. The "ought to be checked" set is
-                         # now DERIVED from `MAPPER_BY_QUESTIONNAIRE_URL`, so a fifteenth mapper
-                         # is classified or the gate goes red, and a classification for a
-                         # Questionnaire no mapper serves is itself a failure.
+                       # and the renderer still imports the specifier we alias.
+                       # ⚠️ PARSED (2026-10-06): its regex counted QuestionnaireView's doc
+                       # comment as a prop, so a spread `{...{ fhirVersion: 'r5' }}` replacing
+                       # the real one passed. Every `<Renderer>` must carry one literal
+                       # `fhirVersion="r4"` and no spread; Renderer used as a value, or
+                       # `fhirVersion` anywhere but that attribute, fails
+npm run check:crosswalk  # concept-crosswalk validation. A–C: ConceptMaps vs the tier and
+                         # disposition CodeSystems; D/E: the `.fml` maps' tier literals and
+                         # ConceptMap references; F: the mappers, RUN over the probe responses in
+                         # scripts/lib/mapper-probes.mjs — every code emitted under a map's source
+                         # system is in that CodeSystem, and every code the map translates is
+                         # emitted by some mapper.
+                         # ⚠️ Until 2026-10-06 D/E globbed `ig/drafts/`, emptied when the maps were
+                         # promoted to `ig/input/resources/maps/` (a `'severe'` tier passed), and F
+                         # grepped the mapper source for each code as a quoted literal (`asq.ts`
+                         # emitting `'acute-pos'` passed — the right spelling was still in a
+                         # comparison). ig.yml runs it `--static` (A–E): it builds no node_modules
+npm run check:extract    # the SDC observationExtract contract, against what each mapper EMITS:
+                         # every mapper in `MAPPER_BY_QUESTIONNAIRE_URL` is RUN (load-core) on a
+                         # response endorsing every item; a declared extract code must come out of
+                         # it, and an Observation it emits under one of the form's item codes must
+                         # be declared or listed in COMPUTED with the reason. A Questionnaire-level
+                         # observationExtract applies to every coded item, as in SDC.
+                         # ⚠️ Rule 2 compared against EXPECTED, a hand copy of "the codes the mapper
+                         # emits", until 2026-10-06 — `phq9.ts` emitting `44261-7` passed. That list
+                         # is gone; the earlier hole it had (a Questionnaire absent from it was
+                         # never opened — four of fourteen) is closed by running the registry.
                          # ⚠️ What it still cannot see: whether a declared extraction is the RIGHT
-                         # one. `camsSectionA`'s seventh Observation re-codes the same `6-score`
-                         # answer under LOINC 93374-7 and is deliberately undeclared, because
-                         # `$extract` yields ONE Observation per item — that judgement is a
-                         # comment in EXPECTED, not a rule
+                         # one. `camsSectionA`'s seventh Observation re-codes the `6-score` answer
+                         # under LOINC 93374-7 and is deliberately undeclared, because `$extract`
+                         # yields ONE Observation per item; 93374-7 is not that item's code, so
+                         # no rule reaches it
 npm run check:core-boundary # packages/core stays React-free and DOM-free — the constraint
                          # that makes the boundary worth drawing. A feature-detected
                          # browser API (`typeof BroadcastChannel === 'undefined'`) is
@@ -175,8 +192,15 @@ npm run check:catalog    # tool-catalog wiring (stubs / UI metadata / ActivityDe
                          # is one tool, four session forms) and INDISTINGUISHABLE
                          # from a pasted-in duplicate, and the catalog merges the
                          # group either way, so the second tool does not go missing
-                         # loudly — it goes missing inside the first one
-npm run check:stages     # stage ids in population data vs canonical FSH stage list
+                         # loudly — it goes missing inside the first one.
+                         # Check C also holds a PINNED reference (`…/PHQ-9|1.0.0`, which every
+                         # AD uses) to the Questionnaire's own `version` (2026-10-06): it stripped
+                         # the pin, so a version bump left every AD naming a version that exists
+                         # nowhere
+npm run check:stages     # stage ids in population data vs canonical FSH stage list.
+                         # ⚠️ scripts/lib/stage-codes.mjs strips FSH comments first (a
+                         # block-commented stage was still "a stage" until 2026-10-06) and, when
+                         # the compiled CodeSystem exists, must agree with it exactly
 npm run check:pathway    # the Suicide Safer Care Pathway PlanDefinition is almost
                          # entirely REFERENCES — tier codes, stage codes, and
                          # definitionCanonicals — and none of them is a conformance
@@ -190,9 +214,21 @@ npm run check:pathway    # the Suicide Safer Care Pathway PlanDefinition is almo
                          # one home (SPiERReassessmentSchedule) and three statements
                          # already, held in agreement by `check:reassessment`. A
                          # fourth here is what "reference, don't restate" prevents,
-                         # and SUSHI reports 0 errors on it — proved by planting one
+                         # and SUSHI reports 0 errors on it — proved by planting one.
+                         # Rule (f), 2026-10-06: each tier branch's FHIRPath CONDITION tests its
+                         # own tier, through a published extension. SPiER's runtime picks the
+                         # branch by `action.code`, so `tier-low`'s condition rewritten to
+                         # `= 'moderate'` passed this gate AND all of `npm test`; an engine
+                         # running the published expression would have applied it to the wrong
+                         # tier. And a definitionCanonical must resolve to an
+                         # ActivityDefinition / PlanDefinition / Questionnaire, not merely exist
 npm run check:readers    # every observation mapper's answer READS vs the Questionnaire's
-                         # declared item `type` — see fhir-conformance.md
+                         # declared item `type` — see fhir-conformance.md.
+                         # ⚠️ And every `.answer` / `.value<Type>` access in a mapper must be one
+                         # it can attribute — rooted at `walkItems(…)` or a const bound to one
+                         # (2026-10-06). It only ever started FROM walkItems, so an
+                         # `items.find(…)?.answer?.[0]?.valueBoolean` read (#327 again) or an
+                         # answer stored in a local and read later was simply not seen
 npm run check:careplan-readers # the SIBLING rule for carePlanMappers, and a different
                          # question: does the NESTING each reader walks match what the
                          # Questionnaire declares? `extractPairs` must name a `type: group`
@@ -202,11 +238,17 @@ npm run check:careplan-readers # the SIBLING rule for carePlanMappers, and a dif
                          # ⚠️ It does NOT check that the readers still handle both response
                          # nestings: a static reader cannot tell a live branch from a dead
                          # one, and two planted defects proved it. That property is covered
-                         # by the both-shapes cases in the mapper tests instead
+                         # by the both-shapes cases in the mapper tests instead.
+                         # A linkId is resolved against the form the mapper SERVES, from
+                         # `CAREPLAN_MAPPER_BY_QUESTIONNAIRE_URL` in core (2026-10-06); resolved
+                         # against all eighteen, Stanley-Brown reading CRP's `coping-list` passed
 npm run check:patients   # the 14 demo patients' demographics agree across all THREE
                          # sites: demo-population/src/patients/*.json (canonical), patients.json
-                         # (display copies), and populationToFhir's MRN system in
-                         # PatientProvider.tsx — which is SCRAPED, not restated
+                         # (display copies), and the MRN system populationToFhir stamps —
+                         # core's `MRN_SYSTEM`, LOADED, and PatientProvider.tsx must use that
+                         # import for every identifier system. ⚠️ It was regex-scraped until
+                         # 2026-10-06, and the regex fell through to BLANK_PATIENT's literal
+                         # when the builder used a (mistyped) local constant
 npm run check:scenarios  # BOTH halves of the population-scenario gate:
                          #  check-scenario-responses.mjs — QuestionnaireResponses vs their
                          #    Questionnaire (linkIds, nesting, answer options, ranges)
@@ -417,7 +459,8 @@ line. See `docs/plans/surfaces-and-distribution.md` §3.
 
 ## Per-source liveness floors
 
-`scripts/lib/floors.mjs` — `reportFloors(entries, fail)`. Nine gates call it, and
+`scripts/lib/floors.mjs` — `reportFloors(entries, fail)`. Most gates call it (not a
+count — "nine" went stale at twenty-two), and
 each prints `scanned <source>: <dimension> N (floor M)` on every run.
 
 **Why, in one sentence:** #500 proved that a gate whose tree is *gone* goes red
@@ -484,6 +527,14 @@ identifiers, rather than as "tools.ts mentions the system URL"), and
 `check:outputs`' launch actions. `check:readers` keeps its static parse, because
 which FILE serves a canonical is a question about source, but cross-checks the
 parsed registry against the running one.
+
+A second step, the same day: three gates now **run** core rather than read it.
+`check:extract` and `check:crosswalk` (rule F) call every registered mapper on
+synthetic responses (`scripts/lib/mapper-probes.mjs`, built with core's own
+`buildNativeQuestionnaireResponse`) and compare what comes OUT — the hand copy of
+"the codes the mapper emits" and the grep for each disposition both passed a
+mapper emitting a different code. `check:patients` loads core's `MRN_SYSTEM`,
+and `check:careplan-readers` loads `CAREPLAN_MAPPER_BY_QUESTIONNAIRE_URL`.
 
 **The rule.** A gate that needs a VALUE from core — a table, a registry, a set of
 keys — loads it. A gate whose subject is the SOURCE — which file a symbol lives
@@ -700,12 +751,14 @@ is gated. The icons in `public/` are GENERATED from `--brand-primary` and
 build:favicons` rewrites them). The 2026 redesign would otherwise have left a
 raspberry icon nobody looks at.
 
-### `npm run check:extract` — the third rule
+### `npm run check:extract` — run the mapper, do not restate it
 
-⚠️ Every mapper's Questionnaire must be classified — in `EXPECTED`, or in
-`NO_LITERAL_EXTRACTS` with the reason. Absence from the hand list used to mean
-"checked and empty" and "never opened" indistinguishably, and four of fourteen
-mappers were in the second state.
+⚠️ Every mapper in the registry is RUN (2026-10-06), so no Questionnaire can be
+"never opened". The hand lists that used to carry this rule — `EXPECTED`
+(codes) and `NO_LITERAL_EXTRACTS` (reasons) — are gone: a hand copy of "the
+codes the mapper emits" passed a mapper that emitted a different one. The one
+list left, `COMPUTED`, records a judgement (this Observation is derived, not
+the answer), and expires both ways.
 
 ### The app roots (`scripts/lib/app-roots.mjs`)
 

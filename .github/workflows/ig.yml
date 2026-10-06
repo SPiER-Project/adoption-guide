@@ -192,9 +192,13 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: node scripts/check-canonical-uniqueness.mjs
 
+      # `--static`: rules A–E only. Rule F RUNS the observation mappers through
+      # scripts/lib/load-core.mjs, which needs `npm ci` and the copy-fhir tree
+      # this job never builds; `npm run verify` (web-lint.yml, which also
+      # triggers on ig/**) runs the full gate.
       - name: Check concept-layer crosswalks
         working-directory: ${{ github.workspace }}
-        run: node scripts/check-concept-crosswalk.mjs
+        run: node scripts/check-concept-crosswalk.mjs --static
 
       - name: Upload generated resources
         uses: actions/upload-artifact@v4

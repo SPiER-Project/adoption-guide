@@ -55,7 +55,9 @@ const SPIER_Q = 'http://thespierproject.org/fhir/Questionnaire'
 // `valueCanonical` in each ActivityDefinition's sdc-questionnaire extension
 // (ig/input/fsh/<tool>.fsh). When adding a new mapper, mirror the entry
 // against the AD's canonical so a versioned QR still dispatches correctly.
-const MAPPER_BY_QUESTIONNAIRE_URL: Record<string, (qr: QuestionnaireResponseResource) => MapperResult | null> = {
+// Exported so `check:extract` and `check:crosswalk` can RUN each mapper on
+// synthetic responses and compare what it emits (scripts/lib/mapper-probes.mjs).
+export const MAPPER_BY_QUESTIONNAIRE_URL: Record<string, (qr: QuestionnaireResponseResource) => MapperResult | null> = {
   [`${SPIER_Q}/PHQ-9`]: mapPHQ9,
   [`${SPIER_Q}/ASQ-Screening-Tool`]: mapASQ,
   [`${SPIER_Q}/BSSA`]: mapBSSA,

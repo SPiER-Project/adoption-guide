@@ -45,7 +45,7 @@ class UcumLhcUtilsShim {
 
   private unreachable(method: string): never {
     throw new Error(
-      `@lhncbc/ucum-lhc is stubbed out of this build (see web/src/shims/ucum-lhc.ts), ` +
+      `@lhncbc/ucum-lhc is stubbed out of this build (see shims/ucum-lhc.ts), ` +
         `but ${method}() was called. Something now uses UCUM units — a quantity item in a ` +
         `Questionnaire, or a FHIRPath expression over Quantity values. Drop the resolve.alias ` +
         `in vite.config.ts to restore the real library.`,

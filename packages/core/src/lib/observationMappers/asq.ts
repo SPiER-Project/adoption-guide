@@ -49,7 +49,7 @@ export function mapASQ(response: QuestionnaireResponseResource): MapperResult {
   // C-SSRS panel members or nonexistent. The displays below are LOINC's own, which is
   // what `check:codings` compares against; they read as questions rather than findings
   // because that is how LOINC names them. MUST stay in sync with the Questionnaire item
-  // codes and scripts/check-observation-extract.mjs EXPECTED.
+  // codes — `check:extract` runs this mapper and fails if a declared code is not emitted.
   const LOINC = 'http://loinc.org'
   const itemMap = [
     { linkId: 'q1', code: '115566-2', display: 'In the past few weeks have you wished you were dead' },
