@@ -25,7 +25,7 @@
 /* `--measure-prose` is a CHARACTER count, not a width, which is why it is in
    `em` and why it sits on the text run rather than on the card around it. */
 .pathway-stage__tool-purpose {
-  font: var(--type-ui);
+  font: var(--type-running); /* --type-ui in the clinical density, which is the only one this page renders in */
   color: var(--text-body);
   max-inline-size: var(--measure-prose);
   margin-block: 0;
@@ -54,7 +54,7 @@
 }
 
 .pathway-stage__alternatives-note {
-  font: var(--type-ui);
+  font: var(--type-running);
   color: var(--text-muted);
   max-inline-size: var(--measure-prose);
   margin-block: var(--space-2) var(--space-3);

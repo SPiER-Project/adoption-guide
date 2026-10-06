@@ -70,12 +70,18 @@ import { DataTable } from '@spier/ui/DataTable'
 // beside components without costing them Fast Refresh. What belongs here is how
 // a failed load LOOKS, so both surfaces report it the same way.
 
+//
+// ⚠️ Its words are read by a guide reader AND a clinician, and neither has a
+// checkout. It told both to "Run `npm run copy-fhir -- --force` at the repo
+// root", and named the PlanDefinition by id. The maintainer's fix is still that
+// (the generated FHIR tree is missing or stale — re-run copy-fhir with
+// `--force`); it lives here, and the page says what happened.
 export function PathwayLoadError({ error }: { error: string | null }) {
   return (
     <Notice tone="warning" title="The pathway artifact could not be read">
       <p>
-        This page renders <code>PlanDefinition/SPiERSuicideSaferCarePathway</code> and has nothing to
-        show without it. Run <code>npm run copy-fhir -- --force</code> at the repo root.
+        The published care pathway could not be loaded, so this page has nothing to show. The
+        detail below is for whoever maintains this deployment.
       </p>
       <pre>{error}</pre>
     </Notice>
@@ -358,7 +364,7 @@ export function PathwayPending() {
         <dd>
           The diagram carries a fourth tier for a lifetime history with no current ideation. The published
           C-SSRS scores that response pattern differently, and{' '}
-          <code>SPiERSuicideRiskTier</code> has no <code>historical</code> code. <em>Open question:</em> is
+          SPiER&rsquo;s shared suicide-risk tier has no <code>historical</code> code. <em>Open question:</em> is
           historical risk an orthogonal history flag rather than a fifth ordinal tier? The answer lands in
           the concept layer once, and this pathway&rsquo;s branch stays low / moderate / high until it does.
         </dd>

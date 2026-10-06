@@ -31,16 +31,18 @@
  * which. RULE 2 covers every cap that EXISTS; it cannot demand one. Re-measure
  * a wide page's prose by hand after adding it.
  *
- * The four rules, each written against a defect that actually shipped:
+ * The five rules, each written against a defect that actually shipped:
  *
  *   RULE 1  `--measure-prose` is declared exactly once, in `em`, inside the
  *           band. This is the 760px defect. A px or rem value is right for one
  *           font size only; `em` resolves against the run's OWN font-size, so
  *           one number holds the character count at every size.
  *
- *   RULE 2  Every `max-width` in `src/**\/*.css` is one of: the measure token,
- *           a `--page-width-*` token (page roots — `check:template` RULE 5
- *           owns those), or an entry in NON_PROSE with a reason. This is the
+ *   RULE 2  Every `max-width` or `max-inline-size` under every style root is
+ *           one of: exactly the measure token (not a `calc()` of it), a
+ *           `--page-width-*` token (`check:template` owns those — RULE 5 on a
+ *           page root, RULE 5e fails one anywhere else), or an entry in
+ *           NON_PROSE with a reason. This is the
  *           `.dd-detail` defect: a raw length on a text run reads as a
  *           considered cap and is one only by accident.
  *
@@ -241,7 +243,11 @@ for (const file of files) {
     const selector = m[1].trim()
     const body = m[2]
     if (!selector || selector.startsWith('@')) continue
-    const line = css.slice(0, m.index).split('\n').length
+    // The match starts after the previous `}`, so it carries the blank lines
+    // and comments before the selector; the line is where the SELECTOR starts.
+    // (It reported `:1` for every file's first rule.)
+    const lead = m[1].length - m[1].trimStart().length
+    const line = css.slice(0, m.index + lead).split('\n').length
     allRules.push({ file: rel(file), line, selector, body })
     // A rule's type is its `font` shorthand since 2026-09-24, when the ten
     // --font-size-* tokens became the --type-* roles. `font-size` is still
@@ -253,7 +259,7 @@ for (const file of files) {
         fontSizeSubjects.add(key)
         // First declaration wins, matching how a reader finds it. A raw length
         // cannot appear here — stylelint's strict-value rule covers `font-size`
-        // everywhere but index.css — so a miss means a token this regex could
+        // everywhere but foundation.css — so a miss means a token this regex could
         // not parse, and RULE 5 reports it rather than skipping it.
         if (token && !fontSizeOf.has(key)) fontSizeOf.set(key, token)
       }
@@ -266,10 +272,15 @@ if (allRules.length === 0) {
   process.exit(1)
 }
 
-const maxWidths = []       // { file, line, selector, value }
+/**
+ * ⚠️ Both spellings of a width ceiling. This read `max-width` alone while
+ * check:template RULE 5 read `max-inline-size` too, so `max-inline-size: 52rem`
+ * on a text run — the `.dd-detail` defect in the logical spelling — passed here.
+ */
+const maxWidths = []       // { file, line, selector, value, prop }
 for (const r of allRules) {
-  for (const m of r.body.matchAll(/(?:^|[;{\s])max-width\s*:\s*([^;}]+)/g)) {
-    maxWidths.push({ ...r, value: m[1].trim() })
+  for (const m of r.body.matchAll(/(?:^|[;{\s])(max-width|max-inline-size)\s*:\s*([^;}]+)/g)) {
+    maxWidths.push({ ...r, prop: m[1], value: m[2].trim() })
   }
 }
 
@@ -322,15 +333,29 @@ if (tokenDefs.length === 0) {
 // ---- RULE 2: every cap is a token or a classified non-prose width -------------
 const measureCapped = []
 const seenNonProse = new Set()
-for (const { file, line, selector, value } of maxWidths) {
-  if (value.includes('var(--measure-prose)')) { measureCapped.push({ file, line, selector, body: null }); continue }
-  if (/var\(--page-width-/.test(value)) continue      // page roots — check:template RULE 5 owns these
+for (const { file, line, selector, value, prop } of maxWidths) {
+  if (value === 'var(--measure-prose)') { measureCapped.push({ file, line, selector, body: null }); continue }
+  // ⚠️ A value BUILT from the token is not the token. `includes()` accepted
+  // `calc(var(--measure-prose) * 2)` as a measure cap — 82em, ~170 characters —
+  // and counted it toward the floor.
+  if (value.includes('--measure-prose')) {
+    fail(
+      `\`${prop}: ${value}\` at ${file}:${line} on \`${selector}\` is derived from the reading measure, not the measure.\n` +
+        '    The token IS the band; a multiple or a sum of it is a second measure nobody measured.\n' +
+        '    Cap with `var(--measure-prose)` exactly, or classify the width under NON_PROSE with a reason.',
+    )
+    continue
+  }
+  // A page width. check:template owns these: RULE 5 on a page root, and
+  // RULE 5e on anything that is NOT a page root — a page-width token on a text
+  // run passed both gates until RULE 5e existed.
+  if (/var\(--page-width-/.test(value)) continue
   if (value === 'none') continue                       // RULE 3 below
 
   const key = `${file}|${subjectOf(selector.split(',')[0])}`
   if (NON_PROSE[key]) { seenNonProse.add(key); continue }
   fail(
-    `unclassified \`max-width: ${value}\` at ${file}:${line} on \`${selector}\`.\n` +
+    `unclassified \`${prop}: ${value}\` at ${file}:${line} on \`${selector}\`.\n` +
     '    Every cap is one of three things, and which one is a decision someone has to make:\n' +
     '      • a TEXT RUN     → `max-width: var(--measure-prose)`, which scales with the run\'s own type\n' +
     '      • a PAGE ROOT    → `var(--page-width-prose)` / `var(--page-width-wide)` (check:template RULE 5)\n' +

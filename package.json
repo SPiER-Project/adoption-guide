@@ -24,7 +24,7 @@
     "build:clinical": "tsc -b && VITE_SURFACE=clinical vite build",
     "check:surface": "node scripts/check-surface.mjs",
     "lint": "eslint . --max-warnings 0",
-    "lint:css": "stylelint \"apps/*/src/**/*.css\" \"packages/{ui,tool-views,app-shell}/src/**/*.css\"",
+    "lint:css": "node scripts/lint-css.mjs",
     "check:tokens": "node scripts/check-css-tokens.mjs",
     "build:favicons": "node scripts/build-favicons.mjs",
     "check:favicons": "node scripts/build-favicons.mjs --check",

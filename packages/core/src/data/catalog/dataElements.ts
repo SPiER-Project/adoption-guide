@@ -241,8 +241,14 @@ export const CONCEPTS: Concept[] = [
     domain: 'suicide-risk',
     code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
     valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs',
+    // Reader copy: rendered on the Data Dictionary, so no issue numbers or
+    // repo dates in it (check:jargon reads this value). The history it used to
+    // carry: CAMS was absent until 2026-09-21 — the CAMSOverallRiskToRiskTier
+    // map was published and nothing emitted a code for it to translate,
+    // because the SSF-5 recorded its overall-risk rating as a plain integer
+    // (#436). Surfacing each route's lossiness here is #264.
     description:
-      'The instrument-agnostic, ordered risk tier — the one value a consumer can act on without knowing which tool produced it. Six instruments reach it by six different routes: C-SSRS through cssrs-risk-level, ASQ through asq-screening-result, BSSA through bssa-disposition, PSS-3 through pss3-result, CAMS through cams-ssf-overall-risk, and SAFE-T by binding the shared tier directly with no per-instrument crosswalk at all. CAMS was absent until 2026-09-21: the CAMSOverallRiskToRiskTier map was published and nothing emitted a code for it to translate, because the SSF-5 recorded its overall-risk rating as a plain integer (#436). All six carry LOINC 93374-7 as Observation.code, which is why the flat dictionary rendered one concept as several unrelated rows. A sixth binding carries the same tier in a different slot: the episode’s current-risk-tier extension, which has no Observation.code at all. How lossy each route is — a widening, a related-to, or an exact match — is recorded in each ConceptMap and is not surfaced here yet; that is #264.',
+      'The instrument-agnostic, ordered risk tier — the one value a consumer can act on without knowing which tool produced it. Six instruments reach it by six different routes: C-SSRS through cssrs-risk-level, ASQ through asq-screening-result, BSSA through bssa-disposition, PSS-3 through pss3-result, CAMS through cams-ssf-overall-risk, and SAFE-T by binding the shared tier directly with no per-instrument crosswalk at all. All six carry LOINC 93374-7 as Observation.code, which is why the flat dictionary rendered one concept as several unrelated rows. A sixth binding carries the same tier in a different slot: the episode’s current-risk-tier extension, which has no Observation.code at all. How lossy each route is — a widening, a related-to, or an exact match — is recorded in each ConceptMap and is not surfaced here yet.',
   },
 ]
 
@@ -884,7 +890,10 @@ export const BINDINGS: Binding[] = [
     fhirResource: 'Condition',
     fhirPath: 'Condition.category.coding',
     usedBy: ['TL-020', 'TL-024'],
-    description: 'Classification of whether a driver directly causes suicidal ideation (#direct) or indirectly contributes to it (#indirect). Optional on the profile (Condition.category:driverType 0..1) — present only when the clinician classified the driver — but required-bound when present, so the slot cannot carry an arbitrary code. Minted under #265; the demo previously emitted a vendor website URL here that no SPiER artifact defined.',
+    // Minted under #265; the demo previously emitted a vendor website URL here
+    // that no SPiER artifact defined. (History for maintainers — the reader's
+    // copy below is rendered on the Data Dictionary and names no issue.)
+    description: 'Classification of whether a driver directly causes suicidal ideation (#direct) or indirectly contributes to it (#indirect). Optional on the profile (Condition.category:driverType 0..1) — present only when the clinician classified the driver — but required-bound when present, so the slot cannot carry an arbitrary code.',
   },
 
   // ── CAMS Stabilization Plan ──
@@ -1003,7 +1012,9 @@ export const BINDINGS: Binding[] = [
     fhirResource: 'Appointment',
     fhirPath: 'Appointment.start',
     usedBy: ['TL-031', 'TL-034'],
-    description: 'The next visit, booked before the patient leaves. No code and no SPiER-local vocabulary: R4 Appointment has no category element at all, and Appointment.status already carries booked / fulfilled / cancelled / noshow. Attended, no-show and the 7- and 30-day completion windows are all computed from status plus start rather than stored, which is why the Stage-8 measures can read them without a separate resource. Recognised by profile canonical; see #272 for why the domain tag is not on it.',
+    // Why the domain tag is not on it: #272. (The reader's copy, rendered on
+    // the Data Dictionary, states the reason instead of citing the issue.)
+    description: 'The next visit, booked before the patient leaves. No code and no SPiER-local vocabulary: R4 Appointment has no category element at all, and Appointment.status already carries booked / fulfilled / cancelled / noshow. Attended, no-show and the 7- and 30-day completion windows are all computed from status plus start rather than stored, which is why the Stage-8 measures can read them without a separate resource. Recognised by profile canonical, because with no category element there is no slot for the domain tag.',
   },
   {
     id: 'consent-category-suicide-safety',
@@ -1086,7 +1097,8 @@ export const BINDINGS: Binding[] = [
     fhirResource: 'Observation',
     fhirPath: 'Observation.code',
     usedBy: ['TL-008'],
-    description: 'One Observation per method discussed, the method as Observation.code (required binding, 6 codes — firearm shown as the example) and the action agreed as the value (required binding, 6 codes: secured, removed, disposed and so on). This is the row the old flat schema could least express — the code and the value come from different vocabularies and both matter, which is exactly the conflation #260 set out to make unrepresentable.',
+    // The structured schema is #260's. (Reader copy below names no issue.)
+    description: 'One Observation per method discussed, the method as Observation.code (required binding, 6 codes — firearm shown as the example) and the action agreed as the value (required binding, 6 codes: secured, removed, disposed and so on). This is the row the old flat schema could least express — the code and the value come from different vocabularies and both matter, which is exactly the conflation the structured schema was built to make unrepresentable.',
   },
 
   // ── Track Risk Over Time (Stage 7) ──
@@ -1097,7 +1109,9 @@ export const BINDINGS: Binding[] = [
     fhirResource: 'EpisodeOfCare',
     fhirPath: 'EpisodeOfCare.type',
     usedBy: ['TL-038'],
-    description: 'The anchor resource for the whole Track Risk Over Time stage, and the correlation key the rest of the pathway is expected to hang off: reassessment, care-gap and escalation Tasks all reference it via Task.basedOn. EpisodeOfCare has no category element in R4, so the domain tag rides on `type` instead — one of the three exceptions documented in #272. Extending that correlation to Stages 1–6 is #263.',
+    // The three domain-tag exceptions are documented in #272; extending the
+    // episode correlation to Stages 1–6 is #263. (Reader copy below names neither.)
+    description: 'The anchor resource for the whole Track Risk Over Time stage, and the correlation key the rest of the pathway is expected to hang off: reassessment, care-gap and escalation Tasks all reference it via Task.basedOn. EpisodeOfCare has no category element in R4, so the domain tag rides on `type` instead — one of three resources that carry it somewhere other than a category. Extending that correlation to Stages 1–6 is not done yet.',
   },
   {
     id: 'episode-entry-reason',
@@ -1134,7 +1148,8 @@ export const BINDINGS: Binding[] = [
     fhirResource: 'Flag',
     fhirPath: 'Flag.code',
     usedBy: ['TL-038'],
-    description: 'The chart banner raised while an episode is open (required binding, currently one code). Flag.category is a named slice carrying the standard HL7 safety category alongside the SPiER domain tag — it had to be sliced under #262 because R4 fixes a single value there, which blocked adding a second code.',
+    // Sliced under #262. (Reader copy below names no issue.)
+    description: 'The chart banner raised while an episode is open (required binding, currently one code). Flag.category is a named slice carrying the standard HL7 safety category alongside the SPiER domain tag — it had to be sliced because R4 fixes a single value there, which blocked adding a second code.',
   },
   {
     id: 'safety-task-type',
@@ -1143,7 +1158,8 @@ export const BINDINGS: Binding[] = [
     fhirResource: 'Task',
     fhirPath: 'Task.code',
     usedBy: ['TL-036', 'TL-037', 'TL-039', 'TL-040', 'TL-041'],
-    description: 'Which piece of safety work is outstanding: assessment needed, reassessment due, safety plan needed or in need of update, an open lethal-means action, follow-up outreach due, an incomplete referral, a missing appointment, or an escalation (9 codes, required binding — reassessment-due shown as the example). intent is fixed to #plan. One Task per gap, each with an owner and a due date on restriction.period.end, each linked to its episode via Task.basedOn. Task has no category element in R4 and no searchable slot for a domain tag at all, which is why #272 left it out rather than tagging it unretrievably.',
+    // Left untagged by #272. (Reader copy below names no issue.)
+    description: 'Which piece of safety work is outstanding: assessment needed, reassessment due, safety plan needed or in need of update, an open lethal-means action, follow-up outreach due, an incomplete referral, a missing appointment, or an escalation (9 codes, required binding — reassessment-due shown as the example). intent is fixed to #plan. One Task per gap, each with an owner and a due date on restriction.period.end, each linked to its episode via Task.basedOn. Task has no category element in R4 and no searchable slot for a domain tag at all, which is why it carries none rather than one nobody could retrieve.',
   },
   {
     id: 'safety-task-escalation-trigger',

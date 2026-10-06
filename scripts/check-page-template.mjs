@@ -28,7 +28,11 @@
  * ⚠️ Plant a defect and watch it fail before trusting it. `npm run check:template`
  * should go red for each of: adding `padding` to `.population-view`, giving a
  * guide sub-page its own `<h2>`, hand-rolling a `page-header__title` outside
- * PageHeader.tsx, and adding `<PageHeader>` to a page not in LENSES.
+ * PageHeader.tsx, and adding `<PageHeader>` to a page not in LENSES — and, since
+ * the 2026-10 gate audit, each of: the same `<h2>` / class / `<PageHeader>` in a
+ * COMPONENT rather than a page, the class held in a constant,
+ * `.population-view { margin-inline: … }`, `div.population-view { padding: … }`
+ * and `.population-view { width: 1400px }`. All of those passed before.
  */
 import { readFileSync, readdirSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
@@ -291,33 +295,85 @@ const containers = new Map() // class → the file that declares it
 const pageRoots = [] // { file, classes, ownsHeader }
 const outletWrappers = [] // { file, classes }
 
-/** Rules every templated page obeys, whichever family it belongs to. */
-function checkSharedRules(file, src) {
+/**
+ * Block and whole-line `//` comments blanked, positions kept. A comment that
+ * says "under PageHeader's `<h2>`" is not a heading.
+ */
+const stripTsComments = (src) =>
+  src
+    .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
+    .replace(/^\s*\/\/.*$/gm, (m) => m.replace(/[^\n]/g, ' '))
+
+/**
+ * Rules 1 and 2, which hold for EVERY component the apps render, not just the
+ * modules that are pages.
+ *
+ * ⚠️ **They ran over `pages/` and the form views only, and a component is
+ * where a second header actually gets in.** A page renders components; a
+ * `<h2>` or a `className="page-header__title"` written in
+ * `apps/clinical/src/components/PopulationSummary.tsx` lands on the caseload
+ * exactly as if the page had written it — and all three of those plants
+ * (`<h2>`, the class, `<PageHeader>` itself) passed, while this file's own
+ * header said the class plant would go red. The sweep now covers every `.tsx`
+ * under every declared style root; the exceptions are the component that owns
+ * the markup and the routes the template does not apply to, both below.
+ */
+function checkSharedRules(file, raw) {
+  const src = stripTsComments(raw)
   // RULE 1 — one header implementation. The markup lives in PageHeader.tsx, so
   // nowhere else may name its classes; a hand-rolled copy is how a "variant"
   // gets in without touching the component.
   //
-  // Matched inside `className=` only, and with no trailing `\b`: the first
-  // version of this rule used `/\bpage-header\b/` and a planted
-  // `className="page-header__title"` sailed straight through it, because `_` is
-  // a word character so there is no boundary after "header".
-  if (/className=(?:"[^"]*|\{[^}]*)page-header/.test(src)) {
-    fail(`${file}: uses a \`page-header\` class directly — render <PageHeader> instead (${HEADER_TSX} owns that markup)`)
+  // ANY string that starts a `page-header` class, not only one written inside
+  // `className=`: a constant (`const TITLE = 'page-header__title'`, then
+  // `className={TITLE}`) put the class on an element with no `className=` in
+  // sight of the old pattern. No trailing `\b` either: the first version used
+  // `/\bpage-header\b/` and `page-header__title` sailed through it, because `_`
+  // is a word character so there is no boundary after "header".
+  const cls = /['"`](?:[^'"`\n]*\s)?page-header/.exec(src)
+  if (cls) {
+    const line = src.slice(0, cls.index).split('\n').length
+    fail(`${file}:${line}: names a \`page-header\` class directly — render <PageHeader> instead (${HEADER_TSX} owns that markup)`)
   }
 
   // RULE 2 — the page title is the template's. PageHeader renders the page's
-  // only <h2>; a page-level <h2> is either a second title or a section heading
-  // at the wrong level.
-  const h2 = /<h2[\s>]/.exec(src)
+  // only <h2>; anywhere else a level-2 heading is either a second title or a
+  // section heading at the wrong level — whether it is spelled `<h2>` or
+  // `role="heading" aria-level={2}`.
+  const h2 = /<h2[\s>]|aria-level=(?:\{\s*2\s*\}|["']2["'])/.exec(src)
   if (h2) {
     const line = src.slice(0, h2.index).split('\n').length
-    fail(`${file}:${line}: renders a raw <h2> — the page title comes from <PageHeader>; section headings start at <h3>`)
+    fail(`${file}:${line}: renders a level-2 heading — the page title comes from <PageHeader>; section headings start at <h3>`)
   }
+}
+
+/**
+ * Components the template does not govern, DERIVED rather than listed: a
+ * route element declared in an app's route table before its shell layout
+ * route (`<Route element={<AppShell />}>` / `<Shell />`) renders with no
+ * shell, no page inset and no PageHeader above it. Today that is the SMART
+ * launch and redirect screens, whose `<h2>` is the only heading on a bare
+ * error page. Deriving it means a component moved INTO the shell loses the
+ * exemption without anyone editing this file.
+ */
+const OUTSIDE_THE_SHELL = new Set()
+for (const app of APP_ROOTS) {
+  const appTsx = join(app.dir, 'App.tsx')
+  if (!existsSync(appTsx)) {
+    fail(`${relRepo(appTsx)}: missing — cannot tell which routes sit outside the shell`)
+    continue
+  }
+  const routes = stripTsComments(readFileSync(appTsx, 'utf8'))
+  const layout = /<Route\s+element=\{\s*<\w+/.exec(routes)
+  if (!layout) {
+    fail(`${relRepo(appTsx)}: no shell layout route (\`<Route element={<…Shell />}>\`) — cannot tell which routes sit outside the shell`)
+    continue
+  }
+  for (const m of routes.slice(0, layout.index).matchAll(/element=\{\s*<(\w+)/g)) OUTSIDE_THE_SHELL.add(`${m[1]}.tsx`)
 }
 
 for (const { file, dir } of pageFiles) {
   const src = readFileSync(join(dir, file), 'utf8')
-  checkSharedRules(file, src)
 
   // RULE 3 — exactly the declared lenses render a header.
   const rendersHeader = /<PageHeader\b/.test(src)
@@ -400,7 +456,6 @@ if (!formViews.some(p => baseName(p) === `${RECORDER_FRAME}.tsx`)) {
 for (const path of recorderViews) {
   const file = relRepo(path)
   const src = readComponent(path)
-  checkSharedRules(file, src)
   if (/<PageHeader\b/.test(src)) {
     fail(`${file}: renders <PageHeader> AND <${RECORDER_FRAME}> — the frame renders the header, so this page would have two`)
   }
@@ -414,7 +469,6 @@ for (const path of recorderViews) {
 for (const path of formViews) {
   const file = relRepo(path)
   const src = readComponent(path)
-  checkSharedRules(file, src)
 
   const roots = rootClasses(file, src)
   if (!roots.includes(FORM_ROOT)) {
@@ -426,6 +480,34 @@ for (const path of formViews) {
 
   pageRoots.push({ file, classes: roots, ownsHeader: /<PageHeader\b/.test(src) })
   for (const cls of roots) containers.set(cls, file)
+}
+
+// ── Rules 1-3 over every component tree ──────────────────────────────────────
+//
+// See checkSharedRules. RULE 3's half for a non-page component: rendering
+// <PageHeader> is a page's job (a LENS, checked above) or a form view's (the
+// frame that owns the header for the drill-in it wraps). A component that is
+// neither puts a second header on whatever page renders it.
+const formViewSet = new Set(formViews)
+let sweptComponents = 0
+for (const path of componentFiles) {
+  const name = baseName(path)
+  if (relRepo(path) === HEADER_TSX) continue // the one owner of the markup
+  if (OUTSIDE_THE_SHELL.has(name)) continue // no template above it — see OUTSIDE_THE_SHELL
+  sweptComponents++
+  const file = relRepo(path)
+  const src = readComponent(path)
+  checkSharedRules(file, src)
+  const isPage = PAGES_DIRS.some((d) => path.startsWith(d + '/'))
+  if (!isPage && !formViewSet.has(path) && /<PageHeader\b/.test(stripTsComments(src))) {
+    fail(
+      `${file}: renders <PageHeader> but is neither a page in LENSES nor a form view — ` +
+        'a component that draws a page header puts a second title on the page that renders it',
+    )
+  }
+}
+if (sweptComponents < componentFiles.length / 2) {
+  fail(`rules 1-3 swept ${sweptComponents} of ${componentFiles.length} component(s) — the exemptions have eaten the scan`)
 }
 
 // ── CSS walking ───────────────────────────────────────────────────────────────
@@ -476,6 +558,43 @@ function* styleRules(css, offset = 0, nested = false) {
 }
 
 const PADDING = /(^|[;{\s])padding(-(top|right|bottom|left|inline|block)(-(start|end))?)?\s*:/
+/** Every margin declaration, any side, either spelling — RULE 4b reads its value. */
+const MARGIN = /(^|[;{\s])(margin(?:-(?:top|right|bottom|left|inline|block)(?:-(?:start|end))?)?)\s*:\s*([^;}]+)/g
+/** A width on the element itself, as opposed to a ceiling on it. */
+const ROOT_WIDTH = /(^|[;{\s])(width|inline-size|min-width|min-inline-size)\s*:\s*([^;}]+)/g
+/** Values that let the box fill its column rather than setting a width. */
+const FLUID_WIDTHS = new Set(['100%', 'auto', 'initial', 'unset', 'inherit'])
+
+/**
+ * The margin declarations in `body` that inset: any with a value other than
+ * `0` / `auto` on some side. `auto` is RULE 6's subject, not an inset.
+ */
+function insetMargins(body) {
+  const out = []
+  for (const m of body.matchAll(MARGIN)) {
+    const parts = m[3].trim().split(/\s+(?![^(]*\))/)
+    if (parts.some((p) => p !== '0' && p !== 'auto')) out.push(`${m[2]}: ${m[3].trim()}`)
+  }
+  return out
+}
+
+/**
+ * Whether `selector` styles the element carrying class `cls` ('self'), its
+ * direct children as a group ('kids'), or neither. The SUBJECT is the last
+ * compound selector, so `div.root`, `.root.root--wide`, `.shell .root` and
+ * `:where(.root)` all style the root, while `.root .title` styles a child.
+ */
+function targetOf(selector, cls) {
+  const escaped = cls.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const has = new RegExp(`\\.${escaped}(?![\\w-])`)
+  const compounds = selector.trim().split(/\s*[>+~]\s*(?![^(]*\))|\s+(?![^(]*\))/).filter(Boolean)
+  // `:has(.root)` and `:not(.root)` are conditions on the subject, not the
+  // subject: `.panel-shell__body:has(.form-view)` styles the body.
+  const subject = (compounds.at(-1) ?? '').replace(/:(?:has|not)\([^)]*\)/g, '')
+  if (has.test(subject) && !subject.includes('::')) return 'self'
+  if (subject === '*' && new RegExp(`\\.${escaped}(?![\\w-])[^\\s>+~]*\\s*>\\s*\\*$`).test(selector.trim())) return 'kids'
+  return null
+}
 /** A width ceiling, in either the physical or the logical spelling. */
 const MAX_WIDTH = /(^|[;{\s])max-(width|inline-size)\s*:\s*([^;}]+)/g
 /** The whole page-width vocabulary. A third value is drift, not a third option. */
@@ -535,11 +654,13 @@ const selfCentered = new Map()
  * RULE 5.
  */
 const rootWidths = new Map()
+/** Every `max-width: var(--page-width-*)`, with its selector. RULE 5e reads this. */
+const pageWidthUses = []
 
 for (const { name: file, path: cssPath } of cssFiles) {
   const src = readFileSync(cssPath, 'utf8')
   for (const rule of styleRules(src)) {
-    const selectors = rule.selector.split(',').map(s => s.trim())
+    const selectors = rule.selector.split(/,(?![^(]*\))/).map(s => s.trim())
     const pads = PADDING.test(rule.body)
     const centers = AUTO_INLINE_MARGIN.test(rule.body)
     const at = `${file}:${lineOf(src, rule.index)}`
@@ -579,24 +700,49 @@ for (const { name: file, path: cssPath } of cssFiles) {
         fail(`${at}: \`${selector}\` styles the shared header from outside ${HEADER_CSS} — the template has no per-page variants`)
       }
 
-      if (!pads) continue
+      // Gather for RULE 5e — every page-width token, on whatever selector.
+      for (const m of rule.body.matchAll(MAX_WIDTH)) {
+        if (/--page-width-/.test(m[3])) pageWidthUses.push({ selector, value: m[3].trim(), at })
+      }
 
-      // RULE 4b — no page root or layout wrapper pads itself, and neither do its
-      // direct children as a group. `.app-shell__body` is the one owner.
+      const margins = insetMargins(rule.body)
+      const widths = [...rule.body.matchAll(ROOT_WIDTH)].map((m) => m[3].trim()).filter((v) => !FLUID_WIDTHS.has(v))
+      if (!pads && margins.length === 0 && widths.length === 0) continue
+
+      // RULE 4b — no page root or layout wrapper insets itself, and neither do
+      // its direct children as a group. `.app-shell__body` is the one owner.
+      //
+      // ⚠️ **An inset is padding OR margin, and the root is any selector whose
+      // subject carries the root's class.** This read `padding` on `^\.root$`
+      // alone, so `.population-view { margin-inline: var(--space-6) }` — the
+      // same 24px indent the rule was written against, one property over —
+      // passed, and so did `div.population-view` and `.app-shell__body
+      // .population-view` with the padding itself. `auto` is not an inset; it
+      // is RULE 6's (self-centring), and a margin of 0 sets nothing.
+      //
+      // RULE 5d — and no root sets its own `width`. RULE 5 owns the page width
+      // through `max-width`; a root with `width: 1400px` overrode it in every
+      // gate (this one read `max-width` only, check:prose too, and stylelint
+      // has no opinion about `width`). `100%` and `auto` are not a width.
       //
       // Limit, stated plainly: this sees the containers it can scrape from the
-      // JSX (page roots, outlet wrappers) and their `> *` children. Padding
+      // JSX (page roots, outlet wrappers) and their `> *` children. An inset
       // introduced on some *intermediate* wrapper inside a page is invisible to
       // it — that is a real hole, and the reason the comment in PageHeader.css
       // spells out where the inset comes from.
       for (const [cls, owner] of containers) {
-        const escaped = cls.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-        const self = new RegExp(`^\\.${escaped}$`)
-        const kids = new RegExp(`^\\.${escaped}\\s*>`)
-        if (self.test(selector)) {
-          fail(`${at}: \`${selector}\` pads a page root (${owner}) — .app-shell__body owns the page inset`)
-        } else if (kids.test(selector)) {
-          fail(`${at}: \`${selector}\` pads the direct children of a page container (${owner}) — .app-shell__body owns the page inset`)
+        const target = targetOf(selector, cls)
+        if (!target) continue
+        const what = [...(pads ? ['padding'] : []), ...margins]
+        if (what.length > 0) {
+          fail(
+            target === 'self'
+              ? `${at}: \`${selector}\` insets a page root with \`${what.join('`, `')}\` (${owner}) — .app-shell__body owns the page inset`
+              : `${at}: \`${selector}\` insets the direct children of a page container with \`${what.join('`, `')}\` (${owner}) — .app-shell__body owns the page inset`,
+          )
+        }
+        if (target === 'self' && widths.length > 0) {
+          fail(`${at}: \`${selector}\` sets \`width: ${widths.join(', ')}\` on a page root (${owner}) — the page width is RULE 5's \`max-width\`, ${PAGE_WIDTHS.join(' or ')}`)
         }
       }
     }
@@ -749,6 +895,24 @@ for (const [selector, owner] of Object.entries(INSET_OWNERS)) {
     }
   }
 
+  // RULE 5e — a page width belongs to a page root and nothing else.
+  //
+  // ⚠️ check:prose skips every `--page-width-*` cap as "check:template's", and
+  // RULE 5 above only ever looked at page roots — so `.ar-description {
+  // max-width: var(--page-width-wide) }`, a text run capped at 1200px, was
+  // checked by neither gate. This gate owns the token, so this gate checks
+  // every use of it: the selector's subject must carry a page root's class.
+  for (const { selector, value, at } of pageWidthUses) {
+    const onRoot = pageRoots.some(({ classes }) => classes.some((cls) => targetOf(selector, cls) === 'self'))
+    if (!onRoot) {
+      fail(
+        `${at}: \`${selector}\` caps with \`${value}\`, but it is not a page root — a page width is the page's, ` +
+          'and a text run inside a page caps with `--measure-prose`',
+      )
+    }
+  }
+  if (pageWidthUses.length === 0) fail('RULE 5e found no page-width token anywhere — the scan read nothing')
+
   // Liveness. Every check above is satisfied by an app in which no page
   // declares a width at all, which is the #232 / #261 failure mode: a green
   // gate over nothing. If the tokens stop being used, this must go red.
@@ -883,6 +1047,7 @@ if (errors.length > 0) {
 console.log(
   `✓ page template: ${pageFiles.length} pages (${Object.keys(LENSES).length} lens headers), ` +
     `${formViews.length} form views (${recorderViews.length} recorders framed by ${RECORDER_FRAME}), ` +
+    `${sweptComponents} components swept for rules 1-3 (${componentFiles.filter((p) => OUTSIDE_THE_SHELL.has(baseName(p))).length} outside the shell), ` +
     `${Object.keys(INSET_OWNERS).length} inset owners, ` +
     `${pageRoots.length} page roots (${pageRoots.filter(r => r.ownsHeader).length} owning a page width), ` +
     `${containers.size} containers checked against ${cssFiles.length} stylesheets`,

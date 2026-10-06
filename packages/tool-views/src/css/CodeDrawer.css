@@ -74,16 +74,22 @@
 }
 
 /* The collapsed bar overlays the bottom of the page, so the panel's content must
-   clear it or the last control sits underneath. Applied to the page root rather
-   than the drawer, because the drawer is out of flow and cannot push anything.
+   clear it or the last control sits underneath. Not on the drawer, because the
+   drawer is out of flow and cannot push anything.
+
+   ⚠️ On the panel's BODY, which owns the inset (check:template RULE 4b), and
+   not on the page root. It sat on `.panel-shell .form-view, .panel-shell
+   .patient-chart` — padding on a page root under a qualified selector, which
+   the template gate could not see until it read compound selectors. Same
+   clearance, same two pages: the body's own `--space-3` plus the bar plus a
+   margin of real space, applied only while one of those roots is inside it.
 
    ⚠️ Derived from `--code-drawer-bar-height`, not guessed. The first version used
    `--space-8` (32px) against a bar that rendered 34px — measured at **-2px
    clearance**, which is the hand-duplicated-constant failure this repo keeps
    catching elsewhere. One token, both consumers, plus a margin of real space. */
-.panel-shell .form-view,
-.panel-shell .patient-chart {
-  padding-bottom: calc(var(--code-drawer-bar-height) + var(--space-4));
+.panel-shell__body:has(.form-view, .patient-chart) {
+  padding-bottom: calc(var(--space-3) + var(--code-drawer-bar-height) + var(--space-4));
 }
 
 /* The Written section's empty state. Deliberately a statement of absence rather

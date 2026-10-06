@@ -124,7 +124,7 @@ const CAPS: Record<string, { cap: number; why: string }> = {
     cap: 450,
     why: 'Audit §4.1 asks for ~300 and §5 rule 4 caps it at 400; content/overview.ts holds its own 400-word ' +
       'assertion over the prose. This is the rendered page, so it also carries the headings, the three chart ' +
-      'picks and the step cards — 423 today.',
+      'picks and the step cards — 416 today (423 when the audit measured it).',
   },
   pathway: {
     cap: 1250,
@@ -160,7 +160,7 @@ const CAPS: Record<string, { cap: number; why: string }> = {
     cap: 1200,
     why: '§4.5 asked for navigation rather than cuts, and got it on 2026-09-21: the eight stage tables are closed ' +
       'drawers, arrival opens the first, a jump opens its target and a search opens every stage with a match. ' +
-      'From 2,001 words to 1,155 on arrival — the description, the filters, the jump nav, the normalization layer ' +
+      'From 2,001 words to 1,155 on arrival (1,141 since the gate audit took repo vocabulary out of its descriptions) — the description, the filters, the jump nav, the normalization layer ' +
       'and ONE table (the first stage holds the most rows). Not a row was cut.',
   },
   'adoption-rubric': {

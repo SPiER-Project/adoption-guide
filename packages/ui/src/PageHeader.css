@@ -97,7 +97,9 @@
   width: 100%;
   max-width: 300px;
   margin: var(--space-4) 0;
-  border-radius: 2px;
+  /* Fully rounded ends. This was a raw `2px` — half the 4px height — and the
+     pill radius clamps to exactly that, so the rule renders the same. */
+  border-radius: var(--radius-pill);
   background: var(--page-rule);
 }
 

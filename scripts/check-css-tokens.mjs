@@ -13,18 +13,27 @@
  * `--surface-raised` were both reached for, neither exists, `lint:css` was
  * green).
  *
- * `src/index.css` is in stylelint's `ignoreFiles` (it is where raw values are
- * allowed to live), so the definitions file itself is not linted at all. This
- * check reads it, and checks its internal `var()` uses too.
+ * `packages/ui/src/foundation.css` switches stylelint off with its own
+ * file-level disable (it is where raw values are allowed to live), so the
+ * definitions file itself is not linted. This check reads it, and checks its
+ * internal `var()` uses too.
+ *
+ * What counts as a USE:
+ *   1. A `var(--…)` in any stylesheet under a declared style root.
+ *   2. ⚠️ A `var(--…)` in TypeScript — an inline `style={{ … }}` or an SVG
+ *      `stopColor`. This read stylesheets only, and `SpierLogo.tsx` draws the
+ *      wordmark's gradient from five `var(--brand-gradient-N)` strings:
+ *      renaming one to `--brand-gradient-9` passed. Comments are blanked first,
+ *      so a token quoted in a doc comment is not a use.
  *
  * What counts as a definition:
- *   1. A custom-property declaration in any `.css` file under `src` — not just
- *      the `:root` block, because tokens are also defined inside media queries
- *      and `[data-theme]` overrides. By convention they all live in
- *      `src/index.css`; this check does not enforce that, it only resolves
+ *   1. A custom-property declaration in any `.css` file under a style root —
+ *      not just the `:root` block, because tokens are also defined inside media
+ *      queries and `[data-density]` overrides. By convention they all live in
+ *      `foundation.css`; this check does not enforce that, it only resolves
  *      references.
  *   2. A property set from TypeScript at runtime. `--patient-banner-height` is
- *      published by `components/PatientBanner.tsx` via
+ *      published by `packages/app-shell/src/components/PatientBanner.tsx` via
  *      `documentElement.style.setProperty` and deliberately has no CSS
  *      definition. Those are SCRAPED from the source rather than allowlisted
  *      here, so the exemption cannot outlive the code that earns it.
@@ -37,8 +46,8 @@
  * present, because that changes how the bug looks in a browser, not whether it
  * is one. The nested token in `var(--a, var(--b))` is checked as well.
  *
- * Not checked, deliberately: tokens that are defined but never used. 116
- * defined vs 112 used on main is not a defect — an unused token may be a
+ * Not checked, deliberately: tokens that are defined but never used. Every
+ * run prints both counts; an unused token is not a defect — it may be a
  * deliberate palette entry. Failing the build on those is a separate decision
  * nobody has made.
  *
@@ -117,10 +126,30 @@ for (const file of cssFiles) {
   }
 }
 
+// ---- uses: every var() reference in TypeScript --------------------------------
+// Inline styles and SVG paint attributes. Block comments and whole-line `//`
+// comments are blanked (positions kept) so a token named in prose is not a use;
+// a trailing `// …` after code is left alone, so `'https://…'` is never cut.
+const stripTsComments = (src) =>
+  src
+    .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
+    .replace(/^\s*\/\/.*$/gm, (m) => m.replace(/[^\n]/g, ' '))
+let tsUseCount = 0
+for (const file of tsFiles.filter((f) => !/\.test\.tsx?$/.test(f))) {
+  const src = stripTsComments(readFileSync(file, 'utf8'))
+  for (const m of src.matchAll(/var\(\s*(--[A-Za-z0-9_-]+)\s*(,?)/g)) {
+    const line = src.slice(0, m.index).split('\n').length
+    if (!uses.has(m[1])) uses.set(m[1], [])
+    uses.get(m[1]).push({ file: rel(file), line, hasFallback: m[2] === ',' })
+    useCount++
+    tsUseCount++
+  }
+}
+
 console.log(
   `tokens: ${defined.size} defined in ${cssFiles.length} stylesheet(s), ` +
   `${runtimeSet.size} set from TypeScript, ` +
-  `${uses.size} distinct referenced (${useCount} reference(s))`,
+  `${uses.size} distinct referenced (${useCount} reference(s), ${tsUseCount} of them in TypeScript)`,
 )
 for (const [token, files] of [...runtimeSet].sort()) {
   console.log(`  runtime-set: ${token} (${[...files].join(', ')})`)
