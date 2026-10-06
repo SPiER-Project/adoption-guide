@@ -159,9 +159,11 @@ and was false. See [`docs/internals/README.md`](README.md).
   machines, and a named link is what a reader can act on.
 
 
-## Resolving the IG Publisher release
+## The IG Publisher version
 
-`ig-publish.yml` and `deploy.yml` both need the latest publisher release tag, because the jar is cached by version — caching the `releases/latest` URL would pin the repo to a stale publisher indefinitely. That resolution lives in **`scripts/lib/ig-publisher-release.mjs`**, one definition, the same treatment `sushi-version.mjs` and `validator-jar.mjs` get.
+⚠️ **Pinned since 2026-10-06** — `IG_PUBLISHER_VERSION` in **`scripts/lib/ig-publisher-release.mjs`**, which both `ig-publish.yml` and `deploy.yml` read (one definition, the treatment `sushi-version.mjs` and `validator-jar.mjs` get). It used to resolve the *latest* release on every run. IG Publisher 2.3.5 shipped at 19:18 UTC that day ("internal processing is moving to be based on R6") and every IG build from then on failed — CQL translated, but ELM generation failed with "Unknown FHIRType" — while the commit that had passed on 2.3.4 that morning failed identically on re-run. A dependency that can turn every PR red on its own release is pinned; `node scripts/lib/ig-publisher-release.mjs --latest` prints HL7's current release, and a bump is its own PR.
+
+The notes below describe the resolver, which now serves only `--latest`.
 
 ⚠️ **It is one definition because two copies had already drifted.** `deploy.yml` carried an inline `bash -e` retry loop; `ig-publish.yml` carried a single unguarded `curl | jq` with no retry at all. The loop's two `|| true` guards were load-bearing in a way that is invisible without knowing both failure modes: a curl timeout yields empty output and `jq` exits 0, so the retry works — but an HTML error body (a GitHub API 502, the likelier flake) makes `jq` exit 5, which under `bash -e` aborts the step on attempt 1 so the loop never runs a second time.
 

@@ -6,11 +6,12 @@
  * they must agree on the version, or a map could compile under one validator
  * while the resources it produces are judged by another.
  *
- * The version is pinned deliberately. `ig-publish.yml` resolves the *latest* IG
- * Publisher because that job is informational-until-it-fails and tracking
- * upstream is desirable there. These are hard PR gates, so a new validator
- * release must never be able to turn a PR red on its own. Bump the constant in
- * its own PR, with the new findings triaged.
+ * The version is pinned deliberately: these are hard PR gates, so a new
+ * validator release must never be able to turn a PR red on its own. Bump the
+ * constant in its own PR, with the new findings triaged. The IG Publisher is
+ * pinned the same way since 2026-10-06 (scripts/lib/ig-publisher-release.mjs),
+ * after tracking its latest release turned every IG PR red within an hour of
+ * one being published.
  */
 import { createWriteStream, existsSync, mkdirSync, renameSync } from 'node:fs'
 import { Readable } from 'node:stream'

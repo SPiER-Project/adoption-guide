@@ -119,8 +119,9 @@ jobs:
           restore-keys: |
             fhir-packages-
 
-      # Resolve the release tag explicitly so the jar can be cached by version.
-      # Caching the "latest" URL would pin us to a stale publisher indefinitely.
+      # The publisher version is PINNED in scripts/lib/ig-publisher-release.mjs
+      # (2026-10-06: tracking the latest release turned every IG PR red when
+      # 2.3.5 shipped). Read from there so the jar can be cached by version.
       #
       # Shared with deploy.yml through scripts/lib/ig-publisher-release.mjs, the
       # same way sushi-version.mjs and validator-jar.mjs are shared. This step

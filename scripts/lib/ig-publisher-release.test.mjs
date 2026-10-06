@@ -101,3 +101,10 @@ describe('resolveIgPublisherTag', () => {
     expect(seen).toEqual(['Bearer tok', undefined])
   })
 })
+
+describe('IG_PUBLISHER_VERSION', () => {
+  it('is a concrete release tag, so the workflows download a fixed jar', async () => {
+    const { IG_PUBLISHER_VERSION } = await import('./ig-publisher-release.mjs')
+    expect(IG_PUBLISHER_VERSION).toMatch(/^\d+\.\d+\.\d+$/)
+  })
+})
