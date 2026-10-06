@@ -30,6 +30,7 @@ import type { MapperResult } from './shared'
 import type { QuestionnaireResponseResource } from '../../types/fhir'
 import { stripCanonicalVersion } from '../../data/catalog'
 import { recognizeInstrument, normalizeToSpierQr } from './fallbackDispatch'
+import { withRiskConcepts } from '../riskConcept'
 import { mapPHQ9 } from './phq9'
 import { mapASQ } from './asq'
 import { mapBSSA } from './bssa'
@@ -110,11 +111,21 @@ export interface DispatchOptions {
  * so callers can surface that the mapping was inferred, not canonical-matched.
  *
  * Returns null when no tier fires (no canonical + unrecognized shape).
+ *
+ * Every result comes back with its harmonized concept Observation beside it
+ * (`riskConcept.ts`). That happens HERE, at the one dispatch every consumer
+ * calls — the app's save, the writeback, the CDS service — rather than in any
+ * one of them, so no path can emit an instrument result without its concept.
  */
 export function mapResponseToObservations(
   qr: QuestionnaireResponseResource,
   opts: DispatchOptions = {},
 ): MapperResult | null {
+  const result = dispatch(qr, opts)
+  return result ? { ...result, observations: withRiskConcepts(result.observations) } : null
+}
+
+function dispatch(qr: QuestionnaireResponseResource, opts: DispatchOptions): MapperResult | null {
   const canonical: string | undefined = qr?.questionnaire
   if (canonical) {
     const direct = MAPPER_BY_QUESTIONNAIRE_URL[stripCanonicalVersion(canonical)]

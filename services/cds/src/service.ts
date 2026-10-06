@@ -34,9 +34,10 @@
  */
 import { buildCdsCards } from '@spier/core/lib/cdsHooks'
 import type { Card, CdsServiceResponse } from '@spier/core/lib/cdsHooks/types'
-import { mapResponseToObservations, type RiskAlert } from '@spier/core/lib/observationMappers'
+import { deriveFromResponse } from '@spier/core/lib/deriveFromResponse'
+import type { RiskAlert } from '@spier/core/lib/observationMappers'
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
-import type { ObservationResource, QuestionnaireResponseResource } from '@spier/core/types/fhir'
+import type { ObservationResource, QuestionnaireResponseResource, StoredResponse } from '@spier/core/types/fhir'
 import type { CdsHookRequest, CdsServiceDefinition } from './types'
 
 /** Machine id — the patient-view invocation path is `/cds-services/{SERVICE_ID}`. */
@@ -93,36 +94,45 @@ function questionnaireResponsesFromPrefetch(
 }
 
 /**
- * Risk alerts derived from a set of QuestionnaireResponses (mappers that fire).
+ * What SPiER derives from a prefetched set of responses — exactly what the app
+ * derives on submission, by the same function (`deriveFromResponse`).
  *
  * Uses the default dispatch policy: Tier 1 (SPiER canonical) + Tier 2 (LOINC
  * item-code recognition of foreign QRs) fire, but the Tier-3 shape heuristic
- * does NOT (`allowHeuristic` left false). A real EHR firing `patient-view`
- * often prefetches PHQ-9 QRs under its own canonical; Tier 2 lets us still
- * surface a card, while staying conservative — we won't fabricate a risk tier
- * from a QR we can only guess at by shape.
- */
-function riskAlertsFor(responses: QuestionnaireResponseResource[]): RiskAlert[] {
-  return responses
-    .map((qr) => mapResponseToObservations(qr)?.riskAlert)
-    .filter((a): a is RiskAlert => !!a)
-}
-
-/**
- * The Observations the mappers derive from a prefetched set of responses.
+ * does NOT. A real EHR firing `patient-view` often prefetches PHQ-9 QRs under
+ * its own canonical; Tier 2 lets us still surface a card, while staying
+ * conservative — we won't fabricate a risk tier from a QR we can only guess at
+ * by shape.
  *
- * The live path has no Observation prefetch — the CDS client hands us
- * QuestionnaireResponses — so the concept-layer Observations the tier-driven
- * guidance cards read are the ones SPiER derives here, exactly as the app does
- * on submission. Only the instruments that land *directly* on the harmonized
- * tier (SAFE-T, PSS-Full) therefore reach the problem-list card via this path;
- * see `problemListCard.ts` for why nothing translates a native result into a
- * tier on the way past.
+ * ⚠️ **`deriveFromResponse`, not the bare mapper dispatch, and the difference
+ * is provenance.** The live path has no Observation prefetch, so the tier the
+ * cards branch on is the harmonized concept SPiER derives here. The bare
+ * dispatch returns it with no `derivedFrom` back to the response and no stage
+ * tag, so the evaluator could neither name the instrument behind it nor tell a
+ * screen from an assessment — the same chart would read differently here than
+ * in the app. Each response therefore carries the id its derived Observations
+ * point at.
  */
-function derivedObservationsFor(
-  responses: QuestionnaireResponseResource[],
-): ObservationResource[] {
-  return responses.flatMap((qr) => mapResponseToObservations(qr)?.observations ?? [])
+function deriveFromPrefetch(responses: QuestionnaireResponseResource[]): {
+  stored: StoredResponse[]
+  observations: ObservationResource[]
+  riskAlerts: RiskAlert[]
+} {
+  const stored = responses.map((resource, i): StoredResponse => {
+    const id = (resource as { id?: string }).id ?? `prefetched-${i}`
+    return {
+      id,
+      questionnaireName: (resource as { questionnaire?: string }).questionnaire ?? 'Questionnaire',
+      completedAt: (resource as { authored?: string }).authored ?? '',
+      resource: { ...resource, id },
+    }
+  })
+  const derived = stored.map(s => deriveFromResponse(s.resource)).filter(d => d !== null)
+  return {
+    stored,
+    observations: derived.flatMap(d => d.observations),
+    riskAlerts: derived.map(d => d.riskAlert),
+  }
 }
 
 /**
@@ -161,19 +171,12 @@ export function buildPatientViewResponse(
 
   let cards: Card[]
   if (prefetched.length > 0) {
+    const derived = deriveFromPrefetch(prefetched)
     cards = buildCdsCards({
       record: {
-        responses: prefetched.map((resource, i) => ({
-          // The evaluator resolves an Observation back to the instrument that
-          // produced it through `derivedFrom` → `StoredResponse.id`, so a
-          // prefetched response needs an id the derived Observations share.
-          id: (resource as { id?: string }).id ?? `prefetched-${i}`,
-          questionnaireName: (resource as { questionnaire?: string }).questionnaire ?? 'Questionnaire',
-          completedAt: (resource as { authored?: string }).authored ?? '',
-          resource,
-        })),
-        observations: derivedObservationsFor(prefetched),
-        riskAlerts: riskAlertsFor(prefetched),
+        responses: derived.stored,
+        observations: derived.observations,
+        riskAlerts: derived.riskAlerts,
       },
       // Every catalogued tool. The embedded panel applies the SAME rule in panel
       // chrome (apps/clinical/src/lib/toolEnablement.ts) — it used to apply the

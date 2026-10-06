@@ -13,6 +13,7 @@ import type {
 import type { RiskAlert } from '@spier/core/lib/observationMappers'
 import { highestRiskLevel } from '@spier/core/lib/observationMappers'
 import { evaluatePathway } from '@spier/core/lib/pathwayEvaluation'
+import { isRiskConcept } from '@spier/core/lib/riskConcept'
 import { riskLevelForTier, tierCodeForLevel } from '@spier/core/lib/reassessment'
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
 import DEMO_PATIENTS from '@spier/demo-population/patients.json'
@@ -447,12 +448,28 @@ describe('a row’s risk level is the harmonized tier, not the loudest alert', (
   })
 
   it('keeps the alert when the record has reached no tier yet', () => {
-    // A positive PHQ-9 with no assessment after it: the pathway's gate says
-    // "go and assess" and reaches no tier. `none` would read as "screened, no
-    // risk", which is the opposite of true.
-    const row = rowFor('patient-003')
+    // A positive PHQ-9 with no assessment after it, on a chart that carries no
+    // concept Observation — what another system's PHQ-9 looks like, since SPiER
+    // derives the concept on save and another EHR does not. The pathway's gate
+    // says "go and assess" and reaches no tier; `none` would read as "screened,
+    // no risk", which is the opposite of true.
+    //
+    // Built from Sarah's real slice rather than read off it: since 2026-10-06
+    // her PHQ-9 carries the concept SPiER derives (item 9 = 1 → low, per
+    // PHQ9Item9ToSuicideRiskConcept), so no demo patient is in this state.
+    const sarah = POPULATION_SCENARIOS['patient-003']
+    const foreign = { ...sarah, observations: sarah.observations.filter(o => !isRiskConcept(o)) }
+    const patient = (DEMO_PATIENTS as RegistryPatient[]).find(p => p.id === 'patient-003')!
+    const row = deriveRegistryRow(patient, foreign, NOW)
     expect(row.currentRiskLevel).toBe('moderate')
-    expect(row.currentRiskLevel).toBe(highestRiskLevel(POPULATION_SCENARIOS['patient-003'].riskAlerts))
+    expect(row.currentRiskLevel).toBe(highestRiskLevel(sarah.riskAlerts))
+  })
+
+  it('reads Sarah’s PHQ-9 concept as her tier once SPiER has derived it', () => {
+    // The other half: the same screen, with the concept SPiER writes, has a
+    // tier — and it is the published map's, not the instrument alert's.
+    expect(highestRiskLevel(POPULATION_SCENARIOS['patient-003'].riskAlerts)).toBe('moderate')
+    expect(rowFor('patient-003').currentRiskLevel).toBe('low')
   })
 
   it('agrees with that patient’s own chart, for every demo patient', () => {
@@ -486,6 +503,7 @@ describe('a row’s risk level is the harmonized tier, not the loudest alert', (
     expect(changed.map(p => p.id)).toEqual([
       'patient-001',
       'patient-002',
+      'patient-003',
       'patient-006',
       'patient-013',
       'patient-014',

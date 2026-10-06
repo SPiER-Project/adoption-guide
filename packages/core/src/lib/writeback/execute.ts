@@ -4,10 +4,13 @@
  * This is where the ladder actually climbs and degrades. It:
  *   1. writes the Tier-1 QuestionnaireResponse first and captures its
  *      server-assigned id;
- *   2. remaps the client-minted `QuestionnaireResponse/<id>` reference inside
- *      the Tier-2 Observations (`derivedFrom`) and Tier-3 Condition
- *      (`evidence`) to that server id, so provenance links resolve on the
- *      server — the same fixup `SmartDataSource.saveResponse` does today;
+ *   2. remaps every client-minted reference to something already written —
+ *      the QuestionnaireResponse, and each Observation as it lands — to the
+ *      server's id, so provenance links resolve on the server. An Observation
+ *      can point at another one: a harmonized concept is `derivedFrom` the
+ *      instrument result written just before it (`riskConcept.ts`), so the
+ *      Observations are written in order and each id is learned before the
+ *      next one is sent;
  *   3. runs the Tier-0 DocumentReference floor when the discrete tiers did not
  *      fully capture the data (or when `alwaysWriteDocument` is set).
  *
@@ -29,16 +32,33 @@ import type {
   WriteStepResult,
 } from './types'
 
-/** Deep-remap the QR reference (client id → server id) inside a resource. */
-function remapQrReference<T extends FhirResource>(
-  resource: T,
-  clientId: string | undefined,
-  serverId: string | undefined,
-): T {
-  if (!clientId || !serverId || clientId === serverId) return resource
-  const from = `QuestionnaireResponse/${clientId}`
-  const to = `QuestionnaireResponse/${serverId}`
-  return JSON.parse(JSON.stringify(resource).split(from).join(to)) as T
+/** `Type/<client id>` → `Type/<server id>`, for everything written so far this run. */
+type ServerRefs = Map<string, string>
+
+function learn(refs: ServerRefs, type: string, clientId: string | undefined, serverId: string | undefined): void {
+  if (clientId && serverId && clientId !== serverId) refs.set(`${type}/${clientId}`, `${type}/${serverId}`)
+}
+
+/**
+ * Remap every `reference` naming something written this run to the server's id.
+ *
+ * ⚠️ **Structural, by exact value — not a text splice.** This used to replace
+ * the substring `QuestionnaireResponse/<id>` across the serialized resource,
+ * which was safe only while that was the one thing remapped. With Observations
+ * remapped too, `Observation/p1` is a prefix of `Observation/p1-concept`, and a
+ * splice rewrites both.
+ */
+function remapReferences<T>(node: T, refs: ServerRefs): T {
+  if (refs.size === 0) return node
+  if (Array.isArray(node)) return (node as unknown[]).map(n => remapReferences(n, refs)) as unknown as T
+  if (!node || typeof node !== 'object') return node
+  const out: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(node as Record<string, unknown>)) {
+    out[key] = key === 'reference' && typeof value === 'string' && refs.has(value)
+      ? refs.get(value)
+      : remapReferences(value, refs)
+  }
+  return out as T
 }
 
 /** Render an unknown thrown value as a scorecard-friendly message. */
@@ -60,8 +80,7 @@ export async function executeWritePlan(
 ): Promise<WritebackResult> {
   const cfg = resolveConfig(config)
   const steps: WriteStepResult[] = []
-  const clientQrId = artifacts.qr.id
-  let serverQrId: string | undefined
+  const serverRefs: ServerRefs = new Map()
   // Outcomes of the in-scope discrete tiers (disposition !== 'disabled'),
   // used to decide whether the Tier-0 floor must fire.
   const inScopeDiscreteOutcomes: WriteStepResult['outcome'][] = []
@@ -83,16 +102,16 @@ export async function executeWritePlan(
     // disposition === 'attempt'
     if (step.resourceType === 'QuestionnaireResponse') {
       const result = await tryCreate(target, artifacts.qr)
-      if (result.ok) serverQrId = result.id
+      if (result.ok) learn(serverRefs, 'QuestionnaireResponse', artifacts.qr.id, result.id)
       const stepResult = toStepResult(step, result)
       steps.push(stepResult)
       inScopeDiscreteOutcomes.push(stepResult.outcome)
     } else if (step.resourceType === 'Observation') {
-      const stepResult = await writeObservations(target, artifacts.observations, clientQrId, serverQrId)
+      const stepResult = await writeObservations(target, artifacts.observations, serverRefs)
       steps.push(stepResult)
       inScopeDiscreteOutcomes.push(stepResult.outcome)
     } else if (step.resourceType === 'Condition' && artifacts.condition) {
-      const payload = remapQrReference(artifacts.condition, clientQrId, serverQrId)
+      const payload = remapReferences(artifacts.condition, serverRefs)
       const stepResult = toStepResult(step, await tryCreate(target, payload))
       steps.push(stepResult)
       inScopeDiscreteOutcomes.push(stepResult.outcome)
@@ -141,24 +160,25 @@ function toStepResult(step: WriteStep, result: CreateResult): WriteStepResult {
 }
 
 /**
- * Write every derived Observation (remapping its QR provenance to the server
- * id). One aggregate step result: `written` only if all succeeded; otherwise
+ * Write every derived Observation, in order, remapping its references to what
+ * has already landed and adding each one's server id as it does. One aggregate
+ * step result: `written` only if all succeeded; otherwise
  * `failed`, with a `reason` recording how many of how many landed so a partial
  * write is visible in the scorecard.
  */
 async function writeObservations(
   target: WritebackTarget,
   observations: ObservationResource[],
-  clientQrId: string | undefined,
-  serverQrId: string | undefined,
+  serverRefs: ServerRefs,
 ): Promise<WriteStepResult> {
   const step: WriteStep = { tier: 2, resourceType: 'Observation', role: 'discrete', disposition: 'attempt' }
   const ids: string[] = []
   const errors: string[] = []
   for (const obs of observations) {
-    const payload = remapQrReference(obs, clientQrId, serverQrId)
+    const payload = remapReferences(obs, serverRefs)
     const result = await tryCreate(target, payload)
     if (result.ok) {
+      learn(serverRefs, 'Observation', obs.id, result.id)
       if (result.id) ids.push(result.id)
     } else {
       errors.push(result.error)

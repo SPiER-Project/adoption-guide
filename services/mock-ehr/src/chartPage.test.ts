@@ -419,10 +419,13 @@ describe('the chart shows what this server holds about the patient', () => {
     // not, and it is what the key adds.
     const results = chartRecordFor('patient-011').results
     expect(results).toHaveLength(3)
-    // The two C-SSRS risk levels DO share a profile, so they are one tile — and
-    // carry no trend, because the level did not change between them.
+    // The harmonized concept Observations DO share a profile, so they are one
+    // tile — the cross-instrument risk level, which is what the concept layer is
+    // for. Since SPiER derives a concept from every result a published map
+    // covers, that tile's history starts at her ASQ screen (moderate) and the
+    // tile trends against it, not against the unchanged C-SSRS reassessment.
     const risk = results.find(r => r.value === 'High risk')!
-    expect(risk.trend).toBeUndefined()
+    expect(risk.trend).toBe('was Moderate risk on 2 Aug')
     // patient-013's deferred screen and its re-attempt are one measurement, so
     // that one does trend.
     expect(chartRecordFor('patient-013').results[0]!.trend).toContain('Temporarily Unknown')

@@ -327,6 +327,10 @@ const TONE_FOR_INTERPRETATION: Record<string, ChartTone> = {
   H: 'warning',
   A: 'warning',
   N: 'notice',
+  // The concept layer's pair: every published concept map writes POS/NEG, and
+  // they say what A/N say — found abnormal, found nothing.
+  POS: 'warning',
+  NEG: 'notice',
 }
 
 function toneOf(observation: MockResource): ChartTone {

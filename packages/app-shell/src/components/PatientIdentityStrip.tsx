@@ -9,10 +9,18 @@
  * comment in one explaining it matched the other "exactly". One component,
  * one rule (lib/riskLabel.ts), and the banner's collapse-on-narrow behaviour
  * is now the strip's own.
+ *
+ * ⚠️ **The level is `chartRiskLevel` — the caseload's rule, the same function.**
+ * The strip used to rank the instruments' alerts while the caseload read the
+ * harmonized tier, so the header on a chart could say "No suicide-risk
+ * screening on file" for a patient the caseload listed at imminent risk.
  */
+import { useMemo } from 'react'
+import { evaluatePathway } from '@spier/core/lib/pathwayEvaluation'
+import { chartRiskLevel } from '@spier/core/lib/registry'
 import { usePatient } from '@spier/tool-views/context/PatientContext'
 import { cx } from '@spier/ui/cx'
-import { RISK_LABEL, highestActiveRiskLevel, riskTitle } from '../lib/riskLabel'
+import { RISK_LABEL, riskTitle } from '../lib/riskLabel'
 import { RiskPill } from '@spier/tool-views/components/RiskPill'
 import '../css/PatientIdentityStrip.css'
 
@@ -30,8 +38,16 @@ function Field({ label, mono, children }: { label: string; mono?: boolean; child
 }
 
 export function PatientIdentityStrip({ dense }: { dense?: boolean }) {
-  const { patientDisplay, riskAlerts } = usePatient()
-  const risk = highestActiveRiskLevel(riskAlerts.map(a => a.level))
+  const { patientDisplay, responses, observations, carePlans, communications, procedures, episodes, riskAlerts } =
+    usePatient()
+  const risk = useMemo(
+    () =>
+      chartRiskLevel(
+        evaluatePathway({ responses, observations, carePlans, communications, procedures, episodes, riskAlerts }),
+        riskAlerts,
+      ),
+    [responses, observations, carePlans, communications, procedures, episodes, riskAlerts],
+  )
 
   if (dense) {
     return (
