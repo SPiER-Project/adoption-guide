@@ -12,7 +12,7 @@
  * green having checked nothing, which is the #232 / #261 failure mode; the same
  * rule `scripts/lib/vite-alias.mjs` follows for the same reason.
  */
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -32,7 +32,14 @@ export const STAGE_FSH = resolve(REPO_ROOT, 'ig/input/fsh/spier-codesystem.fsh')
  * @throws if the CodeSystem block is absent or yields zero concepts.
  */
 export function readStageCodes() {
+  // ⚠️ Comments stripped FIRST. SUSHI ignores `/* … */` and `// …`, and this
+  // reader did not: block-commenting `* #track-risk-over-time` out of the
+  // CodeSystem removed it from the IG and from the generated StageId union, while
+  // `check:stages` still listed eight stages and passed the sixteen fixture
+  // references to it. (A `//` after a `:` is a URL, not a comment.)
   const fsh = readFileSync(STAGE_FSH, 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/(^|[^:])\/\/.*$/gm, '$1')
   // The file may hold several CodeSystems — isolate this one's block, then
   // collect its `* #code "Display" …` concept lines.
   const block = fsh.split(/^CodeSystem:\s*/m).find((b) => b.startsWith('SPiERPathwayStage'))
@@ -46,5 +53,34 @@ export function readStageCodes() {
         'stage list, which would make every caller pass having checked nothing',
     )
   }
+  assertMatchesGenerated(codes)
   return codes
+}
+
+/** The CodeSystem SUSHI compiled from that FSH, when copy-fhir has run. */
+export const STAGE_GENERATED = resolve(REPO_ROOT, 'packages/fhir-artifacts/generated/CodeSystem-spier-pathway-stage.json')
+
+/**
+ * The FSH parse above is a second reader of a file SUSHI also reads, and two
+ * parsers of one file can disagree — the comment case is how they did. When
+ * the generated CodeSystem is present (every `verify` run; not the fast
+ * `lint-css` job, which skips copy-fhir) the two lists must be identical, so
+ * any FSH form this regex mis-reads fails here instead of reporting stages the
+ * IG does not publish.
+ */
+function assertMatchesGenerated(codes) {
+  if (!existsSync(STAGE_GENERATED)) return
+  const generated = new Set(
+    (JSON.parse(readFileSync(STAGE_GENERATED, 'utf8')).concept ?? []).map((c) => c.code),
+  )
+  const onlyFsh = [...codes].filter((c) => !generated.has(c))
+  const onlyGenerated = [...generated].filter((c) => !codes.has(c))
+  if (onlyFsh.length || onlyGenerated.length) {
+    throw new Error(
+      `the FSH parse of SPiERPathwayStage disagrees with the compiled CodeSystem (${STAGE_GENERATED}): ` +
+        `only in the FSH parse [${onlyFsh.join(', ')}], only in SUSHI's output [${onlyGenerated.join(', ')}]. ` +
+        'Either the generated tree is stale (run `npm run copy-fhir`) or scripts/lib/stage-codes.mjs is ' +
+        'misreading the FSH — fix the reader, do not trust the list.',
+    )
+  }
 }

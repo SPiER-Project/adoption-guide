@@ -52,14 +52,18 @@
  *      pass quietly (#232, #261 — and #420 itself, which was a *scope* that
  *      silently excluded a whole family).
  *
- * A linkId is resolved across EVERY SPiER Questionnaire rather than against one
- * associated form, because the carePlan mappers declare no canonical→mapper
- * registry the way `observationMappers/index.ts` does — the association lives in
- * `web/src/data/toolViews.tsx`'s `carePlanMapper` props (it was `App.tsx`'s route
- * props until 2026-09-17) and, for Stanley-Brown, inside its bespoke view. That
- * is sound here because the question is binary (group or leaf) and every linkId
- * these mappers read resolves the same way in every form that declares it. If
- * two forms ever disagree, that is an ERROR, not a coin toss — see AMBIGUOUS.
+ * A linkId is resolved against the Questionnaire(s) the mapper SERVES, read
+ * from `CAREPLAN_MAPPER_BY_QUESTIONNAIRE_URL` (packages/core/src/lib/
+ * carePlanMappers/index.ts, loaded through lib/load-core.mjs) — the registry the
+ * tool views look their mapper up in.
+ *
+ * ⚠️ Until 2026-10-06 there was no such registry, so a linkId was resolved
+ * across EVERY SPiER Questionnaire, on the argument that the question is binary
+ * (group or leaf). That let a mapper read another form's item: `stanleyBrown.ts`
+ * reading CRP's `coping-list` passed, and read nothing. A mapper file the
+ * registry does not reach is now an error, as is a linkId absent from its own
+ * form. If two forms one mapper serves disagree on a linkId, that is an ERROR,
+ * not a coin toss — see AMBIGUOUS.
  */
 
 import { readFileSync, readdirSync, statSync } from 'node:fs'
@@ -67,6 +71,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join, relative, resolve } from 'node:path'
 import ts from 'typescript'
 import { reportFloors } from './lib/floors.mjs'
+import { loadCore } from './lib/load-core.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
@@ -83,6 +88,8 @@ const fail = (msg) => {
 
 /** @type {Map<string, Map<string, boolean>>} linkId → (questionnaire → isGroup) */
 const declaredBy = new Map()
+/** Every Questionnaire canonical read. */
+const questionnaireUrls = new Set()
 
 function walkQuestionnaire(items, label) {
   for (const item of items ?? []) {
@@ -116,6 +123,7 @@ function loadQuestionnaires(dir) {
       continue
     }
     if (doc?.resourceType !== 'Questionnaire') continue
+    if (doc.url) questionnaireUrls.add(doc.url)
     walkQuestionnaire(doc.item, doc.url ?? relative(root, full))
     n += 1
   }
@@ -132,9 +140,11 @@ if (questionnaireCount === 0) {
  * forms is an error rather than a guess: it would mean the mapper needs to know
  * WHICH form it is reading, and this gate deliberately does not.
  */
-function groupness(linkId, where) {
-  const decls = declaredBy.get(linkId)
-  if (!decls) return undefined
+function groupness(linkId, where, served) {
+  const all = declaredBy.get(linkId)
+  if (!all) return undefined
+  const decls = new Map([...all].filter(([q]) => served.has(q)))
+  if (decls.size === 0) return undefined
   const values = new Set(decls.values())
   if (values.size > 1) {
     const detail = [...decls].map(([q, g]) => `${q}=${g ? 'group' : 'leaf'}`).join(', ')
@@ -164,6 +174,40 @@ if (mapperFiles.length === 0) {
 
 let callSites = 0
 
+// --- Which Questionnaire(s) each mapper file serves ------------------------
+// The registry is loaded (its VALUES — canonicals and functions); which FILE
+// defines each function is a question about source, so it is read from the
+// mapper files' own `export function` declarations.
+const [carePlanRegistry] = await loadCore(['@spier/core/lib/carePlanMappers'])
+const registryEntries = Object.entries(carePlanRegistry.CAREPLAN_MAPPER_BY_QUESTIONNAIRE_URL ?? {})
+if (registryEntries.length === 0) {
+  fail('CAREPLAN_MAPPER_BY_QUESTIONNAIRE_URL is empty or missing — nothing ties a mapper to its form [treated as a failure]')
+}
+const fileForExport = new Map()
+for (const file of mapperFiles) {
+  for (const m of readFileSync(join(mapperDir, file), 'utf8').matchAll(/^export function (\w+)/gm)) {
+    fileForExport.set(m[1], file)
+  }
+}
+/** mapper file -> Set(canonical) */
+const servedBy = new Map()
+for (const [canonical, fn] of registryEntries) {
+  const file = fileForExport.get(fn?.name)
+  if (!file) {
+    fail(`CAREPLAN_MAPPER_BY_QUESTIONNAIRE_URL maps ${canonical} to ${fn?.name ?? '(anonymous)'}, which no mapper file declares as \`export function\``)
+    continue
+  }
+  if (!questionnaireUrls.has(canonical)) {
+    fail(`CAREPLAN_MAPPER_BY_QUESTIONNAIRE_URL maps ${canonical}, for which no Questionnaire JSON exists`)
+  }
+  servedBy.set(file, new Set([...(servedBy.get(file) ?? []), canonical]))
+}
+for (const file of mapperFiles) {
+  if (!servedBy.has(file)) {
+    fail(`${relative(root, mapperDir)}/${file} serves no Questionnaire in CAREPLAN_MAPPER_BY_QUESTIONNAIRE_URL — register it, so its reads can be checked against its own form`)
+  }
+}
+
 /** The literal string at `argIndex`, or null when it cannot be resolved. */
 function literalArg(call, argIndex) {
   const arg = call.arguments[argIndex]
@@ -174,6 +218,8 @@ for (const file of mapperFiles) {
   const source = readFileSync(join(mapperDir, file), 'utf8')
   const sourceFile = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true)
   const rel = `${relative(root, mapperDir)}/${file}`
+  const served = servedBy.get(file) ?? new Set()
+  const formsLabel = [...served].map((u) => u.split('/').pop()).join(', ') || '(no registered form)'
 
   const visit = (node) => {
     if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)) {
@@ -188,17 +234,17 @@ for (const file of mapperFiles) {
           fail(`${where}: ${PAIR_READER}(…) has a non-literal linkId argument this gate cannot resolve — ` +
             'teach the resolver rather than exempting the site [not skipped]')
         } else {
-          const g = groupness(group, where)
+          const g = groupness(group, where, served)
           if (g === undefined) {
-            fail(`${where}: ${PAIR_READER} reads "${group}", which no Questionnaire declares`)
+            fail(`${where}: ${PAIR_READER} reads "${group}", which its form (${formsLabel}) does not declare`)
           } else if (!g) {
             fail(`${where}: ${PAIR_READER} reads "${group}" as a repeating group, but the Questionnaire ` +
               'declares it a leaf question — the pair fields would never be found')
           }
           for (const field of [fieldA, fieldB]) {
-            const fg = groupness(field, where)
+            const fg = groupness(field, where, served)
             if (fg === undefined) {
-              fail(`${where}: ${PAIR_READER} reads field "${field}", which no Questionnaire declares`)
+              fail(`${where}: ${PAIR_READER} reads field "${field}", which its form (${formsLabel}) does not declare`)
             } else if (fg) {
               fail(`${where}: ${PAIR_READER} reads field "${field}", but it is declared a group, not a leaf`)
             }
@@ -211,9 +257,9 @@ for (const file of mapperFiles) {
           fail(`${where}: ${name}(…) has a non-literal linkId argument this gate cannot resolve — ` +
             'teach the resolver rather than exempting the site [not skipped]')
         } else {
-          const g = groupness(link, where)
+          const g = groupness(link, where, served)
           if (g === undefined) {
-            fail(`${where}: ${name} reads "${link}", which no Questionnaire declares`)
+            fail(`${where}: ${name} reads "${link}", which its form (${formsLabel}) does not declare`)
           } else if (g) {
             fail(`${where}: ${name} reads "${link}", but the Questionnaire declares it a GROUP. ` +
               'A leaf reader returns nothing for a group — read its children, or use extractPairs.')

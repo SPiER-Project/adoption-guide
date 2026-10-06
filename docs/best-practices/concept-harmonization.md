@@ -121,9 +121,9 @@ Use the `concept-harmonization` skill for the full version. In brief, a harmoniz
 - [ ] The derived Observation carries `code`, `value` (tier), `interpretation`, `category` (required binding), `derivedFrom`, `status`, `subject`, `effective`.
 - [ ] Coarse instruments use an honest equivalence (`narrower`/`relatedto`); no fabricated precision.
 - [ ] Every crosswalk row is cited to validated scoring and cleared by a clinical SME.
-- [ ] Derived concepts are excluded from the `observationExtract` contract and its anti-drift `EXPECTED`.
+- [ ] Derived concepts are excluded from the `observationExtract` contract — and, where one is emitted under an item's own code, listed in `check:extract`'s `COMPUTED` with the reason.
 - [ ] Tier + grouping ValueSets are planned for VSAC publication.
-- [ ] `check:crosswalk` passes — every ConceptMap target is a real tier, every disposition is mapped and present in its CodeSystem + runtime mapper, and every tier code in a draft StructureMap is valid.
+- [ ] `check:crosswalk` passes — every ConceptMap target is a real tier, every disposition is mapped, present in its CodeSystem and actually emitted by a runtime mapper (run, not grepped), and every tier code in a StructureMap is valid.
 
 **Two crosswalk shapes, by instrument output:** instruments with a **coded disposition** (ASQ, C-SSRS) use a **ConceptMap** (code→code); instruments emitting a **score/ordinal** (PHQ-9 Item 9, SBQ-R total) use a **StructureMap with numeric thresholds** aligned to the runtime mapper's bands. A ConceptMap can't express score→tier, so the shape follows the instrument. `check:crosswalk` keeps both honest.
 

@@ -19,7 +19,9 @@
  *
  * ⚠️ Plant a defect and watch it fail before trusting it. It should go red for
  * each of: a `"type": "quantity"` item in any Questionnaire, an `answerQuantity`
- * or `valueQuantity` inside one, a `toQuantity()` in a FHIRPath expression,
+ * or `valueQuantity` inside one, a `toQuantity()` in a FHIRPath expression —
+ * on an item, in a ROOT `sdc-questionnaire-variable`, or in a
+ * `questionnaire-constraint` sub-extension —
  * deleting the alias while keeping the shim, and removing a method from the shim.
  */
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
@@ -69,7 +71,8 @@ const shimSrc = readFileSync(SHIM, 'utf8')
 // ── RULE 2 — no quantities in the Questionnaires the app renders ──────────────
 //
 // Scoped to ig/input/resources/questionnaires, because that is what the renderer is handed
-// (App.tsx imports these JSON files directly). Quantities elsewhere in the repo
+// (packages/core/src/data/questionnaires.ts imports these JSON files, and
+// `check:catalog` holds it to every one of them). Quantities elsewhere in the repo
 // — Observation.valueQuantity in the population scenarios, say — never pass
 // through fhirpath or the renderer, so they are none of this gate's business.
 
@@ -130,14 +133,40 @@ for (const { path, resource } of questionnaires) {
     if (item.type === 'quantity') {
       fail(`${rel}: item ${itemPath} is type \`quantity\` — the UCUM shim cannot convert units (see check:ucum)`)
     }
-    for (const ext of item.extension ?? []) {
-      const expr = ext.valueExpression?.expression
-      if (typeof expr !== 'string') continue
-      expressionsChecked++
-      if (QUANTITY_FHIRPATH.test(expr)) {
-        fail(`${rel}: item ${itemPath} has a FHIRPath expression over quantities: \`${expr}\``)
-      }
+  }
+
+  // ⚠️ EVERY expression in the resource, not `item.extension[].valueExpression`.
+  // That narrower walk was this rule until 2026-10-06, and it passed a root-level
+  // `sdc-questionnaire-variable` carrying `toQuantity('mg')`, and an item's
+  // `questionnaire-constraint`, whose FHIRPath is a `valueString` inside an
+  // `expression` SUB-extension — both of which reach fhirpath at render time.
+  for (const { expr, where } of expressionsIn(resource)) {
+    expressionsChecked++
+    if (QUANTITY_FHIRPATH.test(expr)) {
+      fail(`${rel}: ${where} is a FHIRPath expression over quantities: \`${expr}\``)
     }
+  }
+}
+
+/**
+ * Every expression string anywhere in a resource: an `Expression` datatype's
+ * `expression` at any depth (root variables, item calculated / enableWhen /
+ * answer expressions, nested toggle expressions), and an `expression`
+ * sub-extension's `valueString` (questionnaire-constraint).
+ */
+function* expressionsIn(node, trail = 'Questionnaire') {
+  if (Array.isArray(node)) {
+    for (let i = 0; i < node.length; i++) yield* expressionsIn(node[i], `${trail}[${i}]`)
+    return
+  }
+  if (!node || typeof node !== 'object') return
+  if (typeof node.expression === 'string') yield { expr: node.expression, where: trail }
+  if (node.url === 'expression' && typeof node.valueString === 'string') {
+    yield { expr: node.valueString, where: `${trail} (expression sub-extension)` }
+  }
+  const here = typeof node.linkId === 'string' ? `${trail}<${node.linkId}>` : trail
+  for (const [key, value] of Object.entries(node)) {
+    if (value && typeof value === 'object') yield* expressionsIn(value, `${here}.${key}`)
   }
 }
 
@@ -166,19 +195,34 @@ const CONSUMERS = [
 ]
 
 // The real library's surface, so the renderer's minified sweep above cannot
-// mistake an unrelated `foo().bar()` for a UCUM call. Sourced from ucum-lhc's
-// own UcumLhcUtils and deliberately over-inclusive: a name here that no one
-// calls costs nothing, while a missed name is what RULE 3 exists to catch.
-const UCUM_METHODS = new Set([
-  'convertUnitTo',
-  'convertToBaseUnits',
-  'getSpecifiedUnit',
-  'validateUnitString',
-  'commensurablesList',
-  'checkSynonyms',
-  'convertToBaseUnitsFrom',
-  'getSynonyms',
-])
+// mistake an unrelated `foo().bar()` for a UCUM call. READ from the installed
+// ucum-lhc's own `UcumLhcUtils` class — the alias swaps it out of the bundle, but
+// fhirpath still installs it. ⚠️ This was a hand list until 2026-10-06, and it had
+// drifted: it named two methods the class does not have (`getSynonyms`,
+// `convertToBaseUnitsFrom`) and lacked three it does (`detectConversionType`,
+// `useHTMLInMessages`, `useBraceMsgForEachString`) — a renderer upgrade calling
+// any of those would have been filtered out of the sweep as "not UCUM".
+const UCUM_SOURCE = join(REPO, 'node_modules/@lhncbc/ucum-lhc/source/ucumLhcUtils.js')
+const UCUM_METHODS = new Set()
+if (!existsSync(UCUM_SOURCE)) {
+  fail(`${UCUM_SOURCE.replace(REPO + '/', '')} is not installed — RULE 3 reads the real method list from it; run npm ci`)
+} else {
+  const ucumSrc = readFileSync(UCUM_SOURCE, 'utf8')
+  const body = /export class UcumLhcUtils\s*\{([\s\S]*?)\n\}/.exec(ucumSrc)?.[1] ?? ''
+  for (const m of body.matchAll(/^ {2}([A-Za-z]\w*)\s*\(/gm)) {
+    if (m[1] !== 'constructor') UCUM_METHODS.add(m[1])
+  }
+  // convertUnitTo, convertToBaseUnits, getSpecifiedUnit, validateUnitString,
+  // commensurablesList, checkSynonyms, detectConversionType, and two message
+  // toggles as of 7.1.6 — half of nine, rounded down.
+  if (UCUM_METHODS.size < 4 || !UCUM_METHODS.has('convertUnitTo')) {
+    fail(
+      `read ${UCUM_METHODS.size} method(s) off UcumLhcUtils in ${UCUM_SOURCE.replace(REPO + '/', '')} — ` +
+        'the class parse has stopped matching, so the consumer sweep below would filter out every call. ' +
+        'Fix the parse; do not fall back to a hand list.',
+    )
+  }
+}
 
 for (const { label, dir, pattern, floor } of CONSUMERS) {
   if (!existsSync(dir)) {

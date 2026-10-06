@@ -20,7 +20,10 @@
  *   (b) DEFINITION CANONICALS resolve to an artifact in
  *       packages/fhir-artifacts/generated/. This is `check:catalog`'s B/C lesson
  *       one layer up: check C stops a Questionnaire no ActivityDefinition
- *       administers; this stops a pathway step pointing at nothing.
+ *       administers; this stops a pathway step pointing at nothing. And the
+ *       artifact must be a TYPE an engine can apply (ActivityDefinition,
+ *       PlanDefinition or Questionnaire, per R4) — a CodeSystem's canonical
+ *       resolved, and passed, until 2026-10-06.
  *   (c) NO TIMING ANYWHERE. The reassessment cadence has exactly one home
  *       (PlanDefinition/SPiERReassessmentSchedule) and is already stated three
  *       times — that PlanDefinition, packages/core/src/lib/reassessment.ts, and
@@ -33,7 +36,15 @@
  *       cadence just as effectively.
  *   (d) STAGE CODES are in the canonical stage list, read from the same source
  *       `check:stages` reads (ig/input/fsh/spier-codesystem.fsh, via the shared
- *       lib/stage-codes.mjs — not a copy of the list).
+ *       lib/stage-codes.mjs — not a copy of the list, and cross-checked there
+ *       against the compiled CodeSystem).
+ *   (f) TIER CONDITIONS agree with their branch: each tier branch's FHIRPath
+ *       applicability condition tests `.code = '<its own tier>'` against the
+ *       tier system, and every `extension('…')` a condition reads is a
+ *       StructureDefinition SPiER publishes. The condition is what an engine
+ *       executes; SPiER selects branches by `action.code`, so the two can
+ *       disagree with every test green. The tier is typed twice per branch in
+ *       the FSH — a parameterised RuleSet would make that structural.
  *
  * (e) READING NOTHING IS AN ERROR. A missing generated file, zero parsed
  * actions, zero tier codes, zero stage codes or an empty canonical index all
@@ -41,7 +52,7 @@
  * and each of (a)–(d) was proved able to fail by planting a defect before this
  * gate was trusted.
  *
- * Run from web/ as `npm run check:pathway`. Reads generated FHIR, so
+ * Run from the repo root as `npm run check:pathway`. Reads generated FHIR, so
  * `copy-fhir` must have run first (verify does that).
  */
 import { readFileSync, existsSync, readdirSync } from 'node:fs'
@@ -57,6 +68,9 @@ const PATHWAY = resolve(fhirDir, 'PlanDefinition-SPiERSuicideSaferCarePathway.js
 const TIER_CS = resolve(fhirDir, 'CodeSystem-spier-suicide-risk-tier.json')
 
 const TIER_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier'
+
+/** What PlanDefinition.action.definition[x] may point at, per FHIR R4. */
+const DEFINITION_TYPES = new Set(['ActivityDefinition', 'PlanDefinition', 'Questionnaire'])
 
 /**
  * Tiers the branch must NOT carry, and why — the same shape (and two of the
@@ -112,7 +126,7 @@ try {
  * `assertUsableIndex` enforces in packages/core/fhir-resource-rules.mjs, and for
  * the same reason: an empty index green-lights everything it never read.
  */
-const canonicals = new Set()
+const canonicals = new Map() // canonical URL -> resourceType
 for (const file of readdirSync(fhirDir).filter((f) => f.endsWith('.json'))) {
   let doc
   try {
@@ -120,7 +134,7 @@ for (const file of readdirSync(fhirDir).filter((f) => f.endsWith('.json'))) {
   } catch {
     continue // not every .json in here is a FHIR resource
   }
-  if (typeof doc?.url === 'string') canonicals.add(doc.url)
+  if (typeof doc?.url === 'string') canonicals.set(doc.url, doc.resourceType)
 }
 if (canonicals.size === 0) {
   bail(
@@ -148,6 +162,8 @@ walk(plan.action, 'action')
 if (flat.length === 0) bail('walked the pathway and found zero actions — refusing to pass vacuously')
 
 let tierCodeCount = 0
+let tierConditionCount = 0
+let conditionExtensionCount = 0
 let stageCodeCount = 0
 let canonicalCount = 0
 const branchedTiers = new Map()
@@ -183,6 +199,48 @@ for (const { action, path } of flat) {
     }
   }
 
+  // (f) A tier branch's CONDITION names the same tier as its code, through a
+  // real extension. The condition is the half a CPG engine EXECUTES; SPiER's own
+  // runtime selects the branch by `action.code`, so a branch whose condition
+  // tested a different tier was invisible to every test (proved 2026-10-06: the
+  // tier-low condition rewritten to `= 'moderate'` passed this gate and all of
+  // `npm test`).
+  const tierCodes = codings.filter((c) => c.system === TIER_SYSTEM).map((c) => c.code)
+  if (tierCodes.length > 0) {
+    const expressions = (action.condition ?? [])
+      .filter((c) => c.kind === 'applicability')
+      .map((c) => c.expression?.expression)
+      .filter((e) => typeof e === 'string')
+    if (expressions.length === 0) {
+      fail(`${path}: a tier branch (${tierCodes.join(', ')}) with no applicability condition — nothing an engine can evaluate selects it`)
+    }
+    for (const expr of expressions) {
+      tierConditionCount++
+      const tested = [...expr.matchAll(/\.code\s*=\s*'([^']+)'/g)].map((m) => m[1])
+      if (tested.length === 0 || tested.some((t) => !tierCodes.includes(t))) {
+        fail(
+          `${path}: the branch is coded ${tierCodes.join(', ')} but its condition tests ` +
+            `${tested.length ? tested.map((t) => `'${t}'`).join(', ') : 'no tier code'} — \`${expr}\`. ` +
+            'An engine evaluating the condition would apply this branch to a different tier than the one it names.',
+        )
+      }
+      if (!expr.includes(`system = '${TIER_SYSTEM}'`)) {
+        fail(`${path}: the tier condition does not filter on system = '${TIER_SYSTEM}' — \`${expr}\``)
+      }
+    }
+  }
+  // Every extension a condition reads must be a StructureDefinition SPiER publishes.
+  for (const c of action.condition ?? []) {
+    const expr = c.expression?.expression
+    if (typeof expr !== 'string') continue
+    for (const m of expr.matchAll(/extension\('([^']+)'\)/g)) {
+      conditionExtensionCount++
+      if (canonicals.get(m[1]) !== 'StructureDefinition') {
+        fail(`${path}: condition reads extension('${m[1]}'), which is not a StructureDefinition in packages/fhir-artifacts/generated/ — the expression evaluates to empty and the branch never applies`)
+      }
+    }
+  }
+
   // (d) Stage codes are real pathway stages.
   for (const coding of codings.filter((c) => c.system === STAGE_SYSTEM)) {
     stageCodeCount++
@@ -199,10 +257,19 @@ for (const { action, path } of flat) {
   if (typeof def === 'string') {
     canonicalCount++
     const bare = def.split('|')[0] // strip any |version
-    if (!canonicals.has(bare)) {
+    const type = canonicals.get(bare)
+    if (!type) {
       fail(
         `${path}: definitionCanonical "${def}" does not resolve to any artifact in ` +
           'packages/fhir-artifacts/generated/ — the step points at nothing a consumer can fetch',
+      )
+    } else if (!DEFINITION_TYPES.has(type)) {
+      // ⚠️ Added 2026-10-06: resolving was the whole rule, so a step pointing at
+      // the tier CodeSystem — a real canonical, of a resource no engine can
+      // $apply — passed.
+      fail(
+        `${path}: definitionCanonical "${def}" resolves to a ${type}. PlanDefinition.action.definition ` +
+          `must be one of ${[...DEFINITION_TYPES].join(' | ')} (FHIR R4) — a consumer cannot apply a ${type}.`,
       )
     }
   } else if (def != null) {
@@ -234,6 +301,12 @@ if (tierCodeCount === 0) {
   fail(
     'no risk-tier codings found on any action — the tier branch is the point of this artifact, so ' +
       'rule (a) examined nothing and would report green over a pathway with no branch at all',
+  )
+}
+if (tierConditionCount < branchedTiers.size || conditionExtensionCount === 0) {
+  fail(
+    `rule (f) examined ${tierConditionCount} tier condition(s) and ${conditionExtensionCount} extension ` +
+      `reference(s) across ${branchedTiers.size} tier branch(es) — a branch without a parsed condition is unchecked`,
   )
 }
 if (stageCodeCount === 0) {
@@ -269,5 +342,6 @@ console.log(
 )
 console.log(`  ${stageCodeCount} stage coding(s) resolve against SPiERPathwayStage (${stageCodes.size} stages)`)
 console.log(`  ${canonicalCount} definitionCanonical(s) resolve against ${canonicals.size} generated canonicals`)
+console.log(`  ${tierConditionCount} tier condition(s) test their own branch's tier; ${conditionExtensionCount} condition extension(s) resolve`)
 console.log('  0 timing[x] on any action — the reassessment cadence stays referenced, not restated')
 console.log('\npathway check passed.')
