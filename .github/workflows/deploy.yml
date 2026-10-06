@@ -113,9 +113,10 @@ jobs:
       # the render's identity: a new publisher can render differently and can
       # report errors the previous one did not, so a release must force a
       # re-render rather than silently reuse output built by an older jar.
-      # Retried, because this is a network dependency on the deploy path (the old
-      # `releases/latest/download` URL needed no API call) and a single GitHub
-      # API hiccup should not fail a deploy.
+      # The version is PINNED in scripts/lib/ig-publisher-release.mjs since
+      # 2026-10-06 (a new release turned every IG build red on its own), so this
+      # step no longer makes a network call; the retry logic there now serves
+      # only its `--latest` check.
       #
       # The retry moved into scripts/lib/ig-publisher-release.mjs, shared with
       # ig-publish.yml — which had no retry at all, the drift two copies of one

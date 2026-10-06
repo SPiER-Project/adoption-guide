@@ -1,5 +1,23 @@
 #!/usr/bin/env node
-// Resolves the latest HL7 IG Publisher release tag, with retries.
+// The HL7 IG Publisher version CI runs — PINNED — and a resolver for the latest
+// release, used only to check for a newer one.
+//
+// ─── Why it is pinned (2026-10-06) ─────────────────────────────────────────
+//
+// This used to print the LATEST release, so every run picked up whatever HL7
+// had just published. 2.3.5 went out at 19:18 UTC on 2026-10-06 ("internal
+// processing is moving to be based on R6 not R5") and from the next run on,
+// every PR touching ig/ — and the IG render on deploy — failed: the CQL still
+// translated, but ELM generation failed with "Unknown FHIRType". The commit
+// that had passed on 2.3.4 that morning failed identically when re-run, so it
+// was the release and not a change here. A new publisher release could turn
+// every PR red on its own, which is the exact reason validator-jar.mjs pins
+// the validator. Now both are pinned.
+//
+// To move to a newer publisher: `node scripts/lib/ig-publisher-release.mjs
+// --latest` prints HL7's current latest; bump IG_PUBLISHER_VERSION in its own
+// PR, with the IG Publisher job's findings triaged. 2.3.5's ELM failure is
+// open — see the PR that introduced this pin.
 //
 // One definition, for the same reason sushi-version.mjs and validator-jar.mjs
 // are one definition: this is consumed by TWO workflows on two different paths
@@ -30,6 +48,9 @@
 
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+
+/** The IG Publisher release both workflows download. Bump deliberately — see the header. */
+export const IG_PUBLISHER_VERSION = '2.3.4'
 
 const API = 'https://api.github.com/repos/HL7/fhir-ig-publisher/releases/latest'
 const ATTEMPTS = 3
@@ -79,8 +100,10 @@ export async function resolveIgPublisherTag({ log = console.error, backoffMs = B
   throw new Error(`could not resolve the latest fhir-ig-publisher release tag after ${ATTEMPTS} attempts`)
 }
 
-// CLI: print the tag on stdout so a workflow can capture it. Progress and
-// failures go to stderr, so `$(...)` captures the tag and nothing else.
+// CLI: print the PINNED tag on stdout so a workflow can capture it; with
+// `--latest`, resolve and print HL7's latest release instead (a human checking
+// for an upgrade — no workflow passes it). Progress and failures go to stderr,
+// so `$(...)` captures the tag and nothing else.
 //
 // ⚠️ `fileURLToPath`, not `import.meta.url === \`file://${process.argv[1]}\``.
 // This repo's own checkout path contains a space ("public health"), which
@@ -90,7 +113,8 @@ export async function resolveIgPublisherTag({ log = console.error, backoffMs = B
 // this comment was written.
 if (process.argv[1] && resolve(fileURLToPath(import.meta.url)) === resolve(process.argv[1])) {
   try {
-    process.stdout.write((await resolveIgPublisherTag()) + '\n')
+    const tag = process.argv.includes('--latest') ? await resolveIgPublisherTag() : IG_PUBLISHER_VERSION
+    process.stdout.write(tag + '\n')
   } catch (err) {
     console.error(`::error::${err.message}`)
     process.exit(1)
