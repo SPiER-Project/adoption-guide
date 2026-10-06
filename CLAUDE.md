@@ -48,7 +48,7 @@ npm run check:fhir-render       # the clinician sees no raw FHIR — in JSON (us
 npm run check:ucum              # the UCUM shim is still safe: no quantities, and it still covers its callers
 npm run check:fhir-r5           # the R5-model shim is still safe: every fhirVersion is "r4"
 npm run check:crosswalk         # concept-crosswalk validation
-npm run check:extract           # the SDC observationExtract contract, and EVERY mapper's Questionnaire classified
+npm run check:extract           # the SDC observationExtract contract, checked against what each mapper actually emits
 npm run check:core-boundary     # packages/core stays React-free and DOM-free
 npm run check:dupes             # no function is defined twice: same name + same body across files fails, and so does a renamed copy of 5+ lines
 npm run check:guide-boundary    # the Adoption Guide holds no patient data (walks guide pages transitively)
