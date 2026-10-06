@@ -69,7 +69,7 @@
 import { toolForActivityDefinition, type Tool } from '../data/catalog'
 import { bestArtifactDate, shortDate } from './artifactDate'
 import { tierForCodings } from './conceptCrosswalk'
-import { conformsTo, derivedResponseIds, observationStage } from './measures'
+import { conformsTo, instrumentName, timeOf } from './recordQueries'
 import { isRiskConcept, PHQ9_ITEM9_LOINC } from './riskConcept'
 import { CRISIS_RESOURCES_PROFILE } from './crisisResources'
 import { COUNSELING_PROFILE } from './lethalMeans'
@@ -232,11 +232,6 @@ function asSlice(record: PathwayRecord): PatientSlice {
   }
 }
 
-function timeOf(value: string | undefined): number {
-  if (!value) return NaN
-  const at = new Date(value).getTime()
-  return Number.isFinite(at) ? at : NaN
-}
 
 /** Resources at a stage, newest last, each paired with its parsed date. */
 interface Dated<T> {
@@ -261,7 +256,7 @@ function screenArtifacts(slice: PatientSlice): Dated<FhirResourceLike>[] {
     .filter(r => toolForResponse(r.resource)?.stageId === 'identify-possible-risk')
     .map(r => r.resource as FhirResourceLike)
   const results = (slice.observations ?? []).filter(
-    o => isRiskConcept(o) && observationStage(o, slice) === 'identify-possible-risk',
+    o => isRiskConcept(o) && stageForArtifact(o as FhirResourceLike, slice) === 'identify-possible-risk',
   )
   return dated([...responses, ...(results as FhirResourceLike[])])
 }
@@ -272,7 +267,7 @@ function assessmentArtifacts(slice: PatientSlice): Dated<FhirResourceLike>[] {
     .filter(r => toolForResponse(r.resource)?.stageId === 'clarify-risk')
     .map(r => r.resource as FhirResourceLike)
   const results = (slice.observations ?? []).filter(
-    o => isRiskConcept(o) && observationStage(o, slice) === 'clarify-risk',
+    o => isRiskConcept(o) && stageForArtifact(o as FhirResourceLike, slice) === 'clarify-risk',
   )
   return dated([...responses, ...(results as FhirResourceLike[])])
 }
@@ -304,7 +299,7 @@ function positiveScreens(slice: PatientSlice): Array<{ resource: FhirResourceLik
       positives.push(o)
       continue
     }
-    if (!isRiskConcept(o) || observationStage(o, slice) !== 'identify-possible-risk') continue
+    if (!isRiskConcept(o) || stageForArtifact(o as FhirResourceLike, slice) !== 'identify-possible-risk') continue
     const tier = tierForCodings(o.valueCodeableConcept?.coding)
     if (tier && tier !== 'no-risk') positives.push(o)
   }
@@ -414,73 +409,6 @@ function artifactPhrase(
   const name = instrumentName(resource, slice)
   if (!name) return when
   return when ? `${name} on ${when}` : name
-}
-
-/**
- * The instrument behind an artifact, in the words a clinician uses for it.
- *
- * A QuestionnaireResponse names its own Questionnaire; a derived Observation
- * carries `derivedFrom` back to the response it came from, which is the hop the
- * mappers leave for readers rather than restating the tool on every resource.
- *
- * Exported since 2026-09-21 because *What’s on file* asks the same question of
- * every row it renders, and `check:dupes` fails the paste. Its one heuristic
- * branch is why it is shared rather than reimplemented: a second copy would
- * name a different instrument on the same artifact the day either was tuned.
- */
-export function instrumentName(resource: FhirResourceLike, slice: PatientSlice): string | null {
-  if (resource.resourceType === 'QuestionnaireResponse') {
-    const tool = toolForResponse(resource)
-    if (tool) return tool.shortName ?? tool.name
-  }
-  const stored = sourceResponse(resource, slice)
-  if (!stored) return null
-  const tool = toolForResponse(stored.resource)
-  return tool ? (tool.shortName ?? tool.name) : stored.questionnaireName
-}
-
-/**
- * The completed form an artifact came from, or null.
- *
- * ⚠️ **Split out of `instrumentName` on 2026-09-22 rather than copied.** The
- * record page has to LINK a result back to the form that produced it, and the
- * name alone cannot be linked; a second walk would be a second answer to "which
- * form is this from" the day either was tuned, which is what `check:dupes`
- * exists to stop. `instrumentName` is the name of what this returns, and
- * nothing else now resolves it.
- */
-export function sourceResponse(
-  resource: FhirResourceLike,
-  slice: PatientSlice,
-): PatientSlice['responses'][number] | null {
-  for (const id of derivedResponseIds(resource as { derivedFrom?: Array<{ reference?: string }> }, slice.observations ?? [])) {
-    const stored = slice.responses.find(r => r.id === id)
-    if (stored) return stored
-  }
-  // ⚠️ Last resort, and a heuristic rather than a link: the latest response at
-  // the same pathway stage, recorded no later than this artifact. The scenario
-  // fixtures' Observations predate `derivedFrom` and carry only a stage tag, so
-  // without this the chart would say "Aug 6: no risk identified" where a
-  // clinician expects "ASQ on Aug 6". Naming the wrong instrument is the risk
-  // it carries, which is why it is the last thing tried and why it is confined
-  // to one stage, one direction in time and the SAME DAY. Without the day bound
-  // it named a CAMS worksheet from two months earlier as the source of a risk
-  // status recorded in July — a plausible sentence that was not true.
-  const stage = stageForArtifact(resource)
-  const date = bestArtifactDate(resource)
-  const at = timeOf(date)
-  if (!stage || !Number.isFinite(at)) return null
-  const day = (value: string | undefined) => (value ? value.slice(0, 10) : null)
-  const sameStage = slice.responses
-    .filter(r => stageForArtifact(r.resource as FhirResourceLike) === stage)
-    .map(r => {
-      const on = bestArtifactDate(r.resource as FhirResourceLike)
-      return { stored: r, at: timeOf(on), on }
-    })
-    .filter(r => Number.isFinite(r.at) && r.at <= at && day(r.on) === day(date))
-    .sort((a, b) => a.at - b.at)
-    .at(-1)
-  return sameStage?.stored ?? null
 }
 
 /* ─── The walk ──────────────────────────────────────────────── */

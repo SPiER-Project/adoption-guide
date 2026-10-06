@@ -23,6 +23,7 @@ import { displayFor, type CodedOption } from './codedOption'
 import { stageTag } from './stageTag'
 import type { AppointmentResource, CommunicationResource } from '../types/fhir'
 import { suicideRiskCategory } from './conceptDomain'
+import { patientReference } from './patientReference'
 
 // `satisfies StageId`: the literal keeps its type, and a stage renamed in the
 // CodeSystem (stage-ids.generated.ts follows it) is a compile error here rather
@@ -122,7 +123,7 @@ export function buildOutreachAttempt(params: {
     meta: { profile: [OUTREACH_PROFILE], tag: stageTag(STAGE_ID) },
     status: 'completed',
     category: [{ text: isNoShowFollowUp ? 'No-show follow-up' : 'Follow-up outreach attempt' }, suicideRiskCategory()],
-    subject: { reference: `Patient/${params.patientId ?? 'demo-patient'}` },
+    subject: patientReference(params.patientId),
     sent: params.sent,
     medium: [
       { coding: [{ system: PARTICIPATION_MODE_SYSTEM, code: channel.code, display: channel.codingDisplay }] },
@@ -261,7 +262,7 @@ export function buildCaringContact(params: {
     // series, and it is what stops the next one.
     status: 'completed',
     category: [{ text: 'Caring contact' }, suicideRiskCategory()],
-    subject: { reference: `Patient/${params.patientId ?? 'demo-patient'}` },
+    subject: patientReference(params.patientId),
     sent: params.sent,
     medium: [
       { coding: [{ system: PARTICIPATION_MODE_SYSTEM, code: channel.code, display: channel.codingDisplay }] },

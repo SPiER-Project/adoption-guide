@@ -30,12 +30,13 @@
  * React-free and DOM-free (`npm run check:core-boundary`).
  */
 import { RISK_TIER_SYSTEM } from './riskEpisode'
+// SPiERPathwayStage — the eight-stage catalogue the protocol's groups tie back to.
+// Defined once, beside the resolver that reads it.
+import { PATHWAY_STAGE_SYSTEM } from './patientPathway'
 
 export const PATHWAY_URL =
   'http://thespierproject.org/fhir/PlanDefinition/SPiERSuicideSaferCarePathway'
 
-/** SPiERPathwayStage — the eight-stage catalogue the protocol's groups tie back to. */
-export const PATHWAY_STAGE_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage'
 
 /* ─── The raw artifact, as loosely as it is actually shaped ─── */
 

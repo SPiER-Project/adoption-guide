@@ -27,6 +27,8 @@ import { NextStep } from './NextStep'
 import { PatientChartHint } from './PatientChartHint'
 import { RiskPill } from './RiskPill'
 import { mapResponseToObservations } from '@spier/core/lib/observationMappers'
+import { makeId } from '@spier/core/lib/id'
+import { patientReference } from '@spier/core/lib/patientReference'
 import { QUESTIONNAIRE_BY_URL } from '@spier/core/data/questionnaires'
 import { stripCanonicalVersion } from '@spier/core/data/catalog'
 import { stampLaunchStage } from '../lib/launchStage'
@@ -183,7 +185,7 @@ export function QuestionnaireView({ title, questionnaireUrl, persistName, carePl
     setPhase('filling')
   }
   const [searchParams] = useSearchParams()
-  const { addResponse, addCarePlan, writebackReport } = usePatient()
+  const { addResponse, addCarePlan, writebackReport, activePatientId } = usePatient()
   // Whether THIS view draws the page header. On the clinician's routes it is
   // the page and does; on the guide's tool page the page has already drawn one
   // naming the tool, and a second here would be two page titles (PageHeaderOwnerContext).
@@ -224,6 +226,19 @@ export function QuestionnaireView({ title, questionnaireUrl, persistName, carePl
     // (e.g. CAMS SSF-5 Section A) by stamping the launching tool's stage — the
     // tool id arrives as a `?tool=` query param on the launchAction route.
     responseToUse = stampLaunchStage(responseToUse, searchParams.get('tool'))
+    // The response gets its id, its time and its patient HERE, before anything
+    // is derived from it: every result and plan takes its id
+    // (`<response id>-<suffix>`), its clinical time and its subject from the
+    // response (core `fromResponse.ts`), so the review screen, the saved chart
+    // and the server all name the same lineage. The form renderer sets none of
+    // them. With no patient selected — the guide's tool pages — the subject is
+    // the one documented placeholder (core `patientReference.ts`).
+    responseToUse = {
+      ...responseToUse,
+      id: responseToUse.id ?? `response-${makeId()}`,
+      authored: responseToUse.authored ?? new Date().toISOString(),
+      subject: responseToUse.subject ?? patientReference(activePatientId),
+    }
 
     const mapperResult = mapResponseToObservations(responseToUse)
     // `isEmpty` is the mapper saying the clinician filled in none of the plan;

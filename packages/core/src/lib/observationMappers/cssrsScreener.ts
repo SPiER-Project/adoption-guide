@@ -160,7 +160,8 @@ export function mapCSSRSScreenerCore(
     if (val !== undefined) {
       observations.push(
         makeObservation({
-          id: `cssrs-${linkId}-${Date.now()}`,
+          response,
+      idSuffix: `cssrs-${linkId}`,
           code: { system, code, display },
           value: val,
           valueType: 'boolean',
@@ -173,7 +174,8 @@ export function mapCSSRSScreenerCore(
   // Risk level observation
   observations.push(
     makeObservation({
-      id: `cssrs-risk-level-${Date.now()}`,
+      response,
+      idSuffix: `cssrs-risk-level`,
       // One stamp serves TL-003, TL-019 and TL-027: the adult screener, the
     // since-last-contact administration and the pediatric screener all run this
     // core, and all three declare the same output profile.

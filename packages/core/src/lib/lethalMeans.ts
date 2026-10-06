@@ -32,6 +32,7 @@ import { stageTag } from './stageTag'
 import { observationEffective } from './observationEffective'
 import type { ObservationResource, ProcedureResource } from '../types/fhir'
 import { suicideRiskCategory } from './conceptDomain'
+import { patientReference } from './patientReference'
 
 // `satisfies StageId`: the literal keeps its type, and a stage renamed in the
 // CodeSystem (stage-ids.generated.ts follows it) is a compile error here rather
@@ -104,7 +105,7 @@ export function buildLethalMeansCounseling(params: {
       coding: [{ ...COUNSELING_CODE }],
       text: params.text?.trim() || COUNSELING_TEXT,
     },
-    subject: { reference: `Patient/${params.patientId ?? 'demo-patient'}` },
+    subject: patientReference(params.patientId),
     performedDateTime: params.performed,
     ...(params.note ? { note: [{ text: params.note }] } : {}),
   }
@@ -151,7 +152,7 @@ export function buildMeansSafetyAction(params: {
         },
       ],
     },
-    subject: { reference: `Patient/${params.patientId ?? 'demo-patient'}` },
+    subject: patientReference(params.patientId),
     effectiveDateTime: params.effective,
     valueCodeableConcept: {
       coding: [
@@ -167,14 +168,6 @@ export function buildMeansSafetyAction(params: {
 }
 
 // ─── Readers ──────────────────────────────────────────────────
-
-function profiles(resource: { meta?: { profile?: string[] } }): string[] {
-  return resource.meta?.profile ?? []
-}
-
-export function isLethalMeansCounseling(resource: ProcedureResource): boolean {
-  return profiles(resource).includes(COUNSELING_PROFILE)
-}
 
 /**
  * Means-safety actions on a chart, most recent first.

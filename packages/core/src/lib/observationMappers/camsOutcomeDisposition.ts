@@ -28,7 +28,8 @@ export function mapCAMSOutcomeDisposition(response: QuestionnaireResponseResourc
     if (vital.code === 'overall-risk') overallRisk = score
     observations.push(
       makeObservation({
-        id: `cams-${vital.code}-${Date.now()}`,
+        response,
+      idSuffix: `cams-${vital.code}`,
         profile: 'http://thespierproject.org/fhir/StructureDefinition/spier-cams-ssf-vital',
         // See camsSectionA.ts: the authority's display, "CAMS SSF: …" as `.text`.
         code: { system: 'http://thespierproject.org/fhir/CodeSystem/cams-ssf', code: vital.code, display: vital.display, text: `CAMS SSF: ${vital.display}` },
@@ -53,7 +54,8 @@ export function mapCAMSOutcomeDisposition(response: QuestionnaireResponseResourc
   if (dispositionCode) {
     observations.push(
       makeObservation({
-        id: `cams-outcome-disposition-${Date.now()}`,
+        response,
+      idSuffix: `cams-outcome-disposition`,
         profile: 'http://thespierproject.org/fhir/StructureDefinition/spier-cams-outcome-disposition',
         code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
         value: { coding: [{ system: CAMS_DISPOSITION_SYSTEM, code: dispositionCode, display: dispositionDisplay }], text: dispositionDisplay },

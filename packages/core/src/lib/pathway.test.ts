@@ -3,10 +3,10 @@ import {
   loadPathway,
   parsePathway,
   PATHWAY_URL,
-  PATHWAY_STAGE_SYSTEM,
   type PathwayAction,
 } from './pathway'
 import { RISK_TIER_SYSTEM } from './riskEpisode'
+import { PATHWAY_STAGE_SYSTEM } from './patientPathway'
 
 /**
  * Two halves, and the second is the one that matters.

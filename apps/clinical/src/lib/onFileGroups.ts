@@ -45,7 +45,7 @@
  */
 import { useMemo } from 'react'
 import { groupByEpisode } from '@spier/core/lib/episodeRecord'
-import { instrumentName } from '@spier/core/lib/pathwayEvaluation'
+import { instrumentName } from '@spier/core/lib/recordQueries'
 import { bestArtifactDate } from '@spier/core/lib/artifactDate'
 import type { FhirResourceLike } from '@spier/core/lib/patientPathway'
 import type { PatientSlice } from '@spier/core/types/fhir'

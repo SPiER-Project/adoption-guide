@@ -13,8 +13,11 @@ import type {
   Coding,
   ObservationResource,
   QuestionnaireResponseItem,
+  QuestionnaireResponseResource,
 } from '../../types/fhir'
 import { suicideRiskCategory } from '../conceptDomain'
+// Where a result's id and time come from — shared with the CarePlan mappers.
+import { derivedId, responseTime } from '../fromResponse'
 // The union of Observation profile canonicals, DERIVED from the FSH by
 // copy-fhir.mjs. Re-exported so a mapper imports the type from the module it
 // already imports `makeObservation` from.
@@ -273,7 +276,10 @@ export function interpretationOf(code: InterpretationCode, summary: string): Cod
  * `CarePlanProfileUrl`.
  */
 export function makeObservation(params: {
-  id: string
+  /** The response this Observation is derived from: its id, subject and time. */
+  response: QuestionnaireResponseResource
+  /** What distinguishes this Observation among the response's results — `asq-result`, `phq9-item9`. */
+  idSuffix: string
   code: CodedText
   value: unknown
   valueType: 'integer' | 'codeable' | 'boolean' | 'string'
@@ -285,7 +291,7 @@ export function makeObservation(params: {
 }): ObservationResource {
   const obs: ObservationResource = {
     resourceType: 'Observation',
-    id: params.id,
+    id: derivedId(params.response, params.idSuffix),
     ...(params.profile ? { meta: { profile: [params.profile] } } : {}),
     status: 'final',
     category: [
@@ -308,8 +314,8 @@ export function makeObservation(params: {
       coding: [{ system: params.code.system, code: params.code.code, display: params.code.display }],
       text: params.code.text ?? params.code.display,
     },
-    subject: { reference: 'Patient/demo-patient' },
-    effectiveDateTime: new Date().toISOString(),
+    ...(params.response.subject ? { subject: params.response.subject } : {}),
+    effectiveDateTime: responseTime(params.response),
     note: params.note
       ? [{ text: params.note }]
       : [{ text: `DEMO ONLY — Generated from ${params.questionnaireName} QuestionnaireResponse. No data persisted to server.` }],

@@ -19,21 +19,19 @@
  *
  * ─── What is excluded, and why ──────────────────────────────────────────────
  *
- * `id`       The runtime stamps `stanley-brown-safety-plan-<epoch ms>`, which
- *            is neither reproducible nor the map's business — resource
- *            identity is assigned by whatever server accepts the CarePlan.
+ * `id`       The runtime stamps `<response id>-stanley-brown-safety-plan`, and
+ *            the map assigns none — resource identity is assigned by whatever
+ *            server accepts the CarePlan, so it is not the map's business.
  *
  * `note`     The runtime attaches a DEMO-ONLY banner saying nothing was
  *            persisted. That is a statement about SPiER's demo, not about a
  *            safety plan, so the map does not declare it.
  *
- * `subject`  A genuine divergence, not a cosmetic one. The map carries
- *            `QuestionnaireResponse.subject` through, which is what a real
- *            implementation must do. The demo app substitutes a fixed
- *            `Patient/demo-patient` reference because it deliberately holds no
- *            patient. Excluded so the guard tracks the transformation rather
- *            than the demo's privacy posture — but a partner lifting the
- *            TypeScript must fix this, and the map is the spec that says so.
+ * `subject` is NOT excluded, and was until 2026-10-06. It was a genuine
+ * divergence: the map carries `QuestionnaireResponse.subject` through, and the
+ * runtime substituted a fixed `Patient/demo-patient`. The runtime now carries
+ * the response's subject too, so the exclusion was narrowed and the golden file
+ * gained the fixture's subject — parity is stricter by one field.
  *
  * `coding.display`
  *            The validator's transform engine looks displays up from the
@@ -46,7 +44,7 @@
  */
 
 /** Human-readable list for the gate's summary line. */
-export const PARITY_EXCLUSIONS = ['id', 'note', 'subject', 'coding.display']
+export const PARITY_EXCLUSIONS = ['id', 'note', 'coding.display']
 
 /**
  * Strip the fields listed in `PARITY_EXCLUSIONS` and return a stable-ordered
@@ -59,7 +57,6 @@ export function normalizeCarePlan(carePlan) {
   const clone = structuredClone(carePlan)
   delete clone.id
   delete clone.note
-  delete clone.subject
   stripDisplays(clone)
   return sortKeys(clone)
 }

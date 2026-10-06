@@ -3,7 +3,6 @@ import {
   stageForArtifact,
   stageForResponse,
   groupArtifactsByStage,
-  unstagedArtifacts,
   PATHWAY_STAGE_SYSTEM,
   type FhirResourceLike,
 } from '@spier/core/lib/patientPathway'
@@ -373,7 +372,7 @@ describe('stageForArtifact — resolution precedence', () => {
   })
 })
 
-describe('groupArtifactsByStage / unstagedArtifacts', () => {
+describe('groupArtifactsByStage', () => {
   const stageId = STAGES[1].id
   const mapped: FhirResourceLike = {
     resourceType: 'Observation',
@@ -382,6 +381,24 @@ describe('groupArtifactsByStage / unstagedArtifacts', () => {
   }
   const unmapped: FhirResourceLike = { resourceType: 'Observation', id: 'unmapped' }
 
+  it('places an untagged Observation by what it was derived from — the same reach the measures have', () => {
+    // ⚠️ The chart used to group with the context-free resolver while the
+    // measure engine and the evaluator followed `derivedFrom`, so a derived
+    // result with no stage tag counted as a screen there and sat under no stage
+    // here. Two hops on purpose: a concept → the instrument result → the form.
+    const qr = {
+      id: 'qr-phq9',
+      resource: { resourceType: 'QuestionnaireResponse', questionnaire: 'http://thespierproject.org/fhir/Questionnaire/PHQ-9' },
+    }
+    const result: FhirResourceLike = { resourceType: 'Observation', id: 'item9', derivedFrom: [{ reference: 'QuestionnaireResponse/qr-phq9' }] }
+    const concept: FhirResourceLike = { resourceType: 'Observation', id: 'item9-concept', derivedFrom: [{ reference: 'Observation/item9' }] }
+    const artifacts = { responses: [qr], observations: [result, concept] }
+    expect(stageForArtifact(concept)).toBeUndefined()
+    expect(stageForArtifact(concept, artifacts)).toBe('identify-possible-risk')
+    const bucket = groupArtifactsByStage(artifacts).find((g) => g.stageId === 'identify-possible-risk')
+    expect(bucket?.observations.map((o) => o.id)).toEqual(['item9', 'item9-concept'])
+  })
+
   it('buckets a mapped artifact under its stage and returns one entry per stage', () => {
     const grouped = groupArtifactsByStage({ responses: [], observations: [mapped, unmapped] })
     expect(grouped).toHaveLength(STAGES.length)
@@ -389,11 +406,6 @@ describe('groupArtifactsByStage / unstagedArtifacts', () => {
     expect(bucket?.observations.map((o) => o.id)).toEqual(['mapped'])
     // The unmapped artifact appears in no stage bucket.
     expect(grouped.every((g) => !g.observations.some((o) => o.id === 'unmapped'))).toBe(true)
-  })
-
-  it('surfaces unstaged artifacts in the "Other activity" bucket (never silently dropped)', () => {
-    const other = unstagedArtifacts({ responses: [], observations: [mapped, unmapped] })
-    expect(other.observations.map((o) => o.id)).toEqual(['unmapped'])
   })
 })
 

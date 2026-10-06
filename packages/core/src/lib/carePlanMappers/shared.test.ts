@@ -5,7 +5,7 @@ import {
   extractPairs,
   makeSuicidePreventionCarePlan,
 } from '@spier/core/lib/carePlanMappers/shared'
-import type { QuestionnaireResponseItem } from '@spier/core/types/fhir'
+import type { QuestionnaireResponseItem, QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 // These extraction helpers power all three CarePlan mappers (stanleyBrown,
 // camsStabilization, camsTherapeutic). The per-tool tests cover the common
@@ -106,11 +106,18 @@ describe('extractPairs (fieldA/fieldB under a repeating group)', () => {
 })
 
 describe('makeSuicidePreventionCarePlan (shell factory)', () => {
+  const response = {
+    resourceType: 'QuestionnaireResponse',
+    id: 'qr-sb',
+    status: 'completed',
+    subject: { reference: 'Patient/patient-011' },
+  } as QuestionnaireResponseResource
   const profileUrl = 'http://thespierproject.org/fhir/StructureDefinition/spier-stanley-brown-safety-plan' as const
 
   function build(hasAnyData: boolean) {
     return makeSuicidePreventionCarePlan({
-      id: 'cp-1',
+      response,
+      idSuffix: 'cp-1',
       profileUrl,
       noteText: 'DEMO note',
       hasAnyData,
@@ -124,7 +131,9 @@ describe('makeSuicidePreventionCarePlan (shell factory)', () => {
   it('stamps the FHIR CarePlan shell with profile and suicide-prevention category', () => {
     const { resource } = build(true)
     expect(resource.resourceType).toBe('CarePlan')
-    expect(resource.id).toBe('cp-1')
+    expect(resource.id).toBe('qr-sb-cp-1')
+    // The response's patient — never the `Patient/demo-patient` placeholder.
+    expect((resource as { subject?: unknown }).subject).toEqual({ reference: 'Patient/patient-011' })
     expect(resource.status).toBe('active')
     expect(resource.intent).toBe('plan')
     expect((resource.meta as { profile?: string[] }).profile).toContain(profileUrl)
@@ -144,7 +153,8 @@ describe('makeSuicidePreventionCarePlan (shell factory)', () => {
 
   it('appends extraCategories after the SNOMED plan code', () => {
     const { resource } = makeSuicidePreventionCarePlan({
-      id: 'cp-2',
+      response,
+      idSuffix: 'cp-2',
       profileUrl,
       noteText: 'DEMO note',
       hasAnyData: true,

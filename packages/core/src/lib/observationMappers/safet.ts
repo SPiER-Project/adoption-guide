@@ -45,7 +45,8 @@ export function mapSAFET(response: QuestionnaireResponseResource): MapperResult 
 
   observations.push(
     makeObservation({
-      id: `safet-risk-level-${Date.now()}`,
+      response,
+      idSuffix: `safet-risk-level`,
       profile: 'http://thespierproject.org/fhir/StructureDefinition/spier-safet-risk-level',
       code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
       value: {

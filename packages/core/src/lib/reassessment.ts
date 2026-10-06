@@ -118,11 +118,6 @@ export function riskLevelForTier(tierCode: string): RiskLevel | undefined {
   return TIER_TO_LEVEL[tierCode]
 }
 
-/** Interval for a risk level, or null when that tier has no routine cadence. */
-export function intervalDaysForLevel(level: RiskLevel): number | null {
-  return REASSESSMENT_INTERVAL_DAYS[tierCodeForLevel(level)] ?? null
-}
-
 export type ReassessmentState =
   /** No routine cadence for this tier — see the FSH for imminent and no-risk. */
   | { kind: 'no-cadence'; reason: string }

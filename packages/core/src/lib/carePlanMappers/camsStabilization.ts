@@ -26,7 +26,8 @@ export function generateStabilizationCarePlan(questionnaireResponse: Questionnai
   const hasAnyData = [lethalMeans, coping, emergencyContact, support, barrierStr].some(s => s.length > 0)
 
   return makeSuicidePreventionCarePlan({
-    id: `cams-stabilization-careplan-${Date.now()}`,
+    response: questionnaireResponse,
+    idSuffix: 'cams-stabilization-careplan',
     profileUrl: 'http://thespierproject.org/fhir/StructureDefinition/spier-cams-stabilization-plan',
     noteText: 'DEMO ONLY — CAMS Stabilization CarePlan generated client-side. This plan should be reviewed and updated at the start of every CAMS session. Uses the Hybrid model where core safety data is embedded in activity.description fields.',
     hasAnyData,

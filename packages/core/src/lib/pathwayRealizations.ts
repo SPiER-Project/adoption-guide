@@ -72,12 +72,3 @@ export function isPathwayRealization(tool: Tool): boolean {
   return (tool.activityDefinitionUrls ?? []).some(url => named.has(url))
 }
 
-/**
- * The same tools, with the pathway's named realizations first. Stable: the
- * catalog's order is kept within each half, so nothing else moves.
- */
-export function orderByPathwayRealization<T extends Tool>(tools: T[]): T[] {
-  const named = tools.filter(isPathwayRealization)
-  const rest = tools.filter(t => !isPathwayRealization(t))
-  return [...named, ...rest]
-}

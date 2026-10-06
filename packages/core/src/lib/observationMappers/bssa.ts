@@ -60,7 +60,8 @@ export function mapBSSA(response: QuestionnaireResponseResource): MapperResult {
 
   observations.push(
     makeObservation({
-      id: `bssa-disposition-${Date.now()}`,
+      response,
+      idSuffix: `bssa-disposition`,
       profile: 'http://thespierproject.org/fhir/StructureDefinition/spier-bssa-disposition-result',
       code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
       value: {
@@ -81,7 +82,8 @@ export function mapBSSA(response: QuestionnaireResponseResource): MapperResult {
     if (coding) {
       observations.push(
         makeObservation({
-          id: `bssa-${linkId}-${Date.now()}`,
+          response,
+      idSuffix: `bssa-${linkId}`,
           code: { system: BSSA_ITEM_SYSTEM, code, display },
           value: { coding: [coding], text: coding.display },
           valueType: 'codeable',
@@ -96,7 +98,8 @@ export function mapBSSA(response: QuestionnaireResponseResource): MapperResult {
   if (typeof intentAnswer === 'number') {
     observations.push(
       makeObservation({
-        id: `bssa-intent-scale-${Date.now()}`,
+        response,
+      idSuffix: `bssa-intent-scale`,
         code: { system: BSSA_ITEM_SYSTEM, code: 'intent-scale', display: 'Intent to die (0–10 self-rating)' },
         value: intentAnswer,
         valueType: 'integer',

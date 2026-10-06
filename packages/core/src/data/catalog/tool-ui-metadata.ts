@@ -1,9 +1,15 @@
-// React-only metadata that overlays the FHIR-derived Tool catalog.
+// UI metadata that overlays the FHIR-derived Tool catalog — React-FREE, like
+// the rest of packages/core: plain data, which the apps render.
 //
 // Anything in this file is UI/demo concern (button copy, badge styling,
 // adoption-rubric maturity targets, inline example resources). The clinical
 // fields (id/name/purpose/stageId/questionnaireUrl) come from FHIR
 // ActivityDefinitions in ig/input/fsh/ and are wired up in tools.ts.
+//
+// ⚠️ The `launchActions` paths are app routes, and they live HERE on purpose:
+// the pathway evaluator (lib/pathwayEvaluation.ts) and the CDS cards built from
+// it name the tool that records each obligation, and both run outside any app.
+// `check:catalog` resolves every path against both apps' route tables.
 //
 // Keyed by Tool.id ('TL-001'…). When an ActivityDefinition or stub exists
 // without a matching entry here, that tool gets default UI metadata.

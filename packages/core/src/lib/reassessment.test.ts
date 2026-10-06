@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import {
   DUE_SOON_DAYS,
   REASSESSMENT_INTERVAL_DAYS,
-  intervalDaysForLevel,
   reassessmentState,
   reassessmentStatusLabel,
   tierCodeForLevel,
@@ -33,19 +32,6 @@ describe('tierCodeForLevel', () => {
     expect(tierCodeForLevel('acute')).toBe('imminent')
     expect(tierCodeForLevel('high')).toBe('high')
     expect(tierCodeForLevel('none')).toBe('no-risk')
-  })
-})
-
-describe('intervalDaysForLevel', () => {
-  it('maps app levels through to published intervals', () => {
-    expect(intervalDaysForLevel('high')).toBe(7)
-    expect(intervalDaysForLevel('moderate')).toBe(14)
-    expect(intervalDaysForLevel('low')).toBe(30)
-  })
-
-  it('returns null for the tiers with no cadence', () => {
-    expect(intervalDaysForLevel('acute')).toBeNull()
-    expect(intervalDaysForLevel('none')).toBeNull()
   })
 })
 

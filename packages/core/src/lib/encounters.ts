@@ -24,6 +24,7 @@
  */
 import { makeId } from './id'
 import type { EncounterResource, EpisodeOfCareResource } from '../types/fhir'
+import { patientReference } from './patientReference'
 
 export const ENCOUNTER_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-encounter'
 
@@ -87,7 +88,7 @@ export function buildEncounter(params: {
       code: DEFAULT_ENCOUNTER_CLASS.code,
       display: DEFAULT_ENCOUNTER_CLASS.display,
     },
-    subject: { reference: `Patient/${params.patientId ?? 'demo-patient'}` },
+    subject: patientReference(params.patientId),
     period: { start: params.startIso },
   }
 }

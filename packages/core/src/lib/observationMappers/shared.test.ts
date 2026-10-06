@@ -9,7 +9,7 @@ import {
   RISK_LEVEL_ORDER,
   type RiskAlert,
 } from '@spier/core/lib/observationMappers/shared'
-import type { QuestionnaireResponseItem } from '@spier/core/types/fhir'
+import type { QuestionnaireResponseItem, QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 // These primitives sit underneath every per-tool observation mapper (phq9,
 // asq, cssrs*, cams*, sbqr). The per-tool tests exercise them transitively;
@@ -145,25 +145,52 @@ describe('highestRiskLevel', () => {
   })
 })
 
+/** The response every case derives from — its id, subject and time are what the result carries. */
+const RESPONSE = {
+  resourceType: 'QuestionnaireResponse',
+  id: 'qr-1',
+  status: 'completed',
+  subject: { reference: 'Patient/patient-003' },
+  authored: '2026-08-11T09:30:00.000Z',
+} as QuestionnaireResponseResource
+
 describe('makeObservation', () => {
   const baseCode = { system: 'http://loinc.org', code: '44261-6', display: 'Patient Health Questionnaire 9 item (PHQ-9) total score [Reported]' }
 
   it('stamps a uniform survey Observation shell', () => {
     const obs = makeObservation({
-      id: 'obs-1',
+      response: RESPONSE,
+      idSuffix: 'obs-1',
       code: baseCode,
       value: 6,
       valueType: 'integer',
       questionnaireName: 'PHQ-9',
     })
     expect(obs.resourceType).toBe('Observation')
-    expect(obs.id).toBe('obs-1')
+    expect(obs.id).toBe('qr-1-obs-1')
     expect(obs.status).toBe('final')
     expect(view(obs).category?.[0]?.coding?.[0]?.code).toBe('survey')
     expect(obs.code?.coding?.[0]).toEqual(baseCode)
     expect(obs.code?.text).toBe('Patient Health Questionnaire 9 item (PHQ-9) total score [Reported]')
-    expect(view(obs).subject?.reference).toBe('Patient/demo-patient')
-    expect(obs.effectiveDateTime).toBeDefined()
+    expect(view(obs).subject?.reference).toBe('Patient/patient-003')
+    expect(obs.effectiveDateTime).toBe('2026-08-11T09:30:00.000Z')
+  })
+
+  it('takes its id, subject and time from the response — never a placeholder or the clock', () => {
+    // ⚠️ Every result used to say `Patient/demo-patient` and `new Date()`, and
+    // its id was `<suffix>-<Date.now()>`: right only because derivation happened
+    // at submit and the SMART source re-stamped the patient. Re-deriving a
+    // response now yields the same resource.
+    const again = makeObservation({ response: RESPONSE, idSuffix: 'x', code: baseCode, value: 1, valueType: 'integer', questionnaireName: 'Q' })
+    const twice = makeObservation({ response: RESPONSE, idSuffix: 'x', code: baseCode, value: 1, valueType: 'integer', questionnaireName: 'Q' })
+    expect(again).toEqual(twice)
+  })
+
+  it('falls back to the server time, then omits the subject, for another system’s response', () => {
+    const foreign = { resourceType: 'QuestionnaireResponse', id: 'f1', status: 'completed', meta: { lastUpdated: '2026-08-01T00:00:00.000Z' } } as unknown as QuestionnaireResponseResource
+    const obs = makeObservation({ response: foreign, idSuffix: 'x', code: baseCode, value: 1, valueType: 'integer', questionnaireName: 'Q' })
+    expect(obs.effectiveDateTime).toBe('2026-08-01T00:00:00.000Z')
+    expect(view(obs).subject).toBeUndefined()
   })
 
   /**
@@ -175,7 +202,8 @@ describe('makeObservation', () => {
    */
   it('claims the profile it is given, and nothing when it is given none', () => {
     const profiled = makeObservation({
-      id: 'obs-p',
+      response: RESPONSE,
+      idSuffix: 'obs-p',
       code: baseCode,
       value: 6,
       valueType: 'integer',
@@ -190,7 +218,8 @@ describe('makeObservation', () => {
     // merges its stage tag into whatever is there, and an empty `meta.profile: []`
     // would read as a claim to conform to nothing.
     const unprofiled = makeObservation({
-      id: 'obs-u',
+      response: RESPONSE,
+      idSuffix: 'obs-u',
       code: baseCode,
       value: 6,
       valueType: 'integer',
@@ -201,28 +230,29 @@ describe('makeObservation', () => {
 
   it('routes each valueType to the matching Observation.value[x] field', () => {
     expect(
-      makeObservation({ id: 'i', code: baseCode, value: 6, valueType: 'integer', questionnaireName: 'Q' }).valueInteger,
+      makeObservation({ response: RESPONSE, idSuffix: 'i', code: baseCode, value: 6, valueType: 'integer', questionnaireName: 'Q' }).valueInteger,
     ).toBe(6)
     expect(
-      makeObservation({ id: 'b', code: baseCode, value: true, valueType: 'boolean', questionnaireName: 'Q' }).valueBoolean,
+      makeObservation({ response: RESPONSE, idSuffix: 'b', code: baseCode, value: true, valueType: 'boolean', questionnaireName: 'Q' }).valueBoolean,
     ).toBe(true)
     expect(
-      makeObservation({ id: 's', code: baseCode, value: 'txt', valueType: 'string', questionnaireName: 'Q' }).valueString,
+      makeObservation({ response: RESPONSE, idSuffix: 's', code: baseCode, value: 'txt', valueType: 'string', questionnaireName: 'Q' }).valueString,
     ).toBe('txt')
     const cc = { text: 'Positive' }
     expect(
-      makeObservation({ id: 'c', code: baseCode, value: cc, valueType: 'codeable', questionnaireName: 'Q' })
+      makeObservation({ response: RESPONSE, idSuffix: 'c', code: baseCode, value: cc, valueType: 'codeable', questionnaireName: 'Q' })
         .valueCodeableConcept,
     ).toEqual(cc)
   })
 
   it('uses the default DEMO note when none is supplied, and a custom note when it is', () => {
-    const dflt = makeObservation({ id: 'i', code: baseCode, value: 1, valueType: 'integer', questionnaireName: 'PHQ-9' })
+    const dflt = makeObservation({ response: RESPONSE, idSuffix: 'i', code: baseCode, value: 1, valueType: 'integer', questionnaireName: 'PHQ-9' })
     expect(view(dflt).note?.[0]?.text).toContain('DEMO ONLY')
     expect(view(dflt).note?.[0]?.text).toContain('PHQ-9')
 
     const custom = makeObservation({
-      id: 'i',
+      response: RESPONSE,
+      idSuffix: 'i',
       code: baseCode,
       value: 1,
       valueType: 'integer',
@@ -234,7 +264,8 @@ describe('makeObservation', () => {
 
   it('attaches interpretation coding only when supplied', () => {
     const withInterp = makeObservation({
-      id: 'i',
+      response: RESPONSE,
+      idSuffix: 'i',
       code: baseCode,
       value: 1,
       valueType: 'integer',
@@ -243,7 +274,7 @@ describe('makeObservation', () => {
     })
     expect(withInterp.interpretation?.[0]?.coding?.[0]?.code).toBe('H')
 
-    const withoutInterp = makeObservation({ id: 'i', code: baseCode, value: 1, valueType: 'integer', questionnaireName: 'Q' })
+    const withoutInterp = makeObservation({ response: RESPONSE, idSuffix: 'i', code: baseCode, value: 1, valueType: 'integer', questionnaireName: 'Q' })
     expect(withoutInterp.interpretation).toBeUndefined()
   })
 })
@@ -262,7 +293,8 @@ describe('interpretationOf', () => {
 
   it('keeps the summary out of Coding.display once on a built Observation', () => {
     const obs = makeObservation({
-      id: 'i',
+      response: RESPONSE,
+      idSuffix: 'i',
       code: { system: 'http://loinc.org', code: '44260-8', display: 'Thoughts that you would be better off dead, or of hurting yourself in some way in last 2 weeks [Reported.PHQ]' },
       value: 12,
       valueType: 'integer',
@@ -279,7 +311,8 @@ describe('interpretationOf', () => {
 
   it('carries a code-level text override into CodeableConcept.text, not the coding', () => {
     const obs = makeObservation({
-      id: 'i',
+      response: RESPONSE,
+      idSuffix: 'i',
       code: { system: 'http://thespierproject.org/fhir/CodeSystem/cams-ssf', code: 'psychological-pain', display: 'Psychological Pain', text: 'CAMS SSF: Psychological Pain' },
       value: 4,
       valueType: 'integer',

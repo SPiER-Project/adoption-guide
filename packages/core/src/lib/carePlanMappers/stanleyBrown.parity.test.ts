@@ -23,7 +23,7 @@
  * ⚠️ `normalizeCarePlan` below duplicates `scripts/lib/careplan-parity.mjs`.
  * `tsconfig.app.json` includes only `src/`, so this test cannot import that
  * module. That file carries the full rationale for every excluded field —
- * `id`, `note`, `subject` and `coding.display` — and the two copies must be
+ * `id`, `note` and `coding.display` (`subject` was narrowed out on 2026-10-06) — and the two copies must be
  * edited together.
  */
 import { describe, it, expect } from 'vitest'
@@ -86,7 +86,6 @@ function normalizeCarePlan(carePlan: Json): unknown {
   const clone = structuredClone(carePlan)
   delete clone.id
   delete clone.note
-  delete clone.subject
   stripDisplays(clone)
   return sortKeys(clone)
 }
@@ -118,7 +117,9 @@ describe('Stanley-Brown CarePlan parity with StanleyBrownQRToCarePlan.fml', () =
     ) as QuestionnaireResponseResource
     const { resource } = generateCarePlan(questionnaireResponse)
 
-    expect(resource.id).toMatch(/^stanley-brown-safety-plan-\d+$/)
+    // Derived from the response's id now (fromResponse.ts), not the clock — but
+    // still not the map's: the map assigns no id at all.
+    expect(resource.id).toBe(`${questionnaireResponse.id}-stanley-brown-safety-plan`)
     const note = resource.note as Array<{ text?: string }> | undefined
     expect(note?.[0]?.text).toContain('DEMO ONLY')
   })

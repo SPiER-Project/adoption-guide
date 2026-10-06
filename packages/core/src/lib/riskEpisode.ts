@@ -21,6 +21,7 @@ import type {
   TaskResource,
 } from '../types/fhir'
 import { suicideRiskCategory } from './conceptDomain'
+import { patientReference } from './patientReference'
 
 // `satisfies StageId`: the literal keeps its type, and a stage renamed in the
 // CodeSystem (stage-ids.generated.ts follows it) is a compile error here rather
@@ -244,7 +245,7 @@ export function buildEpisode(params: {
           ]
         : []),
     ],
-    patient: { reference: `Patient/${params.patientId ?? 'demo-patient'}` },
+    patient: patientReference(params.patientId),
     period: { start: params.startDate },
   }
 }
@@ -308,7 +309,7 @@ export function buildFlag(params: { id: string; patientId: string | null; startD
       ],
       text: 'Active suicide-safer care episode',
     },
-    subject: { reference: `Patient/${params.patientId ?? 'demo-patient'}` },
+    subject: patientReference(params.patientId),
     period: { start: params.startDate },
   }
 }
@@ -343,7 +344,7 @@ export function buildSafetyTask(params: {
       ],
       text: displayFor(SAFETY_TASK_TYPES, params.taskType),
     },
-    for: { reference: `Patient/${params.patientId ?? 'demo-patient'}` },
+    for: patientReference(params.patientId),
     ...(params.episodeId ? { basedOn: [{ reference: `EpisodeOfCare/${params.episodeId}` }] } : {}),
     authoredOn: params.authoredOn,
     ...(params.owner ? { owner: { display: params.owner } } : {}),
