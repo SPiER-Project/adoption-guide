@@ -48,6 +48,11 @@
  *   9. The two NON-FHIR buckets — `riskAlerts` (an app type) and `walkthrough`
  *      (`ScenarioEncounter` narration; real Encounters ARE a FHIR bucket) — are
  *      checked against their TypeScript shapes instead.
+ *  10. Every `reference` naming a type the scenario buckets hold resolves to a
+ *      resource in THIS scenario, and every `Patient/…` reference names this
+ *      scenario's patient — `derivedFrom`, `context.related`, `basedOn`,
+ *      `.encounter` (also in scenarios with no Encounters) and the rest, not only
+ *      the handful of links the rules above name.
  *
  * ── What this does NOT check ────────────────────────────────────────────────
  *
@@ -103,25 +108,17 @@ const fail = (msg) => {
 // ─────────────────────────────────────────────────────────────
 
 /**
- * The FHIR buckets of `PatientSlice` (src/types/fhir.ts), each mapped to the
- * one resourceType localDataSource routes into it. Keep in step with
- * `LocalDataSource.saveArtifact`'s switch.
+ * The FHIR buckets of `PatientSlice`, each mapped to the one resourceType it
+ * holds — read off core (`PATIENT_SLICE_FHIR_BUCKETS`, typed against
+ * `PatientSlice` so the compiler holds it exhaustive), not restated. This was a
+ * hand copy marked "keep in step with LocalDataSource.saveArtifact's switch".
+ * `encounters` is real FHIR Encounters; the walkthrough narration is the
+ * non-FHIR `walkthrough` bucket below.
  */
-const FHIR_BUCKETS = {
-  observations: 'Observation',
-  carePlans: 'CarePlan',
-  communications: 'Communication',
-  episodes: 'EpisodeOfCare',
-  flags: 'Flag',
-  tasks: 'Task',
-  documentReferences: 'DocumentReference',
-  serviceRequests: 'ServiceRequest',
-  appointments: 'Appointment',
-  consents: 'Consent',
-  procedures: 'Procedure',
-  // Real FHIR Encounters — the #263 correlation hinge. NOT the walkthrough
-  // narration, which moved to the `walkthrough` bucket for exactly this reason.
-  encounters: 'Encounter',
+const [{ PATIENT_SLICE_FHIR_BUCKETS: FHIR_BUCKETS }] = await loadCore(['@spier/core/lib/sliceBuckets'])
+if (Object.keys(FHIR_BUCKETS).length === 0) {
+  console.error('[check:scenario-resources] PATIENT_SLICE_FHIR_BUCKETS is empty — no bucket could validate.')
+  process.exit(1)
 }
 
 /** Buckets that are not FHIR at all, handled separately below. */
@@ -444,7 +441,9 @@ function checkSafetyPlanCopyClaim(scenario, file) {
       const ref = rel?.reference
       if (typeof ref !== 'string' || !ref.startsWith('CarePlan/')) continue
       const id = ref.slice('CarePlan/'.length)
-      if (!plans.has(id)) continue // dangling refs are check 3/8's business
+      // A dangling ref is checkScenarioReferences' business (it fails there);
+      // this rule is about a ref that resolves to an EMPTY plan.
+      if (!plans.has(id)) continue
       if (plans.get(id) === 0) {
         fail(
           `scenarios/${file} documentReferences[${i}] (${dr.id ?? 'no id'}): claims handoff content ` +
@@ -456,9 +455,69 @@ function checkSafetyPlanCopyClaim(scenario, file) {
   }
 }
 
+/**
+ * Every in-scenario reference resolves (check 10).
+ *
+ * The rules above resolve a handful of named links — the subject, the
+ * encounter, the episode trigger, the walkthrough's `relatedRefs` — and nothing
+ * else. So `Observation.derivedFrom: QuestionnaireResponse/<typo>` and a
+ * discharge packet's `context.related: CarePlan/<typo>` passed, and the second
+ * one also slipped past the #303 safety-plan-copy rule, which only looks at a
+ * CarePlan it can find. Base R4 and the validator both accept a reference to
+ * nothing.
+ *
+ * Every `reference` anywhere in a scenario resource (the QRs included) that
+ * names a type the scenario buckets hold must name a resource in THIS
+ * scenario; a `Patient/…` reference must name this scenario's patient.
+ * Contained (`#…`), absolute and other-type references (a Practitioner, an
+ * Organization) are out of scope: the scenario does not hold those.
+ */
+const SCENARIO_TYPES = new Set([...Object.values(FHIR_BUCKETS), 'QuestionnaireResponse'])
+const referenceCount = { resolved: 0, patient: 0 }
+
+function checkScenarioReferences(scenario, file, patientId) {
+  const ids = artifactIdsOf(scenario)
+  const visit = (node, where, path) => {
+    if (Array.isArray(node)) {
+      node.forEach((v, i) => visit(v, where, `${path}[${i}]`))
+      return
+    }
+    if (!node || typeof node !== 'object') return
+    if (typeof node.reference === 'string') {
+      const m = /^([A-Za-z]+)\/([^/]+)$/.exec(node.reference)
+      if (m && m[1] === 'Patient') {
+        if (m[2] !== patientId) fail(`${where}: ${path}.reference "${node.reference}" names another patient`)
+        else referenceCount.patient++
+      } else if (m && SCENARIO_TYPES.has(m[1])) {
+        if (!ids.has(node.reference)) {
+          fail(`${where}: ${path}.reference "${node.reference}" does not resolve to a resource in this scenario`)
+        } else {
+          referenceCount.resolved++
+        }
+      }
+    }
+    for (const [k, v] of Object.entries(node)) {
+      if (v && typeof v === 'object') visit(v, where, path ? `${path}.${k}` : k)
+    }
+  }
+  for (const [bucket, value] of Object.entries(scenario)) {
+    if (!Array.isArray(value) || bucket === 'riskAlerts' || bucket === 'walkthrough') continue
+    value.forEach((entry, i) => {
+      const r = bucket === 'responses' ? entry?.resource : entry
+      if (!r || typeof r !== 'object') return
+      visit(r, `scenarios/${file} ${bucket}[${i}] (${r.id ?? 'no id'})`, '')
+    })
+  }
+}
+
 function checkEpisodeCorrelation(scenario, file) {
   const encounters = Array.isArray(scenario.encounters) ? scenario.encounters : []
-  if (encounters.length === 0) return // scenarios with no episode have nothing to correlate
+  // A scenario with no Encounters has no episode to correlate, so nothing is
+  // REQUIRED to carry an encounter link — but a link that IS there must still
+  // resolve (check 10), and an episode trigger must still resolve (below). This
+  // used to `return` here, so an `.encounter` pointing at nothing passed in
+  // exactly the scenarios that have nothing for it to point at.
+  const correlating = encounters.length > 0
 
   const encounterIds = new Set(encounters.map((e) => e?.id).filter(Boolean))
   const episodeIds = new Set((scenario.episodes ?? []).map((e) => e?.id).filter(Boolean))
@@ -541,6 +600,10 @@ function checkEpisodeCorrelation(scenario, file) {
   for (const [path, r] of artifacts) {
     const where = `scenarios/${file} ${path} (${r.id ?? 'no id'})`
     const rt = r.resourceType
+
+    // Nothing is required to correlate here; an encounter link that IS present
+    // is resolved by checkScenarioReferences (check 10) like every other ref.
+    if (!correlating) continue
 
     if (rt in CORRELATION_EXEMPT) {
       correlation.exempt++
@@ -734,6 +797,7 @@ for (const file of scenarioFiles) {
   if (n > 0) console.log(`✓ scenarios/${file}: ${n} FHIR resource(s) checked`)
 
   checkEpisodeCorrelation(scenario, file)
+  checkScenarioReferences(scenario, file, patientId)
   checkSafetyPlanCopyClaim(scenario, file)
 }
 
@@ -774,6 +838,8 @@ reportFloors([
   { source: 'demo-population/src/scenarios', dimension: 'scenario file(s)', actual: scenarioFiles.length, floor: 7 },
   { source: 'demo-population/src/scenarios', dimension: 'Encounter-linked artifact(s)', actual: correlation.linked, floor: 39 },
   { source: 'demo-population/src/scenarios', dimension: 'walkthrough ref(s)', actual: walkthroughRefs.resolved, floor: 24 },
+  { source: 'demo-population/src/scenarios', dimension: 'in-scenario reference(s) resolved', actual: referenceCount.resolved, floor: 73 },
+  { source: 'demo-population/src/scenarios', dimension: 'Patient reference(s) checked', actual: referenceCount.patient, floor: 74 },
 ], fail)
 
 if (failures) {

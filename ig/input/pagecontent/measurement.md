@@ -4,7 +4,7 @@ below is a **query over artifacts the previous seven stages already produce**;
 nothing asks a site to capture anything new. If you encoded stages 1–7,
 measurement is a read.
 
-### The seven measures
+### The eight measures
 
 | Measure | Reads | Denominator |
 |---|---|---|
@@ -15,6 +15,7 @@ measurement is a read.
 | [Follow-Up Timeliness](Measure-SPiERFollowUpTimeliness.html) | Outreach attempts; follow-up Appointments | Patients with a documented transition |
 | [Caring Contact Adherence](Measure-SPiERCaringContactAdherence.html) | Caring contacts; the opt-out extension | Patients with a documented transition |
 | [Referral Loop Closure](Measure-SPiERReferralCompletion.html) | Referral ServiceRequest status | Patients with a referral |
+| [Risk Reassessment On Time](Measure-SPiERReassessmentOnTime.html) | Risk-concept Observations and the tier each records | Patients with at least two risk assessments, less tiers with no published cadence |
 
 Each `Measure.group.population.criteria` names one definition, and every
 `Measure.library` points at

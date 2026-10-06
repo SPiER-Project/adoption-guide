@@ -45,6 +45,14 @@
  *             is idempotent and safe to run from `verify` forever.
  *   --apply   Shift by SHIFTS below, validate the result, then write.
  *
+ * ⚠️ **What --check does NOT see: staleness.** Every invariant is an UPPER bound
+ * against ANCHOR — nothing that already happened may be dated after it. There is
+ * no lower bound, deliberately: the demo's time-relative logic runs on the real
+ * clock, so "how stale are the fixtures" is a question about TODAY, and a gate
+ * that answered it would turn red by the calendar alone, on a commit that
+ * changed nothing. A fixture back-dated a year passes, and so does the whole set
+ * drifting behind today; re-anchoring is a content decision made with --apply.
+ *
  * The distinction matters: SHIFTS is a one-time migration, not a standing offset.
  * An early version applied it in both modes, so the second run double-shifted and
  * pushed an episode past the anchor. If you re-date again, set new deltas, run
@@ -142,22 +150,48 @@ const DATE_FIELDS = [
   'start',
   'created',
   'occurrenceDateTime',
+  // Procedure — a counseling session "performed" next month is the same
+  // nonsense as a fulfilled appointment next week. Missing until 2026-10-06.
+  'performedDateTime',
 ]
+
+/** Period-typed elements whose start/end are checked like the fields above. */
+const PERIOD_FIELDS = ['period', 'performedPeriod']
 
 function collectDates(resource) {
   const out = []
   for (const f of DATE_FIELDS) {
     if (typeof resource[f] === 'string') out.push([f, resource[f]])
   }
-  if (resource.period?.start) out.push(['period.start', resource.period.start])
-  if (resource.period?.end) out.push(['period.end', resource.period.end])
+  for (const p of PERIOD_FIELDS) {
+    if (resource[p]?.start) out.push([`${p}.start`, resource[p].start])
+    if (resource[p]?.end) out.push([`${p}.end`, resource[p].end])
+  }
   return out
+}
+
+/**
+ * The resource a bucket entry holds, and the dates on it.
+ *
+ * ⚠️ `responses` holds StoredResponse WRAPPERS, not resources: the date is
+ * `resource.authored` (plus the wrapper's own `completedAt`). Reading the
+ * wrapper's top-level fields — as this did until 2026-10-06 — found no date at
+ * all, so `responses` sat in PAST_ONLY_BUCKETS checking nothing, and a QR
+ * authored next year passed.
+ */
+function datedEntry(bucket, entry) {
+  if (bucket !== 'responses') return [entry, collectDates(entry)]
+  const qr = entry?.resource ?? {}
+  const dates = collectDates(qr)
+  if (typeof entry?.completedAt === 'string') dates.push(['completedAt (wrapper)', entry.completedAt])
+  return [qr, dates]
 }
 
 function checkScenario(name, doc, anchorMs, errors, warnings) {
   for (const bucket of PAST_ONLY_BUCKETS) {
-    for (const r of doc[bucket] ?? []) {
-      for (const [field, value] of collectDates(r)) {
+    for (const entry of doc[bucket] ?? []) {
+      const [r, dates] = datedEntry(bucket, entry)
+      for (const [field, value] of dates) {
         const t = Date.parse(value.length === 10 ? `${value}T00:00:00Z` : value)
         if (Number.isFinite(t) && t > anchorMs) {
           errors.push(

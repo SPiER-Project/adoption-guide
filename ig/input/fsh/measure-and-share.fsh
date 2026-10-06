@@ -143,7 +143,7 @@ Description: "Population groups within the SPiER suicide-safer care measures."
 Instance: SPiERSuicideSaferCareMeasures
 InstanceOf: Library
 Title: "Library — SPiER Suicide-Safer Care Measure Logic"
-Description: "The population criteria for all seven SPiER suicide-safer care measures, in CQL. Every `Measure.criteria.expression` in this file names a definition from this library."
+Description: "The population criteria for all eight SPiER suicide-safer care measures, in CQL. Every `Measure.criteria.expression` in this file names a definition from this library."
 Usage: #definition
 * url = "http://thespierproject.org/fhir/Library/SPiERSuicideSaferCareMeasures"
 * name = "SPiERSuicideSaferCareMeasures"
@@ -153,7 +153,7 @@ Usage: #definition
 * experimental = true
 * publisher = "SPiER"
 * type = http://terminology.hl7.org/CodeSystem/library-type#logic-library "Logic Library"
-* description = "CQL implementing every population criterion referenced by the seven SPiER suicide-safer care Measures. Retrieves filter on SPiER profiles rather than codes, because the stage-5/6/7 workflow artifacts are distinguished by conformance claim rather than by a code in a value set; the risk-concept Observations are the exception and match on LOINC 93374-7. Each definition returns a boolean, because every measure is patient-based."
+* description = "CQL implementing every population criterion referenced by the eight SPiER suicide-safer care Measures. Retrieves filter on SPiER profiles rather than codes, because the stage-5/6/7 workflow artifacts are distinguished by conformance claim rather than by a code in a value set; the risk-concept Observations are the exception and match on LOINC 93374-7. Each definition returns a boolean, because every measure is patient-based."
 * purpose = "Makes the measures portable. Without a published library a consumer can read what each population means but must reimplement it, and two sites that reimplement independently produce numbers that are not comparable — the exact failure quality measurement exists to prevent."
 * content.id = "ig-loader-SPiERSuicideSaferCareMeasures.cql"
 
@@ -712,7 +712,7 @@ Usage: #definition
 * status = #draft
 * experimental = true
 * publisher = "SPiER"
-* description = "Calculate the seven SPiER suicide-safer care Measures — screen-to-assessment, risk status documented, safety plan before discharge (plus patient copy), lethal means counseling, follow-up timeliness at 48 hours / 7 days / 30 days, caring-contact adherence, and referral loop closure — and emit MeasureReports. Every numerator and denominator reads resources stages 1–7 already produce; the activity captures nothing new. Summary reports answer 'how is the program doing', individual reports answer 'why is this patient in or out of the numerator' and carry evaluatedResource links back to the underlying artifacts."
+* description = "Calculate the eight SPiER suicide-safer care Measures — screen-to-assessment, risk status documented, safety plan before discharge (plus patient copy), lethal means counseling, follow-up timeliness at 48 hours / 7 days / 30 days, caring-contact adherence, referral loop closure, and reassessment on time — and emit MeasureReports. Every numerator and denominator reads resources stages 1–7 already produce; the activity captures nothing new. Summary reports answer 'how is the program doing', individual reports answer 'why is this patient in or out of the numerator' and carry evaluatedResource links back to the underlying artifacts."
 * purpose = "Turn pathway activity into numerators and denominators that quality improvement can act on. Belongs to the Measure and Share the Data stage."
 * kind = #Task
 * topic[+] = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
