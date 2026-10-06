@@ -223,7 +223,7 @@ const CAPS: Record<string, { cap: number; why: string }> = {
   '/patient/on-file': {
     cap: 400,
     why:
-      'One list, one row per artifact (§4.4): what was recorded, when, by which instrument. 148 words ' +
+      'One list, one row per artifact (§4.4): what was recorded, when, by which instrument. 170 words ' +
       'for the 18 records of the fullest demo chart, so a row costs about eight and the cap allows ' +
       'roughly twice that chart. Three sections in three vocabularies, with an explanation of the ' +
       'FHIR R4 reference model to justify one of them, is what it replaced.',
@@ -285,7 +285,7 @@ const CAPS: Record<string, { cap: number; why: string }> = {
     cap: 560,
     why:
       'The quality lead’s screen: eight measures, each a table plus an explanation when it has ' +
-      'nothing to score. 503 words on the fourteen-patient caseload (§8.3). Nearly all of it is ' +
+      'nothing to score. 294 words on the fourteen-patient caseload today (503 when §8.3 measured it — the cap was set from that and has room to come down). Nearly all of it is ' +
       'the measures’ own published titles and group names, so the cap allows a ninth measure ' +
       'without allowing a page of prose about them. What it replaced: 937 words on a session with ' +
       'no cohort at all, because eight empty denominators each explained themselves (§8.7) — that ' +
@@ -472,24 +472,64 @@ describe('every clinical page has a budget', () => {
     // that escapes the cap is the new one, and a new one added to a hand list
     // is a page whose author chose whether to measure it.
     //
+    //
+    // ⚠️ Each `<Route …>` tag is READ, attribute by attribute, in any order. This
+    // matched `<Route\s+path="…"\s+element={…` — so a new page written
+    // `<Route element={<Page />} path="why-long" />` was not in the table this
+    // test derives, carried no budget and passed. A path the tag spells as an
+    // expression rather than a literal cannot be budgeted, so it fails here
+    // instead of being skipped.
     const src = APP_SOURCE
-    // The two nesting `<Route path="/…">` wrappers, so a child path resolves
+    const tags: { at: number; path: string | null; computedPath: boolean; element: string | null; selfClosing: boolean }[] = []
+    for (const m of src.matchAll(/<Route\b/g)) {
+      const start = m.index ?? 0
+      let i = start + m[0].length
+      let depth = 0
+      let quote: string | null = null
+      for (; i < src.length; i++) {
+        const c = src[i]
+        if (quote) {
+          if (c === quote) quote = null
+        } else if (c === '"' || c === "'" || c === '`') quote = c
+        else if (c === '{') depth++
+        else if (c === '}') depth--
+        else if (c === '>' && depth === 0) break
+      }
+      const tag = src.slice(start, i + 1)
+      const attrs = tag.replace(/^<Route\b/, '')
+      const literal = /\bpath=(?:"([^"]*)"|\{\s*(['"`])([^'"`$]*)\2\s*\})/.exec(attrs)
+      const at = /\belement=\{/.exec(attrs)
+      let element: string | null = null
+      if (at) {
+        let d = 0
+        let j = at.index + 'element='.length
+        for (; j < attrs.length; j++) {
+          if (attrs[j] === '{') d++
+          else if (attrs[j] === '}' && --d === 0) break
+        }
+        element = attrs.slice(at.index + 'element={'.length, j)
+      }
+      tags.push({
+        at: start,
+        path: literal ? (literal[1] ?? literal[3]) : null,
+        computedPath: !literal && /\bpath=/.test(attrs),
+        element,
+        selfClosing: /\/>$/.test(tag),
+      })
+    }
+    expect(tags.filter(t => t.computedPath), 'a <Route> whose path is an expression cannot be budgeted').toEqual([])
+    // The nesting `<Route path="/…">` wrappers, so a child path resolves
     // against the one it is actually inside rather than against a guess.
-    const parents = [...src.matchAll(/<Route path="(\/\w+)">/g)].map(m => ({
-      at: m.index ?? 0,
-      path: m[1],
-    }))
+    const parents = tags.filter(t => t.path?.startsWith('/') && t.element === null && !t.selfClosing)
     const parentOf = (at: number) =>
       parents.filter(p => p.at < at).at(-1)?.path ?? ''
-    const declared = [...src.matchAll(/<Route\s+path="([^"]+)"\s+element=\{([^}]*)/g)]
+    const declared = tags
+      .filter((t): t is typeof t & { path: string; element: string } => t.path !== null && t.element !== null)
       // A redirect renders no page, and neither do the two SMART legs.
       // `…Redirect` covers `LegacyChartRedirect`, which is a `<Navigate>` with
       // the patient id carried through rather than a page of its own.
-      .filter(
-        ([, path, element]) =>
-          !/Navigate|Redirect/.test(element) && !['/launch', '/redirect'].includes(path),
-      )
-      .map(m => (m[1].startsWith('/') ? m[1] : `${parentOf(m.index ?? 0)}/${m[1]}`))
+      .filter(t => !/Navigate|Redirect/.test(t.element) && !['/launch', '/redirect'].includes(t.path))
+      .map(t => (t.path.startsWith('/') ? t.path : `${parentOf(t.at)}/${t.path}`))
       // `/patient/record/:patientId` is `/patient/record` with the id in the
       // URL instead of in context — one page, one budget.
       .map(path => path.replace('/record/:patientId', '/record'))

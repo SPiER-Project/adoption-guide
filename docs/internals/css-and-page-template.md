@@ -9,7 +9,19 @@ here for the reasoning. Every ⚠️ below is a defect that shipped: the paragra
 exists because something passed while checking nothing, or read correct-looking
 and was false. See [`docs/internals/README.md`](README.md).
 
-- **Design tokens only.** Vanilla CSS with custom properties. stylelint (`.stylelintrc.json`) rejects raw hex (`color-no-hex`) and enforces `var(--…)` for `color`, `background-color`, `border-color`, `fill`, `font-size`, `box-shadow`, `font-family`, `letter-spacing` and every spacing property. Raw values are allowed only in `packages/ui/src/foundation.css` (token definitions). Class selectors must be kebab-case BEM.
+- **Design tokens only.** Vanilla CSS with custom properties. stylelint (`.stylelintrc.json`, run by `scripts/lint-css.mjs` over every root in `scripts/lib/style-roots.mjs`) rejects raw hex (`color-no-hex`) and enforces `var(--…)` for every `*-color` property (`border-top-color`, `outline-color` …), the colour inside the `border` / `background` / `outline` shorthands, `fill`, `stroke`, `font-size`, `box-shadow`, `font-family`, `letter-spacing`, every `*-radius`, and every padding, margin and gap property in either spelling (`padding-inline`, `margin-block-start` …). Raw values are allowed only in `packages/ui/src/foundation.css` (token definitions). Class selectors must be kebab-case BEM.
+  ⚠️ **Until the 2026-10 gate audit a FUNCTION passed as a token.** The plugin
+  accepts any function value by default, so `color: rgb(200 0 0)`,
+  `padding: max(13px, 1vw)` and `font-size: clamp(11px, 2vw, 19px)` all linted
+  clean — and `padding-inline`, `border: 1px solid rgb(…)` and
+  `border-radius: 7px` were outside the property list entirely. Functions are
+  now values like any other: `calc(…)` is still accepted (a derived alignment,
+  below), and a gradient or `color-mix()` is accepted only when everything in it
+  is a token, a keyword or a number. Range-notation media queries
+  (`(width < 600px)`) are forbidden, because the breakpoint allow-list is keyed
+  on `max-width` / `min-width` and could not see them. And a disable is
+  line-scoped outside the token sheet: a file-level `/* stylelint-disable */`
+  at the top of `Card.css` used to switch the whole file off.
   ⚠️ **`font-family` joined the list on 2026-09-16, and it was the one visual
   property with no owner.** Eight stylesheets each spelled a monospace stack
   their own way (`'SF Mono', 'Fira Code'` ×4, `ui-monospace, SFMono-Regular,
@@ -46,8 +58,11 @@ and was false. See [`docs/internals/README.md`](README.md).
   component that measures it. `--ehr-header-height` and `--ehr-footer-height`
   were the other two until the shell became a fixed frame and nothing needed to
   measure the bar or the footer any more). A fallback does
-  not excuse an undefined token; it just hides it. `index.css` is in stylelint's
-  `ignoreFiles` but *is* read by this check.
+  not excuse an undefined token; it just hides it. `foundation.css` switches
+  stylelint off with its own banner but *is* read by this check. ⚠️ So is every
+  `var(--…)` in TypeScript (an inline style, an SVG `stopColor`) since the
+  2026-10 gate audit: `SpierLogo.tsx`'s `var(--brand-gradient-2)` renamed to
+  `-9` used to pass.
 - **Spacing is a 10-step scale, and stylelint says so.** `--space-0-5` …
   `--space-8`. The scale was used 498 times while 250 raw declarations grew up
   beside it across 26 ad-hoc values (0.4rem×45, 0.15rem×26, 0.35rem×24,
@@ -183,6 +198,10 @@ and was false. See [`docs/internals/README.md`](README.md).
   exactly: a run with no cap has no font-size for it to check either. A green `check:prose` says every
   cap that exists is a character count rather than a width; it does not say
   every run that needs one has one.
+  ⚠️ A cap is `max-width` **or `max-inline-size`** (the gate read the first
+  only, and two clinical runs set at `--type-ui` were hiding behind the second),
+  and it is the measure only when it is EXACTLY `var(--measure-prose)` — a
+  `calc()` of the token used to count as on-token.
   Two families are templated, found in different ways. The **lenses**
   (`src/pages`) are a declared allowlist, because which pages own a header is a
   decision. The **form views** (`src/components` — every assessment and workflow
@@ -219,6 +238,21 @@ and was false. See [`docs/internals/README.md`](README.md).
   no trailing `\b`); and the CSS walk read `src/css/*.css` only, leaving
   `App.css` and `index.css` — where `.form-view` and the tokens live —
   **entirely unread**. It now walks all of `src/`.
+  ⚠️ **The 2026-10 gate audit found five more plants it passed**, all fixed:
+  the header rules (no `page-header` class, no level-2 heading, no
+  `<PageHeader>`) ran over `pages/` and the form views only, so a COMPONENT a
+  page renders could add a second title — they now sweep every component tree,
+  exempting only `PageHeader.tsx` and the routes an app declares before its
+  shell layout (the SMART launch / redirect screens, derived from `App.tsx`);
+  a `page-header__title` held in a constant now counts; RULE 4b reads `margin`
+  as an inset too, and matches the root class in a qualified or compound
+  selector (`div.population-view`, `.app-shell__body .population-view`); a
+  root's own `width:` fails (RULE 5d); and a page-width token on anything that
+  is not a page root fails (RULE 5e) — `check:prose` defers every page-width
+  cap here, and before RULE 5e nothing checked a text run capped at 1200px.
+  The code drawer's bottom clearance moved from the page roots
+  (`.panel-shell .form-view`) to the panel body that owns the inset, once the
+  qualified selector became visible.
 - **`ehr-` no longer names the app's own chrome.** The standalone browsing
   chrome is `AppShell` / `.app-shell__*` (`__header`, `__header-content`,
   `__brand`, `__nav-toggle`, `__hamburger`, `__content`, `__body`, `__footer`).

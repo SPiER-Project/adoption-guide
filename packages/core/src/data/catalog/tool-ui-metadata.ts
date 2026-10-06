@@ -805,7 +805,7 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
       resources: [
         { type: 'MeasureReport', description: 'One report per measure per period. Summary reports answer "how is the program doing"; individual reports carry evaluatedResource links back to the artifacts behind the result', when: 'On each measurement run' },
         { type: 'Measure', description: 'The seven definitions — screen-to-assessment, risk status documented, safety plan before discharge (+ patient copy), lethal means counseling, follow-up timeliness at 48h/7d/30d, caring-contact adherence, referral loop closure', when: 'Published definitions; not created per patient' },
-        { type: 'Library', description: 'The CQL computing every population criterion (ig/input/cql/). Retrieves filter on SPiER profiles, so the measures read exactly the stage 1–7 artifacts and nothing else', when: 'Published definition' },
+        { type: 'Library', description: 'The CQL computing every population criterion, published as a FHIR Library. Retrieves filter on SPiER profiles, so the measures read exactly the stage 1–7 artifacts and nothing else', when: 'Published definition' },
       ],
       workflowTrigger: 'Reads only — no new capture. The episode (TL-038) supplies the cohort and index date; the documented transition (TL-009/TL-030) indexes every post-discharge window.',
     },

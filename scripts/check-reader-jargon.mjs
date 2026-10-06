@@ -62,9 +62,21 @@
  * new property, and dropping input is the failure this repo's gates keep
  * finding in themselves. Over-reading costs a false positive, which is loud.
  *
- * Plus, from `ig/input/fsh/*.fsh`, every `documentation[…].label` and
- * `documentation[…].display` — the artifact's own prose, rendered by the guide
- * and published in the IG.
+ * The same walk covers `packages/app-shell`, which both apps mount.
+ *
+ * Plus, from the GENERATED resources (`packages/fhir-artifacts/generated`),
+ * every `documentation[…].label` and `documentation[…].display` at any depth —
+ * the artifact's own prose, rendered by the guide and published in the IG.
+ *
+ * Plus core's catalogue, LOADED rather than scraped (lib/load-core.mjs): every
+ * string value the guide can render — a tool's licensing notice as
+ * `readerCopyright` renders it, a Data Dictionary row's description.
+ *
+ * Plus the rendered guide pages that show that prose
+ * (`apps/guide/src/pages/readerCopy.test.tsx`, run from here), so a page that
+ * prints a raw value instead of its reader form fails this gate.
+ *
+ * The rules themselves live in `lib/reader-jargon.mjs`, shared with that test.
  *
  * ── The seven rules, and where each came from ─────────────────────────────
  *
@@ -87,18 +99,17 @@
  *
  * ── What it cannot see ────────────────────────────────────────────────────
  *
- * ⚠️ **The 29 shared tool views were out of the GUIDE's scan, and are in the
- * clinical one** (below). They render on guide tool pages and on
- * `/patient/assessments/*`, so their strings reach both readers; the repo
- * vocabulary a guide reader must not meet there is still unscanned, which is
- * the same argument as before — that copy pass has not happened.
+ * ⚠️ **The 29 shared tool views are out of the GUIDE's SOURCE scan, and in the
+ * clinical one** (below). Their strings reach a guide reader only as RENDERED
+ * on a tool page, which is what the rendered half reads — every tool's page,
+ * closed drawers included. Strings a tool page does not render on mount (a
+ * submit's result, an error) are seen by the clinical scan's rules only.
  *
- * ⚠️ **The rest of the FSH.** `Description` and `copyright` are published too,
- * and carry `docs/instruments/…/MEMO.md` citations, a `web/src/…` path that
- * has not existed since #553, and `issue #64` roughly fifteen times. Those are
- * provenance for a licensing claim rather than an explanation of a page, which
- * is a different argument to have; `documentation` is what the audit named and
- * what the guide renders.
+ * ⚠️ **The published FSH text itself.** `Description` and `copyright` carry
+ * `docs/instruments/…/MEMO.md` citations and `issue #64` — provenance for a
+ * licensing claim in the IG, where that is the right thing to say. The guide
+ * does not render the raw `copyright`: it renders `readerCopyright(…)`, and
+ * that is what is checked. Nothing here asks the IG text to change.
  *
  * ⚠️ **Prose that names no machinery and still explains the build.** "It was
  * called the Patient App until 2026-09-17" fails on the date; the same
@@ -107,7 +118,8 @@
  *
  * Exits non-zero on a hit so it can gate CI.
  */
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
+import { spawnSync } from 'node:child_process'
 import { join } from 'node:path'
 
 import ts from 'typescript'
@@ -115,6 +127,8 @@ import ts from 'typescript'
 import { appRoot, relRepo, REPO_ROOT, walkExt } from './lib/app-roots.mjs'
 import { RESOURCE_TYPES, WIRE_ONLY_RESOURCE_TYPES } from './lib/fhir-vocabulary.mjs'
 import { reportFloors } from './lib/floors.mjs'
+import { loadCore } from './lib/load-core.mjs'
+import { REPO_RULES } from './lib/reader-jargon.mjs'
 
 let failures = 0
 function fail(msg) {
@@ -174,14 +188,8 @@ const repoIdentifiers = indexRepoIdentifiers()
 
 // ── The rules ──────────────────────────────────────────────────────────────
 
-const RULES = [
-  { name: 'an npm script', re: /\bnpm run [a-z][a-z:-]*/ },
-  { name: 'a gate name', re: /\bcheck:[a-z][a-z-]*/ },
-  { name: 'a repo path', re: /\b(?:apps|packages|services|scripts|docs|shims|tests|web)\/[A-Za-z0-9._/-]+/ },
-  { name: 'a source file', re: /\b[A-Za-z0-9_-]+\.(?:tsx?|mjs|fsh|md)\b/ },
-  { name: 'an issue number', re: /(?:^|[\s(])#\d{2,4}\b/ },
-  { name: 'a repo date', re: /\b20\d\d-\d\d-\d\d\b/ },
-]
+// Shared with the guide's rendered-copy test — see lib/reader-jargon.mjs.
+const RULES = REPO_RULES
 
 /** The first rule `text` breaks, or null. The identifier rule is last: it needs the index. */
 function jargonIn(text) {
@@ -213,12 +221,74 @@ const CODE_KEYS = new Set([
 const NOT_PROSE = /^(?:https?:|\/|\.{1,2}\/|#|@|data:|mailto:)/
 
 /**
+ * The value of an expression whose every part the source spells out: a literal,
+ * a `+` of literals, a template whose `${…}` are themselves static, or a
+ * `const` in the same file with such an initializer.
+ *
+ * ⚠️ Written for two plants that passed: `{"Run npm run " + "copy-fhir"}` read
+ * as two harmless halves ("npm run" has no script name after it), and
+ * `` `See check:${"reassessment"}` `` as `See check:` and a code span. A string
+ * the reader meets whole is checked whole. A part the source does NOT spell out
+ * (a prop, a call) leaves the expression unfolded and its halves are read as
+ * before — this sees what is static, not what is computed.
+ */
+function staticString(node, consts) {
+  if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) return node.text
+  if (ts.isParenthesizedExpression(node)) return staticString(node.expression, consts)
+  if (ts.isIdentifier(node)) return consts.has(node.text) ? consts.get(node.text) : null
+  if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+    const l = staticString(node.left, consts)
+    const r = l === null ? null : staticString(node.right, consts)
+    return l !== null && r !== null ? l + r : null
+  }
+  if (ts.isTemplateExpression(node)) {
+    let s = node.head.text
+    for (const span of node.templateSpans) {
+      const v = staticString(span.expression, consts)
+      if (v === null) return null
+      s += v + span.literal.text
+    }
+    return s
+  }
+  return null
+}
+
+/** Every `const NAME = <static string>` in the file, by name. */
+function constStrings(sf) {
+  const pending = []
+  const visit = (n) => {
+    if (ts.isVariableDeclarationList(n) && n.flags & ts.NodeFlags.Const) {
+      for (const d of n.declarations) if (ts.isIdentifier(d.name) && d.initializer) pending.push([d.name.text, d.initializer])
+    }
+    ts.forEachChild(n, visit)
+  }
+  visit(sf)
+  const consts = new Map()
+  // A few passes, so a const built from an earlier const resolves.
+  for (let pass = 0; pass < 3; pass++) {
+    for (const [name, init] of pending) {
+      if (consts.has(name)) continue
+      const v = staticString(init, consts)
+      if (v !== null) consts.set(name, v)
+    }
+  }
+  return consts
+}
+
+/** A `+` or a template the source spells out in full, as one string — or null. */
+const foldable = (node, consts) =>
+  (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) || ts.isTemplateExpression(node)
+    ? staticString(node, consts)
+    : null
+
+/**
  * Every string a reader of this module could meet.
  *
  * @returns {{line: number, text: string}[]}
  */
 function readerStrings(rel, src) {
   const sf = ts.createSourceFile(rel, src, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+  const consts = constStrings(sf)
   const out = []
   let sawJsx = false
 
@@ -239,6 +309,8 @@ function readerStrings(rel, src) {
       return ts.forEachChild(node, walk)
     }
     if (ts.isPropertyAssignment(node) && CODE_KEYS.has(node.name.getText(sf).replace(/['"]/g, ''))) return
+    const folded = foldable(node, consts)
+    if (folded !== null) return push(node, folded)
     if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) return push(node, node.text)
     if (ts.isTemplateExpression(node)) {
       // The literal halves are prose; the `${…}` halves are code, and walked as such.
@@ -257,7 +329,17 @@ function readerStrings(rel, src) {
 }
 
 const GUIDE_SRC = appRoot('apps/guide/src')
-const guideFiles = walkExt(GUIDE_SRC, ['.ts', '.tsx']).filter((f) => !/\.test\.tsx?$/.test(f))
+/**
+ * ⚠️ `packages/app-shell` is the runtime BOTH apps mount — the pathway view, the
+ * patient banner, the SMART screens — and it was in neither scan. Its
+ * `PathwayLoadError` told a reader of the guide's Care Pathway page AND a
+ * clinician on the protocol page to "Run `npm run copy-fhir -- --force` at the
+ * repo root". It is read by both halves now.
+ */
+const APP_SHELL_SRC = join(REPO_ROOT, 'packages/app-shell/src')
+const guideFiles = [GUIDE_SRC, APP_SHELL_SRC].flatMap((root) =>
+  walkExt(root, ['.ts', '.tsx']).filter((f) => !/\.test\.tsx?$/.test(f)),
+)
 
 let guideStrings = 0
 let guideHits = 0
@@ -284,29 +366,134 @@ for (const file of guideFiles) {
 
 // ── Half two: what the artifact publishes ──────────────────────────────────
 
-const FSH_DIR = join(REPO_ROOT, 'ig/input/fsh')
-const fshFiles = walkExt(FSH_DIR, ['.fsh'])
-const DOC_STRING = /^\s*\*?\s*documentation\[[^\]]*\]\.(label|display)\s*=\s*"((?:[^"\\]|\\.)*)"/
+/**
+ * ⚠️ **Read from the GENERATED resources, not from the FSH lines.** This matched
+ * `^\s*\*?\s*documentation[…].(label|display) = "…"` per line, so two plants a
+ * FSH author would write without thinking passed: a `"""` multi-line display
+ * naming `npm run check:reassessment`, and a path-prefixed
+ * `* action[0].documentation[=].label = "Gate: check:reassessment"`. SUSHI's
+ * output is what the guide renders and the IG publishes, so the walk is over
+ * that — every `documentation[]` at any depth, in every resource copy-fhir
+ * produced. The generated tree is a precondition (`verify` runs copy-fhir
+ * first), and its absence fails here rather than reading as "nothing to scan".
+ */
+const GENERATED_DIR = join(REPO_ROOT, 'packages/fhir-artifacts/generated')
+if (!existsSync(GENERATED_DIR)) {
+  fail(`${relRepo(GENERATED_DIR)} is missing — run \`npm run copy-fhir\` first; the published documentation cannot be read without it`)
+}
+const generatedFiles = existsSync(GENERATED_DIR) ? walkExt(GENERATED_DIR, ['.json']) : []
 
 let fshStrings = 0
 let fshHits = 0
-for (const file of fshFiles) {
+/** Every `documentation[i].label|display` under `node`, with a JSON path. */
+function* documentationStrings(node, path) {
+  if (Array.isArray(node)) {
+    for (let i = 0; i < node.length; i++) yield* documentationStrings(node[i], `${path}[${i}]`)
+    return
+  }
+  if (!node || typeof node !== 'object') return
+  for (const [key, value] of Object.entries(node)) {
+    if (key === 'documentation' && Array.isArray(value)) {
+      for (let i = 0; i < value.length; i++) {
+        for (const field of ['label', 'display']) {
+          const text = value[i]?.[field]
+          if (typeof text === 'string') yield { at: `${path}.documentation[${i}].${field}`, field, text }
+        }
+      }
+    }
+    yield* documentationStrings(value, `${path}.${key}`)
+  }
+}
+for (const file of generatedFiles) {
   const rel = relRepo(file)
-  readFileSync(file, 'utf8').split('\n').forEach((line, i) => {
-    const m = DOC_STRING.exec(line)
-    if (!m) return
+  let resource
+  try {
+    resource = JSON.parse(readFileSync(file, 'utf8'))
+  } catch {
+    continue // not a resource; copy-fhir's own gates own the tree's shape
+  }
+  for (const { at, field, text } of documentationStrings(resource, resource.resourceType ?? '')) {
     fshStrings++
-    const text = m[2].replace(/\\"/g, '"')
     const hit = jargonIn(text)
-    if (!hit) return
+    if (!hit) continue
     fshHits++
     fail(
-      `${rel}:${i + 1} names ${hit.rule} in documentation.${m[1]} — "${hit.match}"\n` +
+      `${rel} ${at} names ${hit.rule} in documentation.${field} — "${hit.match}"\n` +
         `    …${text.slice(0, 120)}${text.length > 120 ? '…' : ''}\n` +
         `    This string renders on /guide/pathway AND ships in the published IG, where the reader\n` +
-        `    is an HL7 reviewer with no checkout. State the clinical claim (audit §5 rule 3).`,
+        `    is an HL7 reviewer with no checkout. State the clinical claim (audit §5 rule 3) — in\n` +
+        `    ig/input/fsh/, which generated this file.`,
     )
-  })
+  }
+}
+
+// ── Half 2b: core's values, as rendered ────────────────────────────────────
+
+/**
+ * ⚠️ **The guide renders strings it does not contain.** A tool's licensing
+ * notice is `Tool.copyright`; a Data Dictionary row's description is
+ * `BINDINGS[…].description`; both live in `packages/core`, which neither scan
+ * above reads. Run through this gate's own rules, those values held 24 hits on
+ * the day this was written — issue numbers in the dictionary's descriptions,
+ * and a `docs/instruments/…/MEMO.md` path or `#64` in eighteen licensing
+ * notices — none of them visible to a source scan of the guide.
+ *
+ * So the catalogue is LOADED (lib/load-core.mjs: core's real values, not a
+ * scrape of its source) and every string value a reader can be shown is put
+ * through the rules, skipping the same code-ish keys the source scan skips.
+ * `copyright` goes through `readerCopyright` first, because that is what the
+ * guide renders: the published statement keeps its provenance, the reader
+ * gets plain words, and this checks the words. Whether a PAGE renders the
+ * transformed text rather than the raw field is the rendered half's question
+ * (below), not this one's.
+ */
+const [catalog, { readerCopyright }] = await loadCore(['@spier/core/data/catalog', '@spier/core/lib/readerCopyright'])
+let coreStrings = 0
+const CORE_STRING_FLOOR = 847 // half of the 1,695 read on the day it landed
+let coreHits = 0
+const seenCore = new Set()
+function walkCore(value, path, key) {
+  if (typeof value === 'string') {
+    if (CODE_KEYS.has(key) || NOT_PROSE.test(value) || !/[a-zA-Z]/.test(value)) return
+    const text = key === 'copyright' ? readerCopyright(value) : value
+    coreStrings++
+    const hit = jargonIn(text)
+    if (!hit) return
+    coreHits++
+    fail(
+      `@spier/core/data/catalog ${path} names ${hit.rule} in reader copy — "${hit.match}"\n` +
+        `    …${text.slice(0, 120)}${text.length > 120 ? '…' : ''}\n` +
+        '    The guide renders this value. A reader has no checkout: keep the reason in a code comment\n' +
+        '    beside the data, and give the reader the plain words.',
+    )
+    return
+  }
+  if (!value || typeof value !== 'object' || seenCore.has(value)) return
+  seenCore.add(value)
+  if (Array.isArray(value)) value.forEach((v, i) => walkCore(v, `${path}[${i}]`, key))
+  else for (const [k, v] of Object.entries(value)) walkCore(v, `${path}.${k}`, k)
+}
+for (const [name, value] of Object.entries(catalog)) {
+  if (typeof value !== 'function') walkCore(value, name, name)
+}
+
+// ── Half 2c: what the pages render ─────────────────────────────────────────
+
+/**
+ * The rendered half, run from here so that THIS gate goes red when a page
+ * renders a raw value. `apps/guide/src/pages/readerCopy.test.tsx` mounts the
+ * guide pages that render core's prose — every tool's page, the Data
+ * Dictionary, the pathway pages — and applies the same rule list
+ * (lib/reader-jargon.mjs) to their text. A value scan cannot see `ToolPage`
+ * printing `tool.copyright` instead of `readerCopyright(tool.copyright)`; a
+ * render can. (`npm test` runs it too; it is a few seconds, and the gate is
+ * not complete without it.)
+ */
+const RENDERED_TEST = 'apps/guide/src/pages/readerCopy.test.tsx'
+const rendered = spawnSync('npx', ['vitest', 'run', RENDERED_TEST], { cwd: REPO_ROOT, encoding: 'utf8' })
+if (rendered.status !== 0) {
+  process.stderr.write(`${rendered.stdout ?? ''}${rendered.stderr ?? ''}`)
+  fail(`${RENDERED_TEST} failed — a page renders repo vocabulary, or the test could not run; see above`)
 }
 
 // ── Half three: the clinician's strings ────────────────────────────────────
@@ -479,6 +666,7 @@ const CODE_METHODS = new Set([
  */
 function clinicianStrings(rel, src) {
   const sf = ts.createSourceFile(rel, src, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+  const consts = constStrings(sf)
   const out = []
   let sawJsx = false
 
@@ -558,6 +746,8 @@ function clinicianStrings(rel, src) {
       // The KEY of a lookup table is a code by construction — `{'on-hold': 'On hold'}`.
       return walk(node.initializer)
     }
+    const folded = foldable(node, consts)
+    if (folded !== null) return push(node, folded)
     if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) return push(node, node.text)
     if (ts.isTemplateExpression(node)) {
       push(node.head, node.head.text)
@@ -589,7 +779,7 @@ function clinicalJargonIn(text) {
 // the two apps and throws on anything else, which is the guarantee that keeps
 // both halves of that file honest. It is joined from the repo root instead, and
 // the floor below is what catches a walk that stops reading it.
-const CLINICAL_ROOTS = [appRoot('apps/clinical/src'), join(REPO_ROOT, 'packages/tool-views/src')]
+const CLINICAL_ROOTS = [appRoot('apps/clinical/src'), join(REPO_ROOT, 'packages/tool-views/src'), APP_SHELL_SRC]
 const clinicalFiles = CLINICAL_ROOTS.flatMap((root) =>
   walkExt(root, ['.ts', '.tsx']).filter((f) => !/\.test\.tsx?$/.test(f)),
 )
@@ -639,14 +829,20 @@ for (const rel of Object.keys(DEFERRED)) {
  */
 const floorsHeld = reportFloors(
   [
-    { source: 'apps/guide/src', dimension: 'module(s) parsed', actual: guideFiles.length, floor: 15 },
-    { source: 'apps/guide/src', dimension: 'reader string(s)', actual: guideStrings, floor: 400 },
-    { source: 'ig/input/fsh', dimension: 'documentation string(s)', actual: fshStrings, floor: 24 },
+    { source: 'apps/guide/src', dimension: 'module(s) parsed', actual: guideFiles.filter((f) => f.startsWith(GUIDE_SRC + '/')).length, floor: 15 },
+    { source: 'apps/guide/src + packages/app-shell', dimension: 'reader string(s)', actual: guideStrings, floor: 400 },
+    // The generated tree replaced the FSH line scan with the same 48 strings,
+    // so the floor carried over unchanged.
+    { source: 'packages/fhir-artifacts/generated', dimension: 'documentation string(s)', actual: fshStrings, floor: 24 },
     { source: 'the repo', dimension: 'camelCase identifier(s) indexed', actual: repoIdentifiers.size, floor: 200 },
     // Halved and rounded down from the live counts on the day the clinical scan
     // landed: 76 modules walked (74 read, 2 deferred) / 1,118 clinician strings.
-    { source: 'apps/clinical + packages/tool-views', dimension: 'module(s) parsed', actual: clinicalFiles.length, floor: 38 },
-    { source: 'apps/clinical + packages/tool-views', dimension: 'clinician string(s)', actual: clinicalStrings, floor: 550 },
+    { source: 'apps/clinical + packages/tool-views', dimension: 'module(s) parsed', actual: clinicalFiles.filter((f) => !f.startsWith(APP_SHELL_SRC + '/')).length, floor: 38 },
+    { source: 'apps/clinical + packages/tool-views + packages/app-shell', dimension: 'clinician string(s)', actual: clinicalStrings, floor: 550 },
+    // Halved and rounded down from the day each landed (2026-10): 25 app-shell
+    // modules (CORE_STRING_FLOOR carries the catalogue's own count).
+    { source: 'packages/app-shell/src', dimension: 'module(s) parsed', actual: guideFiles.filter((f) => f.startsWith(APP_SHELL_SRC + '/')).length, floor: 12 },
+    { source: '@spier/core/data/catalog', dimension: 'string value(s) read', actual: coreStrings, floor: CORE_STRING_FLOOR },
   ],
   fail,
 )
@@ -654,21 +850,21 @@ const floorsHeld = reportFloors(
 if (failures === 0 && floorsHeld) {
   console.log(
     `✓ no repo vocabulary in reader copy: ${guideStrings} reader string(s) across ` +
-      `${guideFiles.length} Adoption Guide module(s) and ${fshStrings} documentation string(s) in ` +
-      `${fshFiles.length} FSH file(s), against ${RULES.length + 1} rules ` +
-      `(${repoIdentifiers.size} repo identifiers indexed)`,
+      `${guideFiles.length} Adoption Guide + app-shell module(s), ${fshStrings} documentation string(s) in ` +
+      `${generatedFiles.length} generated resource(s) and ${coreStrings} catalogue value(s), against ${RULES.length + 1} rules ` +
+      `(${repoIdentifiers.size} repo identifiers indexed); the rendered guide pages pass the same rules`,
   )
   console.log(
     `✓ no wire vocabulary in clinician copy: ${clinicalStrings} string(s) across ` +
-      `${clinicalFiles.length - clinicalDeferred} module(s) in apps/clinical and ` +
-      `packages/tool-views, against ${CLINICAL_RULES.length + RULES.length} rules ` +
+      `${clinicalFiles.length - clinicalDeferred} module(s) in apps/clinical, packages/tool-views and ` +
+      `packages/app-shell, against ${CLINICAL_RULES.length + RULES.length} rules ` +
       `(${clinicalDeferred} deferred with a reason)`,
   )
   process.exit(0)
 }
 
 console.error(
-  `\n✗ ${guideHits} reader string(s) and ${fshHits} documentation string(s) name this repo's machinery; ` +
-    `${clinicalHits} clinician string(s) name the wire format.`,
+  `\n✗ ${guideHits} reader string(s), ${fshHits} documentation string(s) and ${coreHits} catalogue value(s) name ` +
+    `this repo's machinery; ${clinicalHits} clinician string(s) name the wire format.`,
 )
 process.exit(1)

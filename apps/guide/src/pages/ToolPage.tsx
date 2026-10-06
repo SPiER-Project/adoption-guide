@@ -81,6 +81,7 @@ import { PageHeader } from '@spier/ui/PageHeader'
 import { Pill } from '@spier/ui/Pill'
 import { Disclosure } from '@spier/ui/Disclosure'
 import { LicensingBadge } from '../components/LicensingBadge'
+import { readerCopyright } from '@spier/core/lib/readerCopyright'
 import { LICENSING_BLURB, LICENSING_LABELS } from '../data/licensing'
 import { GUIDE_SURFACE_LINKS } from '../data/surfaceLinks'
 import { MOCK_EHR_LABEL, MOCK_EHR_URL } from '../data/surfaces'
@@ -203,7 +204,7 @@ function LicensingDrawer({ tool }: { tool: Tool }) {
         <LicensingBadge licensing={tool.licensing} />
         <span className="tool-page__licence-blurb">{LICENSING_BLURB[tool.licensing]}</span>
       </div>
-      {tool.copyright && <p className="tool-page__licence">{tool.copyright}</p>}
+      {tool.copyright && <p className="tool-page__licence">{readerCopyright(tool.copyright)}</p>}
     </Disclosure>
   )
 }
@@ -258,7 +259,7 @@ export function ToolPage() {
               <InclusionBadge status={tool.inclusionStatus} />
               <Pill variant="label" size="sm">{tool.badge.label}</Pill>
               {tool.licensing && (
-                <LicensingBadge licensing={tool.licensing} title={tool.copyright ?? LICENSING_BLURB[tool.licensing]} />
+                <LicensingBadge licensing={tool.licensing} title={tool.copyright ? readerCopyright(tool.copyright) : LICENSING_BLURB[tool.licensing]} />
               )}
               <span className="tool-page__id">{tool.id}</span>
             </div>

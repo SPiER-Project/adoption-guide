@@ -10,6 +10,7 @@ import { Card } from '@spier/ui/Card'
 import { DataTable } from '@spier/ui/DataTable'
 import { Disclosure } from '@spier/ui/Disclosure'
 import { LicensingBadge } from '../components/LicensingBadge'
+import { readerCopyright } from '@spier/core/lib/readerCopyright'
 import { LICENSING_BLURB, LICENSING_LABELS } from '../data/licensing'
 import { guideToolHref, toolForms } from '../data/toolForms'
 
@@ -81,8 +82,8 @@ const MATURITY_LEVEL_LABELS = ['None', 'Basic', 'Partial', 'Full'] as const
 
 // The licensing labels and blurbs are `data/licensing.ts` and the pill is
 // `components/LicensingBadge.tsx`, both shared with the tool page since 2026-09-20. The pill is the summary; the
-// full notice — including where the claim comes from — is `tool.copyright`,
-// shown on hover and read straight from ActivityDefinition.copyright.
+// full notice is `tool.copyright` as a reader sees it (`readerCopyright`: plain
+// text, no repo paths), shown on hover; the source is ActivityDefinition.copyright.
 
 interface ReadinessRow {
   tool: Tool
@@ -303,7 +304,7 @@ export function AdoptionReadiness() {
                       {tool.licensing ? (
                         <LicensingBadge
                           licensing={tool.licensing}
-                          title={tool.copyright ?? LICENSING_BLURB[tool.licensing]}
+                          title={tool.copyright ? readerCopyright(tool.copyright) : LICENSING_BLURB[tool.licensing]}
                         />
                       ) : (
                         <Pill size="sm" variant="label" className="ar-lic--not-recorded" title="No licensing status on this tool's ActivityDefinition">—</Pill>

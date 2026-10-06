@@ -267,6 +267,7 @@
     display: block;
     position: fixed;
     inset: 0;
+    /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- the mobile drawer's scrim: 40% black, and foundation.css has no scrim or black token to read. Open question for the token sheet, not settled here. */
     background: rgb(0 0 0 / 0.4);
     z-index: 199;
   }

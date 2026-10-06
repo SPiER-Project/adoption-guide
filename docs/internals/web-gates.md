@@ -27,8 +27,13 @@ that overlap is intentional, and nothing may live there that is not also in
 npm run copy-fhir      # compile IG via SUSHI + copy resources into the generated tree (do this FIRST)
 npx tsc -b             # typecheck (project references; needs generated files present)
 npm run lint           # eslint
-npm run lint:css       # stylelint (design-token enforcement)
-npm run check:tokens   # every var(--token) resolves to a real definition
+npm run lint:css       # stylelint (design-token enforcement), via scripts/lint-css.mjs over
+                       # every STYLE_ROOTS tree — not a second glob in package.json — and
+                       # only foundation.css may disable it beyond one line. Functions are
+                       # values (rgb(), max(), clamp() used to pass as tokens); see
+                       # css-and-page-template.md § Design tokens only
+npm run check:tokens   # every var(--token) resolves to a real definition — in the CSS AND
+                       # in TypeScript (inline styles, SVG stopColor) since 2026-10
 npm run check:css-dead # every class selector in src/**/*.css is referenced by a non-test
                        # .ts/.tsx — a literal, or a `root--…${…}` template prefix, with TS
                        # comments blanked first (a doc comment naming `.risk-pill` kept a
@@ -43,11 +48,15 @@ npm run check:css-dead # every class selector in src/**/*.css is referenced by a
 npm run check:template # page template: one header implementation, one owner of the page
                        # inset, one owner of the page width, and density read from tokens
                        # only (RULE 7: no [data-density] selector outside foundation.css, no
-                       # component reading it, every app's <html> setting a defined one)
+                       # component reading it, every app's <html> setting a defined one).
+                       # The header rules sweep EVERY component tree, an inset is padding
+                       # or margin on any selector whose subject is the root, and a
+                       # page-width token anywhere but a page root fails (RULE 5e) — five
+                       # plants passed each of those before 2026-10
 npm run check:prose    # the reading MEASURE — `--measure-prose`. Its five rules are each
                        # written against a defect that shipped: the token must be in `em`
                        # and in band (it was 760px, a width where a character count was
-                       # meant); every other `max-width` must be a page-width token or
+                       # meant); every other `max-width` / `max-inline-size` must be exactly the token, a page-width token or
                        # classified NON_PROSE with a reason (`.dd-detail` escaped a column
                        # budget to 52rem = 134 cpl under a comment claiming otherwise);
                        # a `max-width: none` must be declared (`.dd-cell-desc` carried a
@@ -788,6 +797,13 @@ is gated. The icons in `public/` are GENERATED from `--brand-primary` and
 build:favicons` rewrites them). The 2026 redesign would otherwise have left a
 raspberry icon nobody looks at.
 
+⚠️ Two inputs it read wrongly until the 2026-10 gate audit: it read the token
+sheet with its comments in, so a `/* --brand-primary: #341528; was … */` left
+above the real declaration was read instead of it; and it kept the gradient's
+stop offsets as a hand copy of `SpierLogo.tsx`'s, so moving a stop in the
+wordmark passed. Comments are blanked, and the stops — token and offset — are
+read from the wordmark's own `<stop>` elements.
+
 ### `npm run check:extract` — run the mapper, do not restate it
 
 ⚠️ Every mapper in the registry is RUN (2026-10-06), so no Questionnaire can be
@@ -946,11 +962,31 @@ instances; without these, the class comes back one paragraph at a time.
 
 ### `check:jargon` — no repo vocabulary in reader copy
 
-`scripts/check-reader-jargon.mjs` reads two things a reader meets: every string
-under `apps/guide/src`, and every `documentation[…].label` and
-`documentation[…].display` in `ig/input/fsh/`. Seven rules — an npm script, a
-gate name, a repo path, a source file name, a repo identifier, an issue number,
-an ISO date — each written from a string that shipped.
+`scripts/check-reader-jargon.mjs` reads what a reader meets, five ways: every
+source string under `apps/guide/src` and `packages/app-shell` (which both apps
+mount); every `documentation[…].label` / `.display` at any depth in the
+GENERATED resources (it scraped FSH lines, and a `"""` multi-line display or a
+path-prefixed `* action[0].documentation[…]` line passed); core's catalogue,
+LOADED through `lib/load-core.mjs`, with a tool's `copyright` put through
+`readerCopyright` first because that is what the guide renders; the rendered
+guide pages that show that prose (`apps/guide/src/pages/readerCopy.test.tsx`,
+run from the gate, so a page printing a raw value fails it); and, with the
+clinician's rules, `apps/clinical`, `packages/tool-views` and
+`packages/app-shell`. Seven rules — an npm script, a gate name, a repo path
+(`ig/` included), a source file name (`.json`, `.cql`, `.fml`, `.yaml`
+included), a repo identifier, an issue number, an ISO date — each written from
+a string that shipped, and shared through `scripts/lib/reader-jargon.mjs`. A
+string the source spells out in pieces (`"npm run " + "copy-fhir"`, a template
+over a `const`) is folded and checked whole.
+
+⚠️ **The source scans alone missed 27 live strings** when the 2026-10 gate
+audit ran the rules over what the apps actually render: issue numbers and a
+repo date in seven Data Dictionary descriptions and an `ig/` path in a tool's
+resource table (core data); a licensing-memo path (`docs/instruments/ASQ/licensing/MEMO.md` and its siblings) or `#64` in
+seventeen tools' licensing notices (the published `ActivityDefinition.copyright`,
+now rendered through `readerCopyright` — the IG text is unchanged); and, in
+app-shell, `npm run copy-fhir` in the pathway's load error and a profile name
+in the protocol page's clinician copy.
 
 ⚠️ **Three of the strings it was written from were in the ARTIFACT, not the
 app.** `documentation[=].display` on the pathway PlanDefinition said "which is
@@ -989,17 +1025,15 @@ grows with the repo instead of with the gate.
 
 What it cannot see, stated so a green run is not read as more than it is:
 
-- **The 29 shared tool views.** `packages/tool-views` renders on guide tool
-  pages, so its strings reach a guide reader, and a scan of that tree finds five
-  issue numbers, a rename date and an identifier in drawer prose today. They are
-  out of scope because they are equally the CLINICIAN's copy, which has not had
-  the audit's pass — and because three of the nine hits there are `throw new
-  Error()` messages no reader meets. Widen this gate *after* that pass.
-- **The rest of the FSH.** `Description` and `copyright` are published too, and
-  cite the per-instrument licensing memos under `docs/instruments/`, a `web/src/…` path that has not
-  existed since #553, and `issue #64` about fifteen times. Those are provenance
-  for a licensing claim rather than an explanation of a page — a different
-  argument, and `documentation` is what the audit named.
+- **The 29 shared tool views' SOURCE, under the guide's rules.** They reach a
+  guide reader as rendered on a tool page, and the rendered half reads every
+  tool's page with drawers included; a string a page does not render on mount
+  (a submit's result, an error) gets the clinician's rules only.
+- **The published FSH text itself.** `Description` and `copyright` cite the
+  licensing memos and `issue #64` — provenance in the IG, where it belongs. The
+  guide renders `readerCopyright(copyright)`, and that is what is checked.
+- **A computed string.** Folding sees what the source spells out; a value from
+  a prop or a call is read in its literal halves.
 - **Prose that names no machinery and is still about the build.** "It was called
   the Patient App until 2026-09-17" fails on the date; the same sentence without
   one passes and is just as much about this repo.

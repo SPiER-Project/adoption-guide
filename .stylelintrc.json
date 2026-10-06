@@ -1,14 +1,16 @@
 {
   "extends": ["stylelint-config-standard"],
   "plugins": ["stylelint-declaration-strict-value"],
+  "reportDescriptionlessDisables": true,
+  "reportInvalidScopeDisables": true,
+  "reportNeedlessDisables": true,
   "rules": {
     "scale-unlimited/declaration-strict-value": [
       [
-        "color", "background-color", "border-color", "fill", "font-size", "box-shadow",
-        "padding", "padding-top", "padding-right", "padding-bottom", "padding-left",
-        "margin", "margin-top", "margin-right", "margin-bottom", "margin-left",
-        "margin-inline", "margin-block",
+        "/color$/", "fill", "stroke", "font-size", "box-shadow",
+        "/^padding/", "/^margin/",
         "gap", "row-gap", "column-gap",
+        "/radius$/",
         "letter-spacing",
         "font-family", "font"
       ],
@@ -18,11 +20,15 @@
           "/^var\\(--/",
           "currentcolor",
           "0", "auto",
-          "/^calc\\(/"
+          "/^calc\\(/",
+          "/^(?:(?:repeating-)?(?:linear|radial|conic)-gradient|color-mix)\\((?:\\s|,|\\*|\\/|\\+|\\(|\\)|-?\\d*\\.?\\d+(?:%|deg|turn)?|var\\(--[\\w-]+\\)|calc|transparent|currentcolor|in|srgb|oklab|oklch|to|top|bottom|left|right)*$/"
         ],
+        "ignoreFunctions": false,
+        "expandShorthand": true,
         "disableFix": true
       }
     ],
+    "media-feature-range-notation": "prefix",
     "media-feature-name-value-allowed-list": {
       "max-width": ["639px", "767px", "1023px"],
       "min-width": ["640px", "768px", "1024px"]
@@ -39,7 +45,6 @@
     "declaration-block-no-redundant-longhand-properties": null,
     "declaration-block-single-line-max-declarations": null,
     "keyframes-name-pattern": null,
-    "media-feature-range-notation": null,
     "no-descending-specificity": null,
     "rule-empty-line-before": null,
     "shorthand-property-no-redundant-values": null
