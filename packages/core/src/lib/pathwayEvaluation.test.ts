@@ -76,6 +76,47 @@ function cssrsScreener(at: string, tier: 'moderate' | 'no-risk') {
   }
 }
 
+const PHQ9_URL = 'http://thespierproject.org/fhir/Questionnaire/PHQ-9'
+
+/**
+ * A PHQ-9 re-screen, as submitting the form records one: the response plus the
+ * item-9 Observation the mapper derives from it, which is what the published
+ * gate reads. Shaped like Sarah's own Aug 11 PHQ-9 in the scenario.
+ */
+function phq9(id: string, at: string, item9: number): Pick<PathwayRecord, 'responses' | 'observations'> {
+  const response = {
+    resourceType: 'QuestionnaireResponse',
+    id,
+    status: 'completed',
+    questionnaire: PHQ9_URL,
+    authored: at,
+    subject: { reference: 'Patient/patient-003' },
+    item: [],
+  } as unknown as QuestionnaireResponseResource
+  const observation = {
+    resourceType: 'Observation',
+    id: `${id}-item9`,
+    status: 'final',
+    code: { coding: [{ system: 'http://loinc.org', code: '44260-8' }] },
+    effectiveDateTime: at,
+    valueInteger: item9,
+    derivedFrom: [{ reference: `QuestionnaireResponse/${id}` }],
+  } as unknown as ObservationResource
+  return {
+    responses: [{ id, questionnaireName: 'PHQ-9', completedAt: at, resource: response }],
+    observations: [observation],
+  }
+}
+
+/** A record with `more` appended to each bucket it names. */
+function plus(record: PathwayRecord, more: Pick<PathwayRecord, 'responses' | 'observations'>): PathwayRecord {
+  return {
+    ...record,
+    responses: [...(record.responses ?? []), ...(more.responses ?? [])],
+    observations: [...(record.observations ?? []), ...(more.observations ?? [])],
+  }
+}
+
 function safetyPlan(at: string): CarePlanResource {
   return {
     resourceType: 'CarePlan',
@@ -168,6 +209,39 @@ describe('audit §4.5 — the first unsatisfied step of the published pathway', 
     expect(primary?.kind).toBe('reassess')
     expect(primary?.title).toBe('Reassess suicide risk')
     expect(primary?.tool?.id).toBe('TL-003')
+  })
+
+  it('Sarah, assessed, then a NEGATIVE PHQ-9 → the assessment is not asked for again', () => {
+    // ⚠️ The regression. Positivity was read off EVERY screen on the chart and
+    // "assessed since" off the LATEST one, so Sarah's Aug 11 positive — answered
+    // by the Sep 3 C-SSRS — came back to life the moment a negative re-screen
+    // became the latest screen: primary "assess", reason "PHQ-9 on Sep 15:
+    // positive screen." about a PHQ-9 whose item 9 was 0, with the safety plan
+    // her moderate tier owes pushed off the chart.
+    const { primary, alsoDue, tier } = evaluate(
+      plus(sarahPlusCssrs('moderate'), phq9('phq9-sep', '2026-09-15T10:00:00.000Z', 0)),
+    )
+    expect(tier?.code).toBe('moderate')
+    expect(primary?.kind).toBe('safety-plan')
+    expect(primary?.reason).toBe('C-SSRS Screener on Sep 3: moderate risk.')
+    expect([primary, ...alsoDue].some(o => o?.kind === 'assess')).toBe(false)
+  })
+
+  it('an unassessed positive is still owed after a negative re-screen, and the reason names the POSITIVE', () => {
+    // Nothing assessed Sarah's Aug 11 positive, and a later negative screen does
+    // not answer it — the gate is "a positive screen with no assessment after
+    // it". What must not happen is the trigger naming the negative screen.
+    const { primary } = evaluate(plus(recordFor('patient-003'), phq9('phq9-sep', '2026-09-15T10:00:00.000Z', 0)))
+    expect(primary?.kind).toBe('assess')
+    expect(primary?.reason).toBe('PHQ-9 on Aug 11: positive screen.')
+  })
+
+  it('a positive re-screen AFTER the assessment owes a new assessment, triggered by the re-screen', () => {
+    const { primary } = evaluate(
+      plus(sarahPlusCssrs('moderate'), phq9('phq9-sep', '2026-09-15T10:00:00.000Z', 2)),
+    )
+    expect(primary?.kind).toBe('assess')
+    expect(primary?.reason).toBe('PHQ-9 on Sep 15: positive screen.')
   })
 
   it('a negative C-SSRS → nothing is due, and the patient does not enter the pathway', () => {
