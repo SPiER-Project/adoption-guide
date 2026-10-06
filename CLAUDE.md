@@ -77,6 +77,10 @@ cannot see, and several shipped in a form that passed a planted defect.
 **Prove a gate can fail before trusting it** — plant a defect, watch it go red,
 remove it ([`docs/internals/README.md`](docs/internals/README.md)).
 
+**A gate that needs a value from core loads it with `scripts/lib/load-core.mjs`;
+it never regexes core's source or keeps a hand copy.** Only a gate whose subject
+is the source itself stays static ([`web-gates.md`](docs/internals/web-gates.md)).
+
 ### External terminology (weekly + terminology PRs, not in `verify`)
 
 ```

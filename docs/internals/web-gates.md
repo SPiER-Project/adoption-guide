@@ -453,6 +453,58 @@ trips `check:readers`' own "mapper serves no Questionnaire" error before the flo
 is reached, and that is the better outcome — a named error beats a count. Floors
 catch what the specific checks cannot see.
 
+## Gates read core's values, not its source — `scripts/lib/load-core.mjs` (2026-10-06)
+
+`loadCore(ids)` loads `@spier/*` TypeScript modules into a plain Node gate
+through the repo's own `vite.config.ts` — aliases, `import.meta.glob`, JSON
+imports — with Vite's SSR loader. No new dependency, and the same resolution the
+apps and the tests get.
+
+**Why:** `packages/core` reads the generated artifacts with `import.meta.glob`,
+so plain Node could not import it, and every gate that needed a value from core
+scraped the `.ts` with a regex or kept a hand copy "in sync". Each scrape then
+needed a guard against its own parser — a zero-parse check, a raw-count
+cross-check — and the guards caught only the failures someone had already
+thought of. Planted against the scrapers they replaced, all four of these went
+green on main and red after the change:
+
+| Gate | Planted defect | main | after |
+|---|---|---|---|
+| `check:measures` | an orphan criterion keyed in double quotes | ✓ pass | ✗ orphan |
+| `check:extract` | a mapper registered as `[SPIER_Q + '/PSS-Full']`, unclassified | ✓ pass | ✗ unclassified |
+| `check:catalog` | `TOOLS` filing SAFE-T under the wrong tool id | ✓ pass | ✗ pairing |
+| `check:catalog` | a dead launch path built from a constant | ✓ pass | ✗ dead route |
+
+Converted: `check:measures` (`implementedCriteria()`), `check:extract`
+(`MAPPED_QUESTIONNAIRE_URLS`), `check:scenarios` (`RISK_LEVEL_ORDER`'s keys),
+`check:reassessment` (`UCUM_DAYS`, which was a "keep in step" copy),
+`check:catalog` (`TOOL_UI_METADATA`, `TOOLS`, the data dictionary — and the
+tool-id pairing is now compared as behaviour, the running catalog against the
+identifiers, rather than as "tools.ts mentions the system URL"), and
+`check:outputs`' launch actions. `check:readers` keeps its static parse, because
+which FILE serves a canonical is a question about source, but cross-checks the
+parsed registry against the running one.
+
+**The rule.** A gate that needs a VALUE from core — a table, a registry, a set of
+keys — loads it. A gate whose subject is the SOURCE — which file a symbol lives
+in, what literal a reader passes, whether a string reaches the UI — stays static
+(AST or text), because the runtime cannot answer that.
+
+⚠️ **The React packages do not load.** `@spier/tool-views` fails under Vite's
+SSR loader on a CommonJS-ambiguous dependency, so `TOOL_VIEWS`' slugs are still
+scanned as text (`check:outputs`, `check:tool-view-routes`) with their zero-parse
+guards. Keep data a gate needs in `packages/core` where that is a real choice.
+
+⚠️ **A gate that loads core needs the generated tree, so it cannot run in the
+fast `lint-css` job.** Core imports `packages/fhir-artifacts/generated/`, which
+only `copy-fhir` builds and that job deliberately skips. `check:extract` and
+`check:readers` ran there until this change and moved out — they still run in
+`verify`; CI's `lint-css` failure on the first push is how that was found.
+
+⚠️ **The server closes before the modules are returned.** Every glob in core is
+`eager`, so a module is fully evaluated when it loads; a module that imported
+lazily at call time would throw after the close — loudly, the acceptable failure.
+
 ## App source roots — the `apps/` split's tripwire
 
 `scripts/lib/app-roots.mjs` — `appRoot(source)`, `appRootFloors()`. Six

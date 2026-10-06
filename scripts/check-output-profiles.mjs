@@ -88,11 +88,11 @@ import { fileURLToPath } from 'node:url'
 import { dirname, resolve, join } from 'node:path'
 import { reportFloors } from './lib/floors.mjs'
 import { APP_ROOTS, appRootFloors } from './lib/app-roots.mjs'
+import { loadCore } from './lib/load-core.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
 const genDir = join(root, 'packages/fhir-artifacts/generated')
-const catalogDir = join(root, 'packages/core/src/data/catalog')
 const runtimeDir = join(root, '.runtime-fhir')
 const TOOL_ID_SYSTEM_SUFFIX = '/tool-id'
 
@@ -221,15 +221,15 @@ if (slugs.size === 0) {
   )
 }
 
-const uiSrc = readFileSync(join(catalogDir, 'tool-ui-metadata.ts'), 'utf8')
+// The launch actions are read off TOOL_UI_METADATA itself (lib/load-core.mjs),
+// not regexed out of its source. The slugs above stay a text scan: they live in
+// a React module, and what this gate needs from it is the set of keys.
+const [catalog] = await loadCore(['@spier/core/data/catalog'])
 /** Tool id → the recorder slugs it can launch. */
 const recorderSlugs = new Map()
-for (const [, toolId, block] of uiSrc.matchAll(/^\s*'(TL-\d+)':\s*\{([\s\S]*?)^\s*\},/gm)) {
-  const actions = block.match(/launchActions:\s*\[([\s\S]*?)\]/)?.[1]
-  if (!actions) continue
-  for (const [obj] of actions.matchAll(/\{[^{}]*\}/g)) {
-    const path = obj.match(/path:\s*'([^']*)'/)?.[1]
-    if (path === undefined) continue
+for (const [toolId, meta] of Object.entries(catalog.TOOL_UI_METADATA)) {
+  for (const { path } of meta.launchActions ?? []) {
+    if (typeof path !== 'string') continue
     // A launch path may carry a query string naming which AD the panel opened
     // for — `…/cams-section-a?tool=TL-020`. The slug is the last path segment.
     const slug = path.split(/[?#]/)[0].replace(/\/+$/, '').split('/').pop()

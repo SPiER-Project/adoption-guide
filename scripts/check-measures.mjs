@@ -48,11 +48,11 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve, join } from 'node:path'
 import { reportFloors } from './lib/floors.mjs'
+import { loadCore } from './lib/load-core.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..') // repo root
 const fhirDir = join(root, 'packages/fhir-artifacts/generated')
-const enginePath = join(root, 'packages/core/src/lib/measures.ts')
 
 const MEASURE_POPULATION_SYSTEM = 'http://terminology.hl7.org/CodeSystem/measure-population'
 const GROUP_CODE_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-measure-group'
@@ -160,30 +160,20 @@ for (const m of measures) {
   }
 }
 
-// ─── Extract implemented criteria from the engine ────────────
-// Parsing the source rather than importing it: measures.ts uses Vite's
-// import.meta.glob, which plain node cannot resolve.
+// ─── The criteria the engine implements ──────────────────────
+// Read off the engine itself (`implementedCriteria()` — the keys of its
+// CRITERIA map), not parsed out of its source. This used to locate the map by
+// its exact declaration text and regex its keys, because measures.ts uses
+// Vite's import.meta.glob and plain node could not import it; a retyped
+// declaration or a key written in double quotes made the parse miss, and the
+// script carried two guards against its own parser. `lib/load-core.mjs` runs the
+// module through the repo's Vite config instead.
 
-const engineSrc = readFileSync(enginePath, 'utf8')
-const criteriaBlockStart = engineSrc.indexOf('const CRITERIA: Record<string, (ctx: Ctx) => boolean> = {')
-if (criteriaBlockStart === -1) {
-  console.error(
-    '[check:measures] could not locate the CRITERIA map in measures.ts. If it was renamed or retyped, update this script — do not delete the check.',
-  )
-  process.exit(1)
-}
-// The map ends at the first line that closes it at column 0.
-const afterStart = engineSrc.slice(criteriaBlockStart)
-const blockEnd = afterStart.indexOf('\n}\n')
-const criteriaBlock = afterStart.slice(0, blockEnd === -1 ? undefined : blockEnd)
-
-const implemented = new Set()
-for (const match of criteriaBlock.matchAll(/^\s{2}'([^']+)':/gm)) {
-  implemented.add(match[1])
-}
+const [engine] = await loadCore(['@spier/core/lib/measures'])
+const implemented = new Set(engine.implementedCriteria())
 
 if (implemented.size === 0) {
-  console.error('[check:measures] parsed zero criteria out of measures.ts — the parser is broken, not the code.')
+  console.error('[check:measures] the engine reports zero implemented criteria — a measure engine with nothing in it is not a pass.')
   process.exit(1)
 }
 

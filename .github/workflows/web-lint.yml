@@ -146,8 +146,11 @@ jobs:
       - name: Check raw-FHIR rendering
         run: npm run check:fhir-render
 
-      - name: Check observationExtract contract
-        run: npm run check:extract
+      # ⚠️ `check:extract` and `check:readers` USED to run here and no longer
+      # can. Both read core's mapper registry through scripts/lib/load-core.mjs
+      # (2026-10-06), and loading core imports the generated tree, which this
+      # job deliberately never builds — the same reason the RESOURCES half of
+      # check:scenarios is absent below. Both still run in `verify`.
 
       # Reads the canonical stage list straight from ig/input/fsh/ — no
       # copy-fhir needed, so it can run in this fast job.
@@ -165,15 +168,6 @@ jobs:
       # is how this split was found.)
       - name: Check scenario responses
         run: npm run check:scenarios:responses
-
-      # Does each mapper read an answer the way its Questionnaire declares it?
-      # (#327: the whole C-SSRS family read `valueBoolean` from items declared
-      # `choice`, so an endorsed screen derived "no risk".) Reads the mapper
-      # sources and the checked-in Questionnaires only — no copy-fhir needed,
-      # so it belongs in this fast job. It fails, rather than skipping, on a
-      # read it cannot resolve.
-      - name: Check mapper answer readers
-        run: npm run check:readers
 
   verify:
     runs-on: ubuntu-latest

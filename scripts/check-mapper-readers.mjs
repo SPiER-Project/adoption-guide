@@ -50,6 +50,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join, relative, resolve } from 'node:path'
 import ts from 'typescript'
 import { reportFloors } from './lib/floors.mjs'
+import { loadCore } from './lib/load-core.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
@@ -138,8 +139,10 @@ for (const m of indexSrc.matchAll(/import\s*\{([^}]+)\}\s*from\s*'\.\/([\w-]+)'/
 /** `[`${SPIER_Q}/Slug`]: mapX,` → file → canonical URLs */
 const canonicalsForFile = new Map()
 const SPIER_Q = 'http://thespierproject.org/fhir/Questionnaire'
+const parsedRegistry = new Set()
 for (const m of indexSrc.matchAll(/\[`\$\{SPIER_Q\}\/([^`]+)`\]:\s*(\w+)/g)) {
   const url = `${SPIER_Q}/${m[1]}`
+  parsedRegistry.add(url)
   const file = fileForSymbol.get(m[2])
   if (!file) {
     fail(`index.ts maps ${url} to ${m[2]}, which is not imported from a sibling module`)
@@ -150,6 +153,23 @@ for (const m of indexSrc.matchAll(/\[`\$\{SPIER_Q\}\/([^`]+)`\]:\s*(\w+)/g)) {
     continue
   }
   canonicalsForFile.set(file, [...(canonicalsForFile.get(file) ?? []), url])
+}
+
+// ⚠️ **The parse above is checked against the registry the app runs.** Which
+// FILE serves a canonical is a question about the source, so the parse stays —
+// but a registry entry written any other way than the regex expects would drop
+// out of it and be checked by nothing, with every remaining file still green.
+// `MAPPED_QUESTIONNAIRE_URLS` (loaded through lib/load-core.mjs) is the set the
+// dispatch actually uses; the two must agree exactly.
+const [mapperRegistry] = await loadCore(['@spier/core/lib/observationMappers'])
+const registered = new Set(mapperRegistry.MAPPED_QUESTIONNAIRE_URLS)
+for (const url of registered) {
+  if (!parsedRegistry.has(url)) {
+    fail(`index.ts registers ${url}, but this script's parse of index.ts did not see it — teach the parse that entry's shape; do not skip it`)
+  }
+}
+for (const url of parsedRegistry) {
+  if (!registered.has(url)) fail(`parsed ${url} out of index.ts, but the running registry does not contain it`)
 }
 
 const mapperFiles = readdirSync(mapperDir)

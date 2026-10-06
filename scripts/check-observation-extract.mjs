@@ -39,6 +39,7 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, resolve } from 'node:path'
+import { loadCore } from './lib/load-core.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..') // repo root
@@ -158,19 +159,13 @@ const fail = (msg) => { console.error(`✗ ${msg}`); failures++ }
 //
 // The "ought to be checked" set is DERIVED from the mapper registry rather than
 // restated here, so a fifteenth mapper is classified or this gate goes red.
-// Read as text: this is a node script and the registry is TypeScript.
-const registrySrc = readFileSync(
-  resolve(root, 'packages/core/src/lib/observationMappers/index.ts'),
-  'utf8',
-)
-const mappedCanonicals = [...registrySrc.matchAll(/\[`\$\{SPIER_Q\}(\/[^`]+)`\]:/g)].map(
-  (m) => `http://thespierproject.org/fhir/Questionnaire${m[1]}`,
-)
+// Read from the registry itself (`MAPPED_QUESTIONNAIRE_URLS`, through
+// lib/load-core.mjs) rather than regexed out of index.ts, which matched only the
+// one way an entry happened to be written.
+const [mappers] = await loadCore(['@spier/core/lib/observationMappers'])
+const mappedCanonicals = [...mappers.MAPPED_QUESTIONNAIRE_URLS]
 if (mappedCanonicals.length === 0) {
-  fail(
-    'observationMappers/index.ts: parsed no mapper canonicals — this rule reads that registry as ' +
-      'text, so a changed shape would make it vacuous rather than red',
-  )
+  fail('the mapper registry reports no canonicals — a registry with nothing in it is not a pass')
 }
 
 /** Questionnaire canonical → its path under ig/input/resources/questionnaires/. */

@@ -82,6 +82,7 @@ import { readAllRouteTables, routeResolves } from './lib/route-table.mjs'
 import { reportFloors } from './lib/floors.mjs'
 import { stripComments } from './lib/jsx-comments.mjs'
 import { appRoot, REPO_ROOT } from './lib/app-roots.mjs'
+import { loadCore } from './lib/load-core.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..') // repo root
@@ -175,13 +176,20 @@ if (activityDefs.length === 0) {
   fail(`no ActivityDefinition-*.json in ${fhirDir} — run \`npm run copy-fhir\``)
 }
 
-// ---- parse the hand-maintained catalog TS (regex, no compile) --------------
-const uiSrc = readFileSync(join(catalogDir, 'tool-ui-metadata.ts'), 'utf8')
+// ---- the catalog the app RUNS, loaded rather than scraped ------------------
+// TOOL_UI_METADATA, TOOLS and the data dictionary are read through
+// lib/load-core.mjs. Until 2026-10-06 they were regexed out of the .ts source,
+// and the script carried a guard per scrape — a zero-parse check, a raw
+// `path:` count cross-checked against the object parser — because the parser
+// was the weak link. Reading the values removes the parser, so those guards go
+// with it. `toolsSrc` stays for the one assertion below that is about the
+// source itself.
+const [catalog] = await loadCore(['@spier/core/data/catalog'])
+const TOOL_UI_METADATA = catalog.TOOL_UI_METADATA
 const toolsSrc = readFileSync(join(catalogDir, 'tools.ts'), 'utf8')
 
-// TOOL_UI_METADATA keys
-const uiIds = [...uiSrc.matchAll(/^\s*'(TL-\d+)':\s*\{/gm)].map((m) => m[1])
-if (uiIds.length === 0) fail('tool-ui-metadata.ts: no TOOL_UI_METADATA keys parsed — has the file shape changed?')
+const uiIds = Object.keys(TOOL_UI_METADATA)
+if (uiIds.length === 0) fail('TOOL_UI_METADATA is empty — a catalog with no UI metadata is not a pass')
 
 // ---- F: AD → tool id, read off the published identifiers -------------------
 // Until task C2 this pairing was a hand-written `AD_TO_TOOL_ID` map in tools.ts,
@@ -192,16 +200,11 @@ if (uiIds.length === 0) fail('tool-ui-metadata.ts: no TOOL_UI_METADATA keys pars
 // `ActivityDefinition.identifier` entries in TOOL_ID_SYSTEM, so the artifact
 // states them and both the app and this gate derive them.
 //
-// tools.ts must be READING them, not restating them. These two shape assertions
-// are what stop the derivation being quietly reverted: a reinstated hand map
-// would satisfy every other check in this file while the identifiers sat unread.
-if (!toolsSrc.includes(TOOL_ID_SYSTEM)) {
-  fail(
-    `tools.ts does not mention "${TOOL_ID_SYSTEM}" — the catalog is not deriving tool ids from ` +
-      `the published identifiers. It must read them off ActivityDefinition.identifier; see ` +
-      `ig/input/fsh/tool-id-identifier.fsh.`,
-  )
-}
+// tools.ts must be READING them, not restating them. The pairing the running
+// catalog uses is compared with this script's own reading of the identifiers
+// below, after `adToTool` is built — a reinstated hand map that disagreed with
+// the artifacts fails there. The assertion here is the design decision itself:
+// no hand map, and so no fallback for one to hide behind.
 if (/const\s+AD_TO_TOOL_ID\s*[:=]/.test(toolsSrc)) {
   fail(
     `tools.ts declares AD_TO_TOOL_ID again — the hand map was deleted in favour of the published ` +
@@ -249,6 +252,36 @@ if (adToTool.length === 0) {
     `no ActivityDefinition carries a tool-id identifier — this check reads them off the generated ` +
       `resources, so an empty read makes every id-space assertion below vacuous`,
   )
+}
+
+// The running catalog agrees with the identifiers, both ways. `TOOLS` is what
+// every surface renders and every launch button reads; comparing it with this
+// script's independent reading of `ActivityDefinition.identifier` is the check
+// that the catalog DERIVES the pairing, stated as behaviour rather than as
+// "tools.ts mentions the system URL", which a stale hand map beside the
+// derivation would also have satisfied.
+{
+  const adUrlById = new Map(activityDefs.map((ad) => [ad.id, stripVersion(ad.url)]))
+  const toolForAdUrl = new Map(adToTool.map((m) => [adUrlById.get(m.adId), m.toolId]))
+  let paired = 0
+  for (const tool of catalog.TOOLS) {
+    for (const url of tool.activityDefinitionUrls ?? []) {
+      paired++
+      const expected = toolForAdUrl.get(url)
+      if (expected !== tool.id) {
+        fail(
+          `the running catalog files ${url} under ${tool.id}, but its published tool-id identifier ` +
+            `says ${expected ?? '(none)'} — TOOLS is not reading ActivityDefinition.identifier`,
+        )
+      }
+    }
+  }
+  for (const [url, toolId] of toolForAdUrl) {
+    if (!catalog.TOOLS.some((t) => t.id === toolId && (t.activityDefinitionUrls ?? []).includes(url))) {
+      fail(`${url} is published as ${toolId}, but the running catalog has no such pairing`)
+    }
+  }
+  if (paired === 0) fail('the running catalog lists no ActivityDefinition urls — the pairing check compared nothing')
 }
 
 // A tool id on SEVERAL ActivityDefinitions is legitimate and load-bearing — the
@@ -556,14 +589,8 @@ for (const [, toolId] of presetsBlock.matchAll(/'(TL-\d+)'/g)) {
 // Informational: a core tool with no launch action cannot be enabled at all, so
 // mid-tier silently omits it. Not a failure — that is the normal state for a
 // core tool that is catalogued but not yet built — but it should be visible.
-const coreIds = [...uiSrc.matchAll(/^\s*'(TL-\d+)':\s*\{([\s\S]*?)^\s*\},/gm)]
-  .filter((m) => /inclusionStatus:\s*'core'/.test(m[2]))
-  .map((m) => m[1])
-const launchableIds = new Set(
-  [...uiSrc.matchAll(/^\s*'(TL-\d+)':\s*\{([\s\S]*?)^\s*\},/gm)]
-    .filter((m) => /launchActions:\s*\[\s*\{/.test(m[2]))
-    .map((m) => m[1]),
-)
+const coreIds = uiIds.filter((id) => TOOL_UI_METADATA[id].inclusionStatus === 'core')
+const launchableIds = new Set(uiIds.filter((id) => (TOOL_UI_METADATA[id].launchActions ?? []).length > 0))
 const coreNotLaunchable = coreIds.filter((id) => !launchableIds.has(id))
 console.log(
   `✓ presets: "common-mid-tier" and "maximalist" stay derived from the catalog ` +
@@ -593,14 +620,24 @@ console.log(
 // packages/fhir-artifacts/generated/ rather than fetching anything, so it belongs in `verify`
 // alongside the other drift checks.
 const SPIER_CS_PREFIX = 'http://thespierproject.org/fhir/CodeSystem/'
-const dictSrc = readFileSync(join(catalogDir, 'dataElements.ts'), 'utf8')
-// `system:` covers both a Concept/Binding `code` and a Binding `value`, since
-// #260 gave the value side its own `{ system, valueSet }` slot rather than the
-// interim `answerSystem` field. Kept as a source scrape rather than an import
-// because this script is plain Node and the catalog is TypeScript.
-const dictSystems = new Set(
-  [...dictSrc.matchAll(/\bsystem: '([^']+)'/g)].map((m) => m[1]),
-)
+// Every `system` and `valueSet` string anywhere in CONCEPTS and BINDINGS — a
+// Concept/Binding `code`, and a Binding `value`, which #260 gave its own
+// `{ system, valueSet }` slot. Walked over the loaded values rather than scraped
+// from the source, so a canonical built from a constant counts as much as one
+// written as a literal.
+function collectStrings(node, key, into) {
+  if (Array.isArray(node)) {
+    for (const n of node) collectStrings(n, key, into)
+  } else if (node && typeof node === 'object') {
+    for (const [k, v] of Object.entries(node)) {
+      if (k === key && typeof v === 'string') into.add(v)
+      else collectStrings(v, key, into)
+    }
+  }
+  return into
+}
+const dictionary = [catalog.CONCEPTS, catalog.BINDINGS]
+const dictSystems = collectStrings(dictionary, 'system', new Set())
 if (dictSystems.size === 0) {
   fail('dataElements.ts: no systems parsed — has the Binding shape changed?')
 }
@@ -616,9 +653,7 @@ if (dictSystems.size === 0) {
 // (`valueSetHref` in dataElements.ts → `ig/ValueSet-<id>.html`), which is what
 // makes this gate load-bearing rather than aspirational: it is the only thing
 // standing between a renamed ValueSet id and a 404 in the published IG.
-const dictValueSets = new Set(
-  [...dictSrc.matchAll(/\bvalueSet: '([^']+)'/g)].map((m) => m[1]),
-)
+const dictValueSets = collectStrings(dictionary, 'valueSet', new Set())
 const SPIER_VS_PREFIX = 'http://thespierproject.org/fhir/ValueSet/'
 const generatedVsIds = new Set(
   readdirSync(fhirDir)
@@ -683,25 +718,22 @@ console.log(
 // is a working button. The `*` catch-all deliberately does NOT count: landing
 // there IS the failure.
 const { paths: routePaths, redirects: routeRedirects, redirectTargets } = readAllRouteTables()
-const launchBlocks = [...uiSrc.matchAll(/^\s*'(TL-\d+)':\s*\{([\s\S]*?)^\s*\},/gm)]
 let launchChecked = 0
 let viaRedirect = 0
 // Failures counted for THIS section, so the summary line below cannot print a ✓
 // over a ✗ it just emitted. A green line above a red one is how a reader comes
 // away believing the wrong half of the output.
 const launchFailuresBefore = failures
-for (const [, toolId, block] of launchBlocks) {
-  const actions = block.match(/launchActions:\s*\[([\s\S]*?)\]/)?.[1]
-  if (!actions) continue
-  // Object-at-a-time, then fields — deliberately NOT one regex demanding
-  // `label` before `path`. That version silently skipped any action whose keys
-  // were written the other way round, which is a formatting choice nobody would
-  // think of as load-bearing. The completeness cross-check below is what caught
-  // it; this is the fix.
-  for (const [obj] of actions.matchAll(/\{[^{}]*\}/g)) {
-    const path = obj.match(/path:\s*'([^']*)'/)?.[1]
-    if (path === undefined) continue
-    const label = obj.match(/label:\s*'([^']*)'/)?.[1] ?? '(unlabelled)'
+// Every declared action, read off TOOL_UI_METADATA itself. This walked the
+// source with an object-at-a-time regex and cross-checked it against a raw count
+// of `path:` in the file, because the parser had already once skipped every
+// action whose keys were written `path` before `label` — "34 of 36 parsed" is
+// the scrape failure that survives review. Reading the values leaves nothing to
+// skip; the floor below is all that remains of that guard.
+for (const [toolId, meta] of Object.entries(TOOL_UI_METADATA)) {
+  for (const action of meta.launchActions ?? []) {
+    const { path, label = '(unlabelled)' } = action
+    if (typeof path !== 'string') continue
     launchChecked++
     // ⚠️ A launch path may carry a query string — `…/cams-section-a?tool=TL-020`
     // names which of the CAMS SSF-5's four ADs the panel opened for. The route
@@ -719,24 +751,8 @@ for (const [, toolId, block] of launchBlocks) {
     if (routeRedirects.has(routePart)) viaRedirect++
   }
 }
-// ⚠️ Completeness cross-check, not decoration. The loop above walks structured
-// `{ label, path }` objects; this counts `path:` occurrences in the raw file. If
-// the two disagree, the object parser has stopped seeing some actions and is
-// reporting green over the ones it skipped — the #232 / #261 shape. Compared
-// rather than trusted, because "0 parsed" is only the most obvious way for a
-// scrape to check nothing; "34 of 36 parsed" is the one that survives review.
-const rawPathCount = (uiSrc.match(/\bpath:\s*'/g) ?? []).length
 if (launchChecked === 0) {
-  fail(
-    `tool-ui-metadata.ts: parsed no launch action paths, so this check verified nothing. ` +
-      `Has the launchActions shape changed?`,
-  )
-} else if (launchChecked !== rawPathCount) {
-  fail(
-    `tool-ui-metadata.ts: checked ${launchChecked} launch path(s) but the file contains ` +
-      `${rawPathCount} \`path:\` declaration(s) — the launch-action parser is skipping ` +
-      `${Math.abs(rawPathCount - launchChecked)} of them and reporting green over the gap.`,
-  )
+  fail('TOOL_UI_METADATA declares no launch action paths, so this check verified nothing.')
 }
 // The panel's own landing route belongs in the same check, and was the one
 // target with NO coverage of any kind: `SmartRedirect` navigates there after a
