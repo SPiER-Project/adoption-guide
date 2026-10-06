@@ -589,7 +589,7 @@ Usage: #definition
 * action[+]
   * id = "report-suicide-safer-care-measures"
   * title = "Report Suicide-Safer Care KPIs / Measures"
-  * description = "Calculate the seven SPiER suicide-safer care Measures — screen-to-assessment, risk status documented, safety plan before discharge, lethal means counseling, follow-up timeliness at 48h/7d/30d, caring-contact adherence, and referral loop closure — and emit MeasureReports."
+  * description = "Calculate the eight SPiER suicide-safer care Measures — screen-to-assessment, risk status documented, safety plan before discharge, lethal means counseling, follow-up timeliness at 48h/7d/30d, caring-contact adherence, referral loop closure, and reassessment on time — and emit MeasureReports."
   * definitionCanonical = "http://thespierproject.org/fhir/ActivityDefinition/ReportSuicideSaferCareMeasures"
   * output[+]
     * type = #MeasureReport

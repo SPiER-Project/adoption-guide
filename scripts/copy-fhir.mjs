@@ -31,16 +31,29 @@ const destDir = join(repoRoot, 'packages', 'fhir-artifacts', 'generated')
 // produces byte-identical artifacts (see the staleness check below).
 const fshInputDir = join(igDir, 'input', 'fsh')
 const sushiConfig = join(igDir, 'sushi-config.yaml')
-// Hand-authored Questionnaire JSON. Not a SUSHI input — SUSHI never reads it —
-// but it IS an input to `writeInstrumentItemCodes()`,
+// Hand-authored Questionnaire JSON. An input to `writeInstrumentItemCodes()`,
 // `writeQuestionnaireOrdinals()` and `writeQuestionnaireUrls()` below, so editing
-// a Questionnaire has to
-// invalidate this script's output. Leaving it out is the bug the phase-2 plan
-// flagged in advance: the generated lookup would sit there stale while the
-// Questionnaire it was derived from had moved on. ⚠️ For the ordinals that is
-// not merely stale metadata — a stale weight scores an instrument wrongly and
-// plausibly, with nothing to notice it.
+// a Questionnaire has to invalidate this script's output. Leaving it out is the
+// bug the phase-2 plan flagged in advance: the generated lookup would sit there
+// stale while the Questionnaire it was derived from had moved on. ⚠️ For the
+// ordinals that is not merely stale metadata — a stale weight scores an
+// instrument wrongly and plausibly, with nothing to notice it.
 const questionnairesDir = join(repoRoot, 'ig/input/resources/questionnaires')
+
+// ⚠️ **SUSHI's predefined resources are inputs too.** SUSHI loads every JSON/XML
+// resource under its predefined-resource folders and every `path-resource`
+// folder in sushi-config.yaml (its log says so: "Found 6 non-JSON / non-XML
+// file(s) in directory: …/ig/input/resources/maps"), and FSH can bind to,
+// derive from or reference them — so their content shapes the output. This
+// list fingerprinted only the Questionnaires until 2026-10-06, and a planted
+// ValueSet under `resources/maps/`, bound by a profile and then edited, left
+// copy-fhir reporting "up to date" over a stale binding. Missing folders
+// contribute nothing; a `path-resource` entry outside these folders must be
+// added here (sushi-config.yaml itself is fingerprinted, so adding one at
+// least forces one rebuild).
+const SUSHI_PREDEFINED_DIRS = [
+  'capabilities', 'examples', 'extensions', 'models', 'operations', 'profiles', 'resources', 'vocabulary',
+].map((d) => join(igDir, 'input', d))
 // The TypeScript artifacts this script emits.
 const carePlanProfilesTsPath = join(destDir, 'care-plan-profiles.generated.ts')
 const observationProfilesTsPath = join(destDir, 'observation-profiles.generated.ts')
@@ -88,9 +101,9 @@ function log(msg) {
 // What counts as an input:
 //   - everything under ig/input/fsh/ (the FSH source of truth)
 //   - ig/sushi-config.yaml (canonical, version, dependencies — all shape output)
-//   - everything under ig/input/resources/questionnaires/ (the hand-authored Questionnaire JSON that
-//     instrument-signatures.generated.ts is derived from). SUSHI does not read
-//     this tree, so it was not an input while the only codegen read SUSHI output.
+//   - everything under SUSHI's predefined-resource folders (ig/input/resources/**
+//     and its siblings — SUSHI_PREDEFINED_DIRS), which includes the hand-authored
+//     Questionnaire JSON the generated TypeScript is derived from.
 //   - this script itself (its copy/exclude/codegen logic shapes the output too)
 //
 // What counts as output:
@@ -170,7 +183,8 @@ function fingerprintFiles(paths) {
 // Everything whose content determines the generated tree. Kept in one place so
 // the "What counts as an input" list above has exactly one implementation.
 function inputPaths() {
-  return [sushiConfig, scriptPath, ...walkFiles(fshInputDir), ...walkFiles(questionnairesDir)]
+  // questionnairesDir sits inside ig/input/resources, so it is covered here.
+  return [sushiConfig, scriptPath, ...walkFiles(fshInputDir), ...SUSHI_PREDEFINED_DIRS.flatMap(walkFiles)]
 }
 
 function inputsFingerprint() {
@@ -876,15 +890,20 @@ if (noCompile) {
   writeQuestionnaireOrdinals()
   writeQuestionnaireUrls()
   writeStageIdType()
-  // This tree is as legitimate as a compiled one — it came from the same SUSHI
-  // output, just downloaded as an artifact instead of produced here — so record
-  // it, and let a later plain `copy-fhir` in the same job skip.
-  writeManifest()
+  // ⚠️ NO manifest. A manifest says "this tree was compiled from these inputs",
+  // and this branch cannot know that: it copies whatever ig/fsh-generated holds.
+  // It used to write one anyway, recording the CURRENT inputs' fingerprint over
+  // the copied tree — so after an FSH edit, `--no-compile` over a stale
+  // ig/fsh-generated followed by a plain `copy-fhir` reported "up to date" and
+  // every gate ran on the old tree. clearDest() removed any earlier manifest, so
+  // the next plain run compiles. (CI's one caller, ig.yml's validate job, runs no
+  // plain copy-fhir after it.)
+  log('copied without compiling — no manifest written, so the next plain copy-fhir will compile')
   process.exit(0)
 }
 if (!force && isUpToDate()) {
   log('FHIR artifacts are up to date with their sources — skipping SUSHI compile.')
-  log('(Edit any .fsh, sushi-config.yaml or ig/input/resources/questionnaires/ file to trigger a rebuild, or run with --force.)')
+  log('(Edit any .fsh, sushi-config.yaml or ig/input/resources/** file to trigger a rebuild, or run with --force.)')
   process.exit(0)
 }
 

@@ -18,7 +18,8 @@
  * could. So there are THREE representations of one rule (PlanDefinition, the app,
  * the CQL) and this is the one place that asserts they agree.
  *
- * It checks five things:
+ * It checks six things (the sixth: the app's REASSESSMENT_INTERVAL_DAYS equals
+ * the PlanDefinition's cadence in days, tier for tier, both ways):
  *   1. Every action's `code` names a tier that exists in SPiERSuicideRiskTier.
  *   2. Every action's FHIRPath mentions that same tier code.
  *   3. Every action carries a usable `timingDuration` in a unit the app reads.
@@ -28,8 +29,20 @@
  *   5. The CQL's ReassessmentIntervalDays agrees with the PlanDefinition, tier
  *      for tier and in both directions.
  *
- * Run from web/ as `npm run check:reassessment`. Reads generated FHIR, so
- * `copy-fhir` must have run first (verify does that).
+ * Every comparison is in DAYS. The PlanDefinition's `timingDuration` is
+ * converted through core's own `UCUM_DAYS`, and the app's value is read
+ * directly — `REASSESSMENT_INTERVAL_DAYS`, which is what the work queue runs on.
+ * Until 2026-10-06 this compared the raw `timingDuration.value` to the CQL and
+ * never read the app at all, so `7 'wk'` (49 days to the app) agreed with a CQL
+ * 7, and `1 'wk'` (7 days, correct) failed; the summary line nonetheless said
+ * "app … in step".
+ *
+ * The CQL is read as text (the publisher, not this script, compiles it), with
+ * comments stripped first — a `// was: when 'high' then 7` beside a changed
+ * branch used to be read as the branch.
+ *
+ * Run at the repo root as `npm run check:reassessment`. Reads generated FHIR,
+ * so `copy-fhir` must have run first (verify does that).
  */
 import { readFileSync, existsSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
@@ -53,6 +66,41 @@ const TIER_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-ri
  */
 const [reassessment] = await loadCore(['@spier/core/lib/reassessment'])
 const READABLE_UNITS = new Set(Object.keys(reassessment.UCUM_DAYS))
+/** Tier → days, as the APP computes it from the same PlanDefinition. */
+const APP_DAYS = reassessment.REASSESSMENT_INTERVAL_DAYS
+
+/** A `timingDuration` in days, through the app's own unit table; undefined if unreadable. */
+const durationDays = (d) =>
+  d && typeof d.value === 'number' && reassessment.UCUM_DAYS[d.code ?? 'd'] !== undefined
+    ? d.value * reassessment.UCUM_DAYS[d.code ?? 'd']
+    : undefined
+
+/**
+ * CQL source with `//` and `/* *\/` comments removed, leaving quoted text
+ * ('…', "…", `…`) intact — a canonical URL's `//` is not a comment.
+ */
+function stripCqlComments(src) {
+  let out = ''
+  for (let i = 0; i < src.length; i++) {
+    const c = src[i]
+    if (c === "'" || c === '"' || c === '`') {
+      const end = src.indexOf(c, i + 1)
+      const stop = end === -1 ? src.length : end + 1
+      out += src.slice(i, stop)
+      i = stop - 1
+    } else if (c === '/' && src[i + 1] === '/') {
+      const nl = src.indexOf('\n', i)
+      i = (nl === -1 ? src.length : nl) - 1
+    } else if (c === '/' && src[i + 1] === '*') {
+      const end = src.indexOf('*/', i + 2)
+      i = (end === -1 ? src.length : end + 2) - 1
+      out += ' '
+    } else {
+      out += c
+    }
+  }
+  return out
+}
 
 /**
  * Tiers that must NOT have an interval, and why. Encoded here rather than only
@@ -164,13 +212,32 @@ for (const action of actions) {
   }
 }
 
+/* ─── The app's reading of the same schedule ────────────────── */
+// The app derives its intervals from this PlanDefinition, so disagreement here
+// means its reader dropped or mis-converted something — the failure "the
+// interval would be silently dropped" above describes, observed rather than
+// inferred from the unit list.
+
+for (const [tier, actionId] of seen) {
+  const planDays = durationDays(actions.find((a) => a.id === actionId)?.timingDuration)
+  if (APP_DAYS[tier] !== planDays) {
+    fail(
+      `tier "${tier}": PlanDefinition says ${planDays} days, the app (REASSESSMENT_INTERVAL_DAYS) ` +
+        `says ${APP_DAYS[tier]} — the work queue would not run on the published cadence`,
+    )
+  }
+}
+for (const tier of Object.keys(APP_DAYS)) {
+  if (!seen.has(tier)) fail(`the app has a ${APP_DAYS[tier]}-day cadence for tier "${tier}" the PlanDefinition does not publish`)
+}
+
 /* ─── The CQL's restatement of the same intervals ───────────── */
 
 let cqlPairs = null
 if (!existsSync(CQL)) {
   fail(`${CQL} is missing — the CQL library restates these intervals and cannot be compared`)
 } else {
-  const cql = readFileSync(CQL, 'utf8')
+  const cql = stripCqlComments(readFileSync(CQL, 'utf8'))
   const fn = cql.match(/define function ReassessmentIntervalDays\(tier String\):([\s\S]*?)\n\s*end/)
   if (!fn) {
     fail(
@@ -193,7 +260,7 @@ if (!existsSync(CQL)) {
       }
     }
     for (const [tier, actionId] of seen) {
-      const planDays = actions.find((a) => a.id === actionId)?.timingDuration?.value
+      const planDays = durationDays(actions.find((a) => a.id === actionId)?.timingDuration)
       if (!cqlPairs.has(tier)) {
         fail(
           `the PlanDefinition publishes a ${planDays}-day cadence for tier "${tier}" but the CQL ` +
@@ -217,7 +284,7 @@ if (errors.length > 0) {
 }
 
 const summary = [...seen.entries()]
-  .map(([tier, id]) => `${tier}=${actions.find(a => a.id === id)?.timingDuration?.value}${actions.find(a => a.id === id)?.timingDuration?.code}`)
+  .map(([tier, id]) => `${tier}=${durationDays(actions.find(a => a.id === id)?.timingDuration)}d (app ${APP_DAYS[tier]}d, CQL ${cqlPairs?.get(tier)}d)`)
   .join(', ')
 console.log(`✓ reassessment: ${actions.length} tier cadence(s) — ${summary}`)
 console.log(

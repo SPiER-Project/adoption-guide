@@ -2,7 +2,7 @@
  * Stage-8 (Measure and Share) measure engine — the runtime counterpart to
  * ig/input/fsh/measure-and-share.fsh.
  *
- * Computes the seven SPiER suicide-safer care measures over a patient's FHIR
+ * Computes the eight SPiER suicide-safer care measures over a patient's FHIR
  * slice and assembles MeasureReports from the results. This is the executable
  * reference implementation of the population criteria — it is what the app runs
  * and what `npm test` covers.
@@ -210,7 +210,7 @@ export const MEASURE_SPECS: MeasureSpec[] = MEASURES.map(m => ({
   }),
 }))
 
-/** Every criterion expression any Measure references. Used by check:measures. */
+/** Every criterion expression any Measure references. Used by tests/measures.test.ts (check:measures reads the Measures itself). */
 export function referencedCriteria(): string[] {
   const names = new Set<string>()
   for (const m of MEASURE_SPECS) {

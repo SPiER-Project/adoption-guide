@@ -16,8 +16,10 @@
  * is no TS runtime in this package other than vitest (no tsx, no vite-node), and
  * adding one for a code generator is a worse trade than this: the file runs as a
  * normal test — asserting the builders produce what we expect — and *also* writes
- * the resources to a gitignored directory for `scripts/validate-runtime-fhir.mjs`
- * to validate. The side effect is deliberate and the directory is disposable.
+ * the resources to a gitignored directory (`.runtime-fhir`) for
+ * `node scripts/validate-fhir.mjs --also .runtime-fhir` to validate, and for
+ * `check:outputs` / `check:published-profiles` to read. The side effect is
+ * deliberate and the directory is disposable.
  *
  * ── Inputs ───────────────────────────────────────────────────────────────────
  *
@@ -45,6 +47,7 @@ import { fileURLToPath } from 'node:url'
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
 import { deriveFromResponse } from '@spier/core/lib/deriveFromResponse'
 import { MAPPED_QUESTIONNAIRE_URLS } from '@spier/core/lib/observationMappers'
+import { stripCanonicalVersion } from '@spier/core/data/catalog'
 import {
   generateCarePlan,
   generateStabilizationCarePlan,
@@ -110,17 +113,99 @@ function igExampleResponses(): { name: string; qr: QuestionnaireResponseResource
   return out
 }
 
+/**
+ * Scenario `responses` entries this emitter could not use — anything whose
+ * `resource` is not a QuestionnaireResponse. Collected rather than dropped:
+ * filtering them out silently is how a `resourceType` typo removed a patient's
+ * PHQ-9 from the emitted corpus with every gate green. A test below fails on
+ * any entry here.
+ */
+const unusableScenarioResponses: string[] = []
+
 /** Every QuestionnaireResponse the shipped scenarios contain. */
 function scenarioResponses(): { name: string; qr: QuestionnaireResponseResource }[] {
   const out: { name: string; qr: QuestionnaireResponseResource }[] = []
-  for (const scenario of Object.values(POPULATION_SCENARIOS)) {
+  unusableScenarioResponses.length = 0
+  for (const [patientId, scenario] of Object.entries(POPULATION_SCENARIOS)) {
     for (const sr of scenario.responses ?? []) {
       if (sr?.resource?.resourceType === 'QuestionnaireResponse') {
         out.push({ name: sr.questionnaireName ?? String(sr.id), qr: sr.resource })
+      } else {
+        unusableScenarioResponses.push(
+          `${patientId} responses entry ${String(sr?.id)}: resourceType ${JSON.stringify(
+            (sr?.resource as { resourceType?: unknown } | undefined)?.resourceType,
+          )}`,
+        )
       }
     }
   }
   return out
+}
+
+/** Every profile the IG publishes, canonical → constrained type. */
+function publishedProfiles(): Map<string, string> {
+  const out = new Map<string, string>()
+  for (const entry of readdirSync(GENERATED_DIR)) {
+    if (!entry.startsWith('StructureDefinition-') || !entry.endsWith('.json')) continue
+    const sd = JSON.parse(readFileSync(join(GENERATED_DIR, entry), 'utf8')) as {
+      url?: string
+      type?: string
+      kind?: string
+      derivation?: string
+    }
+    if (sd.url && sd.kind === 'resource' && sd.derivation === 'constraint') out.set(sd.url, sd.type ?? '')
+  }
+  return out
+}
+
+/**
+ * Questionnaire canonical → the output profiles DECLARED for the types an
+ * instrument mapper writes, by the PlanDefinition action that administers it.
+ * Read off the published wiring — `PlanDefinition.action.definitionCanonical`
+ * → that ActivityDefinition's `depends-on` Questionnaire — so there is no hand
+ * list here to drift.
+ *
+ * ⚠️ Joined per ACTIVITYDEFINITION, not per tool. TL-020 is one tool over five
+ * CAMS forms, and each form's action declares its own outputs (Section B a
+ * Condition, Outcome/Disposition a disposition Observation); pooling them by
+ * tool demands that Section A produce a disposition it has no items for.
+ */
+const MAPPER_OUTPUT_TYPES = new Set(['Observation', 'Condition'])
+function declaredMapperProfiles(): Map<string, Set<string>> {
+  const questionnairesByAd = new Map<string, string[]>()
+  for (const entry of readdirSync(GENERATED_DIR)) {
+    if (!entry.startsWith('ActivityDefinition-') || !entry.endsWith('.json')) continue
+    const ad = JSON.parse(readFileSync(join(GENERATED_DIR, entry), 'utf8')) as {
+      url?: string
+      relatedArtifact?: { type?: string; resource?: string }[]
+    }
+    if (!ad.url) continue
+    questionnairesByAd.set(
+      stripCanonicalVersion(ad.url),
+      (ad.relatedArtifact ?? [])
+        .filter(r => r.type === 'depends-on' && r.resource?.includes('/Questionnaire/'))
+        .map(r => stripCanonicalVersion(String(r.resource))),
+    )
+  }
+  const byQuestionnaire = new Map<string, Set<string>>()
+  for (const entry of readdirSync(GENERATED_DIR)) {
+    if (!entry.startsWith('PlanDefinition-') || !entry.endsWith('.json')) continue
+    const pd = JSON.parse(readFileSync(join(GENERATED_DIR, entry), 'utf8')) as {
+      action?: { definitionCanonical?: string; output?: { type?: string; profile?: string[] }[] }[]
+    }
+    for (const action of pd.action ?? []) {
+      if (!action.definitionCanonical) continue
+      for (const q of questionnairesByAd.get(stripCanonicalVersion(action.definitionCanonical)) ?? []) {
+        const set = byQuestionnaire.get(q) ?? new Set<string>()
+        for (const out of action.output ?? []) {
+          if (!MAPPER_OUTPUT_TYPES.has(out.type ?? '')) continue
+          for (const p of out.profile ?? []) set.add(p)
+        }
+        byQuestionnaire.set(q, set)
+      }
+    }
+  }
+  return byQuestionnaire
 }
 
 /** Run every production builder. Returns resources tagged with their origin. */
@@ -429,9 +514,52 @@ describe('runtime FHIR emission', () => {
     }
   })
 
-  it('every emitted resource claims a profile or is a plain typed resource', () => {
+  it('uses every scenario response — none is dropped for not being a QuestionnaireResponse', () => {
+    scenarioResponses()
+    expect(unusableScenarioResponses, 'scenario responses entries the emitter cannot use').toEqual([])
+  })
+
+  /**
+   * ⚠️ **Per response, not per corpus.** `check:outputs` and
+   * `check:published-profiles` both ask whether a profile is claimed ANYWHERE in
+   * the emitted tree, so when three C-SSRS mappers share one declared profile and
+   * one of them stops stamping it, the other two keep both gates green — and the
+   * validator never checks a profile nothing claims. Asked of each response, the
+   * question has no such cover: every result derived from a response claims every
+   * Observation/Condition profile its tool's PlanDefinition action declares.
+   */
+  it('every instrument result claims each output profile its tool declares', () => {
+    const declared = declaredMapperProfiles()
+    const gaps: string[] = []
+    let checked = 0
+    for (const { name, qr } of [...scenarioResponses(), ...igExampleResponses()]) {
+      const canonical = stripCanonicalVersion(String(qr.questionnaire ?? ''))
+      const wanted = declared.get(canonical)
+      const derived = deriveFromResponse(qr)?.observations ?? []
+      if (!wanted?.size || derived.length === 0) continue
+      checked++
+      const claimed = new Set(
+        derived.flatMap(r => ((r as { meta?: { profile?: string[] } }).meta?.profile ?? [])),
+      )
+      for (const p of wanted) {
+        if (!claimed.has(p)) gaps.push(`${name} (${canonical.split('/').pop()}): no derived result claims ${p}`)
+      }
+    }
+    expect(gaps).toEqual([])
+    // Liveness: the join above reads the PlanDefinitions and the catalog, and an
+    // empty join would make this test pass having asked nothing.
+    expect(checked).toBeGreaterThan(15)
+  })
+
+  it('every emitted resource is typed, and every profile it claims is one the IG publishes for that type', () => {
+    const published = publishedProfiles()
+    expect(published.size).toBeGreaterThan(15)
     for (const { origin, resource } of emitted) {
       expect(resource.resourceType, `${origin} has no resourceType`).toBeTruthy()
+      for (const p of (resource as { meta?: { profile?: string[] } }).meta?.profile ?? []) {
+        expect(published.has(p), `${origin} claims ${p}, which the IG does not publish`).toBe(true)
+        expect(published.get(p), `${origin} claims ${p} on a ${resource.resourceType}`).toBe(resource.resourceType)
+      }
     }
   })
 

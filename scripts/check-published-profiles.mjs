@@ -44,10 +44,12 @@
  *
  * ⚠️ **What this gate cannot see.** It checks that a profile is claimed *at
  * all*, not that every resource which ought to claim it does. Two builders can
- * emit the same shape while only one stamps it, and this passes — the C-SSRS
- * variants are four builders behind one profile, and it would notice nothing if
- * three of them stopped stamping. `check:outputs` has the same blind spot from
- * the other direction. Neither is a substitute for the validator.
+ * emit the same shape while only one stamps it, and this passes — three C-SSRS
+ * mappers sit behind one profile, and it notices nothing when one stops
+ * stamping. `check:outputs` has the same blind spot from the other direction,
+ * and the validator never checks a profile nothing claims. That case is held per
+ * response by `tests/runtimeFhir.emit.test.ts` ("every instrument result claims
+ * each output profile its tool declares").
  *
  * ⚠️ **Corpus freshness is NOT re-checked here.** `check:outputs` already
  * asserts `.runtime-fhir` is newer than the builders that produce it, runs in

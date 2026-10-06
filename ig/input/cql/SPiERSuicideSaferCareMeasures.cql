@@ -25,7 +25,7 @@
  * ─── THIS FILE IS COMPILED. Do not treat it as prose. ───────
  *
  * The IG Publisher translates it to ELM on every run and attaches the result to
- * Library/SPiERSuicideSaferCareMeasures, which all seven Measures reference via
+ * Library/SPiERSuicideSaferCareMeasures, which all eight Measures reference via
  * `Measure.library`. A translation error is a publisher error, and
  * `ig-publish.yml` fails the build on it.
  *

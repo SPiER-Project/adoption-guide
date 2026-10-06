@@ -280,6 +280,12 @@ npm run check:patients   # the 14 demo patients' demographics agree across all T
 npm run check:scenarios  # BOTH halves of the population-scenario gate:
                          #  check-scenario-responses.mjs — QuestionnaireResponses vs their
                          #    Questionnaire (linkIds, nesting, answer options, ranges)
+                         #  ⚠️ it FAILS an entry that is not a QuestionnaireResponse
+                         #    (it skipped one until 2026-10-06, so a resourceType typo
+                         #    dropped a patient's PHQ-9 from every gate and from the
+                         #    emitter); it walks `answer[].item` as well as `item.item`;
+                         #    and an item offering answerOptions takes one of them in
+                         #    ANY value[x] — a valueString on a coded choice used to pass
                          #  ⚠️ the `responses` bucket is ALSO walked by
                          #    check-scenario-resources.mjs, but for exactly two rules:
                          #    the patient link and `authored` (#364). It was owned by
@@ -297,17 +303,36 @@ npm run check:scenarios  # BOTH halves of the population-scenario gate:
                          #    CONTRADICTED case — a claim with NO related CarePlan is
                          #    unverifiable, not false (the copy may be in the attachment),
                          #    and p009 is deliberately left green
-npm run check:dates      # the scenario fixtures' clinical dates are still coherent
-                         # RELATIVE TO their anchor — a `fulfilled` appointment dated
-                         # next week, a reassessment overdue by months. Default is
-                         # --check (validates what is on disk and writes nothing);
-                         # `--apply` is the separate re-dating command, so the script's
-                         # name says "shift" while the gate only reads
+                         #  ⚠️ and every in-scenario `reference` resolves (check 10):
+                         #    any ref to a type the buckets hold must name a resource in
+                         #    THIS scenario, any Patient ref this patient. Until
+                         #    2026-10-06 only the subject, the encounter, the episode
+                         #    trigger and walkthrough refs were resolved, so a dangling
+                         #    `derivedFrom` or `context.related` passed — and the second
+                         #    also slipped past the #303 rule above. The bucket table
+                         #    comes from core (`PATIENT_SLICE_FHIR_BUCKETS`, typed
+                         #    against PatientSlice), not a copy
+npm run check:dates      # nothing that already happened is dated AFTER the anchor —
+                         # a `fulfilled` appointment next week, a QR authored or a
+                         # Procedure performed next month. An UPPER bound only:
+                         # ⚠️ it cannot see staleness (a fixture back-dated a year,
+                         # or the whole set drifting behind today), deliberately — a
+                         # bound tied to today would go red by the calendar alone.
+                         # Until 2026-10-06 it read the `responses` WRAPPERS rather
+                         # than the QRs inside them, and so checked no QR date at all.
+                         # Default is --check (validates what is on disk and writes
+                         # nothing); `--apply` is the separate re-dating command, so
+                         # the script's name says "shift" while the gate only reads
 npm run check:measures   # Stage-8 Measure criteria vs the measures.ts engine
 npm run check:reassessment # the per-tier reassessment cadence agrees across all THREE
                          # places it is stated: the PlanDefinition (FHIRPath condition
                          # *and* action.code), the app, and the CQL's
-                         # ReassessmentIntervalDays. Also that the tiers deliberately
+                         # ReassessmentIntervalDays — compared in DAYS (the
+                         # PlanDefinition's unit converted by core's UCUM_DAYS, the
+                         # app's REASSESSMENT_INTERVAL_DAYS read directly, CQL
+                         # comments stripped). Until 2026-10-06 it compared the raw
+                         # value and never read the app, so `7 'wk'` passed and
+                         # `1 'wk'` failed. Also that the tiers deliberately
                          # left out (imminent, no-risk) stay out — an interval
                          # appearing for `imminent` would answer an open clinical
                          # question by accident
@@ -421,12 +446,13 @@ The IG can publish one, the app can never write one, and there is nothing to
 compare.
 
 ⚠️ **The gap was real when this gate was written.**
-`spier-suicide-risk-concept` is published, is read by a Stage-8 measure
-(`measures.ts`: `conformsTo(o, RISK_CONCEPT_PROFILE)`), and is claimed by
-**nothing the app emits** — the only two instances anywhere in the repo are
-hand-authored entries in the demo scenarios. So the measure computes a number
-off seeded fixtures and would report **zero** in a real deployment. TL-009's
-shape one layer up.
+`spier-suicide-risk-concept` was published, was read by a Stage-8 measure
+(`measures.ts`: `conformsTo(o, RISK_CONCEPT_PROFILE)`), and was claimed by
+**nothing the app emitted** — the only two instances anywhere in the repo were
+hand-authored entries in the demo scenarios. So the measure computed a number
+off seeded fixtures and would have reported **zero** in a real deployment.
+TL-009's shape one layer up. Its exemption expired on 2026-10-06, when
+`riskConcept.ts` began deriving the concept from every instrument result.
 
 ⚠️ **`validate-fhir.mjs` cannot cover this either**, for the reason
 [`fhir-conformance.md`](fhir-conformance.md) gives: a validator checks a
@@ -444,18 +470,20 @@ fixed gap deletes its own exemption instead of leaving a stale claim that the
 app does not write something it now does. An entry naming a profile the IG no
 longer publishes fails too.
 
-Two entries at the time of writing, and they are different kinds of thing:
-
-| Entry | Kind |
-|---|---|
-| `spier-suicide-related-condition` | a **decision** — writeback Tier 3, default off; SPiER proposes the problem-list entry through a CDS card and a clinician asserts it |
-| `spier-suicide-risk-concept` | a **debt**, written down so it is legible rather than silent |
+One entry today, and it is a **decision**, not a debt:
+`spier-suicide-related-condition` — writeback Tier 3, default off; SPiER
+proposes the problem-list entry through a CDS card and a clinician asserts it.
+(`spier-suicide-risk-concept` sat beside it as a debt until it expired, above.)
 
 ⚠️ **What it cannot see.** It checks a profile is claimed *at all*, not that
-every builder which ought to claim it does. Four C-SSRS variants sit behind one
-profile, and it would notice nothing if three stopped stamping —
-`check:outputs` has the same blind spot from the other direction. Neither is a
-substitute for the validator.
+every builder which ought to claim it does: three C-SSRS mappers sit behind one
+profile, and with one of them unstamped both this gate and `check:outputs` stay
+green — and so does the validator, which never checks a profile nothing claims.
+That case is held by the EMITTER instead: `runtimeFhir.emit.test.ts` asserts,
+per response, that the results derived from it claim every Observation/Condition
+profile its PlanDefinition action declares (joined per ActivityDefinition, read
+off the generated wiring). Planted 2026-10-06: `cssrsFull.ts` unstamped → both
+gates green, that test red.
 
 ⚠️ **It does not re-check corpus freshness.** `check:outputs` already asserts
 `.runtime-fhir` is newer than the builders that produce it, runs in the same
