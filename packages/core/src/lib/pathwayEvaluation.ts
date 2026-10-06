@@ -265,22 +265,42 @@ function assessmentArtifacts(slice: PatientSlice): Dated<FhirResourceLike>[] {
 }
 
 /**
- * Whether a screen found anything.
+ * Every screen result that found something, oldest first.
  *
  * The published gate is "item 9 ≥ 1, or a result that crosswalks above
  * no-risk" — never `RiskAlert.level`, which is an instrument's own reading of
  * itself. Both halves are read off the record here.
+ *
+ * ⚠️ **Dated, because the gate is a statement about ONE screen.** "A positive
+ * screen with no assessment after it" has to compare the assessment against
+ * the positive screen itself. This was a boolean over the whole chart, compared
+ * against the LATEST screen of any result — so an assessed positive came back
+ * to life the moment a negative re-screen became the latest screen, and the
+ * card named that negative screen as "positive".
+ *
+ * An undated positive sorts first (`-Infinity`): any assessment on file answers
+ * it, and it is the trigger only when nothing dated is positive. That is the
+ * reading the boolean gave it whenever the chart held no dated screen.
  */
-function screenIsPositive(slice: PatientSlice): boolean {
+function positiveScreens(slice: PatientSlice): Array<{ resource: FhirResourceLike; at: number }> {
+  const positives: ObservationResource[] = []
   for (const o of slice.observations ?? []) {
     const codings = (o as { code?: { coding?: Array<{ system?: string; code?: string }> } }).code?.coding
     const isItem9 = codings?.some(c => c.system === 'http://loinc.org' && c.code === PHQ9_ITEM9_LOINC)
-    if (isItem9 && typeof o.valueInteger === 'number' && o.valueInteger >= 1) return true
+    if (isItem9 && typeof o.valueInteger === 'number' && o.valueInteger >= 1) {
+      positives.push(o)
+      continue
+    }
     if (!isRiskConcept(o) || observationStage(o, slice) !== 'identify-possible-risk') continue
     const tier = tierForCodings(o.valueCodeableConcept?.coding)
-    if (tier && tier !== 'no-risk') return true
+    if (tier && tier !== 'no-risk') positives.push(o)
   }
-  return false
+  return positives
+    .map(o => {
+      const at = timeOf(bestArtifactDate(o as FhirResourceLike))
+      return { resource: o as FhirResourceLike, at: Number.isFinite(at) ? at : Number.NEGATIVE_INFINITY }
+    })
+    .sort((a, b) => a.at - b.at)
 }
 
 /** One harmonized tier on the record, with the Observation that carries it. */
@@ -524,10 +544,10 @@ function walkPathway(
    * to stop, so the positive gate is read first.
    */
   const latestScreen = screens.at(-1)
-  const assessedAfterScreen = assessments.some(a => !latestScreen || a.at >= latestScreen.at)
-  if (screenIsPositive(slice) && !assessedAfterScreen) {
+  const latestPositive = positiveScreens(slice).at(-1)
+  if (latestPositive && !assessments.some(a => a.at >= latestPositive.at)) {
     const realization = assessStep.children.find(c => !!c.definitionCanonical)
-    const trigger = artifactPhrase(latestScreen?.resource, slice, now)
+    const trigger = artifactPhrase(latestPositive.resource, slice, now)
     return one(
       obligation({
         kind: 'assess',
