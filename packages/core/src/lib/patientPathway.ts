@@ -1,4 +1,4 @@
-import { STAGES, TOOLS, toolForQuestionnaireUrl, type Tool } from '../data/catalog'
+import { STAGES, toolForQuestionnaireUrl, type Tool } from '../data/catalog'
 import type { CarePlanProfileUrl } from '@spier/fhir-artifacts/generated/care-plan-profiles.generated'
 import type { StageId } from '@spier/fhir-artifacts/generated/stage-ids.generated'
 
@@ -112,6 +112,52 @@ function stageFromCodings(
   )?.code
 }
 
+/** What `derivedFrom` points through: the chart's other Observations. */
+type DerivedFromNode = { id?: string; derivedFrom?: Array<{ reference?: string }> }
+
+/**
+ * The QuestionnaireResponse ids a resource was derived from, following
+ * `derivedFrom` THROUGH intermediate Observations.
+ *
+ * ⚠️ **The hop through an Observation is the concept layer's shape.** A
+ * harmonized concept is `derivedFrom` the instrument result it translates, and
+ * only that result points at the form — exactly the published FML maps'
+ * `derivedFrom = reference(src)`. Reading one level would lose the form for
+ * every concept that was not also stamped with it on save. Bounded and
+ * cycle-safe, because `derivedFrom` is data and can point anywhere.
+ *
+ * A bare id (no `Type/` prefix) is read as a response id, which is what the
+ * old single-level reads did.
+ */
+export function derivedResponseIds(resource: DerivedFromNode, observations: ReadonlyArray<DerivedFromNode>): string[] {
+  const ids: string[] = []
+  const seen = new Set<string>()
+  const walk = (node: DerivedFromNode, depth: number) => {
+    for (const ref of node.derivedFrom ?? []) {
+      const value = ref.reference
+      if (!value || seen.has(value)) continue
+      seen.add(value)
+      if (value.startsWith('QuestionnaireResponse/')) ids.push(value.slice('QuestionnaireResponse/'.length))
+      else if (!value.includes('/')) ids.push(value)
+      else if (value.startsWith('Observation/') && depth < 3) {
+        const next = observations.find(o => o.id === value.slice('Observation/'.length))
+        if (next) walk(next, depth + 1)
+      }
+    }
+  }
+  walk(resource, 0)
+  return ids
+}
+
+/**
+ * The record a resource sits in — what `stageForArtifact` follows `derivedFrom`
+ * through. A `PatientSlice` is one, and so is `PatientArtifacts`.
+ */
+export interface StageContext {
+  responses: ReadonlyArray<StoredResponseLike>
+  observations?: ReadonlyArray<DerivedFromNode>
+}
+
 /**
  * Resolve the pathway stage for ANY FHIR resource. Resolution order:
  *  1. `meta.tag` against the SPiER pathway-stage CodeSystem — the universal
@@ -123,9 +169,33 @@ function stageFromCodings(
  *  4. `meta.profile` against CAREPLAN_PROFILE_STAGES — tool-emitted CarePlans
  *     carry their profile canonical but no stage tag. Replaced the id-substring
  *     regex in #263 phase 5.
+ *  5. Given the record it sits in: `derivedFrom` back to the response it came
+ *     from, through any intermediate Observation, and that response's stage.
+ *
+ * ⚠️ **One resolver, and the record is how callers get the same reach.** Step 5
+ * used to be a second function in the measure engine (`observationStage`),
+ * which the evaluator also called, while the chart grouped artifacts with this
+ * one — so a derived Observation carrying no stage tag counted as a screen in
+ * the measures and the evaluator and appeared under no stage on the chart.
+ * Every caller that has the record now passes it.
  */
-export function stageForArtifact(resource: FhirResourceLike | undefined): string | undefined {
+export function stageForArtifact(
+  resource: FhirResourceLike | undefined,
+  context?: StageContext,
+): string | undefined {
   if (!resource) return undefined
+  const own = ownStage(resource)
+  if (own || !context) return own
+  for (const id of derivedResponseIds(resource as DerivedFromNode, context.observations ?? [])) {
+    const stored = context.responses.find(r => r.id === id)
+    const stage = stored ? ownStage(stored.resource as FhirResourceLike) : undefined
+    if (stage) return stage
+  }
+  return undefined
+}
+
+/** Steps 1–4: what the resource says about itself. */
+function ownStage(resource: FhirResourceLike): string | undefined {
 
   const fromTag = stageFromCodings(resource.meta?.tag)
   if (fromTag) return fromTag
@@ -206,7 +276,7 @@ function everyResource(artifacts: PatientArtifacts): FhirResourceLike[] {
 export function derivePathwayStatus(artifacts: PatientArtifacts): DerivedPathway {
   const directlyTouched = new Set<string>()
   for (const resource of everyResource(artifacts)) {
-    const stage = stageForArtifact(resource)
+    const stage = stageForArtifact(resource, artifacts)
     if (stage) directlyTouched.add(stage)
   }
 
@@ -255,44 +325,14 @@ export function groupArtifactsByStage(artifacts: PatientArtifacts): StageArtifac
     communications = [],
     workflowArtifacts = [],
   } = artifacts
+  const at = (resource: FhirResourceLike) => stageForArtifact(resource, artifacts)
   return STAGES.map((stage) => ({
     stageId: stage.id,
-    responses: responses.filter(
-      (r) => stageForArtifact(r.resource as FhirResourceLike) === stage.id,
-    ),
-    carePlans: carePlans.filter((cp) => stageForArtifact(cp) === stage.id),
-    observations: observations.filter((o) => stageForArtifact(o) === stage.id),
-    communications: communications.filter((c) => stageForArtifact(c) === stage.id),
-    workflowArtifacts: workflowArtifacts.filter((w) => stageForArtifact(w) === stage.id),
+    responses: responses.filter((r) => at(r.resource as FhirResourceLike) === stage.id),
+    carePlans: carePlans.filter((cp) => at(cp) === stage.id),
+    observations: observations.filter((o) => at(o) === stage.id),
+    communications: communications.filter((c) => at(c) === stage.id),
+    workflowArtifacts: workflowArtifacts.filter((w) => at(w) === stage.id),
   }))
 }
 
-/**
- * Artifacts that resolve to no pathway stage — typically foreign EHR data
- * read over SMART whose codes SPiER doesn't recognize (a QR against a
- * non-SPiER Questionnaire canonical, a survey Observation from another
- * system). The chart renders these in an "Other activity" bucket so they
- * stay visible instead of silently disappearing from the stage grouping.
- */
-export function unstagedArtifacts(artifacts: PatientArtifacts): Omit<StageArtifacts, 'stageId'> {
-  const {
-    responses = [],
-    carePlans = [],
-    observations = [],
-    communications = [],
-    workflowArtifacts = [],
-  } = artifacts
-  return {
-    responses: responses.filter(
-      (r) => stageForArtifact(r.resource as FhirResourceLike) === undefined,
-    ),
-    carePlans: carePlans.filter((cp) => stageForArtifact(cp) === undefined),
-    observations: observations.filter((o) => stageForArtifact(o) === undefined),
-    communications: communications.filter((c) => stageForArtifact(c) === undefined),
-    workflowArtifacts: workflowArtifacts.filter((w) => stageForArtifact(w) === undefined),
-  }
-}
-
-// TOOLS re-exported here for back-compat with patientPathway consumers that
-// expected the symbol. Prefer importing from '../data/catalog' directly.
-export { TOOLS }

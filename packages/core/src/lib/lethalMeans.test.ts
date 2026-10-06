@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest'
 import {
   buildLethalMeansCounseling,
   buildMeansSafetyAction,
-  isLethalMeansCounseling,
   meansSafetyActionCode,
   meansSafetyActions,
   meansSafetyMethod,
@@ -35,7 +34,6 @@ describe('lethal means counseling Procedure (TL-008)', () => {
 
   it('claims the profile the Stage-8 measure matches on', () => {
     expect((counseling.meta as { profile?: string[] }).profile).toEqual([COUNSELING_PROFILE])
-    expect(isLethalMeansCounseling(counseling)).toBe(true)
   })
 
   it('carries the general SNOMED counseling code with clarifying text', () => {

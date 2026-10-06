@@ -44,10 +44,11 @@ uses "http://hl7.org/fhir/StructureDefinition/CarePlan" alias SafetyPlan as targ
 // the same arrangement as the Stage-8 measure engine under #212. Both are
 // compared against scripts/fixtures/stanley-brown/careplan-expected.json:
 // this side by `node scripts/check-fml.mjs --tx …`, the TypeScript side by
-// stanleyBrown.parity.test.ts. Three fields are excluded from that comparison
-// (`id`, `note`, `subject`) — scripts/lib/careplan-parity.mjs explains why for
-// each, and `subject` in particular is a real divergence a partner lifting the
-// TypeScript must fix.
+// stanleyBrown.parity.test.ts. Two fields are excluded from that comparison
+// (`id`, `note`) — scripts/lib/careplan-parity.mjs explains why for each.
+// `subject` was a third until 2026-10-06, when the runtime stopped substituting
+// `Patient/demo-patient` and began carrying the response's subject through, as
+// this map does; it is compared now.
 //
 // QUESTIONNAIRERESPONSE SHAPE
 //

@@ -71,7 +71,8 @@ export function mapCAMSSectionA(response: QuestionnaireResponseResource): Mapper
       if (score > maxScore) maxScore = score
 
       const obs = makeObservation({
-        id: `cams-${vital.code}-${Date.now()}`,
+        response,
+      idSuffix: `cams-${vital.code}`,
         profile: 'http://thespierproject.org/fhir/StructureDefinition/spier-cams-ssf-vital',
         // `display` is the cams-ssf CodeSystem's own wording (ig/input/fsh/cams.fsh)
         // — CAMS_VITALS[].display is kept identical to it on purpose. The "CAMS
@@ -112,7 +113,8 @@ export function mapCAMSSectionA(response: QuestionnaireResponseResource): Mapper
     const display = displayFor(CAMS_OVERALL_RISK_OPTIONS, code)
     observations.push(
       makeObservation({
-        id: `cams-risk-level-${Date.now()}`,
+        response,
+      idSuffix: `cams-risk-level`,
         code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
         value: {
           coding: [{ system: CAMS_OVERALL_RISK_SYSTEM, code, display }],

@@ -34,6 +34,7 @@ import type {
   ServiceRequestResource,
 } from '../types/fhir'
 import { suicideRiskCategory } from './conceptDomain'
+import { patientReference } from './patientReference'
 
 // `satisfies StageId`: the literal keeps its type, and a stage renamed in the
 // CodeSystem (stage-ids.generated.ts follows it) is a compile error here rather
@@ -294,7 +295,7 @@ export function buildSafetyHandoff(params: {
     meta: { profile: [SAFETY_HANDOFF_PROFILE], tag: stageTag(STAGE_ID) },
     status: 'completed',
     category: [{ text: 'Suicide-safety handoff' }, suicideRiskCategory()],
-    subject: { reference: `Patient/${params.patientId ?? 'demo-patient'}` },
+    subject: patientReference(params.patientId),
     sent: params.sent,
     ...(channel
       ? {
@@ -366,7 +367,7 @@ export function buildDischargePacket(params: {
     category: [suicideRiskCategory()],
     status: 'current',
     type: { text: 'Suicide-safety discharge packet' },
-    subject: { reference: `Patient/${params.patientId ?? 'demo-patient'}` },
+    subject: patientReference(params.patientId),
     date: params.date,
     // The attachment IS the packet. In the demo there is no binary to attach,
     // so only its title and content type are asserted — a real implementation
@@ -414,7 +415,7 @@ export function buildSafetyReferral(params: {
     // Fixed by the profile: this is an order, not a proposal or a plan.
     intent: 'order',
     code: { text: params.serviceText?.trim() || 'Suicide-safety referral' },
-    subject: { reference: `Patient/${params.patientId ?? 'demo-patient'}` },
+    subject: patientReference(params.patientId),
     authoredOn: params.authoredOn,
     reasonCode: [
       {
@@ -504,7 +505,7 @@ export function buildFollowUpAppointment(params: {
     ...(end ? { end } : {}),
     participant: [
       {
-        actor: { reference: `Patient/${params.patientId ?? 'demo-patient'}` },
+        actor: patientReference(params.patientId),
         status: 'accepted',
       },
       ...(params.provider?.trim()
@@ -597,7 +598,7 @@ export function buildSharingConsent(params: {
       // category stays primary and index-based readers keep working.
       suicideRiskCategory(),
     ],
-    patient: { reference: `Patient/${params.patientId ?? 'demo-patient'}` },
+    patient: patientReference(params.patientId),
     dateTime: params.dateTime,
     provision: {
       type: params.decision,

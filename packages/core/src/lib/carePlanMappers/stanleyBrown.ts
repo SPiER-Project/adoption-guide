@@ -54,7 +54,8 @@ export function generateCarePlan(questionnaireResponse: QuestionnaireResponseRes
   const hasAnyData = [step1, step2, step3, step4, step5, step6, step7].some(s => s.length > 0)
 
   return makeSuicidePreventionCarePlan({
-    id: `stanley-brown-safety-plan-${Date.now()}`,
+    response: questionnaireResponse,
+    idSuffix: 'stanley-brown-safety-plan',
     profileUrl: 'http://thespierproject.org/fhir/StructureDefinition/spier-stanley-brown-safety-plan',
     noteText: 'DEMO ONLY — This CarePlan was generated client-side for demonstration purposes. No patient data has been stored or transmitted. This CarePlan uses the Hybrid model where core safety data is embedded in activity.description fields for maximum interoperability.',
     hasAnyData,

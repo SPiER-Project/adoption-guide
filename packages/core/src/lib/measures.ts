@@ -33,7 +33,6 @@
  * ⚠️ DEMO ONLY — computes over the local slice; no server-side $evaluate-measure.
  */
 import { observationEffective } from './observationEffective'
-import { isStageId, type StageId } from '@spier/fhir-artifacts/generated/stage-ids.generated'
 import {
   APPOINTMENT_PROFILE,
   HANDOFF_CONTENT_ITEM_EXT,
@@ -53,6 +52,7 @@ import {
   RISK_TIER_SYSTEM,
 } from './riskEpisode'
 import { stageForArtifact, type FhirResourceLike } from './patientPathway'
+import { conformsTo } from './recordQueries'
 // The per-tier cadence, read from PlanDefinition-SPiERReassessmentSchedule.
 // reassessment.ts imports RISK_TIER_SYSTEM from riskEpisode.ts, not from here,
 // so this direction introduces no cycle.
@@ -223,87 +223,6 @@ export function referencedCriteria(): string[] {
 // Helpers
 // ─────────────────────────────────────────────────────────────
 
-/**
- * Does the resource claim this profile?
- *
- * Exported because the pathway evaluator asks the same question of the same
- * resources — is this Communication a crisis-resources record, is this
- * Procedure means-safety counseling — and `npm run check:dupes` fails a second
- * copy of a one-line predicate that is really a statement about what
- * `meta.profile` means.
- */
-export function conformsTo(
-  // Structurally typed rather than `FhirResource`: the pathway evaluator reads
-  // the same question off `FhirResourceLike`, whose `resourceType` is optional.
-  // This predicate looks at `meta.profile` and nothing else, so requiring more
-  // of its argument than it reads would just cost every caller a cast.
-  resource: { meta?: { profile?: string[] } } | undefined,
-  profile: string,
-): boolean {
-  const profiles = resource?.meta?.profile
-  return Array.isArray(profiles) && profiles.includes(profile)
-}
-
-/**
- * The QuestionnaireResponse ids a resource was derived from, following
- * `derivedFrom` THROUGH intermediate Observations.
- *
- * ⚠️ **The hop through an Observation is the concept layer's shape.** A
- * harmonized concept is `derivedFrom` the instrument result it translates, and
- * only that result points at the form — exactly the published FML maps'
- * `derivedFrom = reference(src)`. Reading one level would lose the form for
- * every concept that was not also stamped with it on save. Bounded and
- * cycle-safe, because `derivedFrom` is data and can point anywhere.
- *
- * A bare id (no `Type/` prefix) is read as a response id, which is what the
- * old single-level reads did.
- */
-export function derivedResponseIds(
-  resource: { derivedFrom?: Array<{ reference?: string }> },
-  observations: ReadonlyArray<{ id?: string }>,
-): string[] {
-  const ids: string[] = []
-  const seen = new Set<string>()
-  const walk = (node: { derivedFrom?: Array<{ reference?: string }> }, depth: number) => {
-    for (const ref of node.derivedFrom ?? []) {
-      const value = ref.reference
-      if (!value || seen.has(value)) continue
-      seen.add(value)
-      if (value.startsWith('QuestionnaireResponse/')) ids.push(value.slice('QuestionnaireResponse/'.length))
-      else if (!value.includes('/')) ids.push(value)
-      else if (value.startsWith('Observation/') && depth < 3) {
-        const next = observations.find(o => o.id === value.slice('Observation/'.length))
-        if (next) walk(next as { derivedFrom?: Array<{ reference?: string }> }, depth + 1)
-      }
-    }
-  }
-  walk(resource, 0)
-  return ids
-}
-
-/**
- * The pathway stage an Observation belongs to — which is how screens are told
- * apart from assessments.
- *
- * Delegates to the app's own `stageForArtifact` first, then falls back to
- * resolving through `derivedFrom` to the source QuestionnaireResponse (whose
- * stage comes from its Questionnaire's tool). The derived Observations the
- * mappers emit carry no `meta.tag`, so without that second hop the screen →
- * assessment measure could never fire against real captured data. Reusing the
- * app resolver rather than reimplementing stage rules is deliberate: two
- * definitions of "which stage is this" would drift.
- */
-export function observationStage(o: ObservationResource, slice: PatientSlice): StageId | undefined {
-  const direct = stageForArtifact(o as FhirResourceLike)
-  if (direct && isStageId(direct)) return direct
-  for (const id of derivedResponseIds(o as { derivedFrom?: Array<{ reference?: string }> }, slice.observations ?? [])) {
-    const stored = slice.responses.find(r => r.id === id)
-    const stage = stored && stageForArtifact(stored.resource as FhirResourceLike)
-    if (stage && isStageId(stage)) return stage
-  }
-  return undefined
-}
-
 function ms(value: string | undefined): number {
   if (!value) return NaN
   const n = new Date(value).getTime()
@@ -413,7 +332,7 @@ function buildContext(slice: PatientSlice, period: MeasurementPeriod): Ctx {
   )
   const screens = riskConcepts.filter(
     o =>
-      observationStage(o, slice) === 'identify-possible-risk' &&
+      stageForArtifact(o as FhirResourceLike, slice) === 'identify-possible-risk' &&
       inPeriodRaw(observationEffective(o)),
   )
   function inPeriodRaw(value: string | undefined): boolean {
@@ -452,7 +371,7 @@ function buildContext(slice: PatientSlice, period: MeasurementPeriod): Ctx {
     riskConcepts,
     screens,
     positiveScreens: screens.filter(isPositive),
-    assessments: riskConcepts.filter(o => observationStage(o, slice) === 'clarify-risk'),
+    assessments: riskConcepts.filter(o => stageForArtifact(o as FhirResourceLike, slice) === 'clarify-risk'),
     episodes,
     latestEpisode,
     transitionDates,
@@ -918,51 +837,6 @@ const POPULATION_DISPLAYS: Record<string, string> = {
 
 function groupCoding(code: string, display: string) {
   return { coding: [{ system: 'http://thespierproject.org/fhir/CodeSystem/spier-measure-group', code, display }] }
-}
-
-/**
- * An individual MeasureReport for one patient. Reports EVERY population the
- * Measure defines — a report that omits one cannot be checked against its
- * definition, which the IG Publisher flags as an error.
- */
-export function buildIndividualMeasureReport(
-  spec: MeasureSpec,
-  evaluation: MeasureEvaluation,
-  patientId: string,
-  period: MeasurementPeriod,
-  reportedAt: string,
-): MeasureReportResource {
-  return {
-    resourceType: 'MeasureReport',
-    id: `${spec.id}-${patientId}`,
-    status: 'complete',
-    type: 'individual',
-    measure: spec.url,
-    subject: { reference: `Patient/${patientId}` },
-    date: reportedAt,
-    period: { start: period.start, end: period.end },
-    improvementNotation: {
-      coding: [{ system: IMPROVEMENT_NOTATION_SYSTEM, code: 'increase' }],
-    },
-    group: spec.groups.map(g => {
-      const row = evaluation.groups.find(x => x.code === g.code)
-      const populations = Object.keys(g.criteria).map(pop => {
-        // The exception population reports what it REMOVED, not who matched
-        // its criterion — a patient who met the exception and the numerator was
-        // never taken out. Same rule as the summary tally; see GroupTally.
-        const member = pop === 'denominator-exception'
-          ? row?.removedByException === true
-          : row?.populations[pop] === true
-        return populationEntry(pop, POPULATION_DISPLAYS[pop] ?? pop, member ? 1 : 0)
-      })
-      return {
-        id: g.code,
-        code: groupCoding(g.code, g.display),
-        population: populations,
-        measureScore: { value: row?.inNumerator ? 1 : 0 },
-      }
-    }),
-  } as MeasureReportResource
 }
 
 /** A program-level summary MeasureReport from a cohort tally. */

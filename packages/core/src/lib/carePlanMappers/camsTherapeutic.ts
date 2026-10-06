@@ -52,7 +52,8 @@ export function generateTherapeuticCarePlan(questionnaireResponse: Questionnaire
   const hasAnyData = [narrative, directDrivers, indirectDrivers, crisisModel].some(s => s.length > 0)
 
   return makeSuicidePreventionCarePlan({
-    id: `cams-therapeutic-careplan-${Date.now()}`,
+    response: questionnaireResponse,
+    idSuffix: 'cams-therapeutic-careplan',
     profileUrl: 'http://thespierproject.org/fhir/StructureDefinition/spier-cams-therapeutic-worksheet',
     noteText: "DEMO ONLY — CAMS Therapeutic Worksheet CarePlan generated client-side. This captures the patient's suicide drivers and crisis working model to guide treatment planning. Uses the Hybrid model where core data is embedded in activity.description fields.",
     hasAnyData,

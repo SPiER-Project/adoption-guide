@@ -5,7 +5,6 @@ import {
   LETHAL_MEANS_PROFILE,
   MEASURE_SPECS,
   SAFETY_HANDOFF_PROFILE,
-  buildIndividualMeasureReport,
   buildSummaryMeasureReport,
   evaluateAllMeasures,
   evaluateMeasure,
@@ -866,27 +865,6 @@ describe('tally and report assembly', () => {
     const tally = tallyMeasure([evaluateMeasure(spec, emptySlice(), PERIOD)], spec)
     expect(tally.groups[0].denominator).toBe(0)
     expect(tally.groups[0].score).toBeNull()
-  })
-
-  it('builds an individual report carrying EVERY defined population', () => {
-    const evaluation = evaluateMeasure(spec, sliceWith('completed', 'r1'), PERIOD)
-    const report = buildIndividualMeasureReport(
-      spec,
-      evaluation,
-      'patient-005',
-      PERIOD,
-      '2026-08-01T00:00:00.000Z',
-    ) as unknown as {
-      type: string
-      measure: string
-      group: Array<{ code: { coding: Array<{ code: string }> }; population: Array<{ code: { coding: Array<{ code: string }> } }> }>
-    }
-    expect(report.type).toBe('individual')
-    expect(report.measure).toBe(spec.url)
-    const populations = report.group[0].population.map(p => p.code.coding[0].code)
-    // Matches the Measure's own population set — a report missing one cannot be
-    // validated against its definition.
-    expect(populations.sort()).toEqual(Object.keys(spec.groups[0].criteria).sort())
   })
 
   it('builds a summary report whose group codes match the measure', () => {

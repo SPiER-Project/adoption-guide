@@ -96,7 +96,8 @@ export function mapCSSRSFull(response: QuestionnaireResponseResource): MapperRes
 
   observations.push(
     makeObservation({
-      id: `cssrs-full-risk-${Date.now()}`,
+      response,
+      idSuffix: `cssrs-full-risk`,
       profile: 'http://thespierproject.org/fhir/StructureDefinition/spier-cssrs-risk-level',
       code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
       value: {

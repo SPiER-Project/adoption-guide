@@ -160,11 +160,23 @@ export function useCorrelatedSave({
       // point at the same QuestionnaireResponse. (The SMART source swaps in
       // the server-assigned id on create.)
       const id = (resource as { id?: string }).id ?? `response-${makeId()}`
-      const storedResource = { ...resource, id }
+      // ⚠️ `authored` and the patient are stamped HERE, before derivation, not
+      // after it. The form renderer sets neither, and the mappers take a result's
+      // time and subject from the response (`responseTime`): stamped later — as
+      // the SMART source does at write — every derived result would carry the
+      // derivation clock and no patient, and a locally saved response would keep
+      // no clinical time at all. The submit IS when the answers were gathered.
+      const completedAt = resource.authored ?? new Date().toISOString()
+      const storedResource: QuestionnaireResponseResource = {
+        ...resource,
+        id,
+        authored: completedAt,
+        ...(resource.subject || !sliceKey ? {} : { subject: { reference: `Patient/${sliceKey}` } }),
+      }
       const entry: StoredResponse = {
         id,
         questionnaireName,
-        completedAt: new Date().toISOString(),
+        completedAt,
         resource: storedResource,
       }
       // Derivation (QR → Observations + risk alert) is business logic, not the

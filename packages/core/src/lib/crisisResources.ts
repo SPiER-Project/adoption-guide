@@ -39,6 +39,7 @@ import { displayFor, type CodedOption } from './codedOption'
 import { stageTag } from './stageTag'
 import type { CommunicationResource } from '../types/fhir'
 import { suicideRiskCategory } from './conceptDomain'
+import { patientReference } from './patientReference'
 
 // `satisfies StageId`: the literal keeps its type, and a stage renamed in the
 // CodeSystem (stage-ids.generated.ts follows it) is a compile error here rather
@@ -128,7 +129,7 @@ export function buildCrisisResourcesShared(params: {
     meta: { profile: [CRISIS_RESOURCES_PROFILE], tag: stageTag(STAGE_ID) },
     status: 'completed',
     category: [{ text: 'Crisis resources shared' }, suicideRiskCategory()],
-    subject: { reference: `Patient/${params.patientId ?? 'demo-patient'}` },
+    subject: patientReference(params.patientId),
     sent: params.sent,
     payload: params.resourceCodes.map(code => ({
       contentString:

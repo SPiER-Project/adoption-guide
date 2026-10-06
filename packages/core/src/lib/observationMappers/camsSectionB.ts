@@ -1,3 +1,4 @@
+import { derivedId } from '../fromResponse'
 import { walkItems, getCodingAnswer, getYesNoBoolean, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource, type FhirResource } from './shared'
 import { suicideRiskCategory } from '../conceptDomain'
 
@@ -28,7 +29,7 @@ export function mapCAMSSectionB(response: QuestionnaireResponseResource): Mapper
     if (description) {
       conditions.push({
         resourceType: 'Condition',
-        id: `cams-driver-${Date.now()}-${driver.slug}`,
+        id: derivedId(response, `cams-${driver.slug}`),
         // The one non-Observation an instrument mapper produces, and the reason
         // this is a hand-built literal rather than a `makeObservation` call.
         // ⚠️ Claimed since 2026-09-17. Nothing had ever validated this resource:
@@ -71,7 +72,7 @@ export function mapCAMSSectionB(response: QuestionnaireResponseResource): Mapper
           suicideRiskCategory(),
         ],
         code: { text: description },
-        subject: { reference: 'Patient/demo-patient' },
+        ...(response.subject ? { subject: response.subject } : {}),
         note: [
           { text: `${driver.label}: ${description}. Type: ${driverType?.display || 'Not classified'}. Identified during CAMS SSF-5 Section B assessment. Track on problem list until resolved.` },
         ],

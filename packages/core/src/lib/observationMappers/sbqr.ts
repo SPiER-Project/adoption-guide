@@ -21,7 +21,8 @@ export function mapSBQR(response: QuestionnaireResponseResource): MapperResult {
 
   observations.push(
     makeObservation({
-      id: `sbqr-total-${Date.now()}`,
+      response,
+      idSuffix: `sbqr-total`,
       profile: 'http://thespierproject.org/fhir/StructureDefinition/spier-sbqr-total-score',
       code: { system: 'http://snomed.info/sct', code: '225337009', display: 'Suicide risk assessment (procedure)' },
       value: totalScore,

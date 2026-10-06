@@ -11,7 +11,8 @@
  */
 
 import type { CarePlanProfileUrl } from '@spier/fhir-artifacts/generated/care-plan-profiles.generated'
-import type { CarePlanResource, QuestionnaireResponseItem } from '../../types/fhir'
+import type { CarePlanResource, QuestionnaireResponseItem, QuestionnaireResponseResource } from '../../types/fhir'
+import { derivedId } from '../fromResponse'
 import { suicideRiskCategory } from '../conceptDomain'
 
 // Re-export the QuestionnaireResponse shapes the per-tool mappers need.
@@ -160,7 +161,10 @@ export function extractPairs(
  * here may already have "No xxx provided." defaults applied.
  */
 export function makeSuicidePreventionCarePlan(options: {
-  id: string
+  /** The response this plan records: its id and subject are the plan's. */
+  response: QuestionnaireResponseResource
+  /** What distinguishes this plan among the response's results — `stanley-brown-safety-plan`. */
+  idSuffix: string
   /**
    * Canonical URL of the SPiER CarePlan profile this resource conforms to.
    * The union is generated at prebuild time from every StructureDefinition
@@ -187,7 +191,7 @@ export function makeSuicidePreventionCarePlan(options: {
 }): GeneratedCarePlan {
   const resource: CarePlanResource = {
     resourceType: 'CarePlan',
-    id: options.id,
+    id: derivedId(options.response, options.idSuffix),
     meta: {
       profile: [options.profileUrl],
     },
@@ -206,10 +210,10 @@ export function makeSuicidePreventionCarePlan(options: {
       ...(options.extraCategories ?? []).map(c => ({ coding: [c] })),
       suicideRiskCategory(),
     ],
-    subject: {
-      reference: 'Patient/demo-patient',
-      display: 'Demo Patient (no data persisted to server)',
-    },
+    // The response's patient, not a placeholder: this said `Patient/demo-patient`
+    // on every plan, and was right only because the SMART source re-stamps the
+    // patient before writing.
+    ...(options.response.subject ? { subject: options.response.subject } : {}),
     addresses: [{ display: 'Risk for suicide' }],
     activity: options.activities.map(a => ({
       detail: {

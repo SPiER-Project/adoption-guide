@@ -144,5 +144,8 @@
     ]
   },
   "resourceType": "CarePlan",
-  "status": "active"
+  "status": "active",
+  "subject": {
+    "reference": "Patient/example"
+  }
 }

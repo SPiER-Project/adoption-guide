@@ -29,7 +29,8 @@ export function mapPHQ9(response: QuestionnaireResponseResource): MapperResult {
 
   observations.push(
     makeObservation({
-      id: `phq9-total-${Date.now()}`,
+      response,
+      idSuffix: `phq9-total`,
       profile: 'http://thespierproject.org/fhir/StructureDefinition/spier-phq9-total-score',
       code: { system: 'http://loinc.org', code: '44261-6', display: 'Patient Health Questionnaire 9 item (PHQ-9) total score [Reported]' },
       value: totalScore,
@@ -45,7 +46,8 @@ export function mapPHQ9(response: QuestionnaireResponseResource): MapperResult {
 
   observations.push(
     makeObservation({
-      id: `phq9-item9-${Date.now()}`,
+      response,
+      idSuffix: `phq9-item9`,
       profile: 'http://thespierproject.org/fhir/StructureDefinition/spier-phq9-item9',
       code: { system: 'http://loinc.org', code: '44260-8', display: 'Thoughts that you would be better off dead, or of hurting yourself in some way in last 2 weeks [Reported.PHQ]' },
       value: item9Score,
