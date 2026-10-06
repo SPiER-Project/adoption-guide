@@ -6,7 +6,7 @@ launched cross-origin against a server rather than against localStorage.
 
 Panel **steps 1, 2, 4 and 5**. The spec is [`docs/plans/archive/mock-ehr-read-api.md`](../../docs/plans/archive/mock-ehr-read-api.md);
 the decision that permits a mock we control at all is
-[`embedded-panel-smart-launch.md`](../../docs/plans/embedded-panel-smart-launch.md) §8,
+[`embedded-panel-smart-launch.md`](../../docs/plans/archive/embedded-panel-smart-launch.md) §8,
 and it is permitted only with the guardrails in §1 of that plan.
 
 > **Running the demo?** [`docs/mock-ehr-demo-script.md`](../../docs/mock-ehr-demo-script.md)
@@ -129,7 +129,7 @@ reads them to learn how to authorize at all.
   clinician launching from a chart does not re-consent per launch, so this is
   the realistic behaviour for the scenario being demonstrated. Per-scope consent
   would be theatre while nothing enforces scopes.
-  [`embedded-panel-smart-launch.md` §10.1](../../docs/plans/embedded-panel-smart-launch.md).
+  [`embedded-panel-smart-launch.md` §10.1](../../docs/plans/archive/embedded-panel-smart-launch.md).
 - **Replay is only best-effort.** Every artifact is a signed, self-contained
   blob rather than a row in a table, because a Worker has no shared memory and
   `/authorize` and `/token` can land in different isolates — a table there

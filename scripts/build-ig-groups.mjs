@@ -15,7 +15,7 @@
  * looking for "everything about the ASQ" or "everything about handoffs" has to
  * know the type of each thing first. US Core, Gravity and mCODE all declare
  * `groups:` so the page reads by PURPOSE — that is what this produces, and the
- * IG cleanup audit (docs/plans/ig-cleanup-audit-2026-09-16.md §4) is where the
+ * IG cleanup audit (docs/plans/archive/ig-cleanup-audit-2026-09-16.md §4) is where the
  * eight groups were chosen.
  *
  * ─── Why generated, not hand-kept ───────────────────────────────────────────

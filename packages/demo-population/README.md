@@ -44,20 +44,19 @@ written in both.**
 documents the intended surface and is what the deferred workspaces migration will
 switch to.
 
-## ⚠️ Two type-only edges back into the app
+## Two type-only edges, both into `packages/core`
 
 `patients.ts` imports `PopulationPatient` and `scenarios/index.ts` imports
-`PatientSlice` / `ScenarioEncounter` from `web/src`. Both are `import type`, so
-they are **erased at build time and create no runtime dependency** — but they are
-still the wrong direction, and they are not hidden:
+`PatientSlice` / `ScenarioEncounter` — both `import type`, so they are **erased
+at build time and create no runtime dependency**:
 
-- `PopulationPatient` is an alias of `RegistryPatient` in `packages/core/src/lib/registry`
-- `PatientSlice` / `ScenarioEncounter` live in `packages/core/src/types/fhir`
+- `PopulationPatient` is an alias of `RegistryPatient` in `packages/core/src/lib/registry.ts`
+- `PatientSlice` / `ScenarioEncounter` live in `packages/core/src/types/fhir.ts`
 
-§4 of the plan assigns **both** modules to `packages/core`, so step B
-([#389](https://github.com/SPiER-Project/adoption-guide/issues/389)) closes both
-edges. Do not add a second alias for app internals to paper over them — that would
-make the inverted direction look sanctioned.
+Until step B ([#389](https://github.com/SPiER-Project/adoption-guide/issues/389))
+both edges pointed back into the app's own source tree, the wrong direction; §4 of
+the plan moved both modules to `packages/core`, which closed them. Do not add an
+alias for app internals here — that would make an inverted direction look sanctioned.
 
 ## The gates that read this directory
 

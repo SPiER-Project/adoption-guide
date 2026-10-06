@@ -14,8 +14,8 @@ prove.
 |---|---|
 | **1 — build a second "mock patient" SMART app** | **REJECTED.** SPiER is already a complete SMART client; a second app of ours proves nothing we control both ends of. §2 |
 | **2 — mint real `Patient` resources and emit each mock patient as a FHIR Bundle** | **PROPOSED, and worth doing regardless of everything below.** §4 |
-| **3 — stand up a real FHIR server (Medplum / HAPI) and load the Bundles** | **NO LONGER THE DEMO TARGET** (decided 2026-08-18, [`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) §8). Still the right home for the **portability** claim — load the Bundles into a *public* sandbox. §5 |
-| **4 — write our own mock FHIR + SMART auth endpoints** | ⚠️ **REVERSED — now DECIDED, 2026-08-18** ([`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) §8), on its own Worker rather than the existing one. §6's argument was not refuted; its *scope* was narrowed — see §6. |
+| **3 — stand up a real FHIR server (Medplum / HAPI) and load the Bundles** | **NO LONGER THE DEMO TARGET** (decided 2026-08-18, [`embedded-panel-smart-launch.md`](archive/embedded-panel-smart-launch.md) §8). Still the right home for the **portability** claim — load the Bundles into a *public* sandbox. §5 |
+| **4 — write our own mock FHIR + SMART auth endpoints** | ⚠️ **REVERSED — now DECIDED, 2026-08-18** ([`embedded-panel-smart-launch.md`](archive/embedded-panel-smart-launch.md) §8), on its own Worker rather than the existing one. §6's argument was not refuted; its *scope* was narrowed — see §6. |
 | **5 — a patient-facing SMART app** | **OUT OF SCOPE here.** A product direction, not a demo gap. See [`repo-and-package-boundaries.md`](repo-and-package-boundaries.md) §5. |
 
 | Phase | State |
@@ -184,7 +184,7 @@ rejects.
 ## 6. Decision 4: writing our own mock server — ⚠️ REVERSED 2026-08-18
 
 > **This section's conclusion no longer holds, but its argument does.** The
-> decision is recorded in [`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md)
+> decision is recorded in [`embedded-panel-smart-launch.md`](archive/embedded-panel-smart-launch.md)
 > §8: `services/mock-ehr/` serves real FHIR, on its own Worker.
 >
 > **What changed is the question, not the answer.** This section asked *"what

@@ -8,7 +8,7 @@ rule lives here, because an implementer needs the rule in the next five minutes
 and the argument only when they disagree with it.
 
 Started 2026-09-16 by the IG cleanup
-([`plans/ig-cleanup-audit-2026-09-16.md`](../plans/ig-cleanup-audit-2026-09-16.md)),
+([`plans/ig-cleanup-audit-2026-09-16.md`](../plans/archive/ig-cleanup-audit-2026-09-16.md)),
 which found every IG page following the pattern *rule, then the defence of the
 rule, then the history of the defence* and moved the last two here. The
 intended long-term home is the Adoption Guide's Learn group; until a page there

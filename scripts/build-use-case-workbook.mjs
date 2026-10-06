@@ -736,17 +736,24 @@ function checkToolStatusClaims(doc, label) {
 
   for (const { step } of allSteps(doc)) {
     const at = `${label} ${step.step}`
-    const binding = String(step.profileBinding ?? '')
-
-    // A `status:planned` claim sits next to the TL link it describes.
-    for (const m of binding.matchAll(/\[(TL-\d+)[^\]]*\][^;]*?status:planned/g)) {
-      claims++
-      if (built.has(m[1])) {
-        problems.push(
-          `${at}: says ${m[1]} is \`status:planned\`, but it launches at ` +
-            `${byTool.get(m[1]).join(', ')} — promote the binding, or the document tells the ` +
-            `working group SPiER has a gap it closed`,
-        )
+    // A `status:planned` claim and the tool it describes share a CLAUSE (split on
+    // `;`), in any of the prose fields the document renders, with the tool named
+    // by a link or a bare id, before or after the claim, and `status: planned`
+    // spelled with or without the space. ⚠️ The first version read only
+    // `[TL-0NN …](…) … status:planned` in profileBinding, so each of those four
+    // variations passed planted on a launchable tool (2026-10-06 audit).
+    const prose = [step.fhirText, step.profileBinding, step.cdsHook].map((x) => String(x ?? ''))
+    for (const clause of prose.flatMap((p) => p.split(';'))) {
+      if (!/status:\s*`?\s*planned\b/i.test(clause)) continue
+      for (const tool of new Set([...clause.matchAll(/\bTL-\d+\b/g)].map((m) => m[0]))) {
+        claims++
+        if (built.has(tool)) {
+          problems.push(
+            `${at}: says ${tool} is \`status:planned\`, but it launches at ` +
+              `${byTool.get(tool).join(', ')} — promote the binding, or the document tells the ` +
+              `working group SPiER has a gap it closed`,
+          )
+        }
       }
     }
 

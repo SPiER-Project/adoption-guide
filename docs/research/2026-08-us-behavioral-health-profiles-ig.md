@@ -328,7 +328,7 @@ benign** — see [What item 1 actually found](#what-item-1-actually-found) below
    `INSTRUMENT_SIGNATURES` with a new `answerKind: 'boolean'` — C-SSRS answers are yes/no, so
    the existing ordinal coercion could not produce anything `getBooleanAnswer` reads. The BHP
    IG's two published QRs are checked in verbatim under
-   `web/src/lib/observationMappers/__fixtures__/` and asserted against: SPiER recovers the same
+   `packages/core/src/lib/observationMappers/__fixtures__/` and asserted against: SPiER recovers the same
    PHQ-9 total (12) and the same C-SSRS risk level the guide's own examples state. Disabling
    `linkIdAsCode` fails exactly those 5 tests and nothing else — confirmed, not assumed.
 3. ✅ **`item.code` documented honestly.** The path is kept (tolerating a non-conformant

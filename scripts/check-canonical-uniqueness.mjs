@@ -4,8 +4,19 @@
  *
  * SPiER defines FHIR resources in two places on purpose:
  *   - `ig/input/fsh/` → compiled by SUSHI to `ig/fsh-generated/resources/`
- *   - `ig/input/resources/questionnaires/<tool>/` → hand-authored JSON, published into the IG
- *     through a symlink + per-folder `path-resource` entries
+ *   - every `path-resource` directory in `ig/sushi-config.yaml` (today
+ *     `input/resources/questionnaires/*` and `input/resources/maps`) → hand-authored
+ *     JSON the IG Publisher loads beside SUSHI's output
+ *
+ * ⚠️ The directories are READ from `path-resource` (scripts/lib/ig-config.mjs),
+ * not typed here. Until 2026-10-06 this gate hardcoded the questionnaires tree,
+ * so a duplicate canonical dropped into `input/resources/maps/` — a directory
+ * the publisher loads — passed (planted in the 2026-10-06 gates audit).
+ *
+ * It also holds CLAUDE.md's second rule here: **no CodeSystem lives in the JSON
+ * tree.** CodeSystems are FSH-only, because the three ASQ collisions below were
+ * hand-authored CodeSystem copies; a NEW one with a fresh URL collides with
+ * nothing, so uniqueness alone never caught it.
  *
  * CLAUDE.md's rule is that a canonical URL may be defined in exactly one of
  * them. That rule is not decorative: three ASQ CodeSystems once collided, and
@@ -36,7 +47,7 @@
  * ⚠️ This reads SUSHI's OUTPUT, not the FSH source, because a canonical can be
  * assembled from `sushi-config.yaml`'s canonical base plus an id — it is not
  * reliably a literal in the `.fsh` file. So `ig/fsh-generated/resources/` must
- * exist: run `npx fsh-sushi .` in `ig/`, or `npm run copy-fhir` in `web/`. A
+ * exist: run `npx fsh-sushi .` in `ig/`, or `npm run copy-fhir` at the repo root. A
  * missing tree is a hard error rather than a skip, because "nothing to compare"
  * is indistinguishable from "nothing collides" and this repo has shipped that
  * mistake before.
@@ -44,9 +55,12 @@
 import { readdirSync, readFileSync, statSync, existsSync } from 'node:fs'
 import { join, relative, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { makeBail, parsePathResource, readConfig } from './lib/ig-config.mjs'
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
-const HAND_AUTHORED = join(repoRoot, 'ig/input/resources/questionnaires')
+// The path-resource directories, read from the config rather than typed.
+const HAND_AUTHORED_DIRS = parsePathResource(readConfig(), makeBail('check-canonical-uniqueness'))
+  .map(({ dir }) => join(repoRoot, 'ig', dir))
 const GENERATED = join(repoRoot, 'ig', 'fsh-generated', 'resources')
 
 // Scan floors. A gate that reads zero files passes every check it makes, which
@@ -98,20 +112,36 @@ if (!existsSync(GENERATED)) {
   console.error(
     `\n✗ check-canonical-uniqueness: ${rel(GENERATED)} does not exist, so there is nothing to ` +
       'compare the hand-authored tree against.\n\n' +
-      '  Compile the IG first — `npx fsh-sushi .` in ig/, or `npm run copy-fhir` in web/.\n' +
+      '  Compile the IG first — `npx fsh-sushi .` in ig/, or `npm run copy-fhir` at the repo root.\n' +
       '  This is a hard error on purpose: an empty comparison would report "no collisions"\n' +
       '  while checking nothing.\n',
   )
   process.exit(1)
 }
 
-const handAuthored = collect(HAND_AUTHORED, 'ig/input/resources/questionnaires')
+const missingDirs = HAND_AUTHORED_DIRS.filter((d) => !existsSync(d))
+if (missingDirs.length) {
+  console.error(`\n✗ check-canonical-uniqueness: path-resource names ${missingDirs.map(rel).join(', ')}, which does not exist.\n`)
+  process.exit(1)
+}
+const HAND_AUTHORED = HAND_AUTHORED_DIRS.map(rel).join(' + ')
+const handAuthored = HAND_AUTHORED_DIRS.flatMap((d) => collect(d, rel(d)))
 const generated = collect(GENERATED, 'ig (FSH)')
+
+// CLAUDE.md: "no CodeSystems live in the JSON tree". FSH is canonical for them.
+const jsonCodeSystems = handAuthored.filter((r) => r.type === 'CodeSystem')
+if (jsonCodeSystems.length) {
+  console.error('\n✗ check-canonical-uniqueness: CodeSystem(s) in a hand-authored path-resource directory:\n')
+  for (const r of jsonCodeSystems) console.error(`  ${rel(r.file)}  ${r.url}`)
+  console.error('\n  CodeSystems are defined in ig/input/fsh/ only — the JSON tree is where the ASQ\n' +
+    '  CodeSystem copies drifted from the IG\'s. Author it in FSH.\n')
+  process.exit(1)
+}
 
 if (handAuthored.length < FLOOR_HAND_AUTHORED || generated.length < FLOOR_GENERATED) {
   console.error(
     `\n✗ check-canonical-uniqueness: read ${handAuthored.length} canonical(s) from ` +
-      `${rel(HAND_AUTHORED)} (floor ${FLOOR_HAND_AUTHORED}) and ${generated.length} from ` +
+      `${HAND_AUTHORED} (floor ${FLOOR_HAND_AUTHORED}) and ${generated.length} from ` +
       `${rel(GENERATED)} (floor ${FLOOR_GENERATED}).\n\n` +
       '  One of the trees is empty or moved. Refusing to pass on a scan that read almost\n' +
       '  nothing — that is indistinguishable from "no collisions".\n',
@@ -121,8 +151,11 @@ if (handAuthored.length < FLOOR_HAND_AUTHORED || generated.length < FLOOR_GENERA
 
 const byUrl = new Map()
 for (const r of [...handAuthored, ...generated]) {
-  if (!byUrl.has(r.url)) byUrl.set(r.url, [])
-  byUrl.get(r.url).push(r)
+  // Keyed on the canonical WITHOUT a `|version` or trailing slash: `…/x|1.0` and
+  // `…/x/` resolve to the same artifact for a consumer, so they collide too.
+  const key = r.url.replace(/\|.*$/, '').replace(/\/+$/, '')
+  if (!byUrl.has(key)) byUrl.set(key, [])
+  byUrl.get(key).push(r)
 }
 
 const collisions = [...byUrl.entries()].filter(([, defs]) => defs.length > 1)
@@ -152,6 +185,6 @@ console.log(
   `✓ check-canonical-uniqueness: ${byUrl.size} distinct canonical URL(s), each defined once.`,
 )
 console.log(
-  `  scanned ${rel(HAND_AUTHORED)}: ${handAuthored.length} (floor ${FLOOR_HAND_AUTHORED})  ` +
+  `  scanned ${HAND_AUTHORED}: ${handAuthored.length} (floor ${FLOOR_HAND_AUTHORED})  ` +
     `${rel(GENERATED)}: ${generated.length} (floor ${FLOOR_GENERATED})`,
 )

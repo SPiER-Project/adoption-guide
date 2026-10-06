@@ -44,6 +44,7 @@ import { dirname, join, relative, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
 import { FHIR_VERSION, VALIDATOR_VERSION, resolveValidatorJar } from './lib/validator-jar.mjs'
 import { reportFloors } from './lib/floors.mjs'
+import { makeBail, parsePathResource, readConfig } from './lib/ig-config.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
@@ -58,7 +59,11 @@ const root = resolve(here, '..')
 const PACKAGE_DEPS = ['hl7.fhir.us.core#6.1.0', 'hl7.fhir.uv.sdc#3.0.0']
 
 const GENERATED_DIR = join(root, 'ig/fsh-generated/resources')
-const AUTHORED_DIR = join(root, 'ig/input/resources/questionnaires')
+// Every `path-resource` directory in ig/sushi-config.yaml — the hand-authored JSON
+// the IG Publisher loads. READ from the config: until 2026-10-06 this was the
+// questionnaires tree alone, so an invalid resource dropped into
+// `input/resources/maps/` (also published) was never validated.
+const AUTHORED_DIRS = parsePathResource(readConfig(), makeBail('validate-fhir')).map(({ dir }) => join(root, 'ig', dir))
 const SCENARIOS_DIR = join(root, 'packages/demo-population/src/scenarios')
 const PATIENTS_DIR = join(root, 'packages/demo-population/src/patients')
 
@@ -191,7 +196,7 @@ const targets = []
  * individually.
  */
 const contextDirs = new Set()
-for (const dir of [GENERATED_DIR, AUTHORED_DIR]) {
+for (const dir of [GENERATED_DIR, ...AUTHORED_DIRS]) {
   for (const full of walkJson(dir)) {
     contextDirs.add(relative(root, dirname(full)))
     const rel = relative(root, full)

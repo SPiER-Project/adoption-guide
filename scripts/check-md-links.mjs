@@ -27,8 +27,11 @@
  * ─── The four skips, each for a different reason ─────────────────────────────
  *
  *   1. Non-paths — `http(s):`, `mailto:`, and bare `#anchor`.
- *   2. `.html` — the IG's own cross-references, resolved by the IG Publisher at
- *      render time from `input/pagecontent/*.md`. `check-ig-menu.mjs` owns those.
+ *   2. `.html` UNDER `ig/input/` — the IG's own cross-references, resolved by
+ *      the IG Publisher at render time; `check-ig-narrative.mjs` check H owns
+ *      those. ⚠️ Until 2026-10-06 every `.html` target anywhere was skipped, so a
+ *      README linking a repo `.html` file that had gone passed. Outside `ig/input/`
+ *      an `.html` target is a repo file like any other.
  *   3. Targets containing `…` — prose ellipsis inside inline code that happens to
  *      be shaped like a link (`StructureDefinition-…`), not a path. A real path
  *      never contains one.
@@ -67,9 +70,10 @@ import { fileURLToPath } from 'node:url'
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 
-// Roughly half the 348 relative links that resolve today. Raise it only alongside
-// a real jump in the printed live count; never pin it to the exact number.
-const LINK_FLOOR = 175
+// Roughly half the 527 relative links that resolved on 2026-10-06 (it sat at 175
+// — a third — after the corpus grew from 348). Raise it only alongside a real
+// jump in the printed live count; never pin it to the exact number.
+const LINK_FLOOR = 260
 
 /**
  * Markdown inline links, in both spellings:
@@ -77,7 +81,17 @@ const LINK_FLOOR = 175
  * The angle form is what carries a space, so the bare form deliberately stops at
  * whitespace rather than trying to balance parens.
  */
-const LINK_RE = /\[[^\]]*\]\(\s*(?:<([^>]*)>|([^)\s]+))(?:\s+["'][^)]*["'])?\s*\)/g
+const LINK_RE = /\[(?:[^[\]]|\[[^[\]]*\])*\]\(\s*(?:<([^>]*)>|([^)\s]+))(?:\s+["'][^)]*["'])?\s*\)/g
+
+/**
+ * The other three ways a markdown file links a path, all invisible to the first
+ * version of this gate (found by the 2026-10-06 audit, each planted green):
+ *   [text][ref] … [ref]: path "title"   — a reference definition
+ *   <a href="path">, <img src="path">   — inline HTML
+ *   [a [b] c](path)                     — a label with nested brackets (LINK_RE above)
+ */
+const REF_DEF_RE = /^ {0,3}\[[^\]]+\]:\s*(?:<([^>]*)>|(\S+))/gm
+const HTML_RE = /<(?:a|img)\b[^>]*?\b(?:href|src)\s*=\s*(?:"([^"]*)"|'([^']*)')/gi
 
 function tracked() {
   const out = execFileSync('git', ['ls-files', '-z', '*.md'], { cwd: repoRoot, encoding: 'utf8' })
@@ -116,13 +130,17 @@ if (files.length === 0) {
 const candidates = []
 for (const file of files) {
   const text = await readFile(path.join(repoRoot, file), 'utf8')
-  for (const m of text.matchAll(LINK_RE)) {
+  // A reference definition is only one OUTSIDE a fence: inside, `[key]: value`
+  // is code (a TypeScript computed key reads exactly like one). Inline links stay
+  // in scope everywhere — see "Fenced code blocks" above.
+  const unfenced = text.replace(/^(```|~~~)[^\n]*\n[\s\S]*?^\1[^\n]*$/gm, (b) => b.replace(/[^\n]/g, ' '))
+  for (const m of [...text.matchAll(LINK_RE), ...unfenced.matchAll(REF_DEF_RE), ...text.matchAll(HTML_RE)]) {
     const raw = (m[1] ?? m[2]).trim()
     if (!raw) continue
     if (/^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(raw)) continue // skip 1
     const target = raw.split('#')[0]
     if (!target) continue
-    if (target.endsWith('.html')) continue // skip 2
+    if (target.endsWith('.html') && file.startsWith('ig/input/')) continue // skip 2
     if (target.includes('…')) continue // skip 3
     // A `:137` suffix names a line in the target file, not a different file.
     const onDisk = target.replace(/:\d+(?::\d+)?$/, '')

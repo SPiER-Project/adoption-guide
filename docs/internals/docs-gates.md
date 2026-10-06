@@ -28,8 +28,9 @@ document tells you to read before changing a write validation. It runs in its ow
 It asserts only that a target **resolves** — not that it points at the right
 thing, and a `:137` suffix is checked as far as the file, since pinning a line
 number would churn on every edit above it. Four skips, each for its own reason:
-`http(s):`/`mailto:`/bare `#anchor`; **`.html`**, which the IG Publisher resolves
-at render time and `check-ig-narrative.mjs`'s check H owns; targets containing
+`http(s):`/`mailto:`/bare `#anchor`; **`.html` from a file under `ig/input/`**,
+which the IG Publisher resolves at render time and `check-ig-narrative.mjs`'s
+check H owns (anywhere else an `.html` target is a repo file like any other); targets containing
 **`…`**, prose
 ellipsis in inline code shaped like a link (`StructureDefinition-…`) rather than a
 path; and **gitignored** build output like `ig/fsh-generated/`, which is correct
@@ -47,6 +48,13 @@ code block is exactly the drift worth catching, and this is what found
 Liveness is the #232/#261 guard: it fails when it finds no markdown files, and
 when the count of resolved links drops under `LINK_FLOOR` (~half the real count,
 printed on every run). All five failure modes were planted and watched to fail.
+
+⚠️ **It reads every link FORM since 2026-10-06**: inline links — including a
+label with nested brackets — reference definitions (outside fences,
+where `[key]: value` is code), and `<a href>` / `<img src>`. The first version
+read only the inline form with a flat label and skipped every `.html` target, so
+all four of those passed planted. `LINK_FLOOR` went 175 → 260 at the same time:
+the corpus had grown to 527 resolved links and the floor had slipped to a third.
 
 
 
@@ -166,12 +174,29 @@ The real defects it did find are the shape worth knowing:
 ⚠️ An exemption that outlives its reason is worse than none, because it reads as
 "checked" forever. Two rules beyond the obvious one:
 
-- an entry whose path **now exists** fails. `apps/guide/src/App.tsx` sits in
-  here twice as a forward reference to the `apps/` split; the day that tree
-  lands, the gate demands both entries be deleted rather than letting a stale
-  exemption cover a path nobody rechecked.
+- an entry whose path **now exists** fails. `apps/guide/src/App.tsx` sat in
+  here twice as a forward reference to the `apps/` split, and this rule is what
+  made both entries be deleted when that tree landed; the planned patient app is the
+  same kind of entry today.
 - an entry whose `(file, path)` pair **no longer occurs** fails, so a rewritten
-  sentence cannot leave its exemption behind.
+  sentence cannot leave its exemption behind — whether or not the path
+  exists (the first version only reported it when the path was also gone).
+
+### What it reads since 2026-10-06
+
+Every backticked token whose first segment is a repo root, with `./`, a
+`:line` / `:43–67` / `:145,171` suffix and a `#anchor` stripped **before**
+resolving, not used to skip — directories (`docs/instruments/CARS-S/`) and
+extensionless files included. The first version read only a token ending in a
+file extension, so 650+ paths in live docs were invisible, among them a
+licensing memo giving a "Repository location" that did not exist. Gitignored
+paths are asked of the VCS, as the links gate does. ⚠️ One structural
+exemption: a **directory** under a `RETIRED_ROOTS` tree (`web/`, `web/src`,
+`FHIR-Resources/`) is the name of a tree that list already declares gone —
+history by construction, ~50 mentions in live docs. Files under a retired root
+are still checked, exactly as before; a present-tense claim about a retired
+directory is the one thing this cannot see, so the five found on 2026-10-06 were
+fixed by hand.
 
 ### What it cannot see
 
@@ -232,8 +257,20 @@ nothing rather than red.
 
 ### `check-plan-status.mjs` — finished plans move to the archive
 
-⚠️ Reads a designated "Status:" LINE, never the whole file — a whole-document
+⚠️ Reads a STATUS DECLARATION, never the whole file — a whole-document
 scan for these words flags ordinary prose (a dated addendum saying one step
 is done), which is how a gate like this gets switched off. A non-archive plan
-whose status line claims the work shipped fails; an archived plan without the
-`> Archived <date>: …` banner fails.
+(any depth) whose primary status claims the work shipped fails; an archived
+plan without the `> Archived <date>: …` banner fails.
+
+⚠️ **What a status declaration is, since 2026-10-06** — every form a live plan
+used: a `Status:` line (also in a blockquote, a list item or a `## Status:`
+heading), the inline `**Date:** … · **Status:** …` header, and a `## Status`
+heading over a table, which says "shipped" when no row's lead clause is open
+and at least one is done. The done words gained shipped / landed / finished /
+completed; a status that also names open work ("not yet", "pending", "except")
+is not a shipped claim. The first version read only the bare line and four
+words, so `**Status:** all seven PRs have shipped.` passed for two weeks; the
+widened gate archived that plan and three whose status tables were all done
+(`clinical-app-ux-audit-2026-09-21`, `docs-and-ig-content-consolidation`,
+`embedded-panel-smart-launch`, `ig-cleanup-audit-2026-09-16`).

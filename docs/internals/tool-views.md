@@ -175,7 +175,8 @@ four, including the leaf whose entire job is the dump. The audience is a
 property of the render, not of the module graph.
 
 What is checkable per file is whether the file **asked**. So: a non-test `.tsx`
-under `web/src` that calls `JSON.stringify` or renders a `<pre>` must call
+under any style root (`scripts/lib/style-roots.mjs`: both apps and the three React
+packages) that calls `JSON.stringify` or renders a `<pre>` must call
 `useInspect()`, or carry an entry in `NOT_A_RESOURCE_VIEW` saying why it is not
 a resource view. Three entries today, each a sentence:
 `ToolConfigProvider` (serializes a settings object *into* localStorage),

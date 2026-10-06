@@ -50,6 +50,9 @@ on:
       - main
     paths:
       - 'ig/input/resources/maps/**'
+      # The compile loads ig/fsh-generated via -ig, so an FSH change the maps
+      # depend on must re-run it too.
+      - 'ig/input/fsh/**'
       - 'ig/drafts/**.fml'
       - 'scripts/check-fml.mjs'
       - 'scripts/lib/validator-jar.mjs'
@@ -59,6 +62,9 @@ on:
   pull_request:
     paths:
       - 'ig/input/resources/maps/**'
+      # The compile loads ig/fsh-generated via -ig, so an FSH change the maps
+      # depend on must re-run it too.
+      - 'ig/input/fsh/**'
       - 'ig/drafts/**.fml'
       - 'scripts/check-fml.mjs'
       - 'scripts/lib/validator-jar.mjs'

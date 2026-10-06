@@ -204,7 +204,7 @@ const TOOL_ID_SYSTEM = 'http://thespierproject.org/fhir/identifier/tool-id'
  * Read a tool id (`TL-0NN`) off an ActivityDefinition.
  *
  * DERIVED, not hand-maintained. Until this was published as an identifier
- * (task C2 of docs/plans/docs-and-ig-content-consolidation.md) the pairing
+ * (task C2 of docs/plans/archive/docs-and-ig-content-consolidation.md) the pairing
  * lived in a hand-written `AD_TO_TOOL_ID` map here and in ~80 FSH comment
  * lines, with nothing comparing the two — an AD could be renamed, or an id
  * reassigned, and the app would keep the stale pairing. `npm run check:catalog`

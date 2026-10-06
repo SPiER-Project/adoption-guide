@@ -105,7 +105,7 @@ always the authority; this line is a timestamp, not a fact to maintain.
 
 - **All six embedded-panel steps are merged and deployed**, proven in a browser
   end to end rather than inferred. Details live in
-  [`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md), not here.
+  [`embedded-panel-smart-launch.md`](archive/embedded-panel-smart-launch.md), not here.
 
 ## Standing rules — the operational ones
 
@@ -671,7 +671,7 @@ references it cannot resolve.
 1. [`surfaces-and-distribution.md`](surfaces-and-distribution.md) — shorter, and it
    frames the other. What is and is not an application (**the IG is not**; it is
    upstream of everything), the demo-vs-clinical build surface, hosting topology.
-2. [`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) — the panel
+2. [`embedded-panel-smart-launch.md`](archive/embedded-panel-smart-launch.md) — the panel
    itself, and the record of all six merged steps. **Read §1 before agreeing to
    anything.**
 3. [`mock-patient-smart-launch.md`](mock-patient-smart-launch.md) — **not

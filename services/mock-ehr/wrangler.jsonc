@@ -3,7 +3,7 @@
   // on its OWN Worker and therefore its own origin. Cross-origin is a
   // requirement of the embedded-panel work, not an accident of deployment:
   // the panel must prove it works from a host it does not share an origin with
-  // (docs/plans/embedded-panel-smart-launch.md §6).
+  // (docs/plans/archive/embedded-panel-smart-launch.md §6).
   //
   // `main` is the Vite-bundled worker (dist/index.js) — Vite is required
   // because the scenario/Patient loaders use import.meta.glob. There is no

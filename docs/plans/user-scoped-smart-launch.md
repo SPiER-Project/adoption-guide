@@ -34,7 +34,7 @@ That does not remove any capability from this plan — the population-level SMAR
 app is still exactly what Phase C builds — it moves it off a guide URL and onto
 a launch. The consequences are a new Phase 0 and a deleted Phase B; both are
 below, and the reasoning is recorded in
-[`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) §6.3 under
+[`embedded-panel-smart-launch.md`](archive/embedded-panel-smart-launch.md) §6.3 under
 *"The explainer is the page, and the app is a launch"*.
 
 This closes out issue **#401** ("The embedded population dashboard is a

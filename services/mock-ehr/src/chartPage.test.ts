@@ -7,7 +7,7 @@
  *
  * The claim step 5 exists to settle — that the panel renders inside a
  * cross-origin iframe — cannot be made here at all. It needs a browser, two
- * origins and a real OAuth round trip; see `docs/plans/embedded-panel-smart-launch.md`
+ * origins and a real OAuth round trip; see `docs/plans/archive/embedded-panel-smart-launch.md`
  * §6 for what was actually observed. What this file protects is everything that
  * has to be right *before* a browser can prove anything.
  */

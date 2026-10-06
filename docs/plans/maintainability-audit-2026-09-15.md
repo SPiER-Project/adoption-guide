@@ -231,7 +231,7 @@ which is the opposite of the ask.
 assumes one header implementation and one inset owner; `check:prose` and
 `check:tokens` assume one CSS tree and one token file. A second framework moves
 the guide *outside the gate net*, and
-[`embedded-panel-smart-launch.md`](embedded-panel-smart-launch.md) §6 already
+[`embedded-panel-smart-launch.md`](archive/embedded-panel-smart-launch.md) §6 already
 records the consequence: *"a new deployable outside the gate net will rot."*
 
 **This was decided and upheld.**
