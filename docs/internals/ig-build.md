@@ -322,6 +322,22 @@ re-tested it, and the first real compile failed on five defects that had been
 invisible the whole time. To confirm the gate is alive, grep a publisher log for
 `Translating CQL source` — see `docs/plans/archive/stage-8-measure-and-share.md`.
 
+⚠️ **A CQL translation that succeeds can still publish a Library with no ELM.**
+The publisher turns every public non-function define into a Library output
+parameter. A define whose type it cannot name (a choice, a tuple,
+`Interval<Integer>`) is reported as `Any`. On 2.3.4 that was a warning. On
+2.3.5 the R6 type enum has no `Any`, so ELM generation throws, and the
+publisher logs it and moves on
+([HL7/fhir-ig-publisher#1385](https://github.com/HL7/fhir-ig-publisher/issues/1385)).
+`"Care Transition Dates"` was `List<Choice<dateTime, instant>>` until both of
+its sources returned `.value`. **Keep every public define's type expressible as
+one FHIR type.** The CQL gate in `ig-publish.yml` catches the log line; the
+publisher's QA does not.
+
+⚠️ **Page headings start at `###`.** The template renders each page's title as
+`<h2>`, and 2.3.5's WCAG check fails a page whose content puts a `#` or `##`
+beside it. A leading `#` that repeats the page title is redundant. Drop it.
+
 ⚠️ **`deploy.yml` caches the rendered IG, so a push to main usually does not
 re-render it.** Pages replaces the whole site with one artifact, so the SPA
 cannot ship without a rendered IG under `dist/ig` — the two cannot be
