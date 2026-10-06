@@ -4,7 +4,6 @@ import {
   CRISIS_RESPONSE_PLAN_PROFILE,
   LETHAL_MEANS_PROFILE,
   MEASURE_SPECS,
-  RISK_CONCEPT_PROFILE,
   SAFETY_HANDOFF_PROFILE,
   buildIndividualMeasureReport,
   buildSummaryMeasureReport,
@@ -32,6 +31,7 @@ import {
 import { buildLethalMeansCounseling, buildMeansSafetyAction } from '@spier/core/lib/lethalMeans'
 import { CLOSURE_REASON_EXT, EPISODE_PROFILE } from '@spier/core/lib/riskEpisode'
 import { PATHWAY_STAGE_SYSTEM } from '@spier/core/lib/patientPathway'
+import { RISK_CONCEPT_PROFILE } from '@spier/core/lib/riskConcept'
 import type { PatientSlice } from '@spier/core/types/fhir'
 
 // ─── Fixtures ────────────────────────────────────────────────

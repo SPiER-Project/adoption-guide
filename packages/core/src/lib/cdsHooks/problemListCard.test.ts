@@ -8,6 +8,7 @@ import {
 } from '@spier/core/lib/cdsHooks/problemListCard'
 import { PATHWAY_URL, loadPathway } from '@spier/core/lib/pathway'
 import { RISK_TIER_SYSTEM } from '@spier/core/lib/riskEpisode'
+import { isRiskConcept } from '@spier/core/lib/riskConcept'
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
 import type { ObservationResource } from '@spier/core/types/fhir'
 
@@ -57,20 +58,27 @@ describe('latestRiskConceptTier', () => {
     expect(tier?.code).toBe('high')
   })
 
-  it('ignores a 93374-7 Observation whose value is an INSTRUMENT-NATIVE code', () => {
-    // The deliberate narrowness. Most mappers put a native result on 93374-7
-    // (asq-screening-result here); translating one into a harmonized tier is the
-    // ConceptMaps' job, and a card that did it would be a second crosswalk.
-    // Asserted against a real scenario slice rather than a hand-built shape, so
-    // the test cannot certify the card against input the app never produces
-    // (the #327 lesson).
+  it('does not translate an INSTRUMENT-NATIVE result itself', () => {
+    // Translating a native result (asq-screening-result, cams-ssf-overall-risk)
+    // is the published maps' job, done ONCE when the result is derived
+    // (`riskConcept.ts`). A card that did it again would be a second crosswalk.
+    // Asserted against a real scenario slice with its concepts removed, so the
+    // test cannot certify the card against input the app never produces (the
+    // #327 lesson).
     const p001 = POPULATION_SCENARIOS['patient-001']
     expect(p001).toBeDefined()
-    const native = p001.observations.filter(o =>
-      o.code?.coding?.some(c => c.code === '93374-7'),
-    )
-    expect(native.length).toBeGreaterThan(0)
-    expect(latestRiskConceptTier(p001.observations)).toBeNull()
+    const nativeOnly = p001.observations.filter(o => !isRiskConcept(o))
+    expect(nativeOnly.some(o => o.code?.coding?.some(c => c.code === '93374-7'))).toBe(true)
+    expect(latestRiskConceptTier(nativeOnly)).toBeNull()
+  })
+
+  it('fires off the concept SPiER derives from a crosswalked result', () => {
+    // Decided 2026-10-06: the card prompts off ANY harmonized tier, including
+    // one derived through a crosswalk from a patient self-rating (patient-006's
+    // CAMS). Until then it read only tiers a clinician assigned directly, and
+    // stayed silent for her while her own chart said moderate risk.
+    expect(latestRiskConceptTier(POPULATION_SCENARIOS['patient-001'].observations)?.code).toBe('moderate')
+    expect(latestRiskConceptTier(POPULATION_SCENARIOS['patient-006'].observations)?.code).toBe('moderate')
   })
 
   it('reads the tier off a real scenario slice that carries one', () => {

@@ -1,18 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { RISK_LABEL, highestActiveRiskLevel, riskTitle } from './riskLabel'
+import { RISK_LABEL, riskTitle } from './riskLabel'
 
-describe('highestActiveRiskLevel', () => {
-  it('is unknown — not none — when nothing has been screened', () => {
-    // The clinical distinction the two component copies existed to preserve.
-    expect(highestActiveRiskLevel([])).toBe('unknown')
+describe('riskTitle', () => {
+  it('reads unknown as "no screening on file" — never as cleared', () => {
+    // The clinical distinction: a chart that has never been screened must not
+    // read as "screened, no risk".
     expect(riskTitle('unknown')).toMatch(/no suicide-risk screening/i)
-  })
-  it('is none when screened with no risk', () => {
-    expect(highestActiveRiskLevel(['none'])).toBe('none')
-  })
-  it('picks the highest level present', () => {
-    expect(highestActiveRiskLevel(['low', 'acute', 'moderate'])).toBe('acute')
-    expect(highestActiveRiskLevel(['moderate', 'low'])).toBe('moderate')
+    expect(riskTitle('none')).toBe('Current suicide-risk level: None')
   })
   it('has a label for every level', () => {
     for (const level of ['acute', 'high', 'moderate', 'low', 'none', 'unknown'] as const) {

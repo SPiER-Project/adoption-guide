@@ -3,6 +3,7 @@ import { POPULATION_SCENARIOS } from '@spier/demo-population'
 import { evaluatePathway, type PathwayRecord } from './pathwayEvaluation'
 import { RISK_TIER_SYSTEM } from './riskEpisode'
 import { CRISIS_RESOURCES_PROFILE } from './crisisResources'
+import { riskConceptFor } from './riskConcept'
 import type {
   CarePlanResource,
   CommunicationResource,
@@ -52,8 +53,9 @@ function cssrsScreener(at: string, tier: 'moderate' | 'no-risk') {
     item: [],
   } as unknown as QuestionnaireResponseResource
   // The result the mapper derives: LOINC 93374-7 valued in the C-SSRS's OWN
-  // vocabulary, which is what makes the published crosswalk load-bearing — an
-  // evaluator that read only `spier-suicide-risk-tier` would see no tier here.
+  // vocabulary. The tier the evaluator reads is the concept Observation the
+  // dispatch derives from it through the published crosswalk — built here by the
+  // same function, so this helper records exactly what a submission records.
   const observation: ObservationResource = {
     resourceType: 'Observation',
     id: `cssrs-risk-${tier}`,
@@ -70,20 +72,31 @@ function cssrsScreener(at: string, tier: 'moderate' | 'no-risk') {
       ],
     },
   } as unknown as ObservationResource
+  const concept = riskConceptFor(observation)
+  if (!concept) throw new Error('the C-SSRS crosswalk derived no concept — this helper would test nothing')
   return {
     stored: { id: `cssrs-${tier}`, questionnaireName: 'C-SSRS Screener', completedAt: at, resource: response },
-    observation,
+    observations: [observation, concept],
   }
 }
 
 const PHQ9_URL = 'http://thespierproject.org/fhir/Questionnaire/PHQ-9'
 
 /**
- * A PHQ-9 re-screen, as submitting the form records one: the response plus the
- * item-9 Observation the mapper derives from it, which is what the published
- * gate reads. Shaped like Sarah's own Aug 11 PHQ-9 in the scenario.
+ * A PHQ-9 re-screen: the response plus the item-9 Observation the mapper
+ * derives from it, which is what the published gate reads. Shaped like Sarah's
+ * own Aug 11 PHQ-9 in the scenario.
+ *
+ * `concept` adds the harmonized concept SPiER derives on save (`riskConcept.ts`)
+ * — the PHQ-9 as SPiER writes it. Without it, the PHQ-9 as another system
+ * writes it.
  */
-function phq9(id: string, at: string, item9: number): Pick<PathwayRecord, 'responses' | 'observations'> {
+function phq9(
+  id: string,
+  at: string,
+  item9: number,
+  { concept = false }: { concept?: boolean } = {},
+): Pick<PathwayRecord, 'responses' | 'observations'> {
   const response = {
     resourceType: 'QuestionnaireResponse',
     id,
@@ -104,7 +117,7 @@ function phq9(id: string, at: string, item9: number): Pick<PathwayRecord, 'respo
   } as unknown as ObservationResource
   return {
     responses: [{ id, questionnaireName: 'PHQ-9', completedAt: at, resource: response }],
-    observations: [observation],
+    observations: concept ? [observation, riskConceptFor(observation)!] : [observation],
   }
 }
 
@@ -145,11 +158,11 @@ function crisisResources(at: string): CommunicationResource {
 /** Sarah's real slice plus the C-SSRS the live demo wrote onto her chart. */
 function sarahPlusCssrs(tier: 'moderate' | 'no-risk', extra: Partial<PathwayRecord> = {}): PathwayRecord {
   const base = recordFor('patient-003')
-  const { stored, observation } = cssrsScreener('2026-09-03T10:00:00.000Z', tier)
+  const { stored, observations } = cssrsScreener('2026-09-03T10:00:00.000Z', tier)
   return {
     ...base,
     responses: [...(base.responses ?? []), stored],
-    observations: [...(base.observations ?? []), observation],
+    observations: [...(base.observations ?? []), ...observations],
     ...extra,
   }
 }
@@ -211,13 +224,17 @@ describe('audit §4.5 — the first unsatisfied step of the published pathway', 
     expect(primary?.tool?.id).toBe('TL-003')
   })
 
-  it('Sarah, assessed, then a NEGATIVE PHQ-9 → the assessment is not asked for again', () => {
+  it('Sarah, assessed, then a NEGATIVE PHQ-9 with no concept → the assessment is not asked for again', () => {
     // ⚠️ The regression. Positivity was read off EVERY screen on the chart and
     // "assessed since" off the LATEST one, so Sarah's Aug 11 positive — answered
     // by the Sep 3 C-SSRS — came back to life the moment a negative re-screen
     // became the latest screen: primary "assess", reason "PHQ-9 on Sep 15:
     // positive screen." about a PHQ-9 whose item 9 was 0, with the safety plan
     // her moderate tier owes pushed off the chart.
+    //
+    // The PHQ-9 here carries no concept Observation — another system's PHQ-9 —
+    // so the C-SSRS tier stands. A SPiER-written one derives `no-risk` and ends
+    // the pathway instead: the open question pinned below.
     const { primary, alsoDue, tier } = evaluate(
       plus(sarahPlusCssrs('moderate'), phq9('phq9-sep', '2026-09-15T10:00:00.000Z', 0)),
     )
@@ -242,6 +259,21 @@ describe('audit §4.5 — the first unsatisfied step of the published pathway', 
     )
     expect(primary?.kind).toBe('assess')
     expect(primary?.reason).toBe('PHQ-9 on Sep 15: positive screen.')
+  })
+
+  it('OPEN QUESTION, current answer: a negative PHQ-9 after a moderate C-SSRS → nothing is due', () => {
+    // Pins today's rule — the latest harmonized tier wins, whatever stage
+    // recorded it — so changing it is a decision rather than an accident. The
+    // PHQ-9 is written the way SPiER writes one: the item-9 result AND the
+    // concept the published threshold map derives from it (0 → no-risk).
+    // Whether a screen should be able to lower an assessment's tier is left for
+    // clinical review; see the evaluator's module header.
+    const { primary, tier, reason } = evaluate(
+      plus(sarahPlusCssrs('moderate'), phq9('phq9-sep', '2026-09-15T10:00:00.000Z', 0, { concept: true })),
+    )
+    expect(tier?.code).toBe('no-risk')
+    expect(primary).toBeNull()
+    expect(reason).toContain('Nothing is due')
   })
 
   it('a negative C-SSRS → nothing is due, and the patient does not enter the pathway', () => {
@@ -354,9 +386,12 @@ describe('what a tier owes, and what retires it', () => {
     // is NOT a negative assessment, and printing "no risk identified" about
     // one would be a clinical claim nobody made.
     const base = recordFor('patient-006')
-    const untiered = (base.observations ?? []).map(o =>
-      o.id === 'p006-cams-risk' ? { ...o, valueCodeableConcept: undefined, valueInteger: 3 } : o,
-    )
+    // An untiered result derives no concept either, so the concept the coded
+    // rating produced goes with it — otherwise the tier would still be read off
+    // a concept whose source no longer says what it translated.
+    const untiered = (base.observations ?? [])
+      .filter(o => o.id !== 'p006-cams-risk-concept')
+      .map(o => (o.id === 'p006-cams-risk' ? { ...o, valueCodeableConcept: undefined, valueInteger: 3 } : o))
     const { primary, reason, tier } = evaluate({ ...base, observations: untiered })
     expect(tier).toBeNull()
     expect(primary).toBeNull()

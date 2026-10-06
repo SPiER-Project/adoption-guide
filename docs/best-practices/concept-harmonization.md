@@ -49,20 +49,24 @@ Key Gravity decisions worth copying:
   provenance question this section is about, and the distinction is worth
   stating precisely:
 
-  - **On the wire, nothing is conflated yet.** SPiER emits the CAMS-native
-    vocabulary on 93374-7, never a harmonized-tier value, and nothing in the app
-    emits `SPiERSuicideRiskConcept` at all. A consumer reading a CAMS chart sees
-    `cams-ssf-overall-risk#3` and can tell exactly what produced it.
-  - **In the application, it now is.** The pathway evaluator
-    (`packages/core/src/lib/pathwayEvaluation.ts`) translates that self-rating
-    through the published map and then treats the result exactly as it treats a
-    clinician's C-SSRS determination — including obliging a safety plan and
-    setting a reassessment cadence. A patient's momentary self-rating and a
-    structured clinical assessment drive the same obligations, and nothing the
-    clinician sees marks the difference except the instrument's name in the
-    card's one sentence.
+  - **On the wire, it now is — and provenance survives one hop away.** Since
+    2026-10-06 SPiER writes a `SPiERSuicideRiskConcept` beside every instrument
+    result a published map covers (`packages/core/src/lib/riskConcept.ts`), so a
+    consumer reading the concept layer alone sees the same `moderate` from a
+    CAMS self-rating as from a C-SSRS determination. What still tells them apart
+    is the concept's `derivedFrom`, which points at the instrument result — and
+    that result (`cams-ssf-overall-risk#3`) stays on the wire unchanged. Nothing
+    in the concept itself carries it.
+  - **In the application, too.** The pathway evaluator
+    (`packages/core/src/lib/pathwayEvaluation.ts`) treats a self-rating's tier
+    exactly as it treats a clinician's C-SSRS determination — including obliging
+    a safety plan and setting a reassessment cadence — and, by Brad's decision
+    of 2026-10-06, the problem-list guidance card now prompts off it as well. A
+    patient's momentary self-rating and a structured clinical assessment drive
+    the same obligations, and nothing the clinician sees marks the difference
+    except the instrument's name in the card's one sentence.
 
-  So the axis below is now load-bearing rather than anticipatory.
+  So the axis below is now load-bearing on the wire, not only in the app.
 
   So **fidelity has two axes and #264 currently models one.** `wider` /
   `relatedto` / `equivalent` from the ConceptMap describes *vocabulary precision*;

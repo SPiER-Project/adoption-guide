@@ -36,19 +36,16 @@ import {
   unreachedStreak,
   OUTREACH_OUTCOME_EXT,
 } from './followUp'
-// The risk-concept LOINC is defined once, by the measure engine that matches on
-// it. Importing it here rather than re-typing '93374-7' keeps the two consumers
-// of that code from drifting; measures.ts does not import this module, so there
-// is no cycle.
-import { RISK_CONCEPT_LOINC } from './measures'
+// What counts as a risk-concept Observation is defined once, by the concept
+// layer — the same predicate the evaluator and the measure engine use, so the
+// reassessment clock here cannot start from a different Observation than theirs.
+import { isRiskConcept } from './riskConcept'
 import { reassessmentState, riskLevelForTier, type ReassessmentState } from './reassessment'
 // One definition of "when was this recorded", shared with the pathway evaluator.
 import { bestArtifactDate } from './artifactDate'
-import { evaluatePathway } from './pathwayEvaluation'
+import { evaluatePathway, type PathwayEvaluation } from './pathwayEvaluation'
 import type { PatientSlice } from '../types/fhir'
 
-/** Just enough of an Observation to find the risk-concept ones. */
-type ObservationLike = { code?: { coding?: Array<{ code?: string }> } }
 
 export interface RegistryPatient {
   id: string
@@ -95,6 +92,51 @@ export interface RegistryActivity {
  * compile.
  */
 export type RegistryRiskLevel = RiskAlert['level'] | 'unknown'
+
+/**
+ * The risk level a chart is SHOWN at — the caseload row and the identity strip
+ * on every patient screen, through this one function.
+ *
+ * ⚠️ **One function because two rules shipped.** The caseload moved to this
+ * rule on 2026-09-21 and the identity strip did not: it kept ranking the
+ * instruments' alerts, so on 4 of the 14 demo charts the strip above a patient
+ * and the caseload row for them gave different answers — High beside moderate
+ * for patient-001 and patient-006, and "No suicide-risk screening on file" for
+ * patient-013 and patient-014, whose acute ASQ puts them at IMMINENT risk.
+ *
+ * ⚠️ **The HARMONIZED TIER, not the loudest alert.** `highestRiskLevel` over
+ * the alerts is the most severe thing any instrument said about the patient.
+ * That is a different question from the one the pathway branches on:
+ * patient-006's CAMS session rates psychological pain and hopelessness at 4/5,
+ * which drives the ALERT to high, while her own OVERALL rating is 3/5 — the
+ * moderate tier. The tier wins because it is what the protocol conditions on:
+ * the tier branch, the reassessment cadence and every obligation below it are
+ * gated on `SPiERSuicideRiskTier`, never on an instrument's own reading of
+ * itself.
+ *
+ * ⚠️ **The alert is the FALLBACK, and that is not a compromise.** A positive
+ * screen recorded by a system that writes no concept Observation has no tier;
+ * showing `none` for it would read as "screened, no risk", which is the
+ * opposite of true. So a record with no tier keeps saying what its instruments
+ * said.
+ *
+ * ⚠️ **And `unknown` below the fallback, which `highestRiskLevel` cannot say.**
+ * It returns `none` for an empty alert set, so a patient nobody has ever
+ * screened would read exactly like one screened and cleared — the distinction
+ * `riskLabel.ts` calls clinical. The alert guard is belt-and-braces: a slice
+ * carrying alerts but no artifacts is malformed, and reading it as "never
+ * screened" would be the louder error of the two.
+ */
+export function chartRiskLevel(
+  evaluation: Pick<PathwayEvaluation, 'tier' | 'screened'>,
+  riskAlerts: RiskAlert[],
+): RegistryRiskLevel {
+  const tierLevel = evaluation.tier ? riskLevelForTier(evaluation.tier.code) : undefined
+  if (tierLevel) return tierLevel
+  const anySignal = evaluation.screened || riskAlerts.length > 0
+  return anySignal ? highestRiskLevel(riskAlerts) : 'unknown'
+}
+
 
 export interface DerivedRegistryRow extends RegistryPatient {
   /** Null once every stage (including the last) is complete — see derivePathwayStatus. */
@@ -389,9 +431,7 @@ function deriveReassessmentRollup(
   now: Date,
 ) {
   const dates = (slice.observations ?? [])
-    .filter(o =>
-      (o as ObservationLike).code?.coding?.some(c => c.code === RISK_CONCEPT_LOINC),
-    )
+    .filter(isRiskConcept)
     .map(o => bestArtifactDate(o))
     .filter((d): d is string => !!d)
     .sort()
@@ -482,42 +522,7 @@ export function deriveRegistryRow(
     { now },
   )
 
-  // ⚠️ **The HARMONIZED TIER, not the loudest alert** — changed 2026-09-21.
-  //
-  // This was `highestRiskLevel(slice.riskAlerts)`, which is the most severe
-  // thing any instrument said about the patient. That is a different question
-  // from the one the pathway branches on, and for a real demo chart the two
-  // gave different answers out loud: patient-006's CAMS session rates
-  // psychological pain and hopelessness at 4/5, which drives the ALERT to
-  // high, while the patient's own OVERALL risk rating is 3/5, which is the
-  // moderate tier. The caseload said High and that patient's own chart said
-  // moderate risk — the disagreement this page's own copy claims cannot
-  // happen.
-  //
-  // The tier wins because it is what the protocol conditions on: the tier
-  // branch, the reassessment cadence and every obligation below it are gated
-  // on `SPiERSuicideRiskTier`, never on an instrument's own reading of itself.
-  //
-  // ⚠️ **The alert is the FALLBACK, and that is not a compromise.** A patient
-  // with a positive PHQ-9 and no assessment yet has no tier at all — the
-  // pathway's gate is "positive screen, go and assess", and it reaches no tier
-  // until something does. Showing `none` for them would read as "screened, no
-  // risk", which is the opposite of true. So a record with no tier keeps
-  // saying what its instruments said.
-  //
-  // ⚠️ **And `unknown` below the fallback, which `highestRiskLevel` cannot
-  // say.** It returns `none` for an empty alert set, so a patient nobody has
-  // ever screened read exactly like a patient screened and cleared — the
-  // distinction `riskLabel.ts` calls out as clinical and the one word this
-  // column had no way to spell. A record the evaluator finds no screen, no
-  // assessment and no tier on has not been asked the question.
-  const alertLevel = highestRiskLevel(slice.riskAlerts)
-  const tierLevel = evaluation.tier ? riskLevelForTier(evaluation.tier.code) : undefined
-  // The alert guard is belt-and-braces: a slice carrying alerts but no
-  // artifacts is malformed, and reading it as "never screened" would be the
-  // louder error of the two.
-  const anySignal = evaluation.screened || slice.riskAlerts.length > 0
-  const currentRiskLevel: RegistryRiskLevel = tierLevel ?? (anySignal ? alertLevel : 'unknown')
+  const currentRiskLevel = chartRiskLevel(evaluation, slice.riskAlerts)
 
   return {
     ...patient,

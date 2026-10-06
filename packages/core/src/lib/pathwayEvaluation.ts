@@ -33,6 +33,21 @@
  * `definitionCanonical` plus the profile that activity emits. Both are stated
  * per obligation below.
  *
+ * ── An OPEN clinical question: which tier counts ─────────────
+ *
+ * ⚠️ **The latest harmonized tier wins, whatever stage recorded it** — and
+ * whether that is right is a question for a clinician, not settled here. Since
+ * 2026-10-06 every screen writes a concept Observation (PHQ-9 item 9 and the
+ * SBQ-R through their published threshold maps, ASQ through its crosswalk), so
+ * a NEGATIVE re-screen recorded after a moderate C-SSRS makes the latest tier
+ * `no-risk` and the walk below answers "Nothing is due" — the patient leaves
+ * the pathway on a screen, and the reassessment clock restarts from it. A
+ * negative ASQ did this before the concept layer existed. The alternative put
+ * to Brad — screens may raise a tier but only an assessment may lower it — was
+ * left for clinical review rather than invented here; his lean was that the
+ * latest screen should probably take precedence. Change `tierHistory` and the
+ * cadence's `lastAssessment` together if the answer differs.
+ *
  * ── And two it deliberately does not answer ─────────────────
  *
  * - **`high-missed-appointment-outreach`** is a published high-risk obligation
@@ -54,7 +69,8 @@
 import { toolForActivityDefinition, type Tool } from '../data/catalog'
 import { bestArtifactDate, shortDate } from './artifactDate'
 import { tierForCodings } from './conceptCrosswalk'
-import { conformsTo, isRiskConcept, observationStage } from './measures'
+import { conformsTo, derivedResponseIds, observationStage } from './measures'
+import { isRiskConcept, PHQ9_ITEM9_LOINC } from './riskConcept'
 import { CRISIS_RESOURCES_PROFILE } from './crisisResources'
 import { COUNSELING_PROFILE } from './lethalMeans'
 import { loadPathway, type PathwayAction, type PathwayModel } from './pathway'
@@ -101,9 +117,6 @@ const CRISIS_RESOURCES_CANONICAL =
 
 const SAFETY_PLAN_CANONICAL =
   'http://thespierproject.org/fhir/ActivityDefinition/AdministerStanleyBrown'
-
-/** The PHQ-9 item-9 LOINC — the gate the published protocol's realization reads. */
-const PHQ9_ITEM9_LOINC = '44260-8'
 
 /** What a step asks the clinician to do. */
 export type ObligationKind =
@@ -440,10 +453,8 @@ export function sourceResponse(
   resource: FhirResourceLike,
   slice: PatientSlice,
 ): PatientSlice['responses'][number] | null {
-  const derivedFrom = (resource as { derivedFrom?: Array<{ reference?: string }> }).derivedFrom ?? []
-  for (const ref of derivedFrom) {
-    const id = ref.reference?.replace('QuestionnaireResponse/', '')
-    const stored = id ? slice.responses.find(r => r.id === id) : undefined
+  for (const id of derivedResponseIds(resource as { derivedFrom?: Array<{ reference?: string }> }, slice.observations ?? [])) {
+    const stored = slice.responses.find(r => r.id === id)
     if (stored) return stored
   }
   // ⚠️ Last resort, and a heuristic rather than a link: the latest response at

@@ -14,14 +14,16 @@
  * profiles. Both gates read the same emitted corpus; they start from opposite
  * ends of it.
  *
- * ⚠️ **That gap is not hypothetical — it is why this file exists.**
- * `spier-suicide-risk-concept` is published, is read by a Stage-8 measure
- * (`measures.ts`: `if (conformsTo(o, RISK_CONCEPT_PROFILE)) return true`), and is
- * claimed by **nothing the app emits**. The only resources carrying it anywhere
- * in this repo are two hand-authored entries in the demo scenarios — so the
- * measure computes a number off seeded fixtures and would report zero in a real
- * deployment. It is the TL-009 shape one layer up: published, measured, never
- * written, and invisible to every gate that starts from what a tool declares.
+ * ⚠️ **That gap was not hypothetical — it is why this file exists.**
+ * `spier-suicide-risk-concept` was published, read by every Stage-8 measure the
+ * CQL defines over `Risk Concept Observations`, and claimed by **nothing the app
+ * emitted**: the only resources carrying it were two hand-authored entries in the
+ * demo scenarios, so the measure computed a number off seeded fixtures and would
+ * have reported zero in a real deployment. It was the TL-009 shape one layer up:
+ * published, measured, never written, and invisible to every gate that starts
+ * from what a tool declares. Its exemption here was recorded as "a gap, not a
+ * decision", and it EXPIRED (rule 2) the day `riskConcept.ts` began deriving the
+ * concept from every result a published map covers — 2026-10-06.
  *
  * ⚠️ It is also invisible to `validate-fhir.mjs`, for the reason
  * `docs/internals/fhir-conformance.md` gives: a validator checks a resource
@@ -84,17 +86,6 @@ const EXEMPT = {
     + 'entry through a CDS card (cdsHooks/problemListCard.ts) and a human asserts it. The '
     + 'corpus is generated with default config, so it contains none by construction. '
     + 'Deliberate — the assertion is the clinician\'s, not the app\'s.',
-
-  'spier-suicide-risk-concept':
-    '⚠️ A GAP, not a decision — recorded so it is legible rather than silent. Nothing in '
-    + 'the app derives the harmonized cross-instrument risk concept, yet measures.ts reads '
-    + 'it (RISK_CONCEPT_PROFILE) and the demo scenarios carry two hand-authored instances, '
-    + 'so the Stage-8 measure computes off seeded data and would report zero in a real '
-    + 'deployment. Deriving it is a modelling decision (which instruments, what tier '
-    + 'mapping, whether a ConceptMap is needed) rather than a stamping fix — note that '
-    + 'camsSectionA emits LOINC 93374-7 with both required categories but valueInteger, '
-    + 'where this profile requires a coded tier from spier-suicide-risk-tier-vs, so it '
-    + 'cannot simply be stamped onto what already exists.',
 }
 
 // ─── Inputs ─────────────────────────────────────────────────────────────────

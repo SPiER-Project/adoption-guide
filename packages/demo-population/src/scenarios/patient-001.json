@@ -745,6 +745,83 @@
     },
     {
       "resourceType": "Observation",
+      "id": "p001-phq9-item9-concept",
+      "meta": {
+        "profile": [
+          "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-concept"
+        ],
+        "tag": [
+          {
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
+            "code": "identify-possible-risk"
+          }
+        ]
+      },
+      "status": "final",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "survey",
+              "display": "Survey"
+            }
+          ]
+        },
+        {
+          "coding": [
+            {
+              "system": "http://thespierproject.org/fhir/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "93374-7",
+            "display": "Suicide risk level"
+          }
+        ]
+      },
+      "subject": {
+        "reference": "Patient/patient-001"
+      },
+      "encounter": {
+        "reference": "Encounter/p001-enc-index"
+      },
+      "effectiveDateTime": "2026-07-31T10:15:00.000Z",
+      "derivedFrom": [
+        {
+          "reference": "Observation/p001-phq9-item9"
+        }
+      ],
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier",
+            "code": "moderate",
+            "display": "Moderate risk"
+          }
+        ]
+      },
+      "interpretation": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+              "code": "POS",
+              "display": "Positive"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resourceType": "Observation",
       "id": "p001-asq-result",
       "meta": {
         "tag": [
@@ -800,6 +877,83 @@
             }
           ],
           "text": "Non-Acute Positive Screen"
+        }
+      ]
+    },
+    {
+      "resourceType": "Observation",
+      "id": "p001-asq-result-concept",
+      "meta": {
+        "profile": [
+          "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-concept"
+        ],
+        "tag": [
+          {
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
+            "code": "identify-possible-risk"
+          }
+        ]
+      },
+      "status": "final",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "survey",
+              "display": "Survey"
+            }
+          ]
+        },
+        {
+          "coding": [
+            {
+              "system": "http://thespierproject.org/fhir/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "93374-7",
+            "display": "Suicide risk level"
+          }
+        ]
+      },
+      "subject": {
+        "reference": "Patient/patient-001"
+      },
+      "encounter": {
+        "reference": "Encounter/p001-enc-index"
+      },
+      "effectiveDateTime": "2026-07-31T10:35:00.000Z",
+      "derivedFrom": [
+        {
+          "reference": "Observation/p001-asq-result"
+        }
+      ],
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier",
+            "code": "moderate",
+            "display": "Moderate risk"
+          }
+        ]
+      },
+      "interpretation": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+              "code": "POS",
+              "display": "Positive"
+            }
+          ]
         }
       ]
     },
@@ -967,6 +1121,83 @@
             }
           ],
           "text": "Moderate risk (3/5)"
+        }
+      ]
+    },
+    {
+      "resourceType": "Observation",
+      "id": "p001-cams-risk-concept",
+      "meta": {
+        "profile": [
+          "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-concept"
+        ],
+        "tag": [
+          {
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage",
+            "code": "clarify-risk"
+          }
+        ]
+      },
+      "status": "final",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "survey",
+              "display": "Survey"
+            }
+          ]
+        },
+        {
+          "coding": [
+            {
+              "system": "http://thespierproject.org/fhir/CodeSystem/spier-concept-domain",
+              "code": "suicide-risk",
+              "display": "Suicide risk"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "93374-7",
+            "display": "Suicide risk level"
+          }
+        ]
+      },
+      "subject": {
+        "reference": "Patient/patient-001"
+      },
+      "encounter": {
+        "reference": "Encounter/p001-enc-index"
+      },
+      "effectiveDateTime": "2026-08-01T11:00:00.000Z",
+      "derivedFrom": [
+        {
+          "reference": "Observation/p001-cams-risk"
+        }
+      ],
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier",
+            "code": "moderate",
+            "display": "Moderate risk"
+          }
+        ]
+      },
+      "interpretation": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+              "code": "POS",
+              "display": "Positive"
+            }
+          ]
         }
       ]
     }

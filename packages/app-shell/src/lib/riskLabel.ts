@@ -16,20 +16,14 @@ export const RISK_LABEL: Record<RiskLevel, string> = {
 }
 
 /**
- * The highest active level across a patient's alerts, for the identity strip.
+ * The tooltip that goes with a risk pill — the identity strip's and the
+ * caseload's, which both show `chartRiskLevel` (packages/core registry.ts).
  *
- * ⚠️ An empty set is `unknown` — "no screening on file" — and NOT `none` —
- * "screened, no risk". The distinction is clinical: a chart that has never
- * been screened must not read as cleared. The `highestRiskLevel` in
- * observationMappers collapses the two, which is why the strip has its own.
+ * ⚠️ `unknown` is "no screening on file" and NOT `none` — "screened, no risk".
+ * The distinction is clinical: a chart that has never been screened must not
+ * read as cleared. "Current", not "highest active": the level is the harmonized
+ * tier the pathway branches on, which can be lower than the loudest instrument.
  */
-export function highestActiveRiskLevel(alertLevels: readonly string[]): RiskLevel {
-  if (alertLevels.length === 0) return 'unknown'
-  const order: RiskLevel[] = ['acute', 'high', 'moderate', 'low', 'none']
-  return order.find(l => alertLevels.includes(l)) ?? 'none'
-}
-
-/** The tooltip that goes with the strip's pill. */
 export function riskTitle(level: RiskLevel): string {
-  return level === 'unknown' ? 'No suicide-risk screening on file' : `Highest active risk level: ${RISK_LABEL[level]}`
+  return level === 'unknown' ? 'No suicide-risk screening on file' : `Current suicide-risk level: ${RISK_LABEL[level]}`
 }

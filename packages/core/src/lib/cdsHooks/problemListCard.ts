@@ -47,7 +47,7 @@
  * React-free and DOM-free (`npm run check:core-boundary`).
  */
 import { observationEffective } from '../observationEffective'
-import { isRiskConcept } from '../measures'
+import { isRiskConcept } from '../riskConcept'
 import { loadPathway, type PathwayAction, type PathwayModel } from '../pathway'
 import { RISK_TIER_SYSTEM } from '../riskEpisode'
 import type { ObservationResource } from '../../types/fhir'
@@ -111,34 +111,21 @@ export interface RiskConceptTier {
  * The most recent harmonized suicide-risk tier in a set of Observations, or
  * `null` when there is none.
  *
- * ⚠️ **Deliberately narrow: the value must be coded in `SPiERSuicideRiskTier`.**
- * Most instrument mappers put their *native* result on 93374-7 — an
- * `asq-screening-result`, a `cssrs-risk-level`, a `bssa-disposition` — and
- * translating one of those into a tier here would be a second implementation of
- * a crosswalk that already has a home (the per-instrument ConceptMaps, and the
- * mappers that derive `RiskAlert.level`). A card that guessed a tier would be
- * guessing about a problem-list entry, so it does not guess: it fires for the
- * observations that already carry the concept layer's own vocabulary — SAFE-T
- * and PSS-Full, which have the clinician assign the tier directly, and the
- * risk-status Observations a documented risk picture produces.
+ * ⚠️ **Any harmonized tier, including one derived through a crosswalk —
+ * decided 2026-10-06.** The value must be coded in `SPiERSuicideRiskTier`, and
+ * this function translates nothing itself: an instrument-native result
+ * (`asq-screening-result`, `cssrs-risk-level`, `cams-ssf-overall-risk`) reaches
+ * it through the concept Observation SPiER derives from that result through the
+ * published maps (`riskConcept.ts`). Until that derivation existed only SAFE-T,
+ * PSS-Full and documented risk statuses carried a tier, and the card stayed
+ * silent for a CAMS patient whose own chart said moderate risk.
  *
- * ⚠️ **HALF of that reason expired on 2026-09-21, and the narrowness is now an
- * open decision rather than a settled one.** "A second implementation of a
- * crosswalk" is no longer the alternative: `lib/conceptCrosswalk.ts` reads the
- * published ConceptMaps as data, so a native result CAN be translated here
- * without anything being reimplemented — and the pathway evaluator does exactly
- * that. So the two readers disagree on purpose: the evaluator says patient-006
- * is at moderate risk (CAMS, through the published map) while this card stays
- * silent for her, because nothing on her chart carries the harmonized value.
- *
- * That is left standing rather than quietly widened. Whether to prompt a
- * problem-list entry off a crosswalked tier — including a PATIENT SELF-RATING,
- * which is what the CAMS route is — is a clinical decision about when SPiER
- * suggests a diagnosis, not a plumbing one, and widening it would change what
- * every screened patient's chart says. See
- * `docs/best-practices/concept-harmonization.md` §2. Until that decision is
- * made, `latestRiskConceptTier` stays literal and this note is the record that
- * it is a choice.
+ * Whether to prompt a problem-list entry off a crosswalked tier — including a
+ * PATIENT SELF-RATING, which is what the CAMS route is — was recorded here as an
+ * open clinical decision. Brad settled it: the card prompts off every
+ * harmonized tier. It still only SUGGESTS (see the file header), and the
+ * provenance a clinician would weigh is one `derivedFrom` hop away; see
+ * `docs/best-practices/concept-harmonization.md` §2.
  *
  * Undated observations lose to dated ones rather than being dropped: a resource
  * with no `effective[x]` still says something, it just cannot claim to be the

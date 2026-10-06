@@ -175,10 +175,19 @@ describe('problem-list guidance card (pathway Phase 5)', () => {
     expect(card.links).toBeUndefined()
   })
 
-  it('stays silent for a patient with no harmonized tier on record', () => {
-    // patient-001's only 93374-7 Observation carries an ASQ-native result, not a
-    // tier — and the card deliberately does not translate one into the other.
-    expect(guidanceCard('patient-001')).toBeUndefined()
+  it('surfaces guidance off a tier SPiER derived through a crosswalk', () => {
+    // Decided 2026-10-06: the card fires on ANY harmonized tier. patient-001's
+    // results are ASQ- and CAMS-native; the concept Observations derived from
+    // them through the published ConceptMaps put her at moderate risk.
+    expect(guidanceCard('patient-001')?.indicator).toBe('warning')
+  })
+
+  it('stays silent with no tier on record, and for a negative screen', () => {
+    // patient-002 has nothing on file; patient-012's ASQ was negative, which
+    // derives the no-risk tier — and a screen that found nothing never prompts a
+    // problem-list entry.
+    expect(guidanceCard('patient-002')).toBeUndefined()
+    expect(guidanceCard('patient-012')).toBeUndefined()
   })
 })
 

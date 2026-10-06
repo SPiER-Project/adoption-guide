@@ -57,6 +57,8 @@ import { stageForArtifact, type FhirResourceLike } from './patientPathway'
 // reassessment.ts imports RISK_TIER_SYSTEM from riskEpisode.ts, not from here,
 // so this direction introduces no cycle.
 import { REASSESSMENT_INTERVAL_DAYS } from './reassessment'
+// What a risk concept IS lives with the concept layer, which also derives them.
+import { isRiskConcept } from './riskConcept'
 import type {
   AppointmentResource,
   CarePlanResource,
@@ -76,7 +78,6 @@ import type {
 // Profiles + codes this engine reads
 // ─────────────────────────────────────────────────────────────
 
-export const RISK_CONCEPT_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-concept'
 // Defined in handoffs.ts beside `buildSafetyHandoff`, which stamps it, and
 // re-exported here because this engine is where its consequence lives: the
 // handoff is one of the two resources supplying `transitionDates`, the index
@@ -91,8 +92,6 @@ export const CRISIS_RESPONSE_PLAN_PROFILE = 'http://thespierproject.org/fhir/Str
 // re-exported here because this engine is where its consequence lives.
 export { CARING_CONTACT_OPT_OUT_EXT }
 export const HANDOFF_CONTENT_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-handoff-content'
-/** The generic concept-layer code the risk-concept profile mandates. */
-export const RISK_CONCEPT_LOINC = '93374-7'
 
 const MEASURE_POPULATION_SYSTEM = 'http://terminology.hl7.org/CodeSystem/measure-population'
 const IMPROVEMENT_NOTATION_SYSTEM =
@@ -246,25 +245,40 @@ export function conformsTo(
 }
 
 /**
- * Is this the harmonized suicide-risk concept Observation?
+ * The QuestionnaireResponse ids a resource was derived from, following
+ * `derivedFrom` THROUGH intermediate Observations.
  *
- * Accepts EITHER the explicit profile claim or the LOINC code the profile
- * mandates (93374-7). Code-matching is not a fallback for convenience — it is
- * the more interoperable identity: most systems, including SPiER's own
- * observation mappers, do not stamp `meta.profile`, so a measure that required
- * the profile claim would score zero against real EHR data and against this
- * app's own output. The profile mandates the code, so matching the code can
- * never be wrong.
+ * ⚠️ **The hop through an Observation is the concept layer's shape.** A
+ * harmonized concept is `derivedFrom` the instrument result it translates, and
+ * only that result points at the form — exactly the published FML maps'
+ * `derivedFrom = reference(src)`. Reading one level would lose the form for
+ * every concept that was not also stamped with it on save. Bounded and
+ * cycle-safe, because `derivedFrom` is data and can point anywhere.
  *
- * Exported because the CDS problem-list guidance card asks the same question of
- * the same resources (`lib/cdsHooks/problemListCard.ts`). A second predicate
- * there would be a second opinion on what the concept layer *is* — the exact
- * drift `RISK_CONCEPT_LOINC` living here once is meant to prevent.
+ * A bare id (no `Type/` prefix) is read as a response id, which is what the
+ * old single-level reads did.
  */
-export function isRiskConcept(o: ObservationResource): boolean {
-  if (conformsTo(o, RISK_CONCEPT_PROFILE)) return true
-  const codings = (o as { code?: { coding?: Array<{ system?: string; code?: string }> } }).code?.coding
-  return !!codings?.some(c => c.system === 'http://loinc.org' && c.code === RISK_CONCEPT_LOINC)
+export function derivedResponseIds(
+  resource: { derivedFrom?: Array<{ reference?: string }> },
+  observations: ReadonlyArray<{ id?: string }>,
+): string[] {
+  const ids: string[] = []
+  const seen = new Set<string>()
+  const walk = (node: { derivedFrom?: Array<{ reference?: string }> }, depth: number) => {
+    for (const ref of node.derivedFrom ?? []) {
+      const value = ref.reference
+      if (!value || seen.has(value)) continue
+      seen.add(value)
+      if (value.startsWith('QuestionnaireResponse/')) ids.push(value.slice('QuestionnaireResponse/'.length))
+      else if (!value.includes('/')) ids.push(value)
+      else if (value.startsWith('Observation/') && depth < 3) {
+        const next = observations.find(o => o.id === value.slice('Observation/'.length))
+        if (next) walk(next as { derivedFrom?: Array<{ reference?: string }> }, depth + 1)
+      }
+    }
+  }
+  walk(resource, 0)
+  return ids
 }
 
 /**
@@ -282,10 +296,7 @@ export function isRiskConcept(o: ObservationResource): boolean {
 export function observationStage(o: ObservationResource, slice: PatientSlice): StageId | undefined {
   const direct = stageForArtifact(o as FhirResourceLike)
   if (direct && isStageId(direct)) return direct
-  const derivedFrom = (o as { derivedFrom?: Array<{ reference?: string }> }).derivedFrom ?? []
-  for (const ref of derivedFrom) {
-    const id = ref.reference?.replace('QuestionnaireResponse/', '')
-    if (!id) continue
+  for (const id of derivedResponseIds(o as { derivedFrom?: Array<{ reference?: string }> }, slice.observations ?? [])) {
     const stored = slice.responses.find(r => r.id === id)
     const stage = stored && stageForArtifact(stored.resource as FhirResourceLike)
     if (stage && isStageId(stage)) return stage
