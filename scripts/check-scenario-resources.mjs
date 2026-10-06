@@ -77,6 +77,7 @@ import {
   validateResource,
 } from '../packages/core/fhir-resource-rules.mjs'
 import { reportFloors } from './lib/floors.mjs'
+import { loadCore } from './lib/load-core.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..') // repo root
@@ -203,25 +204,19 @@ const { patientIds, structureDefs } = conformance
 // ─────────────────────────────────────────────────────────────
 
 /**
- * `RiskAlert['level']` parsed out of the mapper source rather than copied, so
- * adding a tier there cannot leave this check rejecting valid data. (The same
- * trick check-measures.mjs uses on the CRITERIA map.)
+ * `RiskAlert['level']`, read off the runtime rather than copied or parsed.
+ *
+ * `RISK_LEVEL_ORDER` is typed `Record<RiskAlert['level'], number>`, so the
+ * compiler holds its keys equal to the union — and its keys are a value a node
+ * script can read (through lib/load-core.mjs). This used to regex the union out
+ * of the interface's source text, which needed a guard against its own parser.
  */
-const RISK_LEVELS = (() => {
-  const src = readFileSync(join(root, 'packages/core/src/lib/observationMappers/shared.ts'), 'utf8')
-  const block = src.match(/export interface RiskAlert \{[\s\S]*?\n\}/)?.[0]
-  const union = block?.match(/^\s*level:\s*(.+)$/m)?.[1]
-  const levels = [...(union ?? '').matchAll(/'([^']+)'/g)].map((m) => m[1])
-  if (levels.length === 0) {
-    console.error(
-      '[check:scenario-resources] could not parse RiskAlert["level"] out of ' +
-        'packages/core/src/lib/observationMappers/shared.ts. If it was renamed or retyped, update this ' +
-        'script — do not delete the check.',
-    )
-    process.exit(1)
-  }
-  return new Set(levels)
-})()
+const [mapperShared] = await loadCore(['@spier/core/lib/observationMappers/shared'])
+const RISK_LEVELS = new Set(Object.keys(mapperShared.RISK_LEVEL_ORDER))
+if (RISK_LEVELS.size === 0) {
+  console.error('[check:scenario-resources] RISK_LEVEL_ORDER has no keys — no risk level could validate.')
+  process.exit(1)
+}
 
 function checkRiskAlert(alert, where) {
   if (!alert || typeof alert !== 'object') return fail(`${where}: not an object`)

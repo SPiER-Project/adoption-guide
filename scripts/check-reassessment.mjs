@@ -34,6 +34,7 @@
 import { readFileSync, existsSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { loadCore } from './lib/load-core.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const fhirDir = resolve(here, '../packages/fhir-artifacts/generated')
@@ -44,8 +45,14 @@ const CQL = resolve(here, '../ig/input/cql/SPiERSuicideSaferCareMeasures.cql')
 
 const TIER_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier'
 
-/** UCUM codes packages/core/src/lib/reassessment.ts knows how to convert. Keep in step. */
-const READABLE_UNITS = new Set(['d', 'wk', 'mo', 'a'])
+/**
+ * The UCUM codes packages/core/src/lib/reassessment.ts knows how to convert —
+ * read from that module (through lib/load-core.mjs), not copied. This was a
+ * hand copy marked "Keep in step", which a unit added there would have left
+ * rejecting a schedule the app reads fine, or the reverse.
+ */
+const [reassessment] = await loadCore(['@spier/core/lib/reassessment'])
+const READABLE_UNITS = new Set(Object.keys(reassessment.UCUM_DAYS))
 
 /**
  * Tiers that must NOT have an interval, and why. Encoded here rather than only

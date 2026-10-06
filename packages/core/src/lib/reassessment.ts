@@ -48,7 +48,8 @@ const planModules = import.meta.glob<{ default: PlanDefinitionDoc }>(
 const DAY_MS = 24 * 60 * 60 * 1000
 
 /** UCUM codes this reader understands, in days. */
-const UCUM_DAYS: Record<string, number> = { d: 1, wk: 7, mo: 30, a: 365 }
+/** The UCUM duration units this module converts, in days. Exported for `check:reassessment`. */
+export const UCUM_DAYS: Record<string, number> = { d: 1, wk: 7, mo: 30, a: 365 }
 
 function readSchedule(): Record<string, number> {
   const doc = Object.values(planModules)
