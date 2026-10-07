@@ -90,11 +90,11 @@ export async function executeWritePlan(
 
   for (const step of discreteSteps) {
     if (step.disposition === 'disabled') {
-      steps.push({ ...base(step), outcome: 'skipped', reason: 'Tier not enabled' })
+      steps.push({ ...base(step), outcome: 'skipped', skip: 'disabled', reason: 'Tier not enabled' })
       continue
     }
     if (step.disposition === 'unsupported') {
-      steps.push({ ...base(step), outcome: 'skipped', reason: 'Server does not support create for this type' })
+      steps.push({ ...base(step), outcome: 'skipped', skip: 'unsupported', reason: 'Server does not support create for this type' })
       inScopeDiscreteOutcomes.push('skipped')
       continue
     }
@@ -130,6 +130,7 @@ export async function executeWritePlan(
       steps.push({
         ...base(floorStep),
         outcome: 'skipped',
+        skip: 'not-needed',
         reason: 'Discrete tiers captured the data; floor not needed',
       })
     }
@@ -185,18 +186,21 @@ async function writeObservations(
     }
   }
   const total = observations.length
+  const count = { written: total - errors.length, of: total }
   if (errors.length === 0) {
     return {
       ...base(step),
       outcome: 'written',
       id: ids[0],
-      ...(total > 1 ? { reason: `${ids.length} Observations written` } : {}),
+      count,
+      ...(total > 1 ? { reason: `${count.written} Observations written` } : {}),
     }
   }
   return {
     ...base(step),
     outcome: 'failed',
+    count,
     error: errors.join('; '),
-    reason: `${ids.length}/${total} Observations written`,
+    reason: `${count.written}/${total} Observations written`,
   }
 }
