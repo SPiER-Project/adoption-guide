@@ -47,3 +47,17 @@ an exception. It does NOT assert that a step materializes every resource type it
 names: 21 completed steps name a SPiER-profiled type with no artifact behind it,
 which is filed separately.
 
+
+⚠️ **A safety plan is dated by `CarePlan.period.start`, and nothing else.**
+"Safety Plan In Place Before Transition" asks when the plan came into effect,
+which is `period`; `created` is when the record was written. The CQL always read
+`start of P.period`, while `measures.ts` fell back to `created` (and then to
+`date`, which CarePlan does not have), and the CarePlan mappers wrote neither
+element. So the dashboard counted every demo safety plan that the published
+measure missed, and **no plan the app itself saved could meet the criterion on
+either engine**. Now the shared CarePlan factory writes `period.start` and
+`created` from the response's `authored`, `StanleyBrownQRToCarePlan.fml` writes
+the same and the golden file carries both, and the Stanley-Brown and CRP
+profiles require `period.start` (the validator rejects a plan without one). The
+TypeScript reads `period.start` only. `measures.test.ts` holds both halves: a
+plan with `created` alone misses, and a plan from `generateCarePlan` counts.

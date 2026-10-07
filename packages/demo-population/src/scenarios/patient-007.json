@@ -165,7 +165,10 @@
           "text": "Outpatient referral sent \u2014 awaiting receipt confirmation."
         }
       ],
-      "created": "2026-07-28T16:30:00.000Z"
+      "created": "2026-07-28T16:30:00.000Z",
+      "period": {
+        "start": "2026-07-28T16:30:00.000Z"
+      }
     }
   ],
   "riskAlerts": [

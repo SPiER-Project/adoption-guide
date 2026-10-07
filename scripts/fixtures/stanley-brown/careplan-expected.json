@@ -137,11 +137,15 @@
       ]
     }
   ],
+  "created": "2026-08-08T14:30:00Z",
   "intent": "plan",
   "meta": {
     "profile": [
       "http://thespierproject.org/fhir/StructureDefinition/spier-stanley-brown-safety-plan"
     ]
+  },
+  "period": {
+    "start": "2026-08-08T14:30:00Z"
   },
   "resourceType": "CarePlan",
   "status": "active",

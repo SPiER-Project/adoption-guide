@@ -307,6 +307,10 @@ define "Safety Plans":
     where (ConformsTo(P, "Stanley Brown Profile") or ConformsTo(P, "Crisis Response Plan Profile"))
       and P.status in { 'active', 'completed' }
 
+/* A plan is dated by period.start alone: when it came into effect. `created`
+   is when the record was written, and is not read. A plan with no period never
+   counts. SPiER's CarePlan mappers (and StanleyBrownQRToCarePlan) write
+   period.start from the QuestionnaireResponse's `authored`. */
 define "Safety Plan In Place Before Transition":
   "Has A Documented Care Transition"
     and exists (
