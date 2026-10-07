@@ -275,7 +275,7 @@ export const BOUNDARY_PATIENTS: BoundaryPatient[] = [
   },
   {
     id: 'bp-plan-created-no-period',
-    why: 'safety plan dated by `created` only, before the transition',
+    why: 'safety plan dated by `created` only, before the transition — `created` is when it was written, not when it took effect, so neither engine counts it',
     slice: slice({
       ...transitionAtT0(),
       carePlans: [
@@ -289,7 +289,7 @@ export const BOUNDARY_PATIENTS: BoundaryPatient[] = [
         } as FhirResource,
       ] as PatientSlice['carePlans'],
     }),
-    expectTs: { 'Safety Plan In Place Before Transition': true },
+    expectTs: { 'Safety Plan In Place Before Transition': false },
   },
   {
     id: 'bp-plan-period-start',

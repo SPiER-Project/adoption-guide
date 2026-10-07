@@ -74,11 +74,6 @@ const COHORTS: Cohort[] = [
  * root cause should be one line.
  */
 const WHY = {
-  planDate:
-    'TS dates a safety plan by period.start and falls back to `created`; the CQL reads `start of P.period` only, so a plan ' +
-    'with no period never counts. Every demo plan carries `created` and no period — and the production CarePlan mapper ' +
-    '(carePlanMappers/shared.ts) writes NEITHER, so for app-written plans both engines score a miss. Undecided: which date ' +
-    'the measure means, and whether the mapper should write it.',
   unprofiledConcept:
     'TS isRiskConcept() accepts an Observation that claims no profile when its content is 93374-7 valued in the tier ' +
     'vocabulary (deliberate, riskConcept.ts, 2026-10-06); the CQL "Risk Concept Observations" requires the profile claim. ' +
@@ -99,14 +94,11 @@ const WHY = {
 
 const KNOWN_DIVERGENCES: Record<string, string> = {
   // ── The demo population ──
-  'patient-001 :: Safety Plan In Place Before Transition': WHY.planDate,
-  'patient-011 :: Safety Plan In Place Before Transition': WHY.planDate,
   'patient-008 :: Risk Tier Documented During Episode': WHY.unprofiledConcept,
   'patient-009 :: Risk Tier Documented During Episode': WHY.unprofiledConcept,
   'patient-010 :: Risk Tier Documented During Episode': WHY.unprofiledConcept,
 
   // ── The boundary patients ──
-  'bp-plan-created-no-period :: Safety Plan In Place Before Transition': WHY.planDate,
   'bp-unprofiled-concept :: Risk Tier Documented During Episode': WHY.unprofiledConcept,
   'bp-reassess-high-7d-1h :: Most Recent Reassessment Was On Time': WHY.wholeDays,
   'bp-positive-by-tier-only :: Has A Positive Screen': WHY.positiveScreen,

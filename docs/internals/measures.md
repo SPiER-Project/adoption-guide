@@ -32,9 +32,10 @@ patient. What it cannot see:
   what the TypeScript is designed to answer so a fixture that misses its edge
   fails as a fixture rather than agreeing on both engines.
 - **a divergence in `KNOWN_DIVERGENCES`.** That ledger holds the real
-  disagreements found when the test was written — six root causes, from a
-  safety plan dated by `created` (which the CQL ignores) to whole days versus
-  elapsed time on the reassessment cadence. Each line is a patient the published
+  disagreements still open — five root causes, from an unprofiled risk-concept
+  Observation (which the CQL ignores) to whole days versus elapsed time on the
+  reassessment cadence. The safety-plan date was a sixth until the mappers began
+  writing `period.start` and both engines read only that. Each line is a patient the published
   measure and the dashboard score differently. It is exact both ways: a new
   divergence fails, and so does a line that has stopped diverging. Do not add a
   line without deciding which engine is wrong.
