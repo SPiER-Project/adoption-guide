@@ -21,6 +21,11 @@ const styleRules = {
   '@stylistic/semi': ['error', 'never'],
 }
 
+// The DOM globals packages/core may not touch — see the core block below.
+const CORE_FORBIDDEN_GLOBALS = [
+  'window', 'document', 'localStorage', 'sessionStorage', 'navigator', 'location', 'history',
+]
+
 export default defineConfig([
   // ⚠️ A `eslint-disable` whose rule no longer fires is a suppression that
   // outlived its reason, and it reads to the next author as if the rule still
@@ -103,6 +108,30 @@ export default defineConfig([
       // message — an `undefined` deref names no reason.
       '@typescript-eslint/no-non-null-assertion': 'error',
       '@typescript-eslint/no-explicit-any': 'error',
+    },
+  },
+  // ── packages/core: no DOM ─────────────────────────────────────────────────
+  //
+  // Core is imported by two Workers, and none of its consumers is promised a
+  // `window`. Its tsconfig has no DOM lib (so a DOM TYPE is a compile error),
+  // but @types/node declares some of these names as values, and the type
+  // checker cannot tell a call that will throw in a Worker from one that will
+  // not. `check:core-boundary` is the fuller rule (aliases through hosts,
+  // per-use feature detection for `BroadcastChannel`); this is the editor-time
+  // half of it, for the names that have no legitimate use in core at all.
+  {
+    files: ['packages/core/src/**/*.ts'],
+    rules: {
+      'no-restricted-globals': ['error', ...CORE_FORBIDDEN_GLOBALS.map((name) => ({
+        name,
+        message: 'packages/core is DOM-free: take what you need as a parameter from the app.',
+      }))],
+      'no-restricted-properties': ['error', ...['globalThis', 'self', 'window'].flatMap((object) =>
+        CORE_FORBIDDEN_GLOBALS.map((property) => ({
+          object,
+          property,
+          message: 'packages/core is DOM-free: reaching a DOM global through a host object is still reaching it.',
+        })))],
     },
   },
   // ── Tests ─────────────────────────────────────────────────────────────────
