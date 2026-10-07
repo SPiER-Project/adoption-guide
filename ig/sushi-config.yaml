@@ -59,6 +59,14 @@ dependencies:
   # already loads. Both are R4.
   hl7.fhir.uv.crmi: 2.0.0
   fhir.cqf.common: 4.0.1
+  # SUSHI auto-loads these three at #latest whenever they are not named here,
+  # so a registry release could change the compile with no change to any input
+  # copy-fhir fingerprints. Pinned to the versions #latest resolved to on
+  # 2026-10-07; the pins are what put them in the fingerprint (this file is an
+  # input). Bump them deliberately, in their own PR, and diff fsh-generated.
+  hl7.fhir.uv.tools.r4: 1.3.0
+  hl7.terminology.r4: 7.4.0
+  hl7.fhir.uv.extensions.r4: 5.3.0
 
 # IG Publisher parameters
 parameters:
