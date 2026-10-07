@@ -10,7 +10,7 @@
  *   - it only runs when `ig/**` changes, so the hand-authored Questionnaires in
  *     `ig/input/resources/questionnaires/` — imported directly by the app at runtime — were never
  *     validated by anything at all, and
- *   - its gate is a coarse `err = N` / `Broken Links: N` parse, not a
+ *   - its gate is IG-wide counts (scripts/lib/ig-qa-counts.mjs), not a
  *     per-resource conformance report.
  *
  * This script closes both gaps by running the official HL7 `validator_cli`

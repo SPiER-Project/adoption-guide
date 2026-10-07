@@ -261,8 +261,23 @@ loading … as Turtle" line in `publisher.log`. The first CI run that met binari
 under a `/*` entry logged 34 such lines, spilled the binaries' bytes into the
 log, and GNU grep then refused to read the QA counts out of a "binary" file: the
 QA step died under `bash -e` with no message while the QA itself was 0 errors /
-0 broken links (#512). Both workflows now grep with `-a` and fail by name on an
-unparsed count.
+0 broken links (#512). The counts are now read by one script,
+`scripts/lib/ig-qa-counts.mjs`, which reads the log as bytes and fails by name on
+an unparsed count.
+
+⚠️ **The QA gate does not read the publisher's "Broken Links: N".** Despite its
+name, that figure counts every HTML-checker message, warnings included. On 2.3.5
+it reported 19 "broken links" on a build whose link check found 0: they were
+warnings on the template's `searchform.html` and on duplicate FHIRHelpers
+anchors on the Measure pages
+([HL7/fhir-ig-publisher#1386](https://github.com/HL7/fhir-ig-publisher/issues/1386)).
+`ig-qa-counts.mjs` gates on QA errors and on the HTML check's own two lines,
+`N links, M broken links` and `N html files, K pages invalid xhtml`. **It needs
+both.** HTML-checker errors, such as 2.3.5's 37 WCAG heading errors, appear only
+in the second, so the link line alone would have passed that run. A run where
+either line is missing, or that examined 0 files or 0 links, fails rather than
+reading as clean. `ig-publish.yml` and `deploy.yml` both run the script, so the
+PR gate and the deploy gate cannot drift apart.
 
 ⚠️ **Every resource JSON needs an `id` equal to its canonical's last segment**,
 because the publisher names the page `<Type>-<id>.html` and rejects a mismatch.
@@ -321,6 +336,22 @@ cqframework translator) and move the file out of the build for a release; #212
 re-tested it, and the first real compile failed on five defects that had been
 invisible the whole time. To confirm the gate is alive, grep a publisher log for
 `Translating CQL source` — see `docs/plans/archive/stage-8-measure-and-share.md`.
+
+⚠️ **A CQL translation that succeeds can still publish a Library with no ELM.**
+The publisher turns every public non-function define into a Library output
+parameter. A define whose type it cannot name (a choice, a tuple,
+`Interval<Integer>`) is reported as `Any`. On 2.3.4 that was a warning. On
+2.3.5 the R6 type enum has no `Any`, so ELM generation throws, and the
+publisher logs it and moves on
+([HL7/fhir-ig-publisher#1385](https://github.com/HL7/fhir-ig-publisher/issues/1385)).
+`"Care Transition Dates"` was `List<Choice<dateTime, instant>>` until both of
+its sources returned `.value`. **Keep every public define's type expressible as
+one FHIR type.** The CQL gate in `ig-publish.yml` catches the log line; the
+publisher's QA does not.
+
+⚠️ **Page headings start at `###`.** The template renders each page's title as
+`<h2>`, and 2.3.5's WCAG check fails a page whose content puts a `#` or `##`
+beside it. A leading `#` that repeats the page title is redundant. Drop it.
 
 ⚠️ **`deploy.yml` caches the rendered IG, so a push to main usually does not
 re-render it.** Pages replaces the whole site with one artifact, so the SPA

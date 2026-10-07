@@ -1,12 +1,10 @@
-# Conformance
-
 > **Status: draft** (FMM 0–1). Must-Support flags, the role CapabilityStatements
 > and every rule below are the intended conformance contract, not yet balloted.
 > Advancing maturity needs independently developed implementations; per-tool
 > readiness is tracked in the companion app's
 > [Adoption Readiness matrix](https://spier-project.github.io/adoption-guide/#/guide/tools/readiness).
 
-## Actor roles
+### Actor roles
 
 SPiER defines conformance per **system role**, the approach of the HL7
 [Gravity Project](https://hl7.org/fhir/us/sdoh-clinicalcare/). Each role has a
@@ -25,7 +23,7 @@ SPiER defines conformance per **system role**, the approach of the HL7
   Stage-8 Measures over a population; its access pattern is population-wide
   rather than per patient.
 
-## What "Must-Support" means
+### What "Must-Support" means
 
 Following [US Core](https://hl7.org/fhir/us/core/conformance-expectations.html),
 Must-Support is defined **operationally, by role**:
@@ -41,7 +39,7 @@ Must-Support is defined **operationally, by role**:
 Must-Support says *what must be supported*; it does **not** constrain maximum
 cardinality, so a source system is never forced to strip data out.
 
-## The concept layer is screening-level
+### The concept layer is screening-level
 
 The harmonized suicide-risk tier (generic LOINC `93374-7`) is a **derived,
 unconfirmed** signal: a screen result warranting follow-up, not a confirmed
@@ -49,7 +47,7 @@ clinical finding. Consumers SHOULD treat it as a triage/routing signal and
 preserve the `derivedFrom` link to the originating `QuestionnaireResponse`.
 See [Reading the artifacts](how-to-read.html#two-layer-model).
 
-### Tier derivation on the Questionnaire {#tier-derivation}
+#### Tier derivation on the Questionnaire {#tier-derivation}
 
 Every instrument's `risk-level` item carries a
 [Tier Derivation](StructureDefinition-tier-derivation.html) extension valued
@@ -61,7 +59,7 @@ produces its value, so a QuestionnaireResponse that omits it is conformant. A
 from the response. [Reading the artifacts](how-to-read.html#tier-derivation)
 shows the two cases side by side.
 
-### `Observation.interpretation` differs by layer
+#### `Observation.interpretation` differs by layer
 
 The concept-layer Observation carries `POS` / `NEG` (positive or negative for
 follow-up); the instrument-layer Observations carry `A`, `H`, `L` (a native
@@ -71,7 +69,7 @@ between them. A consumer SHOULD NOT assume one interpretation vocabulary across
 the two layers, and SHOULD read the `derivedFrom` chain to know which layer an
 Observation belongs to.
 
-## The problem list
+### The problem list
 
 **A screen never becomes a `Condition`.** A positive ASQ, C-SSRS, PHQ-9 item 9
 or SBQ-R produces a
@@ -96,7 +94,7 @@ disorder from one.
 requires `code.text` and leaves `code.coding` optional with an `example`
 binding, because no terminology carries concepts at a driver's granularity.
 
-## Categories and codes every profile carries
+### Categories and codes every profile carries
 
 - **The domain category is required.** Every SPiER resource with a native
   `category` element carries
@@ -132,7 +130,7 @@ binding, because no terminology carries concepts at a driver's granularity.
   profile — because inventing those would assert things nothing verified. Each
   is still referenced by exactly one stage PlanDefinition action.
 
-## Harmonization status
+### Harmonization status
 
 Every crosswalk is a published, machine-readable artifact; **none has clinical
 sign-off yet**. Those are two different facts, and only the first is complete.
