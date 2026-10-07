@@ -7,7 +7,7 @@
  * refreshes it on key change and on source mutations.
  */
 import { useEffect, useState } from 'react'
-import { describeError } from '../lib/describeError'
+import { toDataSourceFailure, type DataSourceFailure } from '@spier/core/lib/dataSource/failure'
 import type { FhirDataSource } from '@spier/core/lib/dataSource/types'
 import type { PatientSlice } from '@spier/core/types/fhir'
 
@@ -27,7 +27,8 @@ const EMPTY_SLICE: PatientSlice = {
 export interface SliceState {
   slice: PatientSlice
   isLoading: boolean
-  error: string | null
+  /** Coded, never a message to render — see `failure.ts`. */
+  error: DataSourceFailure | null
 }
 
 /**
@@ -68,7 +69,7 @@ export function usePatientSlice(
         },
         (err: unknown) => {
           if (!cancelled)
-            setSliceState(prev => ({ ...prev, isLoading: false, error: describeError(err) }))
+            setSliceState(prev => ({ ...prev, isLoading: false, error: toDataSourceFailure(err, 'load') }))
         },
       )
     }

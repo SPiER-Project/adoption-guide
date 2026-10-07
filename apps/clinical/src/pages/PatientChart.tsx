@@ -7,6 +7,7 @@ import { usePresentation } from '@spier/tool-views/context/PresentationContext'
 import { NextAction } from '../components/NextAction'
 import { PatientPathway } from '../components/PatientPathway'
 import { WritebackScorecard } from '../components/WritebackScorecard'
+import { DataSourceErrorNotice } from '../components/DataSourceErrorNotice'
 import { toolEnablementFor } from '../lib/toolEnablement'
 import { buildCdsCards, isPathwayObligationCard } from '@spier/core/lib/cdsHooks'
 import { derivePathwayStatus, groupArtifactsByStage } from '@spier/core/lib/patientPathway'
@@ -150,11 +151,7 @@ export function PatientChart() {
           component beside one. */}
       <PageHeader title="Care pathway" />
 
-      {dataSourceError && (
-        <Notice tone="danger" title="EHR data error.">
-          {dataSourceError}
-        </Notice>
-      )}
+      <DataSourceErrorNotice error={dataSourceError} />
 
       {isSliceLoading && (
         <Notice tone="info">Loading chart data from the connected EHR…</Notice>
