@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import FHIR from 'fhirclient/browser'
-import { describeError } from '../lib/describeError'
+import { toSmartLaunchFailure, type SmartLaunchFailure, type SmartLaunchFailureKind } from '@spier/core/lib/smartLaunchFailure'
 
 import { clientIdForIssuer } from '../lib/smartClients'
 
 export function SmartLaunch() {
-    const [error, setError] = useState<string | null>(null)
+    const [error, setError] = useState<SmartLaunchFailure | null>(null)
 
     useEffect(() => {
         // Initiate the SMART on FHIR OAuth2 authorization sequence.
@@ -128,23 +128,81 @@ export function SmartLaunch() {
                 completeInTarget: true,
             })
             .catch((err: unknown) => {
+                // The raw error is for whoever maintains the deployment; the
+                // page words its kind (see SmartLaunchErrorNotice).
                 console.error('FHIR OAuth2 Authorize Error:', err)
-                setError(describeError(err) || 'An error occurred during SMART launch.')
+                setError(toSmartLaunchFailure(err, 'authorize'))
             })
     }, [])
 
-    if (error) {
-        return (
-            <div className="smart-error">
-                <h2>Launch Error</h2>
-                <p>{error}</p>
-            </div>
-        )
-    }
+    if (error) return <SmartLaunchErrorNotice failure={error} />
 
     // The fhirclient library handles the redirect immediately,
     // so this UI is typically only visible for a split second.
     return (
         <p className="smart-loading" role="status">Redirecting to the EHR…</p>
     )
+}
+
+/** One entry per kind; `Record` makes a new kind a compile error until worded. */
+const COPY: Record<SmartLaunchFailureKind, { title: string; body: string }> = {
+  refused: {
+    title: 'The EHR did not let this app open.',
+    body: 'Open it again from the patient’s chart in the EHR. If this keeps happening, this app’s access has to be granted at your site.',
+  },
+  'not-launched': {
+    title: 'This app was not opened from the EHR.',
+    body: 'It opens from a patient’s chart or a worklist in the EHR. Go back to the EHR and open it from there.',
+  },
+  unreachable: {
+    title: 'Could not reach the EHR.',
+    body: 'The EHR did not answer. Check your connection, then open the app again from the EHR.',
+  },
+  'record-unread': {
+    title: 'Could not read this patient’s details from the EHR.',
+    body: 'You are signed in, but the patient’s name and details did not load. Open the app again from the patient’s chart.',
+  },
+  failed: {
+    title: 'This app could not open.',
+    body: 'Something went wrong while connecting to the EHR. Open it again from the EHR; if this keeps happening, tell whoever supports this app at your site.',
+  },
+}
+
+/**
+ * The launch and redirect pages' error state: opening the app from the EHR
+ * failed, in a clinician's words.
+ *
+ * ⚠️ **It words the failure's `kind` and never prints its `detail`.** Until
+ * 2026-10-07 `SmartLaunch` and `SmartRedirect` rendered `describeError(err)` —
+ * fhirclient's "403 Forbidden\nURL: …/token" with the server's
+ * `error_description` appended, "access_denied: …", "No 'state' parameter
+ * found. Please (re)launch the app." — on the first screen a launched clinician
+ * sees. `check:jargon` cannot see a message fhirclient builds at runtime, and
+ * its clinical scan does not read this package anyway. The detail goes to the
+ * console, where both pages already log the raw error;
+ * `apps/clinical/src/pages/smartLaunchError.test.tsx` drives the real library.
+ *
+ * Here rather than in `apps/clinical` (where the chart's `DataSourceErrorNotice`
+ * lives) because both apps mount `/launch` and `/redirect` from this package;
+ * and in THIS file, which `SmartRedirect` imports it from, because
+ * `check:template` lets a bare error page's `<h2>` stand only in a route
+ * element outside the shell — it derives that set from the route tables, by
+ * file name, so a separate module for the notice would be a page it governs.
+ */
+export function SmartLaunchErrorNotice({
+  failure,
+  children,
+}: {
+  failure: SmartLaunchFailure
+  /** An action under the message, such as a way back. */
+  children?: ReactNode
+}) {
+  const { title, body } = COPY[failure.kind]
+  return (
+    <div className="smart-error" role="alert">
+      <h2 className="smart-error-heading">{title}</h2>
+      <p>{body}</p>
+      {children}
+    </div>
+  )
 }

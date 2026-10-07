@@ -951,8 +951,7 @@ neighbour's helpers. `scripts/check-duplicate-code.mjs` parses every top-level
 `packages/` and `services/` and holds four rules: the same NAME with the same
 normalized body in two files fails; the same body of five or more lines under
 DIFFERENT names fails; a deliberate same-name pair is listed in `ALLOWED` with
-its reason (the two `describeError`s, which differ on purpose; the per-app
-`Sidebar` and `AppRoutes`), and an entry whose pair has
+its reason (the per-app `Sidebar` and `AppRoutes`), and an entry whose pair has
 merged or vanished fails as stale; and a floor of functions, files and areas
 parsed, so a broken parser cannot report ✓.
 

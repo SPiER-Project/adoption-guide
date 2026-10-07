@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import FHIR from 'fhirclient/browser'
 import type { SmartClient } from '@spier/core/types/smartClient'
 import { Button } from '@spier/ui/Button'
-import { describeError } from '../lib/describeError'
+import { toSmartLaunchFailure, type SmartLaunchFailure } from '@spier/core/lib/smartLaunchFailure'
+import { SmartLaunchErrorNotice } from './SmartLaunch'
 import { useNavigate } from 'react-router-dom'
 import { useSmart } from '../context/SmartContext'
 import { usePresentation } from '@spier/tool-views/context/PresentationContext'
@@ -12,7 +13,7 @@ import { configureFhircastHub } from '@spier/core/lib/fhircast'
 
 export function SmartRedirect() {
     const [status, setStatus] = useState<string>('Initializing SMART on FHIR client...')
-    const [error, setError] = useState<string | null>(null)
+    const [error, setError] = useState<SmartLaunchFailure | null>(null)
     const { setSmartData } = useSmart()
     const { setHostDrawsPatientBanner, chromeMode } = usePresentation()
     const navigate = useNavigate()
@@ -198,24 +199,24 @@ export function SmartRedirect() {
                     }
                 } catch (fetchError) {
                     console.error('Error fetching patient data:', fetchError)
-                    setError('Authorized successfully, but failed to fetch patient details.')
+                    setError(toSmartLaunchFailure(fetchError, 'patient'))
                 }
             })
             .catch((err: unknown) => {
+                // The raw error is for whoever maintains the deployment; the
+                // page words its kind (see SmartLaunchErrorNotice).
                 console.error('SMART Ready Error:', err)
-                setError(describeError(err) || 'Failed to complete SMART on FHIR authorization.')
+                setError(toSmartLaunchFailure(err, 'complete'))
             })
     }, [navigate, setSmartData, setHostDrawsPatientBanner, chromeMode])
 
     if (error) {
         return (
-            <div className="smart-error">
-                <h2 className="smart-error-heading">Authorization Error</h2>
-                <p>{error}</p>
+            <SmartLaunchErrorNotice failure={error}>
                 <Button variant="secondary" onClick={() => navigate('/')}>
                     Return to Tools
                 </Button>
-            </div>
+            </SmartLaunchErrorNotice>
         )
     }
 

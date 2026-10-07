@@ -231,6 +231,31 @@ reaches the clinician from core carries a code, and the app words the code.**
 over fhirclient's real `HttpError` and drives every kind; a new path into
 `dataSourceError` needs a case there, or nothing sees it.
 
+⚠️ **The launch printed one too, on the first screen a launched clinician
+sees, and so did the pathway.** The same day, `SmartLaunch` and `SmartRedirect`
+still rendered `err.message` from fhirclient — "403 Forbidden\nURL: …" with the
+server's `error_description` or OperationOutcome appended, "access_denied: …",
+"No 'state' parameter found. Please (re)launch the app." It is now a
+`SmartLaunchFailure` (`packages/core/src/lib/smartLaunchFailure.ts`) with five
+kinds — refused, not launched, unreachable, the patient's record unread, and a
+`failed` fallback — worded in `SmartLaunchErrorNotice`, exported from `SmartLaunch.tsx` in
+`packages/app-shell` because both apps mount `/launch` and `/redirect` from
+there (and in that file because `check:template` exempts a bare page's `<h2>`
+only in a route element outside the shell). The raw error goes to the console
+only. Most of what fhirclient throws is a plain `Error`, so the
+classifier reads fhirclient's own message text; that is fragile and still safe,
+because an unrecognised message falls to `failed` and is worded like the rest.
+`apps/clinical/src/pages/smartLaunchError.test.tsx` mounts both pages over the
+real `authorize()` and `ready()` — a fresh `BrowserAdapter` per case, because the
+library caches the page URL in the one it builds at import — and pins each
+message the classifier depends on. `PathwayLoadError` printed `loadPathway`'s
+error ("no PlanDefinition with url http://… Run `npm run copy-fhir …`") in a
+`<pre>` on the clinician's `/patient/pathway`, under a `check:fhir-render`
+exemption that argued it was "an error string, not a resource" — the right
+answer to the wrong question. It has one kind, so no code: the clinician gets a
+sentence, and the `<pre>` renders under `useInspect()`, which here is a LIVE
+branch because the guide's pathway pages render it too.
+
 ⚠️ **The 18 fillers and 11 recorders are ONE element definition**
 (`packages/tool-views/src/data/toolViews.tsx` — a package since 2026-09-19, so
 the rule is a boundary rather than a convention), rendered by two route
