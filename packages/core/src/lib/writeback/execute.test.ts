@@ -62,9 +62,11 @@ describe('executeWritePlan — happy path (full capability)', () => {
     expect(byTier(steps, 1).id).toBe('srv-QuestionnaireResponse-1')
     expect(byTier(steps, 2).outcome).toBe('written')
     expect(byTier(steps, 2).reason).toBe('2 Observations written')
+    expect(byTier(steps, 2).count).toEqual({ written: 2, of: 2 })
 
     // Floor skipped because every discrete tier landed.
     expect(byTier(steps, 0).outcome).toBe('skipped')
+    expect(byTier(steps, 0).skip).toBe('not-needed')
     expect(target.created.some(r => r.resourceType === 'DocumentReference')).toBe(false)
 
     // The two Observations that reached the server point at the SERVER QR id.
@@ -99,6 +101,7 @@ describe('executeWritePlan — degradation', () => {
     expect(byTier(steps, 2).outcome).toBe('failed')
     expect(byTier(steps, 2).error).toContain('HTTP 422')
     expect(byTier(steps, 2).reason).toBe('0/2 Observations written')
+    expect(byTier(steps, 2).count).toEqual({ written: 0, of: 2 })
     // Floor fires as the backstop.
     expect(byTier(steps, 0).outcome).toBe('written')
     expect(target.created.some(r => r.resourceType === 'DocumentReference')).toBe(true)
@@ -112,6 +115,7 @@ describe('executeWritePlan — degradation', () => {
 
     expect(byTier(steps, 1).outcome).toBe('skipped')
     expect(byTier(steps, 2).outcome).toBe('skipped')
+    expect(byTier(steps, 2).skip).toBe('unsupported')
     expect(byTier(steps, 0).outcome).toBe('written')
   })
 
@@ -139,6 +143,8 @@ describe('executeWritePlan — config', () => {
     const { steps } = await executeWritePlan(plan, target, artifacts(), { enableObservation: false })
     expect(byTier(steps, 2).outcome).toBe('skipped')
     expect(byTier(steps, 2).reason).toBe('Tier not enabled')
+    expect(byTier(steps, 2).skip).toBe('disabled')
     expect(byTier(steps, 0).outcome).toBe('skipped')
+    expect(byTier(steps, 0).skip).toBe('not-needed')
   })
 })

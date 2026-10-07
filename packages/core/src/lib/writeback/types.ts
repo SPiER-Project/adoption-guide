@@ -128,7 +128,26 @@ export interface WriteStepResult {
   error?: string
   /** Why a step was skipped (unsupported / disabled / redundant floor). */
   reason?: string
+  /**
+   * Why a step was skipped, as a code — the one the scorecard words.
+   *
+   * ⚠️ `reason` and `error` are diagnostics in the wire's own vocabulary ("2
+   * Observations written", "Failed to create Observation — HTTP 422: …"), read
+   * where inspection is on — the report itself, under `useInspect()`. They
+   * reached the clinician verbatim through the scorecard until 2026-10-07. The
+   * scorecard reads `skip` and `count` instead and says it in its own words.
+   */
+  skip?: WriteSkip
+  /** How many of how many landed, for a step that writes several resources. */
+  count?: { written: number; of: number }
 }
+
+/**
+ * - `disabled`   — turned off by config.
+ * - `unsupported` — the server does not advertise create for this type.
+ * - `not-needed` — the Tier-0 floor, when the discrete tiers captured it all.
+ */
+export type WriteSkip = 'disabled' | 'unsupported' | 'not-needed'
 
 export interface WritebackResult {
   steps: WriteStepResult[]
