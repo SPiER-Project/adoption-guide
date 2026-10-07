@@ -214,6 +214,14 @@ export function makeSuicidePreventionCarePlan(options: {
     // on every plan, and was right only because the SMART source re-stamps the
     // patient before writing.
     ...(options.response.subject ? { subject: options.response.subject } : {}),
+    // The plan is in effect from the moment the response was authored. The
+    // Stage-8 measure "Safety Plan In Place Before Transition" reads
+    // `period.start` — in the CQL and in measures.ts alike — and this wrote
+    // neither element, so no plan the app saved could ever meet it. `created` is
+    // the record's authoring time, which here is the same instant.
+    ...(options.response.authored
+      ? { created: options.response.authored, period: { start: options.response.authored } }
+      : {}),
     addresses: [{ display: 'Risk for suicide' }],
     activity: options.activities.map(a => ({
       detail: {

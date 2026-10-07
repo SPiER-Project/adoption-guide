@@ -45,6 +45,10 @@
     "reference": "Patient/example",
     "display": "Example Patient"
   },
+  "period": {
+    "start": "2026-08-08T14:30:00Z"
+  },
+  "created": "2026-08-08T14:30:00Z",
   "addresses": [
     {
       "display": "Risk for suicide"

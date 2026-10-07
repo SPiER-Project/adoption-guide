@@ -129,6 +129,14 @@ group qrToSafetyPlan(source src : QR, target tgt : SafetyPlan) {
 
   src.subject as subject -> tgt.subject = subject "carry-subject";
 
+  // The plan is in effect from the moment the response was authored. The
+  // Stage-8 measure "Safety Plan In Place Before Transition" dates a plan by
+  // period.start; `created` records the same instant as the authoring time.
+  src.authored as authored -> tgt.created = authored "created";
+  src.authored as authored -> tgt.period as period then {
+    src -> period.start = authored "period-start";
+  } "period";
+
   src -> tgt.addresses as addresses then {
     src -> addresses.display = 'Risk for suicide' "addresses-display";
   } "addresses";

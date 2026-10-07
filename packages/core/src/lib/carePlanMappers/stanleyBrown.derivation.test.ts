@@ -43,7 +43,13 @@ describe('the demo safety plans are derived from their QuestionnaireResponses', 
         .carePlans.find(c => c.id === planId)
       expect(plan, `${planId} is missing from ${name}`).toBeDefined()
 
-      expect(plan!.activity).toEqual(generateCarePlan(qr).resource.activity)
+      const derived = generateCarePlan(qr).resource
+      expect(plan!.activity).toEqual(derived.activity)
+      // The Stage-8 safety-plan measure dates a plan by `period.start`, so the
+      // fixture's dates must be the derived ones too, not hand-typed.
+      expect(derived.period, `${planId}: the mapper wrote no period`).toEqual({ start: qr.authored })
+      expect((plan as { period?: unknown }).period).toEqual(derived.period)
+      expect((plan as { created?: unknown }).created).toEqual(derived.created)
     })
 
     it(`${name}: every section carries real content, not a "not provided" placeholder`, () => {

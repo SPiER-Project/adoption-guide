@@ -155,9 +155,11 @@ The rules, each with its history in [`docs/internals/workers.md`](docs/internals
 
 ### Measures
 
-A measure criterion lives in **four** places and `check:measures` ties only two
-of them together; nothing asserts the CQL and the TypeScript compute the same
-answer. `denominator-exclusion` and `denominator-exception` are **not**
+A measure criterion lives in **four** places. `check:measures` ties the FSH names
+to the TypeScript; `tests/measuresCqlParity.test.ts` runs the CQL and the
+TypeScript over the demo patients and synthetic window-edge patients and fails
+on any disagreement not written into its `KNOWN_DIVERGENCES` ledger — **a new
+window needs a boundary patient**, or the test cannot see it. `denominator-exclusion` and `denominator-exception` are **not**
 interchangeable. Before changing a criterion, a population, or the scoring, read
 [`docs/internals/measures.md`](docs/internals/measures.md).
 

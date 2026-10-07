@@ -1,6 +1,6 @@
 # The measure layer
 
-A measure criterion lives in four places, two of which nothing ties together —
+A measure criterion lives in four places, and what ties each pair together —
 plus why an exclusion and an exception are not interchangeable.
 
 Moved out of `CLAUDE.md`, which keeps the commands and the rules and links
@@ -15,8 +15,36 @@ portable statement, compiled by the IG Publisher) and `packages/core/src/lib/mea
 (the executable reference implementation the app runs) — and if it changes
 scoring, in `MeasureDashboard.tsx` too. `check:measures` asserts the FSH
 criterion names and the TS implementations agree in both directions; the
-publisher asserts the CQL compiles. **Nothing asserts the CQL and the TypeScript
-compute the same answer** — that is a reading, not a gate.
+publisher asserts the CQL compiles; and `tests/measuresCqlParity.test.ts`
+asserts the CQL and the TypeScript compute the same answer.
+
+⚠️ **Before that test, nothing compared what the two COMPUTE, and a planted
+7→8-day change to the follow-up window in `measures.ts` passed every gate and
+every test.** The test translates the CQL in-process with `@cqframework/cql` —
+the same translator the IG Publisher bundles — executes it with `cql-execution`
+over the 14 demo patients and a set of synthetic patients sitting on every
+window edge (`tests/cql/boundaryPatients.ts`: day 7/8, 24h/25h, 48h/49h, each
+cadence ±1 day), and compares every population of every Measure group per
+patient. What it cannot see:
+
+- **a disagreement no patient reaches.** It compares answers, not logic. A new
+  criterion or window needs a boundary patient, and each boundary patient states
+  what the TypeScript is designed to answer so a fixture that misses its edge
+  fails as a fixture rather than agreeing on both engines.
+- **a divergence in `KNOWN_DIVERGENCES`.** That ledger holds the real
+  disagreements still open — five root causes, from an unprofiled risk-concept
+  Observation (which the CQL ignores) to whole days versus elapsed time on the
+  reassessment cadence. The safety-plan date was a sixth until the mappers began
+  writing `period.start` and both engines read only that. Each line is a patient the published
+  measure and the dashboard score differently. It is exact both ways: a new
+  divergence fails, and so does a line that has stopped diverging. Do not add a
+  line without deciding which engine is wrong.
+- **scoring.** It compares population membership; how exclusions and exceptions
+  combine into a score lives only in `evaluateMeasure` (below).
+
+It needs the IG's `fhir.cqf.common` package in `~/.fhir/packages` (FHIRHelpers
+and the FHIR model info), which SUSHI downloads — run `npm run copy-fhir` first.
+A missing package fails the test; it never skips.
 
 ⚠️ **`denominator-exclusion` and `denominator-exception` are not
 interchangeable, and the engine treats them differently on purpose (#324).** An
@@ -47,3 +75,17 @@ an exception. It does NOT assert that a step materializes every resource type it
 names: 21 completed steps name a SPiER-profiled type with no artifact behind it,
 which is filed separately.
 
+
+⚠️ **A safety plan is dated by `CarePlan.period.start`, and nothing else.**
+"Safety Plan In Place Before Transition" asks when the plan came into effect,
+which is `period`; `created` is when the record was written. The CQL always read
+`start of P.period`, while `measures.ts` fell back to `created` (and then to
+`date`, which CarePlan does not have), and the CarePlan mappers wrote neither
+element. So the dashboard counted every demo safety plan that the published
+measure missed, and **no plan the app itself saved could meet the criterion on
+either engine**. Now the shared CarePlan factory writes `period.start` and
+`created` from the response's `authored`, `StanleyBrownQRToCarePlan.fml` writes
+the same and the golden file carries both, and the Stanley-Brown and CRP
+profiles require `period.start` (the validator rejects a plan without one). The
+TypeScript reads `period.start` only. `measures.test.ts` holds both halves: a
+plan with `created` alone misses, and a plan from `generateCarePlan` counts.

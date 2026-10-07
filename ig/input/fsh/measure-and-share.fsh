@@ -302,7 +302,7 @@ Usage: #definition
     * criteria.expression = "Episode Closed Administratively"
   * population[+]
     * code = http://terminology.hl7.org/CodeSystem/measure-population#numerator "Numerator"
-    * description = "A safety-plan CarePlan (Stanley-Brown or Crisis Response Plan) with status active, dated on or before the transition."
+    * description = "A safety-plan CarePlan (Stanley-Brown or Crisis Response Plan), active or completed, whose period starts on or before the transition. The plan is dated by CarePlan.period.start alone; its created date records when it was written, not when it took effect, and is not read."
     * criteria.language = #text/cql-identifier
     * criteria.expression = "Safety Plan In Place Before Transition"
 * group[+]
