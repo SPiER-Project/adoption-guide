@@ -11,9 +11,11 @@
  * Why a drift-check rather than an eslint rule: this predates the tooling
  * hoist, when `eslint .` ran from `web/` and could not see `packages/`. ESLint
  * now runs from the repo root over `packages/core` too, so a scoped
- * `no-restricted-globals` / `no-restricted-imports` block is the natural
- * successor — and the stronger one is the type system: core's tsconfig still
- * includes the DOM lib (a follow-up; see docs/internals/web-gates.md).
+ * `no-restricted-globals` / `no-restricted-properties` block now covers the
+ * plain names at edit time (eslint.config.js), and core's tsconfig has no DOM
+ * lib since 2026-10-07. Neither replaces this gate: @types/node declares
+ * `localStorage` and `navigator`, so they compile, and the feature-detection
+ * waiver below is a rule eslint cannot express.
  *
  * RULES
  *   1. No `.tsx` in core — a component belongs in an app.
@@ -40,7 +42,9 @@
  *
  * ⚠️ **What it cannot see**: a DOM global reached through an alias it did not
  * write (`const g = globalThis; g.localStorage`), and DOM types in signatures
- * (they erase). Removing `DOM` from core's `lib` would close both.
+ * (they erase). Dropping `DOM` from core's `lib` closed the second — a DOM type
+ * is now a compile error — but NOT the first: planted 2026-10-07, the alias to
+ * `localStorage` passed tsc (Node declares it), eslint and this gate alike.
  */
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'

@@ -312,7 +312,9 @@ function broadcastTransport(): Transport | null {
     kind: 'broadcast',
     publish: (event) => { ch.postMessage(event); return true },
     subscribe: (handler) => {
-      const listener = (e: MessageEvent) => handler(e.data as FhircastEvent)
+      // `Event`, narrowed: under core's `lib: ["ES2022"]` the channel's
+      // listener type is Node's, which takes a plain `Event`.
+      const listener = (e: Event) => handler((e as MessageEvent).data as FhircastEvent)
       ch.addEventListener('message', listener)
       return () => ch.removeEventListener('message', listener)
     },

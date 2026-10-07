@@ -190,9 +190,14 @@ npm run check:core-boundary # packages/core stays React-free and DOM-free — th
                          # in a file that guarded one elsewhere. It now parses: host-
                          # qualified globals count, every React package and a relative
                          # path into one is forbidden, the guard waives only its own
-                         # scope. Removing `DOM` from core's tsconfig `lib` (3 errors to
-                         # fix) is the stronger follow-up; @types/node still declares
-                         # `localStorage` and `navigator`, so this gate stays for those.
+                         # scope. 2026-10-07: core's tsconfig `lib` is `["ES2022"]` — a
+                         # DOM TYPE (`HTMLElement`), `window` and `document` are now compile
+                         # errors — and eslint has a core block (`no-restricted-globals` +
+                         # `no-restricted-properties` on `globalThis`/`self`/`window`).
+                         # ⚠️ @types/node still declares `localStorage` and `navigator`, so
+                         # they COMPILE; and `const g = globalThis; g.localStorage` passed
+                         # tsc, eslint AND this gate when planted. That alias is the hole
+                         # all three share.
 npm run check:guide-boundary # the Adoption Guide holds no patient data — it explains and
                          # configures the pathway; the caseload lives on the EHR side
                          # (#391). Walks the WHOLE guide app from main.tsx and fails on
