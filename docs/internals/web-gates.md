@@ -198,8 +198,11 @@ npm run check:core-boundary # packages/core stays React-free and DOM-free — th
                          # `no-restricted-properties` on `globalThis`/`self`/`window`).
                          # ⚠️ @types/node still declares `localStorage` and `navigator`, so
                          # they COMPILE; and `const g = globalThis; g.localStorage` passed
-                         # tsc, eslint AND this gate when planted. That alias is the hole
-                         # all three share.
+                         # tsc, eslint AND this gate when planted. Closed the same day in
+                         # this gate: a host is any name bound to one (to a fixed point),
+                         # seen through casts, and destructuring a host is a use — seven
+                         # alias forms planted red. Still unseen: a host reached through a
+                         # property, a call's return, `Reflect.get`, or a computed key.
 npm run check:guide-boundary # the Adoption Guide holds no patient data — it explains and
                          # configures the pathway; the caseload lives on the EHR side
                          # (#391). Walks the WHOLE guide app from main.tsx and fails on

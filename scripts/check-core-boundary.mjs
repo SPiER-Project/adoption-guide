@@ -36,15 +36,27 @@
  *      anywhere in it, so an unguarded `new BroadcastChannel(…)` beside
  *      `fhircast.ts`'s guarded one passed.
  *
+ *   5. A HOST is `globalThis`, `self`, `window` — or any name bound to one,
+ *      to a fixed point: `const g = globalThis`, `const h = g`, `g = self`,
+ *      `(g = globalThis) => …`. Casts and parentheses around a host are seen
+ *      through (`(globalThis as T).document`), and `const { localStorage } =
+ *      globalThis` is a use of `localStorage`, renamed or not. A guard may name
+ *      the alias (`typeof g.localStorage === 'undefined'`).
+ *      ⚠️ Until 2026-10-07 only a host IDENTIFIER counted, and seven forms —
+ *      alias, alias of an alias, cast, destructure, element access on an alias,
+ *      default parameter, assigned alias — passed tsc (Node declares
+ *      `localStorage`), eslint AND this gate. All seven are planted red now.
+ *
  * The scan is the TypeScript parser over each file: comments and strings are
  * not code, property names (`opts.window`) and declarations of a local with a
  * DOM name are not uses, and type positions (`InstanceType<typeof X>`) erase.
  *
- * ⚠️ **What it cannot see**: a DOM global reached through an alias it did not
- * write (`const g = globalThis; g.localStorage`), and DOM types in signatures
- * (they erase). Dropping `DOM` from core's `lib` closed the second — a DOM type
- * is now a compile error — but NOT the first: planted 2026-10-07, the alias to
- * `localStorage` passed tsc (Node declares it), eslint and this gate alike.
+ * ⚠️ **What it cannot see**: a host that reaches a DOM global through
+ * anything but a binding — a property (`const o = { g: globalThis };
+ * o.g.localStorage`), a call's return (`getGlobal().localStorage`),
+ * `Reflect.get(globalThis, 'localStorage')`, or a computed key
+ * (`globalThis[name]`). DOM types in signatures erase too, but those are now a
+ * compile error: core's `lib` has no DOM since 2026-10-07.
  */
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -134,7 +146,47 @@ function guardScope(node, sf) {
   return sf
 }
 
-const guardRe = (g) => new RegExp(`typeof\\s+(?:(?:globalThis|self|window)\\s*\\.\\s*)?${g}\\s*[!=]==?\\s*['"]undefined['"]`)
+/** Strip what does not change which object an expression is: `(x)`, `x as T`, `x satisfies T`, `x!`, `<T>x`. */
+function unwrap(e) {
+  while (ts.isParenthesizedExpression(e) || ts.isAsExpression(e) || ts.isSatisfiesExpression(e) ||
+         ts.isNonNullExpression(e) || ts.isTypeAssertionExpression(e)) e = e.expression
+  return e
+}
+
+/**
+ * Every name in the file that holds a host object — `const g = globalThis`,
+ * `h = g`, `(g = self) => …` — resolved to a fixed point, so an alias of an
+ * alias counts. ⚠️ By NAME, file-wide: a host alias shadowed by an unrelated
+ * local of the same name in another scope is over-counted, which can only make
+ * the gate stricter.
+ */
+function hostAliases(sf) {
+  const hosts = new Set(HOSTS)
+  const pairs = [] // [name, initializer]
+  const visit = (node) => {
+    if ((ts.isVariableDeclaration(node) || ts.isParameter(node)) && ts.isIdentifier(node.name) && node.initializer) {
+      pairs.push([node.name.text, node.initializer])
+    } else if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
+               ts.isIdentifier(node.left)) {
+      pairs.push([node.left.text, node.right])
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(sf)
+  for (let grew = true; grew;) {
+    grew = false
+    for (const [name, init] of pairs) {
+      const e = unwrap(init)
+      if (!hosts.has(name) && ts.isIdentifier(e) && hosts.has(e.text)) { hosts.add(name); grew = true }
+    }
+  }
+  return hosts
+}
+
+const escapeRe = (t) => t.replace(/[$]/g, '\\$&')
+const guardRe = (g, hosts) => new RegExp(
+  `typeof\\s+(?:(?:${[...hosts].map(escapeRe).join('|')})\\s*\\.\\s*)?${g}\\s*[!=]==?\\s*['"]undefined['"]`,
+)
 
 let detected = 0
 for (const f of tsFiles) {
@@ -142,10 +194,13 @@ for (const f of tsFiles) {
   const src = readFileSync(f, 'utf8')
   const sf = ts.createSourceFile(f, src, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
   const locals = localNames(sf)
+  const hosts = hostAliases(sf)
+  /** Is `e` a host object — `globalThis`, `self`, `window`, or an alias of one, however cast? */
+  const isHost = (e) => { const u = unwrap(e); return ts.isIdentifier(u) && hosts.has(u.text) }
   const lineOf = (n) => sf.getLineAndCharacterOfPosition(n.getStart(sf)).line + 1
 
   const use = (g, node) => {
-    if (guardRe(g).test(guardScope(node, sf).getText(sf))) { detected++; return }
+    if (guardRe(g, hosts).test(guardScope(node, sf).getText(sf))) { detected++; return }
     fail(
       `${rel}:${lineOf(node)}: touches \`${g}\` unguarded — packages/core must run in a Worker as well as a ` +
         `browser. Either drop it, or feature-detect it (\`typeof ${g} === 'undefined'\`) in the same function, ` +
@@ -170,18 +225,33 @@ for (const f of tsFiles) {
       }
     }
 
-    // RULE 3 — `globalThis['localStorage']`
-    if (ts.isElementAccessExpression(node) && ts.isIdentifier(node.expression) && HOSTS.has(node.expression.text) &&
+    // RULE 3 — `globalThis['localStorage']`, on a host or an alias of one
+    if (ts.isElementAccessExpression(node) && isHost(node.expression) &&
         ts.isStringLiteralLike(node.argumentExpression) && FORBIDDEN_GLOBALS.has(node.argumentExpression.text)) {
       use(node.argumentExpression.text, node)
+    }
+
+    // RULE 3 — `const { localStorage } = globalThis` (renamed or not) takes the
+    // global out under a LOCAL name, which the bare-identifier branch below then
+    // reads as "a local that happens to share the name". The destructuring is
+    // the use.
+    if (ts.isVariableDeclaration(node) && ts.isObjectBindingPattern(node.name) && node.initializer && isHost(node.initializer)) {
+      for (const el of node.name.elements) {
+        const key = el.propertyName ?? el.name
+        if (ts.isIdentifier(key) && FORBIDDEN_GLOBALS.has(key.text)) use(key.text, el)
+      }
     }
 
     if (ts.isIdentifier(node) && FORBIDDEN_GLOBALS.has(node.text)) {
       const p = node.parent
       const g = node.text
       if (ts.isPropertyAccessExpression(p) && p.name === node) {
-        // `opts.window` is a property; `globalThis.window` / `self.document` is the global.
-        if (ts.isIdentifier(p.expression) && HOSTS.has(p.expression.text)) use(g, node)
+        // `opts.window` is a property; `globalThis.window` / `self.document` is the
+        // global — and so is `g.document` once `const g = globalThis`, and
+        // `(globalThis as T).document`.
+        if (isHost(p.expression)) use(g, node)
+      } else if (ts.isBindingElement(p) && p.propertyName === node) {
+        // the key of `{ localStorage: ls }` — RULE 3's destructuring branch decides
       } else if (
         ts.isTypeOfExpression(p) || // the guard itself
         ts.isTypeQueryNode(p) || ts.isTypeReferenceNode(p) || ts.isQualifiedName(p) || // type positions erase
