@@ -20,6 +20,7 @@
 import type { StageId } from '@spier/fhir-artifacts/generated/stage-ids.generated'
 import { appointmentStart, appointmentStatus } from './handoffs'
 import { displayFor, type CodedOption } from './codedOption'
+import { OUTREACH_OUTCOME_SYSTEM, isOutreachOutcomeCode, type OutreachOutcomeCode } from '@spier/fhir-artifacts/generated/disposition-codes.generated'
 import { stageTag } from './stageTag'
 import type { AppointmentResource, CommunicationResource } from '../types/fhir'
 import { suicideRiskCategory } from './conceptDomain'
@@ -33,7 +34,7 @@ export const STAGE_ID = 'track-follow-up' satisfies StageId
 export const OUTREACH_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-outreach-attempt'
 export const CARING_CONTACT_PROFILE = 'http://thespierproject.org/fhir/StructureDefinition/spier-caring-contact'
 
-export const OUTREACH_OUTCOME_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-outreach-outcome'
+export { OUTREACH_OUTCOME_SYSTEM, isOutreachOutcomeCode }
 export const OUTREACH_PROMPT_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-outreach-prompt'
 
 export const OUTREACH_OUTCOME_EXT = 'http://thespierproject.org/fhir/StructureDefinition/outreach-outcome'
@@ -45,7 +46,7 @@ export const CARING_CONTACT_OPT_OUT_EXT =
 
 const PARTICIPATION_MODE_SYSTEM = 'http://terminology.hl7.org/CodeSystem/v3-ParticipationMode'
 
-export const OUTREACH_OUTCOMES: CodedOption[] = [
+export const OUTREACH_OUTCOMES: readonly CodedOption<OutreachOutcomeCode>[] = [
   { code: 'patient-reached', display: 'Patient reached' },
   { code: 'no-answer', display: 'No answer' },
   { code: 'message-left', display: 'Message left' },
@@ -84,7 +85,7 @@ export const OUTREACH_CHANNELS: (CodedOption & { codingDisplay: string })[] = [
 ]
 
 /** Outcomes that mean this attempt did not make contact with the patient. */
-const UNREACHED_OUTCOMES = new Set([
+const UNREACHED_OUTCOMES = new Set<OutreachOutcomeCode>([
   'no-answer',
   'message-left',
   'unable-to-reach',
@@ -110,7 +111,7 @@ export function buildOutreachAttempt(params: {
   patientId: string | null
   sent: string
   channel: string
-  outcome: string
+  outcome: OutreachOutcomeCode
   prompt?: string
   safetyConcern?: boolean
   note?: string
@@ -217,7 +218,7 @@ export function unreachedStreak(communications: CommunicationResource[]): number
   let streak = 0
   for (const attempt of outreachAttempts(communications)) {
     const outcome = outreachOutcome(attempt)
-    if (outcome && UNREACHED_OUTCOMES.has(outcome)) streak++
+    if (isOutreachOutcomeCode(outcome) && UNREACHED_OUTCOMES.has(outcome)) streak++
     else break
   }
   return streak

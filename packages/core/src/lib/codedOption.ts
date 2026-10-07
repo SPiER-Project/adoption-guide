@@ -8,8 +8,9 @@
  * written in their own PR and copied the neighbour's helpers (C3 of the
  * 2026-09-20 audit). `scripts/check-duplicate-code.mjs` fails a fifth copy.
  */
-export interface CodedOption {
-  code: string
+/** `C` narrows `code` to a generated union where the list is one CodeSystem's. */
+export interface CodedOption<C extends string = string> {
+  code: C
   display: string
 }
 
