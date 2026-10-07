@@ -66,7 +66,6 @@ npm run check:careplan-readers  # the same rule for carePlanMappers
 npm run check:patients          # the 14 demo patients' demographics agree across all three sites
 npm run check:scenarios         # scenario QRs vs their Questionnaire, plus every other resource bucket
 npm run check:dates             # scenario dates coherent to their anchor, none in prose; the Workers serve them shifted to today (--apply re-dates the files)
-npm run check:measures          # Stage-8 Measure criteria vs the measures.ts engine
 npm run check:reassessment      # the per-tier reassessment cadence agrees across PlanDefinition, app and CQL
 npm test                        # vitest
 ```
@@ -154,8 +153,8 @@ The rules, each with its history in [`docs/internals/workers.md`](docs/internals
 
 ### Measures
 
-A measure criterion lives in **four** places. `check:measures` ties the FSH names
-to the TypeScript; `tests/measuresCqlParity.test.ts` runs the CQL and the
+A measure criterion lives in **four** places. `tests/measures.test.ts` ties the FSH
+names to the TypeScript (it absorbed `check:measures` on 2026-10-07); `tests/measuresCqlParity.test.ts` runs the CQL and the
 TypeScript over the demo patients and synthetic window-edge patients and fails
 on any disagreement not written into its `KNOWN_DIVERGENCES` ledger — **a new
 window needs a boundary patient**, or the test cannot see it. `denominator-exclusion` and `denominator-exception` are **not**

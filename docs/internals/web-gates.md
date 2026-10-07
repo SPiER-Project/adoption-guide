@@ -344,7 +344,8 @@ npm run check:dates      # nothing that already happened is dated AFTER the STAR
                          # and so checked no QR date at all. Default is --check
                          # (writes nothing); `--apply` re-dates the FILES, now only
                          # to change a scenario's designed state
-npm run check:measures   # Stage-8 Measure criteria vs the measures.ts engine
+                         # (check:measures was here until 2026-10-07: its rules are
+                         # tests in tests/measures.test.ts now — see measures.md)
 npm run check:reassessment # the per-tier reassessment cadence agrees across all THREE
                          # places it is stated: the PlanDefinition (FHIRPath condition
                          # *and* action.code), the app, and the CQL's
