@@ -51,12 +51,15 @@
  * Those five errors were real defects in this file, invisible for as long as
  * nothing compiled it. See the `Interval` helpers below.
  *
- * The TypeScript engine in web/src/lib/measures.ts remains the *executable
+ * The TypeScript engine in packages/core/src/lib/measures.ts remains the *executable
  * reference implementation* — it is what the app runs and what `npm test`
  * covers. This library is the portable, normative statement of the same
  * criteria, so a consumer can evaluate the measures without reimplementing
  * them. `npm run check:measures` ties the Measure criterion names to the TS
- * implementations; the publisher ties them to this file.
+ * implementations; the publisher ties them to this file; and
+ * tests/measuresCqlParity.test.ts EXECUTES this file against the TypeScript,
+ * patient by patient, and fails where the two answers differ. Change a window
+ * here and that test should go red until measures.ts agrees.
  */
 
 library SPiERSuicideSaferCareMeasures version '1.0.0'

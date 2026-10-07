@@ -12,7 +12,9 @@
  * the IG Publisher translates it to ELM on every run and fails the build on a
  * translation error (#212 / #239). This comment used to say it sat in
  * ig/drafts/ and that nothing compiled it, which stopped being true two
- * releases ago. Change a criterion and you change both files.
+ * releases ago. Change a criterion and you change both files —
+ * tests/measuresCqlParity.test.ts executes the CQL against this engine and
+ * fails where their answers differ.
  *
  * Two structural decisions:
  *
