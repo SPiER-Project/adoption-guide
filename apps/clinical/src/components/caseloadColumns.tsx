@@ -260,7 +260,7 @@ export const COLUMNS: Record<string, CaseloadColumn> = {
       // different things. It used to fall back to the patient's active STAGE,
       // which is a different question with a different answer.
       //
-      // `recommendedNextStep` is hand-written in patients.json and is therefore
+      // `recommendedNextStep` is hand-written in the demo's next-steps.json and is therefore
       // absent from any cohort read over real FHIR Patients (#401), which is
       // what made this fallback necessary rather than merely tidy.
       const next = row.recommendedNextStep ?? row.nextStep

@@ -286,11 +286,10 @@ export const HELD_TYPES: string[] = [
  * Display demographics for the host chrome (patient list + chart banner),
  * DERIVED from the same `Patient` resources this server serves.
  *
- * ⚠️ Deliberately not a hand-typed table. `CLAUDE.md` already names three sites
- * where the 14 demo patients' demographics must agree — the Patient JSON
- * (canonical), `patients.json`, and `populationToFhir`'s MRN system — and
- * `check:patients` gates all three. A fourth copy inside this service would sit
- * outside that gate and drift silently, which is the failure this repo keeps
+ * ⚠️ Deliberately not a hand-typed table. The 14 demo patients' demographics
+ * have one copy, the Patient JSON; the app's registry derives from it too
+ * (demo-population's `patients.ts`). A hand copy inside this service would be
+ * outside every gate and drift silently, which is the failure this repo keeps
  * finding. `MRN_SYSTEM` is imported rather than restated for the same reason.
  *
  * The banner is not decoration either: it is what makes

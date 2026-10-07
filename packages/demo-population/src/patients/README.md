@@ -43,11 +43,11 @@ one side fails by design.
 
 ## Where the truth lives
 
-**These files are canonical for the 14 patients' demographics.**
-`../patients.json` keeps `id` + the hand-curated `recommendedNextStep`, and still
-carries display copies of name / dob / gender / mrn for the caseload table.
-That is duplication, so `npm run check:patients` asserts the two agree field by
-field — the same treatment every other hand-duplicated value in this repo gets.
+**These files are the only copy of the 14 patients' demographics.** The
+caseload table's rows are derived from them at import (`../patients.ts`); the
+one hand-curated field, the recommended next step, is in `../next-steps.json`,
+keyed by patient id. A Patient missing a name, birth date, gender or an MRN under
+the app's system fails the import, and `npm run check:patients`.
 
 ## On `us-core-patient`, deliberately not claimed
 

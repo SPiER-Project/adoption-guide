@@ -154,9 +154,17 @@ if (demoOnlyPages.length < 5) fail(`only ${demoOnlyPages.length} demo-only page 
 const guideRoots = ['/guide', '/overview'].filter((r) => appSrc.includes(`path="${r}"`))
 if (guideRoots.length !== 2) fail(`expected App.tsx to register both "/guide" and "/overview" (found ${guideRoots.join(', ') || 'neither'}) — the demo-only roots have moved; teach this gate`)
 
-const patientsJson = JSON.parse(readFileSync(join(repoRoot, 'packages/demo-population/src/patients.json'), 'utf8'))
-const patientNames = [...new Set(patientsJson.map((p) => p.displayName).filter(Boolean))]
-if (patientNames.length < 10) fail(`only ${patientNames.length} demo patient name(s) parsed from patients.json (floor 10)`)
+// The names the caseload shows are derived from the Patient JSON, so that is
+// where the names to hunt for in a bundle come from.
+const patientsDir = join(repoRoot, 'packages/demo-population/src/patients')
+const patientNames = [...new Set(
+  readdirSync(patientsDir)
+    .filter((f) => /^patient-.*\.json$/.test(f))
+    .map((f) => JSON.parse(readFileSync(join(patientsDir, f), 'utf8'))?.name?.[0])
+    .map((n) => [...(n?.given ?? []), n?.family].filter(Boolean).join(' '))
+    .filter(Boolean),
+)]
+if (patientNames.length < 10) fail(`only ${patientNames.length} demo patient name(s) parsed from ${patientsDir.replace(repoRoot + '/', '')} (floor 10)`)
 
 console.log(
   `surface: demo ${demo.files.length} file(s), clinical ${clinical.files.length} file(s); ` +

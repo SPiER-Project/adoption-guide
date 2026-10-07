@@ -1,13 +1,14 @@
 /**
  * Population registry derivation — turns a patient's static demographics
- * (patients.json) plus their live FHIR slice into the row Population View
+ * (derived from the demo Patient JSON, or read off a server's Patients) plus their live FHIR slice into the row Population View
  * renders. `currentStage` / `completedStages` / `currentRiskLevel` /
  * `lastActivity` are all computed from the same slice PatientChart already
  * reads, so submitting an assessment on a patient's chart is immediately
  * reflected in their registry row — this is a query over FHIR data, not a
  * hand-curated snapshot.
  *
- * `recommendedNextStep` is the one field patients.json still hand-curates: it's
+ * `recommendedNextStep` is the one field the demo still hand-curates (in
+ * demo-population's `next-steps.json`): it's
  * editorial rationale text, not something derivable from artifacts.
  */
 import { STAGES } from '../data/catalog'
@@ -57,7 +58,7 @@ export interface RegistryPatient {
    * The curated "next step" line, or `null`.
    *
    * ⚠️ **Nullable since #401, because no FHIR resource carries it.** It is
-   * hand-written per patient in `patients.json`, which is fine for a bundled
+   * hand-written per patient in demo-population's `next-steps.json`, which is fine for a bundled
    * demo registry and impossible for a cohort read over real `Patient`
    * resources — a server-backed source returns `null` here and the row's next
    * step is derived from the pathway instead (the same derivation

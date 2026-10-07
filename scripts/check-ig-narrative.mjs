@@ -513,9 +513,15 @@ function toolViewSlugs() {
   return new Set(slugs)
 }
 function demoPatientIds() {
-  const file = resolve(ROOT, 'packages/demo-population/src/patients.json')
-  const ids = JSON.parse(readFileSync(file, 'utf8')).map((p) => p.id).filter(Boolean)
-  if (ids.length === 0) bail(`${rel(file)}: read 0 patient ids — :patientId links would resolve against nothing`)
+  // The Patient JSON is the roster; the app's registry rows are derived from it.
+  const dir = resolve(ROOT, 'packages/demo-population/src/patients')
+  const ids = readdirSync(dir)
+    .filter((f) => /^patient-.*\.json$/.test(f))
+    .map((f) => JSON.parse(readFileSync(join(dir, f), 'utf8')))
+    .filter((r) => r?.resourceType === 'Patient')
+    .map((r) => r.id)
+    .filter(Boolean)
+  if (ids.length === 0) bail(`${rel(dir)}: read 0 patient ids — :patientId links would resolve against nothing`)
   return new Set(ids)
 }
 const slugs = toolViewSlugs()

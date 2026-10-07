@@ -12,9 +12,8 @@
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render, screen } from '@testing-library/react'
-import { POPULATION_SCENARIOS } from '@spier/demo-population'
-import DEMO_PATIENTS from '@spier/demo-population/patients.json'
-import { deriveRegistryRow, type RegistryPatient } from '@spier/core/lib/registry'
+import { POPULATION_PATIENTS as DEMO_PATIENTS, POPULATION_SCENARIOS } from '@spier/demo-population'
+import { deriveRegistryRow } from '@spier/core/lib/registry'
 import type { PatientSlice } from '@spier/core/types/fhir'
 import { RISK_LABEL } from '../lib/riskLabel'
 import { PatientIdentityStrip } from './PatientIdentityStrip'
@@ -45,7 +44,7 @@ describe('PatientIdentityStrip — the caseload’s level, for every demo chart'
   it.each(['patient-001', 'patient-006', 'patient-013', 'patient-014'])(
     '%s — one of the charts the two used to disagree on',
     id => {
-      const patient = (DEMO_PATIENTS as RegistryPatient[]).find(p => p.id === id)!
+      const patient = DEMO_PATIENTS.find(p => p.id === id)!
       const row = deriveRegistryRow(patient, POPULATION_SCENARIOS[id], new Date())
       expect(pillFor(POPULATION_SCENARIOS[id]).textContent).toBe(RISK_LABEL[row.currentRiskLevel])
     },

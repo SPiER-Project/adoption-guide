@@ -279,11 +279,13 @@ npm run check:careplan-readers # the SIBLING rule for carePlanMappers, and a dif
                          # A linkId is resolved against the form the mapper SERVES, from
                          # `CAREPLAN_MAPPER_BY_QUESTIONNAIRE_URL` in core (2026-10-06); resolved
                          # against all eighteen, Stanley-Brown reading CRP's `coping-list` passed
-npm run check:patients   # the 14 demo patients' demographics agree across all THREE
-                         # sites: demo-population/src/patients/*.json (canonical), patients.json
-                         # (display copies), and the MRN system populationToFhir stamps —
-                         # core's `MRN_SYSTEM`, LOADED, and PatientProvider.tsx must use that
-                         # import for every identifier system. ⚠️ It was regex-scraped until
+npm run check:patients   # the demo registry DERIVES from demo-population/src/patients/*.json
+                         # (loaded through Vite; its ids equal the files' both ways — the
+                         # derivation throws on a missing name/dob/gender/MRN or next step),
+                         # and PatientProvider.tsx stamps MRNs with core's `MRN_SYSTEM`
+                         # import, never a literal. 2026-10-07: the display copies in
+                         # patients.json were deleted, and the field-by-field comparison
+                         # with them. ⚠️ It was regex-scraped until
                          # 2026-10-06, and the regex fell through to BLANK_PATIENT's literal
                          # when the builder used a (mistyped) local constant
 npm run check:scenarios  # BOTH halves of the population-scenario gate:
