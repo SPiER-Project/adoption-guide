@@ -60,8 +60,7 @@ npm run check:origins           # every hosted origin comes from deploy-origins.
 npm run check:deploy-jobs       # every services/*/wrangler.jsonc is deployed from main by deploy.yml
 npm run check:stages            # stage ids in population data vs the canonical FSH stage list
 npm run check:pathway           # the pathway PlanDefinition's codes and definitionCanonicals resolve
-npm run check:outputs           # every PlanDefinition.action.output profile is stamped by an EMITTED resource (after npm test)
-npm run check:published-profiles # every published profile is claimed by something the app emits, or exempted (after npm test)
+npm run check:outputs           # from both ends: every PlanDefinition.action.output profile, and every published profile, is stamped by an EMITTED resource or exempted (after npm test)
 npm run check:readers           # every observation mapper's reads vs the Questionnaire's declared item types
 npm run check:careplan-readers  # the same rule for carePlanMappers
 npm run check:patients          # the 14 demo patients' demographics agree across all three sites
