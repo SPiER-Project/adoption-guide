@@ -378,9 +378,16 @@
   --shadow-xl: 0 8px 24px rgb(0 0 0 / 0.12);
 
   /* ── Specialty shadows (non-elevation semantic uses) ────── */
-  --shadow-drawer:       4px 0 20px rgb(0 0 0 / 0.3);              /* mobile slide-out sidebar */
+  --shadow-drawer:       4px 0 20px rgb(0 0 0 / 0.3);              /* slide-out drawers: mobile sidebar, code drawer */
   --shadow-focus-ring:   0 0 0 2px rgb(52 21 40 / 0.3);            /* plum-tinted focus halo */
   --shadow-brand-glow:   0 1px 12px rgb(52 21 40 / 0.15);          /* plum-tinted halo */
+
+  /* ── Scrim ─────────────────────────────────────────────────
+     The dimmed page behind a modal drawer — today the mobile sidebar, whose
+     edge is --shadow-drawer. Neutral black rather than plum on purpose: it
+     dims the page under it, whatever colour that page is, and a tinted scrim
+     would read as a brand surface. */
+  --scrim:               rgb(0 0 0 / 0.4);
 
   /* ── Surface & text aliases (repeating hex literals) ────── */
   --surface-banner:      #ebeae6; /* patient banner background (warm) */

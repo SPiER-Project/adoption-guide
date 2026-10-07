@@ -80,7 +80,7 @@ export function SharingConsentView() {
 
   return (
     <WorkflowForm
-      title="Consent / Information-Sharing Status"
+      title="Record the Patient's Sharing Decision"
       lede={
         <>
           Records what the patient has agreed may be shared, under{' '}
@@ -106,7 +106,7 @@ export function SharingConsentView() {
       recorded={
         <>
           {consents.length > 1 && (
-            <RecordedList title="Consent history">
+            <RecordedList title="Sharing decisions on this chart">
               {consents.map((c, idx) => {
                 const consent = c as { id?: string; dateTime?: string }
                 return (
