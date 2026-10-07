@@ -1,5 +1,5 @@
 import { TOOLS, type Tool } from '@spier/core/data/catalog'
-import { isToolViewSlug } from '@spier/tool-views/data/toolViews'
+import { isToolViewSlug, type ToolViewSlug } from '@spier/tool-views/data/toolViews'
 import { launchSlug } from '@spier/tool-views/lib/launchSlug'
 
 /**
@@ -47,7 +47,7 @@ import { launchSlug } from '@spier/tool-views/lib/launchSlug'
  */
 export interface ToolForm {
   /** The `TOOL_VIEWS` key — the last segment of the catalog launch path. */
-  slug: string
+  slug: ToolViewSlug
   /** The catalog's label for that launch action, as the form picker shows it. */
   label: string
 }

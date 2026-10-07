@@ -65,8 +65,13 @@ const LethalMeansCounselingView = lazy(() => import('../components/LethalMeansCo
  * `TOOL_VIEWS['asq']` and the guide's tool page resolves the catalog launch
  * path's last segment against the same map. `check:tool-view-routes` pins
  * that they agree.
+ *
+ * `as const satisfies`, not an annotation: the annotation widened the keys to
+ * `string`, so `TOOL_VIEWS['asq-peds']` — a key that does not exist, a blank
+ * route — compiled. Now the keys are the literal union `ToolViewSlug`, and an
+ * unknown key is a type error wherever it is written.
  */
-export const TOOL_VIEWS: Record<string, ReactNode> = {
+export const TOOL_VIEWS = {
   // ── Instrument fillers (clinician route: /patient/assessments/<slug>) ────
   'phq-9': <QuestionnaireView title="PHQ-9 Depression Screening" questionnaireUrl={QUESTIONNAIRE_URLS['PHQ-9']} persistName="PHQ-9" />,
   'asq': <QuestionnaireView title="ASQ — Suicide Risk Screening" questionnaireUrl={QUESTIONNAIRE_URLS['ASQ-Screening-Tool']} persistName="ASQ Screening" />,
@@ -128,9 +133,16 @@ export const TOOL_VIEWS: Record<string, ReactNode> = {
   // Stage 4 — Document Safety Actions
   'lethal-means': <LethalMeansCounselingView />,
   'crisis-resources': <CrisisResourcesView />,
-}
+} as const satisfies Record<string, ReactNode>
+
+/** A key of `TOOL_VIEWS`: the last segment of a tool view's route. */
+export type ToolViewSlug = keyof typeof TOOL_VIEWS
 
 /** Is `slug` something the guide can offer a "try it" link for? */
-export function isToolViewSlug(slug: string | undefined): slug is string {
+// react-refresh does not see through `satisfies`, so it takes the upper-case
+// `TOOL_VIEWS` for a component and this file for a mixed one. It was not mixed
+// before the `satisfies` and is not now: TOOL_VIEWS is an object of elements.
+// eslint-disable-next-line react-refresh/only-export-components -- see above
+export function isToolViewSlug(slug: string | undefined): slug is ToolViewSlug {
   return slug !== undefined && Object.prototype.hasOwnProperty.call(TOOL_VIEWS, slug)
 }
