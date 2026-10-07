@@ -968,9 +968,8 @@ to its position before comparing, expression bodies count, and untracked
 non-ignored files are read. Its first run on the new parser found two live
 copies, both merged: `ms` in `measures.ts` (= `timeOf` in `recordQueries.ts`)
 and the mock EHR client's `message` in `home.ts` and `chart.ts` (now
-`errorText` in `client/config.ts`). `scripts/` is still out of scope — it holds
-live copies (`walkExt`/`relRepo`/`REPO_ROOT` in both root modules, `walkJson`
-in two gates) that are their own change.
+`errorText` in `client/config.ts`). `scripts/` was out of scope until
+2026-10-07 (next section but one).
 
 ⚠️ **Two parser defects were caught by the gate's own liveness rules before it
 was trusted.** The first version matched the body brace as "the first `{` after
@@ -990,10 +989,37 @@ turned out to be a plain copy whose one stylesheet rule already lived in
 `Sidebar`s remain deliberately separate, and their bodies differ, which is what
 the `ALLOWED` liveness rule checks.
 
+⚠️ **Bringing `scripts/` in (2026-10-07) found two tokenizer holes that had
+been there since the rebuild, in every tree.** The token scanner has no parse
+context. (a) A regex literal was read as code, and the `\//` that ends
+`/\/\*…\*\//g` opened a LINE comment, hiding the rest of the line: two
+different comment strippers — one blanking, one deleting — compared equal. (b)
+After a template literal's first `${…}`, the closing backtick opened a NEW
+template that ran past the function into the rest of the file, so two
+IDENTICAL functions holding `` `✗ ${msg}` `` compared different — thirteen
+byte-identical `fail`s in the gates passed that way. Both planted against
+`main`'s gate and this one: (a) red → green, (b) green → red. Literals are now
+taken whole from the AST. A recursive call is normalised to `$self` too, so a
+renamed copy of a recursive walker (`walkJson` → `listJson`) is rule 2 — it
+passed before.
+
+The scan found 14 copied helpers in `scripts/`, now in `scripts/lib/repo.mjs`
+(`REPO_ROOT`, `relRepo`, `walkExt`, `walkJson`, `isTest` — `app-roots.mjs` and
+`style-roots.mjs` re-export the first three), `lib/text.mjs` (`stripComments`,
+`stripTsComments`, `stripVersion`, `shortCanonical`) and `lib/cli.mjs`
+(`argValue`, `die`). ⚠️ **And a fifth rule.** About forty gates define a `fail`
+that writes their own failure count — many byte-identical once (b) was fixed —
+and "define it once and import it" cannot apply to a closure over your own
+module. A function in a gate's ENTRY file (`scripts/*.mjs`, not `lib/`) that
+writes a top-level binding of that file is skipped and counted. Everywhere else
+a stateful copy (a memoised loader, a cache) is importable, so it is still
+compared — planted: a memoised loader copied across `scripts/lib` fails.
+
 What it cannot see: a copy edited after copying (a fork — only a reader can
 tell a fork from a variant), a duplicated fragment inside a larger function,
-and a method or an arrow assigned to an object property rather than a
-top-level binding.
+a method or an arrow assigned to an object property rather than a top-level
+binding, and — by rule 5 — a copied function in a gate's entry file that also
+writes that file's state.
 
 ## `check:jargon` and the page budgets — the guide's two copy rules (2026-09-20)
 

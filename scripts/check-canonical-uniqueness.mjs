@@ -53,9 +53,10 @@
  * mistake before.
  */
 import { readdirSync, readFileSync, statSync, existsSync } from 'node:fs'
-import { join, relative, dirname } from 'node:path'
+import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { makeBail, parsePathResource, readConfig } from './lib/ig-config.mjs'
+import { relRepo as rel } from './lib/repo.mjs'
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
 // The path-resource directories, read from the config rather than typed.
@@ -70,7 +71,6 @@ const GENERATED = join(repoRoot, 'ig', 'fsh-generated', 'resources')
 const FLOOR_HAND_AUTHORED = 10
 const FLOOR_GENERATED = 50
 
-const rel = (p) => relative(repoRoot, p)
 
 /** Every `.json` under `dir`, recursively. */
 function jsonFiles(dir) {

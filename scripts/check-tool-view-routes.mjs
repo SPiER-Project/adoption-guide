@@ -44,16 +44,16 @@
  * app renders a recorder.
  */
 import { readFileSync, existsSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { join } from 'node:path'
 import { APP_ROOTS, appRootFloors, REPO_ROOT } from './lib/app-roots.mjs'
 import { reportFloors } from './lib/floors.mjs'
 import { stripComments } from './lib/jsx-comments.mjs'
+import { relRepo as rel } from './lib/repo.mjs'
 
 const MAP = join(REPO_ROOT, 'packages/tool-views/src/data/toolViews.tsx')
 
 let failures = 0
 const fail = (msg) => { console.error(`✗ ${msg}`); failures++ }
-const rel = (p) => relative(REPO_ROOT, p)
 
 if (!existsSync(MAP)) {
   console.error(`✗ ${rel(MAP)} does not exist — this gate reads that map as text. It has moved; teach this gate where.`)

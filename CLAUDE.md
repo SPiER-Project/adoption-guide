@@ -50,7 +50,7 @@ npm run check:fhir-r5           # the R5-model shim is still safe: every fhirVer
 npm run check:crosswalk         # concept-crosswalk validation
 npm run check:extract           # the SDC observationExtract contract, checked against what each mapper actually emits
 npm run check:core-boundary     # packages/core stays React-free and DOM-free
-npm run check:dupes             # no function is defined twice: same name + same body across files fails, and so does a renamed copy of 5+ lines
+npm run check:dupes             # no function is defined twice — apps, packages, services AND scripts: same name + same body across files fails, and so does a renamed copy of 5+ lines
 npm run check:guide-boundary    # the Adoption Guide holds no patient data (walks the whole guide app from main.tsx, by resolved path)
 npm run check:catalog           # tool-catalog wiring; every launch path and landing route resolves
 npm run check:tool-view-routes  # the 29 tool views are ONE definition and EVERY app's route table agrees, both ways

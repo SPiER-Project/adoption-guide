@@ -156,6 +156,7 @@ import { dirname, resolve, join } from 'node:path'
 import { reportFloors } from './lib/floors.mjs'
 import { APP_ROOTS, appRootFloors } from './lib/app-roots.mjs'
 import { loadCore } from './lib/load-core.mjs'
+import { shortCanonical as short } from './lib/text.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
@@ -169,7 +170,6 @@ const fail = (msg) => {
   failures += 1
 }
 
-const short = (canonical) => String(canonical).split('/').pop()
 
 /**
  * Declared output profiles the app deliberately does not claim.

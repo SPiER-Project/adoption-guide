@@ -58,6 +58,7 @@ import { join } from 'node:path'
 
 import { REPO_ROOT, allStyleFiles, relRepo, styleRootFloors } from './lib/style-roots.mjs'
 import { reportFloors } from './lib/floors.mjs'
+import { stripComments, stripTsComments } from './lib/text.mjs'
 
 // ⚠️ The tokens moved to packages/ui with the components that consume them
 // (2026-09-19). A UI package whose components reference tokens it does not
@@ -76,8 +77,6 @@ const fail = (msg) => { console.error(`✗ ${msg}`); failures++ }
  * `var(--retired-token)` inside a comment must not fail the gate, and prose
  * inside a comment must not register as a definition.
  */
-const stripComments = (css) =>
-  css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
 
 const rel = relRepo
 
@@ -130,10 +129,6 @@ for (const file of cssFiles) {
 // Inline styles and SVG paint attributes. Block comments and whole-line `//`
 // comments are blanked (positions kept) so a token named in prose is not a use;
 // a trailing `// …` after code is left alone, so `'https://…'` is never cut.
-const stripTsComments = (src) =>
-  src
-    .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
-    .replace(/^\s*\/\/.*$/gm, (m) => m.replace(/[^\n]/g, ' '))
 let tsUseCount = 0
 for (const file of tsFiles.filter((f) => !/\.test\.tsx?$/.test(f))) {
   const src = stripTsComments(readFileSync(file, 'utf8'))

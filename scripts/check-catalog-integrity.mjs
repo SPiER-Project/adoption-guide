@@ -84,6 +84,7 @@ import { reportFloors } from './lib/floors.mjs'
 import { stripComments } from './lib/jsx-comments.mjs'
 import { appRoot, REPO_ROOT } from './lib/app-roots.mjs'
 import { loadCore } from './lib/load-core.mjs'
+import { stripVersion } from './lib/text.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..') // repo root
@@ -99,10 +100,6 @@ const LICENSING_EXT = 'http://thespierproject.org/fhir/StructureDefinition/instr
 let failures = 0
 const fail = (msg) => { console.error(`✗ ${msg}`); failures++ }
 
-const stripVersion = (canonical) => {
-  const pipe = canonical.indexOf('|')
-  return pipe === -1 ? canonical : canonical.slice(0, pipe)
-}
 
 // ---- load generated FHIR ---------------------------------------------------
 const stageCsPath = join(fhirDir, 'CodeSystem-spier-pathway-stage.json')
