@@ -261,8 +261,23 @@ loading … as Turtle" line in `publisher.log`. The first CI run that met binari
 under a `/*` entry logged 34 such lines, spilled the binaries' bytes into the
 log, and GNU grep then refused to read the QA counts out of a "binary" file: the
 QA step died under `bash -e` with no message while the QA itself was 0 errors /
-0 broken links (#512). Both workflows now grep with `-a` and fail by name on an
-unparsed count.
+0 broken links (#512). The counts are now read by one script,
+`scripts/lib/ig-qa-counts.mjs`, which reads the log as bytes and fails by name on
+an unparsed count.
+
+⚠️ **The QA gate does not read the publisher's "Broken Links: N".** Despite its
+name, that figure counts every HTML-checker message, warnings included. On 2.3.5
+it reported 19 "broken links" on a build whose link check found 0: they were
+warnings on the template's `searchform.html` and on duplicate FHIRHelpers
+anchors on the Measure pages
+([HL7/fhir-ig-publisher#1386](https://github.com/HL7/fhir-ig-publisher/issues/1386)).
+`ig-qa-counts.mjs` gates on QA errors and on the HTML check's own two lines,
+`N links, M broken links` and `N html files, K pages invalid xhtml`. **It needs
+both.** HTML-checker errors, such as 2.3.5's 37 WCAG heading errors, appear only
+in the second, so the link line alone would have passed that run. A run where
+either line is missing, or that examined 0 files or 0 links, fails rather than
+reading as clean. `ig-publish.yml` and `deploy.yml` both run the script, so the
+PR gate and the deploy gate cannot drift apart.
 
 ⚠️ **Every resource JSON needs an `id` equal to its canonical's last segment**,
 because the publisher names the page `<Type>-<id>.html` and rejects a mismatch.

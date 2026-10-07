@@ -10,8 +10,9 @@ name: IG — Sushi compile + validate
 # NOT duplicated here.
 #
 # The two are complementary, not redundant:
-#   - ig-publish.yml is triggered by `ig/**` only, and gates on a coarse
-#     `err = N` / `Broken Links: N` parse of qa.txt.
+#   - ig-publish.yml is triggered by `ig/**` only, and gates on IG-wide
+#     counts (QA errors, broken links, invalid xhtml) read by
+#     scripts/lib/ig-qa-counts.mjs.
 #   - this workflow additionally covers `packages/demo-population/src/**`, the demo registry's
 #     hand-authored FHIR, which the Stage-8 measure engine reads (#226). It
 #     reports per-resource conformance with inline PR annotations.

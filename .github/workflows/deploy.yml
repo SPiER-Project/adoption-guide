@@ -300,37 +300,16 @@ jobs:
           fi
           echo "CQL translation completed successfully."
 
-      - name: Gate on IG QA (fail on errors or broken links)
+      - name: Gate on IG QA (fail on errors, broken links or invalid xhtml)
         working-directory: ./ig
+        # The same script ig-publish.yml runs, so the PR gate and the deploy
+        # gate cannot disagree. On the cache-hit path it reads the cached
+        # publisher.log and qa.txt, so skipping the render never skips this.
         run: |
-          qa=output/qa.txt
-          if [ ! -f "$qa" ]; then
-            echo "::error::no output/qa.txt produced — the IG Publisher did not complete"
+          node ../scripts/lib/ig-qa-counts.mjs . || {
+            echo "::error::IG Publisher QA failed — not deploying"
             exit 1
-          fi
-          # Parsed with `|| true` and then asserted, rather than left to abort
-          # the step on a failed grep. The original spelling relied on `bash -e`:
-          # if qa.txt carried no `err =` line the grep exited non-zero and killed
-          # the step, which was accidentally the SAFE outcome — but it made the
-          # `${errs:-?}` fallbacks dead code and left the real hole visible only
-          # by reading bash semantics. Made explicit here: an unparseable report
-          # is a failure, never an unknown count that passes the check below.
-          # `-a`: the publisher log can carry bytes GNU grep classifies as binary
-          # (it did once the Questionnaires were loaded, #512); without -a grep
-          # prints "binary file matches" instead of the match and the count
-          # below reads as unparsed — which this step correctly refuses, but
-          # it would have refused every deploy.
-          errs=$(grep -aoiE 'err *= *[0-9]+' "$qa" | head -1 | grep -oE '[0-9]+' || true)
-          broken=$(grep -aoiE 'Broken Links: *[0-9]+' publisher.log | tail -1 | grep -oE '[0-9]+' || true)
-          echo "IG QA → errors=${errs:-unparsed} brokenLinks=${broken:-unparsed}"
-          if [ -z "$errs" ] || [ -z "$broken" ]; then
-            echo "::error::could not read the QA counts (errors='${errs}' brokenLinks='${broken}') from ig/output/qa.txt and ig/publisher.log — the publisher's output format may have changed. Refusing to deploy on an unknown count."
-            exit 1
-          fi
-          if [ "$errs" != "0" ] || [ "$broken" != "0" ]; then
-            echo "::error::IG Publisher reported ${errs} error(s) and ${broken} broken link(s) — not deploying"
-            exit 1
-          fi
+          }
 
       # Deliberately after both gates and never with `if: always()`: a render
       # that failed QA must not become the cached answer for its inputs.
