@@ -25,7 +25,7 @@
  * would leave the Bundle path — the one every other CDS client exercises —
  * covered by nothing.
  */
-import { HELD_RESOURCES, type MockResource } from './fixtures'
+import { heldResourcesAsOf, type MockResource } from './fixtures'
 import type { DemoState } from './store'
 
 /** A FHIR searchset Bundle, as much of one as a prefetch needs. */
@@ -75,7 +75,7 @@ export async function questionnaireResponseBundle(
   store: DemoState | null,
   fhirBase: string,
 ): Promise<SearchsetBundle> {
-  const held = HELD_RESOURCES
+  const held = heldResourcesAsOf()
     .filter(h => h.patientId === patientId && isCompletedQr(h.resource))
     .map(h => h.resource)
 

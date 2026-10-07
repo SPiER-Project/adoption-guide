@@ -11,9 +11,10 @@
  * §6 for what was actually observed. What this file protects is everything that
  * has to be right *before* a browser can prove anything.
  */
-import { describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+import { SCENARIO_ANCHOR } from '@spier/demo-population'
 import app from './app'
-import { DEMO_PATIENTS, DEMO_PATIENTS_BY_ID, HELD_RESOURCES, RESOURCES_BY_KEY } from './fixtures'
+import { DEMO_PATIENTS, DEMO_PATIENTS_BY_ID, HELD_RESOURCES, resourceByKeyAsOf } from './fixtures'
 import { chartRecordFor } from './chartRecord'
 import { esc } from './hostChrome'
 import { rankCards } from './client/cdsRanking'
@@ -359,6 +360,16 @@ describe('demographics are derived, not restated', () => {
 })
 
 describe('the chart shows what this server holds about the patient', () => {
+  // The labels below are the scenario's own dates, so read them on the day the
+  // scenarios are authored against. On any other day every one moves by the
+  // same number of days — the last test in this block — because this server
+  // serves the population as of today (packages/demo-population/src/scenarioDates.ts).
+  beforeAll(() => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(`${SCENARIO_ANCHOR}T15:00:00Z`))
+  })
+  afterAll(() => { vi.useRealTimers() })
+
   it('draws the header chips from the patient’s OWN active resources', async () => {
     // patient-011 has an active Flag and an open EpisodeOfCare, and both of its
     // Tasks are completed. So: two chips, and no "tasks open" chip — a header
@@ -508,7 +519,7 @@ describe('the chart shows what this server holds about the patient', () => {
         expect(held, `${patient.id}: ${tile.from}`).toContain(tile.from)
         // The VALUE is quoted rather than composed, so it is checkable directly —
         // and it is the one a fabricated number would appear in.
-        expect(JSON.stringify(RESOURCES_BY_KEY.get(tile.from)), tile.from).toContain(tile.value)
+        expect(JSON.stringify(resourceByKeyAsOf(tile.from)), tile.from).toContain(tile.value)
         expect(body).toContain(tile.value)
         checked += 1
       }
@@ -533,6 +544,20 @@ describe('the chart shows what this server holds about the patient', () => {
     // that returned nothing at all would satisfy every one of them by never
     // running. Well under the 31 the fourteen charts render today.
     expect(checked).toBeGreaterThan(20)
+  })
+
+  it('reads the same chart on any day, every date moved by the days since the anchor', async () => {
+    // 56 days on is the day the drift was reported: patient-011's episode, open
+    // since 2 Aug as authored, read "since 2 Aug" two months later — and its
+    // reassessment, due 9 Aug, read 58 days overdue.
+    vi.setSystemTime(new Date('2026-10-06T15:00:00Z'))
+    try {
+      const { body } = await html('/chart/patient-011')
+      expect(body).toContain('Episode open · since 27 Sep')
+      expect(body).not.toContain('since 2 Aug')
+    } finally {
+      vi.setSystemTime(new Date(`${SCENARIO_ANCHOR}T15:00:00Z`))
+    }
   })
 })
 

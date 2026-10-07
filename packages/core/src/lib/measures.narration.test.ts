@@ -128,7 +128,7 @@ const EXPLAINED_MISSES: Array<{ patientId: string; group: string; because: strin
     patientId: 'patient-014',
     group: 'screen-to-assessment',
     // The care did not happen, and the record says why: an active Flag reading
-    // "Left the department while on suicide precautions — 2026-08-10 02:35".
+    // "Left the department while on suicide precautions", from its period.start.
     // The walkthrough's fourth step is the patient leaving. This is the
     // elopement case, and it is a true miss rather than a data gap.
     because: 'the patient left the department while on precautions, before any assessment could be done',

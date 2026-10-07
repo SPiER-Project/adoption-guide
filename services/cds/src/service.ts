@@ -36,7 +36,7 @@ import { buildCdsCards } from '@spier/core/lib/cdsHooks'
 import type { Card, CdsServiceResponse } from '@spier/core/lib/cdsHooks/types'
 import { deriveFromResponse } from '@spier/core/lib/deriveFromResponse'
 import type { RiskAlert } from '@spier/core/lib/observationMappers'
-import { POPULATION_SCENARIOS } from '@spier/demo-population'
+import { populationScenariosAsOf } from '@spier/demo-population'
 import type { ObservationResource, QuestionnaireResponseResource, StoredResponse } from '@spier/core/types/fhir'
 import type { CdsHookRequest, CdsServiceDefinition } from './types'
 
@@ -186,7 +186,10 @@ export function buildPatientViewResponse(
       smartLaunch,
     })
   } else {
-    const scenario = patientId ? POPULATION_SCENARIOS[patientId] : undefined
+    // As of today, not as authored: the scenario files are dated against an
+    // anchor, and a card built from them on the real clock would read every
+    // patient as overdue by however long ago that was. See scenarioDates.ts.
+    const scenario = patientId ? populationScenariosAsOf()[patientId] : undefined
     if (!scenario) return { cards: [] }
     cards = buildCdsCards({
       record: {

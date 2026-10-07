@@ -58,6 +58,22 @@ both edges pointed back into the app's own source tree, the wrong direction; §4
 the plan moved both modules to `packages/core`, which closed them. Do not add an
 alias for app internals here — that would make an inverted direction look sanctioned.
 
+## Dated at an anchor, served as of today
+
+Every scenario is dated against `SCENARIO_ANCHOR` (`src/scenarioDates.ts`), and
+the files stay that way. Both Workers serve them through
+`populationScenariosAsOf(today)` — every date moved by the whole UTC days since
+the anchor — so each patient shows the same reassessment state on any day. Read
+statically on the real clock, the population drifted a day a day: two months
+after the last re-date, every scheduled patient read overdue by about the two
+months.
+
+**Serve the `AsOf` view, never `POPULATION_SCENARIOS`.** The static export is
+the files as authored: right for the gates and the structural tests, wrong for
+anything a client reads. A date written into prose cannot be moved by the shift,
+so `check:dates` fails one. Why the data moves rather than the apps' clock is in
+the header of `src/scenarioDates.ts`.
+
 ## The gates that read this directory
 
 Five in `scripts` and two at the repo root, all by `fs` path rather than by
