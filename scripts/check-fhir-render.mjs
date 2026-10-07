@@ -110,8 +110,6 @@ const fail = (msg) => { console.error(`✗ ${msg}`); failures++ }
 const NOT_A_RESOURCE_VIEW = {
   'apps/clinical/src/context/ToolConfigProvider.tsx':
     'serializes the tool-enablement preset INTO localStorage. Nothing is rendered, and the value is a settings object rather than a resource.',
-  'packages/app-shell/src/components/PathwayView.tsx':
-    'the <pre> holds a CQL/pathway ERROR STRING, not a resource. The resources this view does show go through FhirJsonViewer, which gates itself.',
   'apps/guide/src/pages/CdsServiceGuide.tsx':
     'a guide page: the <pre> blocks are the curl invocations and the hook payload an implementer copies. Inspection is on for this whole surface by definition, so asking it again would be noise.',
 }

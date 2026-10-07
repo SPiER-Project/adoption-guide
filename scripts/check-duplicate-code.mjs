@@ -19,10 +19,10 @@
  *      is still a copy. Short bodies are exempt from this rule only: a one-line
  *      `return x?.y` legitimately recurs under many names.
  *   3. Deliberate pairs are named in ALLOWED with the reason — never a count.
- *      The two `describeError`s (app-shell and writeback) are the model: same
- *      name, DIFFERENT bodies on purpose, documented in each; they do not fire
- *      rule 1 because the bodies differ, and are listed here so the next reader
- *      knows the difference is intended.
+ *      The per-app `Sidebar`s are the model: same name, different components
+ *      on purpose; listed here so the next reader knows the pairing is
+ *      intended. (The two `describeError`s were the first model; app-shell's
+ *      went on 2026-10-07, when the launch pages stopped printing it.)
  *   4. FLOOR: at least MIN_FUNCTIONS functions parsed across at least MIN_FILES
  *      files, with at least one from each of apps/, packages/ and services/. A
  *      parser that reads nothing must not report ✓.
@@ -65,7 +65,6 @@ const MIN_FILES = 120
 
 /** `name` → reason a same-named function may exist in more than one file. */
 const ALLOWED = new Map(Object.entries({
-  describeError: 'app-shell/lib/describeError.ts and core/lib/writeback/execute.ts differ ON PURPOSE (banner vs scorecard rendering) and each says so; listed so nobody "fixes" it',
   Sidebar: 'apps/guide and apps/clinical each own their chrome since the apps/ split (#552); the two Sidebars are different components that share a name',
   AppRoutes: 'one route table per app, by design — see docs/internals/surfaces-and-routing.md',
 }))

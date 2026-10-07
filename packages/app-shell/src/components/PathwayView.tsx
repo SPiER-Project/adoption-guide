@@ -52,6 +52,7 @@
 import { type ReactNode } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { FhirJsonViewer } from '@spier/tool-views/components/FhirJsonViewer'
+import { useInspect } from '@spier/tool-views/context/InspectContext'
 import {
   type PathwayAction,
   type PathwayDocumentation,
@@ -76,14 +77,31 @@ import { DataTable } from '@spier/ui/DataTable'
 // root", and named the PlanDefinition by id. The maintainer's fix is still that
 // (the generated FHIR tree is missing or stale — re-run copy-fhir with
 // `--force`); it lives here, and the page says what happened.
+//
+// ⚠️ **The message itself is shown only under inspection (2026-10-07).** It
+// still printed `loadPathway`'s error in a `<pre>` on every surface — "pathway:
+// no PlanDefinition with url http://thespierproject.org/fhir/PlanDefinition/…
+// in packages/fhir-artifacts/generated/. Run `npm run copy-fhir …`" — on the
+// clinician's `/patient/pathway` as well as the guide. A string core builds at
+// runtime is exactly what `check:jargon` cannot read (surfaces-and-routing.md,
+// "The clinician-facing app shows no raw FHIR"). There is one kind of failure
+// here — the deployment's own build is broken — so there is no code to word;
+// the clinician gets the sentence, and the guide, where inspection is on, keeps
+// the detail its maintainer needs. Unlike the chart's banner, the gated branch
+// is live: the guide's pathway pages render this too.
+// `apps/clinical/src/pages/smartLaunchError.test.tsx` renders it from a real
+// parse failure on both sides of the switch.
 export function PathwayLoadError({ error }: { error: string | null }) {
+  const inspect = useInspect()
   return (
-    <Notice tone="warning" title="The pathway artifact could not be read">
+    <Notice tone="warning" title="The care pathway could not be loaded">
       <p>
-        The published care pathway could not be loaded, so this page has nothing to show. The
-        detail below is for whoever maintains this deployment.
+        This deployment could not read the care pathway it publishes, so this page has nothing to
+        show. {inspect
+          ? 'The detail below is for whoever maintains this deployment.'
+          : 'Tell whoever supports this app at your site.'}
       </p>
-      <pre>{error}</pre>
+      {inspect && <pre>{error}</pre>}
     </Notice>
   )
 }
