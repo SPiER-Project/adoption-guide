@@ -24,14 +24,14 @@
  * resource behind it does not get rendered — which is why patient-002's chart is
  * nearly bare, and why that is the correct output rather than a gap to fill.
  *
- * ⚠️ **Fixtures only, deliberately, for now.** `HELD_RESOURCES` is the bundled
- * scenario set; resources the panel WRITES land in the Durable Object and are
- * not read back here, so a chart can be behind what the panel just recorded.
- * The launch card already says so (`#written-since`, outside the drawer) and
+ * ⚠️ **Fixtures only, deliberately, for now.** `heldResourcesAsOf()` is the
+ * bundled scenario set, dated as of today; resources the panel WRITES land in
+ * the Durable Object and are not read back here, so a chart can be behind what
+ * the panel just recorded. The launch card already says so (`#written-since`, outside the drawer) and
  * that line is the reason this is a known limit rather than a lie. Reading the
  * store would make every chart render await KV.
  */
-import { HELD_RESOURCES, type MockResource } from './fixtures'
+import { heldResourcesAsOf, type MockResource } from './fixtures'
 
 /**
  * How loud a thing is, in the host's four status colours. Maps to
@@ -215,7 +215,7 @@ export function ageOn(birthDate: string | undefined, today: Date = new Date()): 
 
 /** This patient's resources of one type, in scenario order. */
 function heldFor(patientId: string, type: string): MockResource[] {
-  return HELD_RESOURCES
+  return heldResourcesAsOf()
     .filter(h => h.patientId === patientId && h.resource.resourceType === type)
     .map(h => h.resource)
 }

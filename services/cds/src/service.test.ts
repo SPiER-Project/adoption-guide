@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   PATIENT_VIEW_SERVICE,
   SERVICE_ID,
@@ -239,5 +239,28 @@ describe('SMART launch links (panel step 5)', () => {
     // launches the current page.
     const { cards } = buildPatientViewResponse(request({}), { smartLaunchUrl: '' })
     expect(linksOf(cards).every(l => l.type === 'absolute')).toBe(true)
+  })
+})
+
+describe('the no-prefetch fallback serves the demo population as of today', () => {
+  // The scenario files are dated against an anchor (2026-08-11). Read on the
+  // real clock they drift a day a day: on 2026-10-06 patient-011's
+  // reassessment, designed as two days overdue, read 58. The fallback serves
+  // `populationScenariosAsOf(today)`, so the card says the same thing on any
+  // day and only its dates move.
+  afterEach(() => { vi.useRealTimers() })
+
+  function reassessCardOn(day: string) {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(day))
+    const { cards } = buildPatientViewResponse(request({ context: { patientId: 'patient-011' } }))
+    return cards.find(c => c.summary === 'Reassess suicide risk')
+  }
+
+  it('says the same thing 56 days after the anchor as on it, with its dates moved', () => {
+    const onAnchor = reassessCardOn('2026-08-11T15:00:00Z')
+    const later = reassessCardOn('2026-10-06T15:00:00Z')
+    expect(onAnchor?.detail).toBe('BSSA on Aug 2: high risk. Overdue by 2 days.')
+    expect(later?.detail).toBe('BSSA on Sep 27: high risk. Overdue by 2 days.')
   })
 })
