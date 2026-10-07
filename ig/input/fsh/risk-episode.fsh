@@ -589,11 +589,7 @@ Usage: #definition
   * id = "reassess-high"
   * title = "Reassess high-risk patients every 7 days"
   * description = "A patient whose current suicide-risk tier is high is reassessed every 7 days."
-  * code[+] = SPiERSuicideRiskTier#high "High risk"
-  * condition[+]
-    * kind = #applicability
-    * expression.language = #text/fhirpath
-    * expression.expression = "%episode.extension('http://thespierproject.org/fhir/StructureDefinition/episode-current-risk-tier').value.coding.where(system = 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier').code = 'high'"
+  * insert TierBranch(high, "High risk")
   * timingDuration = 7 'd' "day"
   * definitionCanonical = "http://thespierproject.org/fhir/ActivityDefinition/ScheduleRiskReassessment"
 
@@ -601,11 +597,7 @@ Usage: #definition
   * id = "reassess-moderate"
   * title = "Reassess moderate-risk patients every 14 days"
   * description = "A patient whose current suicide-risk tier is moderate is reassessed every 14 days."
-  * code[+] = SPiERSuicideRiskTier#moderate "Moderate risk"
-  * condition[+]
-    * kind = #applicability
-    * expression.language = #text/fhirpath
-    * expression.expression = "%episode.extension('http://thespierproject.org/fhir/StructureDefinition/episode-current-risk-tier').value.coding.where(system = 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier').code = 'moderate'"
+  * insert TierBranch(moderate, "Moderate risk")
   * timingDuration = 14 'd' "day"
   * definitionCanonical = "http://thespierproject.org/fhir/ActivityDefinition/ScheduleRiskReassessment"
 
@@ -613,11 +605,7 @@ Usage: #definition
   * id = "reassess-low"
   * title = "Reassess low-risk patients every 30 days"
   * description = "A patient whose current suicide-risk tier is low is reassessed every 30 days."
-  * code[+] = SPiERSuicideRiskTier#low "Low risk"
-  * condition[+]
-    * kind = #applicability
-    * expression.language = #text/fhirpath
-    * expression.expression = "%episode.extension('http://thespierproject.org/fhir/StructureDefinition/episode-current-risk-tier').value.coding.where(system = 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier').code = 'low'"
+  * insert TierBranch(low, "Low risk")
   * timingDuration = 30 'd' "day"
   * definitionCanonical = "http://thespierproject.org/fhir/ActivityDefinition/ScheduleRiskReassessment"
 
