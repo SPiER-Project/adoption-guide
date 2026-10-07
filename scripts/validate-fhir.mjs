@@ -45,6 +45,7 @@ import { tmpdir } from 'node:os'
 import { FHIR_VERSION, VALIDATOR_VERSION, resolveValidatorJar } from './lib/validator-jar.mjs'
 import { reportFloors } from './lib/floors.mjs'
 import { makeBail, parsePathResource, readConfig } from './lib/ig-config.mjs'
+import { argValue, die as fail } from './lib/cli.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
@@ -126,10 +127,6 @@ const EXCLUSIONS = [
 
 // --- CLI args --------------------------------------------------------------
 const argv = process.argv.slice(2)
-const argValue = (flag) => {
-  const i = argv.indexOf(flag)
-  return i === -1 ? undefined : argv[i + 1]
-}
 const showWarnings = argv.includes('--show-warnings')
 /**
  * Extra directories of standalone resource JSON to validate, repeatable:
@@ -145,10 +142,6 @@ const alsoDirs = argv.flatMap((a, i) => (a === '--also' && argv[i + 1] ? [argv[i
 const tx = argValue('--tx') ?? process.env.SPIER_FHIR_TX ?? 'n/a'
 const keepJsonAt = argValue('--json')
 
-const fail = (msg) => {
-  console.error(`\n✗ ${msg}`)
-  process.exit(1)
-}
 
 // --- Prerequisites ---------------------------------------------------------
 if (spawnSync('java', ['-version'], { stdio: 'ignore' }).status !== 0) {

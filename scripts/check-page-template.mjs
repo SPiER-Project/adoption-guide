@@ -40,6 +40,7 @@ import { join } from 'node:path'
 import { STYLE_ROOTS, styleRootFloors, walkExt, relRepo } from './lib/style-roots.mjs'
 import { reportFloors } from './lib/floors.mjs'
 import { APP_ROOTS, appRootFloors } from './lib/app-roots.mjs'
+import { stripTsComments } from './lib/text.mjs'
 
 // ⚠️ EVERY app's pages, not one app's. There are two trees now, and a gate
 // that reads `apps/guide/src/pages` alone would report a clean template over
@@ -299,10 +300,6 @@ const outletWrappers = [] // { file, classes }
  * Block and whole-line `//` comments blanked, positions kept. A comment that
  * says "under PageHeader's `<h2>`" is not a heading.
  */
-const stripTsComments = (src) =>
-  src
-    .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
-    .replace(/^\s*\/\/.*$/gm, (m) => m.replace(/[^\n]/g, ' '))
 
 /**
  * Rules 1 and 2, which hold for EVERY component the apps render, not just the

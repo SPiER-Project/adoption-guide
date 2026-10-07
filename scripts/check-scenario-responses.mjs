@@ -35,9 +35,11 @@
  *
  * Exits non-zero on drift so it can gate CI.
  */
-import { readFileSync, readdirSync, statSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, relative, resolve } from 'node:path'
+import { walkJson } from './lib/repo.mjs'
+import { stripVersion } from './lib/text.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
@@ -71,25 +73,8 @@ const fail = (msg) => {
   failures++
 }
 
-const stripVersion = (canonical) => {
-  const pipe = canonical.indexOf('|')
-  return pipe === -1 ? canonical : canonical.slice(0, pipe)
-}
 
 // --- Index every canonical Questionnaire by url ----------------------------
-function* walkJson(dir) {
-  let entries
-  try {
-    entries = readdirSync(dir)
-  } catch {
-    return // packages/fhir-artifacts/generated/ is a build artifact; absent on a clean checkout
-  }
-  for (const entry of entries.sort()) {
-    const full = join(dir, entry)
-    if (statSync(full).isDirectory()) yield* walkJson(full)
-    else if (entry.endsWith('.json')) yield full
-  }
-}
 
 /** url → { file, itemsByLinkId: Map(linkId → { item, parents: string[] }) } */
 const questionnaires = new Map()

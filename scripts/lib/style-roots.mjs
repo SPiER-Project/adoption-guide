@@ -25,11 +25,12 @@
  * `scripts/lib/floors.mjs` and the per-source floors in `check-codings.mjs`.
  */
 import { readdirSync, statSync, existsSync } from 'node:fs'
-import { dirname, resolve, join, relative } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { join } from 'node:path'
+import { REPO_ROOT, relRepo, walkExt } from './repo.mjs'
 
-const here = dirname(fileURLToPath(import.meta.url))
-export const REPO_ROOT = resolve(here, '../..')
+// Re-exported: the style gates import these from here.
+export { REPO_ROOT, relRepo, walkExt }
+
 
 /**
  * Every tree that holds app CSS or the components that reference it.
@@ -47,18 +48,7 @@ export const STYLE_ROOTS = [
 ]
 
 /** Repo-relative, so a message names a file the same way whichever tree it is in. */
-export const relRepo = (p) => relative(REPO_ROOT, p)
 
-export function walkExt(dir, exts) {
-  const out = []
-  if (!existsSync(dir)) return out
-  for (const entry of readdirSync(dir).sort()) {
-    const full = join(dir, entry)
-    if (statSync(full).isDirectory()) out.push(...walkExt(full, exts))
-    else if (exts.some((e) => full.endsWith(e))) out.push(full)
-  }
-  return out
-}
 
 /** Every file with one of `exts`, across every declared root. */
 export const allStyleFiles = (exts) => STYLE_ROOTS.flatMap((r) => walkExt(r.dir, exts))

@@ -48,12 +48,13 @@
  * green while checking nothing (#232, #261) — an unreadable read is an error
  * here, and the fix is to teach the resolver, not to exempt the site.
  */
-import { readFileSync, readdirSync, statSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, relative, resolve } from 'node:path'
 import ts from 'typescript'
 import { reportFloors } from './lib/floors.mjs'
 import { loadCore } from './lib/load-core.mjs'
+import { walkJson } from './lib/repo.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
@@ -90,19 +91,6 @@ const READERS = {
 }
 
 // ── Questionnaires ─────────────────────────────────────────────────────────
-function* walkJson(dir) {
-  let entries
-  try {
-    entries = readdirSync(dir)
-  } catch {
-    return // packages/fhir-artifacts/generated/ is a build artifact; absent on a clean checkout
-  }
-  for (const entry of entries.sort()) {
-    const full = join(dir, entry)
-    if (statSync(full).isDirectory()) yield* walkJson(full)
-    else if (entry.endsWith('.json')) yield full
-  }
-}
 
 const questionnaireByUrl = new Map()
 for (const dir of questionnaireDirs) {

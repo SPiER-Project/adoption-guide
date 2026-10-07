@@ -81,6 +81,7 @@ import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { SUSHI_VERSION } from './lib/sushi-version.mjs'
+import { die as fail } from './lib/cli.mjs'
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..')
 const IG_DIR = join(REPO, 'ig')
@@ -187,10 +188,6 @@ const args = new Set(process.argv.slice(2))
 const APPLY = args.has('--apply')
 const REUSE = args.has('--reuse')
 
-function fail(msg) {
-  console.error(`\n✗ ${msg}`)
-  process.exit(1)
-}
 
 // ── 1. Compile the IG with snapshots ────────────────────────────────────────
 

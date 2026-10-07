@@ -65,6 +65,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { randomUUID } from 'node:crypto'
+import { die as fail } from './lib/cli.mjs'
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..')
 const POP = join(REPO, 'packages/demo-population/src')
@@ -79,10 +80,6 @@ const args = new Set(process.argv.slice(2))
 const APPLY = args.has('--apply')
 const FORCE = args.has('--force')
 
-function fail(msg) {
-  console.error(`\n✗ ${msg}`)
-  process.exit(1)
-}
 
 // ── Build one transaction bundle per patient ────────────────────────────────
 

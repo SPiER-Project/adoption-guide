@@ -41,6 +41,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve, join, relative } from 'node:path'
 import { appRoot } from './lib/app-roots.mjs'
+import { relRepo as rel } from './lib/repo.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const repoRoot = resolve(here, '..')
@@ -49,7 +50,6 @@ const CLINICAL_DIST = join(repoRoot, 'dist-clinical')
 
 let failures = 0
 const fail = (msg) => { console.error(`✗ ${msg}`); failures++ }
-const rel = (p) => relative(repoRoot, p)
 
 for (const [name, dir] of [['demo', DEMO_DIST], ['clinical', CLINICAL_DIST]]) {
   if (!existsSync(dir)) {

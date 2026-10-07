@@ -34,15 +34,15 @@
  * would show up as the entry chunk growing by ~24 KB gzip with this gate green.
  */
 import { existsSync, readdirSync } from 'node:fs'
-import { dirname, join, relative, resolve } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { APP_ROOTS } from './lib/app-roots.mjs'
 import { chainTo, createResolver, walkGraph } from './lib/module-graph.mjs'
+import { relRepo as rel } from './lib/repo.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = resolve(here, '..')
 const FORMS_DIR = join(REPO_ROOT, 'ig/input/resources/questionnaires')
-const rel = (p) => relative(REPO_ROOT, p)
 
 let failed = false
 function fail(msg) {
