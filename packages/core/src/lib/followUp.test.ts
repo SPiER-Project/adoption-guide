@@ -16,6 +16,7 @@ import {
   CARING_CONTACT_OPT_OUT_EXT,
   CARING_CONTACT_PROFILE,
   OUTREACH_OUTCOME_EXT,
+  OUTREACH_OUTCOMES,
   OUTREACH_OUTCOME_SYSTEM,
   OUTREACH_PROMPT_EXT,
   SAFETY_CONCERN_EXT,
@@ -23,11 +24,12 @@ import {
 import { buildFollowUpAppointment } from '@spier/core/lib/handoffs'
 import { stageForArtifact } from '@spier/core/lib/patientPathway'
 import type { AppointmentResource, CommunicationResource } from '@spier/core/types/fhir'
+import { OUTREACH_OUTCOME_CODES, type OutreachOutcomeCode } from '@spier/fhir-artifacts/generated/disposition-codes.generated'
 
 function attempt(params: {
   id: string
   sent: string
-  outcome: string
+  outcome: OutreachOutcomeCode
   prompt?: string
   safetyConcern?: boolean
 }): CommunicationResource {
@@ -424,5 +426,14 @@ describe('attendedWithinDays — the shape of the Stage-8 measures', () => {
 
   it('is false for an unparseable reference date', () => {
     expect(attendedWithinDays([], 'not-a-date', 7)).toBe(false)
+  })
+})
+
+describe('OUTREACH_OUTCOMES', () => {
+  // The union types each entry's code; it cannot say the list is COMPLETE. A
+  // code follow-up.fsh adds would otherwise be valid to write and impossible to
+  // pick in the recorder.
+  it('offers every code the outreach-outcome CodeSystem defines, once', () => {
+    expect(OUTREACH_OUTCOMES.map(o => o.code).sort()).toEqual([...OUTREACH_OUTCOME_CODES].sort())
   })
 })

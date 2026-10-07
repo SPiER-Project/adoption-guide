@@ -1,4 +1,5 @@
 import { makeObservation, interpretationOf, walkItems, getCodingAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
+import { CAMS_DISPOSITION_SYSTEM, isCamsDispositionCode } from '@spier/fhir-artifacts/generated/disposition-codes.generated'
 
 // The CAMS Outcome/Disposition final session re-rates the six SSF Core Assessment
 // vitals (same cams-ssf codes as Section A) and records a disposition. The
@@ -14,7 +15,6 @@ const CAMS_VITALS = [
   { linkId: '6-score', code: 'overall-risk', display: 'Overall Risk of Suicide' },
 ]
 
-const CAMS_DISPOSITION_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/cams-disposition'
 
 export function mapCAMSOutcomeDisposition(response: QuestionnaireResponseResource): MapperResult {
   const items = response?.item || []
@@ -48,7 +48,12 @@ export function mapCAMSOutcomeDisposition(response: QuestionnaireResponseResourc
 
   // Disposition decision (BSSA-style: 93374-7 + local disposition value).
   const dispositionCoding = getCodingAnswer(walkItems(items, 'disposition'))
-  const dispositionCode = dispositionCoding?.system === CAMS_DISPOSITION_SYSTEM ? dispositionCoding.code : undefined
+  // Narrowed to the generated union, so the comparisons below are checked: a
+  // misspelt `'higher-level-care'` is a compile error, not a branch never taken.
+  // A code outside the CodeSystem is treated as no disposition recorded.
+  const dispositionCode = dispositionCoding?.system === CAMS_DISPOSITION_SYSTEM && isCamsDispositionCode(dispositionCoding.code)
+    ? dispositionCoding.code
+    : undefined
   const dispositionDisplay = dispositionCoding?.display ?? 'Disposition not recorded'
 
   if (dispositionCode) {

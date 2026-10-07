@@ -1,4 +1,5 @@
 import { makeObservation, interpretationOf, walkItems, getCodingAnswer, getYesNoBoolean, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
+import { ASQ_SCREENING_RESULT_SYSTEM, type AsqScreeningResultCode } from '@spier/fhir-artifacts/generated/disposition-codes.generated'
 
 export function mapASQ(response: QuestionnaireResponseResource): MapperResult {
   const items = response?.item || []
@@ -13,7 +14,7 @@ export function mapASQ(response: QuestionnaireResponseResource): MapperResult {
 
   const anyPositive = q1 || q2 || q3 || q4
 
-  let resultCode = 'negative'
+  let resultCode: AsqScreeningResultCode = 'negative'
   let resultDisplay = 'Negative Screen'
   if (anyPositive && q5) {
     resultCode = 'acute-positive'
@@ -30,7 +31,7 @@ export function mapASQ(response: QuestionnaireResponseResource): MapperResult {
       profile: 'http://thespierproject.org/fhir/StructureDefinition/spier-asq-result',
       code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
       value: {
-        coding: [{ system: 'http://thespierproject.org/fhir/CodeSystem/asq-screening-result', code: resultCode, display: resultDisplay }],
+        coding: [{ system: ASQ_SCREENING_RESULT_SYSTEM, code: resultCode, display: resultDisplay }],
         text: resultDisplay,
       },
       valueType: 'codeable',
