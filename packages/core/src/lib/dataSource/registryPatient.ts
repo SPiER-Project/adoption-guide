@@ -2,20 +2,21 @@
  * FHIR `Patient` → the registry's view of a patient.
  *
  * Split out of `SmartDataSource` so the mapping has one home and a test can
- * reach it: a cohort read (#401) is the first thing in the app that has to build
- * a `RegistryPatient` from a resource rather than from `patients.json`.
+ * reach it: a cohort read (#401) was the first thing in the app to build a
+ * `RegistryPatient` from a resource. Since 2026-10-07 the bundled demo registry
+ * is built by this same function from its Patient JSON (demo-population's
+ * `patients.ts`), so the two cannot render a patient differently.
  *
  * ⚠️ **`recommendedNextStep` is `null` and cannot be otherwise.** It is
- * hand-curated per patient in `patients.json` and no FHIR element carries it, so
+ * hand-curated per demo patient in `next-steps.json` and no FHIR element carries it, so
  * a server-backed row derives its next step from the published pathway instead
  * — `DerivedRegistryRow.nextStep`, which the caseload column falls back to and
  * which the patient's own chart leads with (`lib/pathwayEvaluation.ts`).
  *
  * ⚠️ **`gender` is title-cased on purpose.** FHIR's `administrative-gender`
- * codes are lowercase (`female`); `patients.json` carries `Female`, and the
- * caseload prints the value straight through. Passing the raw code would make a
- * server-backed row render differently from a bundled one for no reason a reader
- * could see — the sort of difference that gets mistaken for a data problem.
+ * codes are lowercase (`female`); the caseload prints `Female`, straight
+ * through. (This used to be matched against a hand-typed `Female` in the demo's
+ * display copies; those are now derived here, so there is one rule.)
  */
 import { MRN_SYSTEM } from '../fhircast'
 import type { RegistryPatient } from '../registry'

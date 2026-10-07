@@ -1,0 +1,72 @@
+{
+  "patient-001": {
+    "stageId": "track-risk-over-time",
+    "label": "Review the open episode before stepping down",
+    "rationale": "Discharge packet, 48h outreach, 7-day follow-up visit and caring contact are all documented, but the suicide-safer care episode is still open with no closure reason. Reassess risk and either step down or record why it stays open."
+  },
+  "patient-002": {
+    "stageId": "identify-possible-risk",
+    "label": "Screen with the PHQ-9",
+    "rationale": "No suicide-risk screening on file in the past 12 months."
+  },
+  "patient-003": {
+    "stageId": "clarify-risk",
+    "label": "Clarify risk with the C-SSRS Screener",
+    "rationale": "PHQ-9 Item 9 endorsed; the pathway's next step is the C-SSRS Screener with Triage Points."
+  },
+  "patient-004": {
+    "stageId": "clarify-risk",
+    "label": "Complete brief suicide safety assessment",
+    "rationale": "Non-acute positive ASQ — BSSA or CAMS SSF-5 needed to disposition."
+  },
+  "patient-005": {
+    "stageId": "clarify-risk",
+    "label": "Urgent face-to-face risk assessment",
+    "rationale": "Acute positive ASQ — do not leave alone. Initiate emergency safety procedures and clarify risk immediately."
+  },
+  "patient-006": {
+    "stageId": "document-safety-actions",
+    "label": "Complete Stanley-Brown Safety Plan",
+    "rationale": "Overall risk self-rated 3/5 on the CAMS SSF-5, which the published crosswalk maps to moderate; psychological pain and hopelessness are both 4/5. No safety plan on file since that session, and no means counseling."
+  },
+  "patient-007": {
+    "stageId": "track-follow-up",
+    "label": "Confirm the outpatient intake was attended",
+    "rationale": "Packet sent and intake booked, but the appointment is still `booked` rather than fulfilled and the referral is still `active` — the loop is open on both. No outreach has been attempted since discharge."
+  },
+  "patient-008": {
+    "stageId": "track-risk-over-time",
+    "label": "Confirm no active-risk escalation; prepare for outcome reporting",
+    "rationale": "Caring-contact follow-up complete with no risk escalation; low risk sustained. Ready to close out the active-risk window and move toward Q2 outcome measurement."
+  },
+  "patient-009": {
+    "stageId": "track-risk-over-time",
+    "label": "Session 5: re-rate SSF vitals and review drivers",
+    "rationale": "Active CAMS episode; psychological pain still elevated (3/5). Continue weekly sessions until resolution criteria met."
+  },
+  "patient-010": {
+    "stageId": "measure-and-share",
+    "label": "Include in Q2 zero-suicide outcome report",
+    "rationale": "Resolved episode — eligible for pathway-completion measurement and population-level outcome reporting."
+  },
+  "patient-011": {
+    "stageId": "track-risk-over-time",
+    "label": "Keep the episode current after a completed handoff",
+    "rationale": "ED suicide-care episode (Scenario 11): 28-year-old presenting with severe insomnia and anxiety, chronic pain and recent job loss. Positive triage screen, safety plan and lethal-means counseling completed in the ED. The transition-of-care packet, outpatient intake and first caring contact are all documented — the episode is still open, so reassess risk and set the next reassessment cadence."
+  },
+  "patient-012": {
+    "stageId": "identify-possible-risk",
+    "label": "No action due — re-screen at the interval",
+    "rationale": "ED suicide-care episode (Scenario 11), negative branch: self-administered ASQ at triage with all four items negative. No episode opens and no protocol task fires, deliberately. The only follow-up owed is the re-screen due 2027-08-06; a clinician can still escalate on judgment before then."
+  },
+  "patient-013": {
+    "stageId": "coordinate-handoffs",
+    "label": "Confirm the receiving facility took the handoff",
+    "rationale": "ED suicide-care episode (Scenario 11), admitted branch: screen deferred at triage for altered mental status, re-attempted at 06:30 and acute positive. Precautions and 1:1 observation ran through a six-hour board; transfer accepted by Riverbend Behavioral Health after four placement attempts. The episode stays open until the receiving facility confirms the handoff."
+  },
+  "patient-014": {
+    "stageId": "track-follow-up",
+    "label": "Escalate — no contact since departure",
+    "rationale": "ED suicide-care episode (Scenario 11), elopement branch: acute positive screen and 1:1 precautions, then left the department at 02:35 during an observer handoff. Two outreach attempts have gone unanswered and the emergency contact cannot be called without consent on file. Supervisor escalation is due at 72 hours and the episode remains open."
+  }
+}

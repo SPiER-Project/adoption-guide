@@ -11,17 +11,15 @@
  * 2026-10-06, designed as 3).
  */
 import { describe, expect, it } from 'vitest'
-import { deriveRegistryRow, type RegistryPatient } from '@spier/core/lib/registry'
+import { deriveRegistryRow } from '@spier/core/lib/registry'
 import {
+  POPULATION_PATIENTS as PATIENTS,
   POPULATION_SCENARIOS,
   SCENARIO_ANCHOR,
   daysSinceAnchor,
   populationScenariosAsOf,
   shiftDates,
 } from '@spier/demo-population'
-import DEMO_PATIENTS from '@spier/demo-population/patients.json'
-
-const PATIENTS = DEMO_PATIENTS as RegistryPatient[]
 
 /** Noon UTC, `days` after the anchor. */
 const dayAfterAnchor = (days: number) =>

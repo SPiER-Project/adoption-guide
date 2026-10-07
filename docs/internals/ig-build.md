@@ -141,7 +141,7 @@ exactly. Its four checks:
   default child (`/patient` → `chart`), so the parent really does land
   somewhere; an **absolute** target is a redirect away from a page that is gone.
   ⚠️ Because G reads both `App.tsx` files, `guideSections.ts`, the tool views,
-  `patients.json` and `deploy-origins.json`, `ig.yml` triggers on all of them — a
+  the demo Patient JSON and `deploy-origins.json`, `ig.yml` triggers on all of them — a
   route rename breaks the IG's links with **no `ig/` change at all**.
 - **H. Every internal `.html` link resolves** to a `pages:` entry, an artifact
   page the publisher will emit, or a `GENERATED_PAGES` entry — in every link

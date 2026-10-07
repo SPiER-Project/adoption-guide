@@ -63,7 +63,7 @@ npm run check:pathway           # the pathway PlanDefinition's codes and definit
 npm run check:outputs           # from both ends: every PlanDefinition.action.output profile, and every published profile, is stamped by an EMITTED resource or exempted (after npm test)
 npm run check:readers           # every observation mapper's reads vs the Questionnaire's declared item types
 npm run check:careplan-readers  # the same rule for carePlanMappers
-npm run check:patients          # the 14 demo patients' demographics agree across all three sites
+npm run check:patients          # the demo registry derives from the 14 Patient JSON files, and the app stamps MRNs with core's MRN_SYSTEM
 npm run check:scenarios         # scenario QRs vs their Questionnaire, plus every other resource bucket
 npm run check:dates             # scenario dates coherent to their anchor, none in prose; the Workers serve them shifted to today (--apply re-dates the files)
 npm run check:measures          # Stage-8 Measure criteria vs the measures.ts engine

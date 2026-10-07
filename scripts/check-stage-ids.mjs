@@ -2,10 +2,11 @@
 /**
  * Anti-drift check for PATHWAY STAGE IDs in the demo population data.
  *
- * The registry (packages/demo-population/src/patients.json) references a pathway
- * stage by hand-typed id in `recommendedNextStep.stageId` — the one field
- * patients.json still curates (current stage / risk / last activity are
- * derived from FHIR data at runtime, see lib/registry.ts). The per-patient
+ * The registry's curated next steps (packages/demo-population/src/next-steps.json)
+ * reference a pathway stage by hand-typed id in `stageId` — the one field the
+ * registry still curates (demographics are derived from the Patient JSON;
+ * current stage / risk / last activity from FHIR data at runtime, see
+ * lib/registry.ts). The per-patient
  * scenario files (packages/demo-population/src/scenarios/*.json) reference stages
  * as `stageId` on scenario encounters and as codings with the
  * spier-pathway-stage system on CarePlan/Communication/Observation resources
@@ -47,22 +48,23 @@ const check = (stageId, where) => {
   if (!stageCodes.has(stageId)) fail(`${where}: stage "${stageId}" is not a pathway-stage code`)
 }
 
-// ---- patients.json -----------------------------------------------------------
-const patients = JSON.parse(readFileSync(join(populationDir, 'patients.json'), 'utf8'))
+// ---- next-steps.json ---------------------------------------------------------
+const nextSteps = JSON.parse(readFileSync(join(populationDir, 'next-steps.json'), 'utf8'))
 // ⚠️ Same reasoning as the scenario floor below — an empty registry would let
 // every stage-id assertion pass having examined nothing.
-if (!Array.isArray(patients) || patients.length === 0) {
-  console.error(`\u2717 no patients parsed from ${populationDir}/patients.json`)
+const nextStepEntries = nextSteps && typeof nextSteps === 'object' && !Array.isArray(nextSteps) ? Object.entries(nextSteps) : []
+if (nextStepEntries.length === 0) {
+  console.error(`\u2717 no next steps parsed from ${populationDir}/next-steps.json`)
   process.exit(1)
 }
 let patientRefs = 0
-for (const p of patients) {
-  if (p.recommendedNextStep?.stageId != null) {
+for (const [id, step] of nextStepEntries) {
+  if (step?.stageId != null) {
     patientRefs++
-    check(p.recommendedNextStep.stageId, `patients.json ${p.id} recommendedNextStep.stageId`)
+    check(step.stageId, `next-steps.json ${id}.stageId`)
   }
 }
-console.log(`✓ patients.json: ${patientRefs} stage reference(s) across ${patients.length} patient(s)`)
+console.log(`✓ next-steps.json: ${patientRefs} stage reference(s) across ${nextStepEntries.length} patient(s)`)
 
 // ---- scenario files ----------------------------------------------------------
 // Scenarios reference stages two ways: a literal `stageId` property (encounter

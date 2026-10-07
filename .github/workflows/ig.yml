@@ -25,7 +25,7 @@ on:
       - 'ig/**'
       # The whole demo-population tree, not only scenarios/: validate-fhir also
       # reads the 14 Patients under patients/, the runtime emitter imports the
-      # package index, and check G resolves `:patientId` against patients.json.
+      # package index, and check G resolves `:patientId` against the Patient JSON.
       - 'packages/demo-population/src/**'
       - 'scripts/validate-fhir.mjs'
       - 'scripts/check-ig-menu.mjs'
@@ -71,7 +71,7 @@ on:
       - 'ig/**'
       # The whole demo-population tree, not only scenarios/: validate-fhir also
       # reads the 14 Patients under patients/, the runtime emitter imports the
-      # package index, and check G resolves `:patientId` against patients.json.
+      # package index, and check G resolves `:patientId` against the Patient JSON.
       - 'packages/demo-population/src/**'
       - 'scripts/validate-fhir.mjs'
       - 'scripts/check-ig-menu.mjs'
