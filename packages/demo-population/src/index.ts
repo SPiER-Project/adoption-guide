@@ -8,3 +8,10 @@
  */
 export { POPULATION_PATIENTS, POPULATION_BY_ID, isAllowedPatientId } from './patients'
 export { POPULATION_SCENARIOS, type PatientScenario } from './scenarios'
+export {
+  SCENARIO_ANCHOR,
+  daysSinceAnchor,
+  isIsoDate,
+  populationScenariosAsOf,
+  shiftDates,
+} from './scenarioDates'

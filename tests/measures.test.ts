@@ -28,6 +28,7 @@ import {
   OUTREACH_OUTCOME_SYSTEM,
 } from '@spier/core/lib/followUp'
 import { buildLethalMeansCounseling, buildMeansSafetyAction } from '@spier/core/lib/lethalMeans'
+import { generateCarePlan } from '@spier/core/lib/carePlanMappers/stanleyBrown'
 import { CLOSURE_REASON_EXT, EPISODE_PROFILE } from '@spier/core/lib/riskEpisode'
 import { PATHWAY_STAGE_SYSTEM } from '@spier/core/lib/patientPathway'
 import { RISK_CONCEPT_PROFILE } from '@spier/core/lib/riskConcept'
@@ -420,6 +421,44 @@ describe('safety plan before discharge', () => {
     const g = groupOf(evaluateMeasure(spec, slice, PERIOD), 'safety-plan-completed')
     expect(g.inDenominator).toBe(true)
     expect(g.inNumerator).toBe(false)
+  })
+
+  it('dates a plan by period.start alone — `created` is not when it took effect', () => {
+    // The CQL reads `start of P.period` and nothing else. This engine used to
+    // fall back to `created`, so a plan with no period counted here and missed
+    // there — every demo safety plan, until they were given a period.
+    const slice = sliceWithTransition()
+    slice.carePlans = [
+      {
+        resourceType: 'CarePlan',
+        id: 'plan-1',
+        status: 'active',
+        meta: { profile: [CRISIS_RESPONSE_PLAN_PROFILE] },
+        created: '2026-07-18T10:00:00.000Z',
+      },
+    ]
+    const g = groupOf(evaluateMeasure(spec, slice, PERIOD), 'safety-plan-completed')
+    expect(g.inDenominator).toBe(true)
+    expect(g.inNumerator).toBe(false)
+  })
+
+  it('counts a plan the app itself wrote from a response authored before the transition', () => {
+    // The production mapper wrote neither `period` nor `created`, so no safety
+    // plan the app saved could meet this criterion on either engine.
+    const slice = sliceWithTransition()
+    const { resource } = generateCarePlan({
+      resourceType: 'QuestionnaireResponse',
+      id: 'qr-1',
+      status: 'completed',
+      questionnaire: 'http://thespierproject.org/fhir/Questionnaire/StanleyBrownSafetyPlan',
+      subject: { reference: 'Patient/p' },
+      authored: '2026-07-18T10:00:00.000Z',
+      item: [],
+    })
+    expect(resource.period).toEqual({ start: '2026-07-18T10:00:00.000Z' })
+    slice.carePlans = [resource]
+    const g = groupOf(evaluateMeasure(spec, slice, PERIOD), 'safety-plan-completed')
+    expect(g.inNumerator).toBe(true)
   })
 
   it('drops out of the denominator entirely with no documented transition', () => {

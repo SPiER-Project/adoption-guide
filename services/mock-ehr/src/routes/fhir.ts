@@ -16,7 +16,7 @@ import {
   updatableTypes,
   type CapabilityProfile,
 } from '../capability'
-import { HELD_TYPES, RESOURCES_BY_KEY, type MockResource } from '../fixtures'
+import { HELD_TYPES, resourceByKeyAsOf, type MockResource } from '../fixtures'
 import { ROSTER_TYPE, SEARCHABLE_TYPES, applySearch, parseSearch } from '../search'
 import { validateWrite, withAssignedId } from '../validate'
 import { storeFor } from '../store'
@@ -99,10 +99,10 @@ fhirRoutes.get('/fhir/:type/:id', async (c) => {
   // ⚠️ The merged view FIRST, not the fixtures: a PUT can replace a fixture by
   // id, and reading the fixture back would report the pre-update version of a
   // resource the client just changed. `servableFor` already resolves the
-  // precedence; `RESOURCES_BY_KEY` is only the fallback for the unbound-store
+  // precedence; `resourceByKeyAsOf` is only the fallback for the unbound-store
   // case.
   const resource = (await servableFor(c)).find(r => r.resourceType === type && r.id === id)
-    ?? RESOURCES_BY_KEY.get(`${type}/${id}`)
+    ?? resourceByKeyAsOf(`${type}/${id}`)
   c.header('content-type', FHIR_JSON)
   // A token is bound to one patient. Reading a Patient it was not issued for is
   // a 403 — otherwise "patient-scoped" would be a claim this server does not

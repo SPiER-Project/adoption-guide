@@ -66,7 +66,7 @@ npm run check:readers           # every observation mapper's reads vs the Questi
 npm run check:careplan-readers  # the same rule for carePlanMappers
 npm run check:patients          # the 14 demo patients' demographics agree across all three sites
 npm run check:scenarios         # scenario QRs vs their Questionnaire, plus every other resource bucket
-npm run check:dates             # scenario clinical dates coherent to their anchor (--apply re-dates)
+npm run check:dates             # scenario dates coherent to their anchor, none in prose; the Workers serve them shifted to today (--apply re-dates the files)
 npm run check:measures          # Stage-8 Measure criteria vs the measures.ts engine
 npm run check:reassessment      # the per-tier reassessment cadence agrees across PlanDefinition, app and CQL
 npm test                        # vitest
@@ -188,6 +188,7 @@ One line each; the mechanism and the incident behind it are in
 - **Generated files must exist before `tsc -b`** — run `npm run copy-fhir` first on a clean checkout.
 - **One canonical URL, one definition**, across the FSH tree and the JSON tree; **no CodeSystems live in the JSON tree**. `check-canonical-uniqueness.mjs` is the gate; SUSHI catches only half of this.
 - **Hand-duplicated values drift**: stage ids, LOINC codes and ASQ disposition codes are typed in `ig/input/fsh/`, the mappers and the demo population — grep the whole repo when you change one. Stage-id **constants** in TypeScript are typed against the generated `StageId` union (`satisfies StageId`), so a renamed stage is a compile error there; the JSON side stays gated by `check:stages`.
+- **The Workers serve the demo population as of today** — `populationScenariosAsOf()`, and `heldResourcesAsOf()` in the mock EHR; `POPULATION_SCENARIOS` and `HELD_RESOURCES` are the anchor-dated files and are never served. Why: `packages/demo-population/src/scenarioDates.ts`.
 - **Hand-duplicated helpers drift too, and `check:dupes` fails the copy.** A recorder's stage tag is `stageTag(STAGE_ID)` from `packages/core/src/lib/stageTag.ts`, its option lookup is `displayFor` from `codedOption.ts`, an Observation's date is `observationEffective`. Every FHIR builder — `lethalMeans.ts` included since 2026-09-20 — lives in `packages/core/src/lib`; `packages/tool-views` holds views and their contexts, never a resource builder.
 - **The Stanley-Brown CarePlan transformation exists twice on purpose** (`.fml` + `carePlanMappers/stanleyBrown.ts`), compared against one golden file; change both.
 - **Tool licensing lives in the FSH, and only there**; `Tool.licensing` is derived. A new tool with unsettled terms gets `#unknown`. No status has been verified against the rights holder's current terms — [`docs/best-practices/licensing-verification-backlog.md`](docs/best-practices/licensing-verification-backlog.md).

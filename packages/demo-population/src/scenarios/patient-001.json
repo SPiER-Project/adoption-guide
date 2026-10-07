@@ -3,7 +3,7 @@
     {
       "id": "p001-phq9",
       "questionnaireName": "PHQ-9",
-      "completedAt": "2026-07-31T10:15:00.000Z",
+      "completedAt": "2026-07-24T10:15:00.000Z",
       "resource": {
         "resourceType": "QuestionnaireResponse",
         "id": "p001-phq9",
@@ -15,7 +15,7 @@
         "encounter": {
           "reference": "Encounter/p001-enc-index"
         },
-        "authored": "2026-07-31T10:15:00.000Z",
+        "authored": "2026-07-24T10:15:00.000Z",
         "item": [
           {
             "linkId": "q1",
@@ -131,7 +131,7 @@
     {
       "id": "p001-asq",
       "questionnaireName": "ASQ Screening",
-      "completedAt": "2026-07-31T10:35:00.000Z",
+      "completedAt": "2026-07-24T10:35:00.000Z",
       "resource": {
         "resourceType": "QuestionnaireResponse",
         "id": "p001-asq",
@@ -143,7 +143,7 @@
         "encounter": {
           "reference": "Encounter/p001-enc-index"
         },
-        "authored": "2026-07-31T10:35:00.000Z",
+        "authored": "2026-07-24T10:35:00.000Z",
         "item": [
           {
             "linkId": "screening-questions",
@@ -221,7 +221,7 @@
     {
       "id": "p001-cams-a",
       "questionnaireName": "CAMS SSF-5: Section A",
-      "completedAt": "2026-08-01T11:00:00.000Z",
+      "completedAt": "2026-07-25T11:00:00.000Z",
       "resource": {
         "resourceType": "QuestionnaireResponse",
         "id": "p001-cams-a",
@@ -233,7 +233,7 @@
         "encounter": {
           "reference": "Encounter/p001-enc-index"
         },
-        "authored": "2026-08-01T11:00:00.000Z",
+        "authored": "2026-07-25T11:00:00.000Z",
         "item": [
           {
             "linkId": "core-ratings",
@@ -364,7 +364,7 @@
     {
       "id": "p001-sb",
       "questionnaireName": "Stanley-Brown Safety Plan",
-      "completedAt": "2026-08-02T14:00:00.000Z",
+      "completedAt": "2026-07-26T14:00:00.000Z",
       "resource": {
         "resourceType": "QuestionnaireResponse",
         "id": "p001-sb",
@@ -376,7 +376,7 @@
         "encounter": {
           "reference": "Encounter/p001-enc-index"
         },
-        "authored": "2026-08-02T14:00:00.000Z",
+        "authored": "2026-07-26T14:00:00.000Z",
         "item": [
           {
             "linkId": "step-1-warning-signs",
@@ -675,7 +675,7 @@
       "encounter": {
         "reference": "Encounter/p001-enc-index"
       },
-      "effectiveDateTime": "2026-07-31T10:15:00.000Z",
+      "effectiveDateTime": "2026-07-24T10:15:00.000Z",
       "valueInteger": 18,
       "interpretation": [
         {
@@ -728,7 +728,7 @@
       "encounter": {
         "reference": "Encounter/p001-enc-index"
       },
-      "effectiveDateTime": "2026-07-31T10:15:00.000Z",
+      "effectiveDateTime": "2026-07-24T10:15:00.000Z",
       "valueInteger": 2,
       "interpretation": [
         {
@@ -793,7 +793,7 @@
       "encounter": {
         "reference": "Encounter/p001-enc-index"
       },
-      "effectiveDateTime": "2026-07-31T10:15:00.000Z",
+      "effectiveDateTime": "2026-07-24T10:15:00.000Z",
       "derivedFrom": [
         {
           "reference": "Observation/p001-phq9-item9"
@@ -857,7 +857,7 @@
       "encounter": {
         "reference": "Encounter/p001-enc-index"
       },
-      "effectiveDateTime": "2026-07-31T10:35:00.000Z",
+      "effectiveDateTime": "2026-07-24T10:35:00.000Z",
       "valueCodeableConcept": {
         "coding": [
           {
@@ -930,7 +930,7 @@
       "encounter": {
         "reference": "Encounter/p001-enc-index"
       },
-      "effectiveDateTime": "2026-07-31T10:35:00.000Z",
+      "effectiveDateTime": "2026-07-24T10:35:00.000Z",
       "derivedFrom": [
         {
           "reference": "Observation/p001-asq-result"
@@ -995,7 +995,7 @@
       "encounter": {
         "reference": "Encounter/p001-enc-index"
       },
-      "effectiveDateTime": "2026-08-01T11:00:00.000Z",
+      "effectiveDateTime": "2026-07-25T11:00:00.000Z",
       "valueInteger": 4,
       "interpretation": [
         {
@@ -1048,7 +1048,7 @@
       "encounter": {
         "reference": "Encounter/p001-enc-index"
       },
-      "effectiveDateTime": "2026-08-01T11:00:00.000Z",
+      "effectiveDateTime": "2026-07-25T11:00:00.000Z",
       "valueInteger": 4,
       "interpretation": [
         {
@@ -1100,7 +1100,7 @@
       "encounter": {
         "reference": "Encounter/p001-enc-index"
       },
-      "effectiveDateTime": "2026-08-01T11:00:00.000Z",
+      "effectiveDateTime": "2026-07-25T11:00:00.000Z",
       "valueCodeableConcept": {
         "coding": [
           {
@@ -1174,7 +1174,7 @@
       "encounter": {
         "reference": "Encounter/p001-enc-index"
       },
-      "effectiveDateTime": "2026-08-01T11:00:00.000Z",
+      "effectiveDateTime": "2026-07-25T11:00:00.000Z",
       "derivedFrom": [
         {
           "reference": "Observation/p001-cams-risk"
@@ -1253,7 +1253,10 @@
           "display": "Risk for suicide"
         }
       ],
-      "created": "2026-08-02T14:00:00.000Z",
+      "created": "2026-07-26T14:00:00.000Z",
+      "period": {
+        "start": "2026-07-26T14:00:00.000Z"
+      },
       "activity": [
         {
           "detail": {
@@ -1395,7 +1398,7 @@
           "text": "Referral sent to outpatient behavioral health following the safety plan; caring-contact cadence to begin once receipt is confirmed."
         }
       ],
-      "created": "2026-08-04T09:00:00.000Z"
+      "created": "2026-07-28T09:00:00.000Z"
     }
   ],
   "riskAlerts": [
@@ -1494,7 +1497,7 @@
         "reference": "Patient/patient-001"
       },
       "period": {
-        "start": "2026-07-31T11:00:00.000Z"
+        "start": "2026-07-24T11:00:00.000Z"
       }
     }
   ],
@@ -1531,7 +1534,7 @@
       "encounter": {
         "reference": "Encounter/p001-enc-index"
       },
-      "performedDateTime": "2026-08-02T14:20:00.000Z",
+      "performedDateTime": "2026-07-26T14:20:00.000Z",
       "note": [
         {
           "text": "Firearms transferred to brother for safekeeping; medications moved to a lockbox. Agreed at the safety-planning session."
@@ -1586,7 +1589,7 @@
           }
         ]
       },
-      "date": "2026-08-03T15:00:00.000Z",
+      "date": "2026-07-27T15:00:00.000Z",
       "content": [
         {
           "attachment": {
@@ -1710,7 +1713,7 @@
       "encounter": {
         "reference": "Encounter/p001-enc-index"
       },
-      "authoredOn": "2026-08-03T15:05:00.000Z",
+      "authoredOn": "2026-07-27T15:05:00.000Z",
       "reasonCode": [
         {
           "coding": [
@@ -1729,7 +1732,7 @@
       ],
       "note": [
         {
-          "text": "Accepted same day; patient seen 2026-03-20."
+          "text": "Accepted same day; patient seen four days later."
         }
       ],
       "category": [
@@ -1774,8 +1777,8 @@
       ],
       "status": "fulfilled",
       "description": "Post-discharge behavioral health follow-up",
-      "start": "2026-08-07T14:00:00.000Z",
-      "end": "2026-08-07T14:45:00.000Z",
+      "start": "2026-07-31T14:00:00.000Z",
+      "end": "2026-07-31T14:45:00.000Z",
       "participant": [
         {
           "actor": {
@@ -1829,7 +1832,7 @@
       "encounter": {
         "reference": "Encounter/p001-enc-outreach-48h"
       },
-      "sent": "2026-08-04T10:30:00.000Z",
+      "sent": "2026-07-28T10:30:00.000Z",
       "medium": [
         {
           "coding": [
@@ -1913,7 +1916,7 @@
       "encounter": {
         "reference": "Encounter/p001-enc-caring-contact"
       },
-      "sent": "2026-08-10T09:00:00.000Z",
+      "sent": "2026-08-03T09:00:00.000Z",
       "medium": [
         {
           "coding": [
@@ -1962,8 +1965,8 @@
         "reference": "Patient/patient-001"
       },
       "period": {
-        "start": "2026-07-31T10:00:00.000Z",
-        "end": "2026-08-03T15:30:00.000Z"
+        "start": "2026-07-24T10:00:00.000Z",
+        "end": "2026-07-27T15:30:00.000Z"
       }
     },
     {
@@ -1995,8 +1998,8 @@
         "reference": "Patient/patient-001"
       },
       "period": {
-        "start": "2026-08-04T10:30:00.000Z",
-        "end": "2026-08-04T10:50:00.000Z"
+        "start": "2026-07-28T10:30:00.000Z",
+        "end": "2026-07-28T10:50:00.000Z"
       }
     },
     {
@@ -2033,8 +2036,8 @@
         }
       ],
       "period": {
-        "start": "2026-08-07T14:00:00.000Z",
-        "end": "2026-08-07T14:45:00.000Z"
+        "start": "2026-07-31T14:00:00.000Z",
+        "end": "2026-07-31T14:45:00.000Z"
       }
     },
     {
@@ -2066,8 +2069,8 @@
         "reference": "Patient/patient-001"
       },
       "period": {
-        "start": "2026-08-10T09:00:00.000Z",
-        "end": "2026-08-10T09:10:00.000Z"
+        "start": "2026-08-03T09:00:00.000Z",
+        "end": "2026-08-03T09:10:00.000Z"
       }
     }
   ]

@@ -1,10 +1,8 @@
-# Relationship to Other Implementation Guides
-
 SPiER is **narrow and deep**: it specifies the suicide-safer-care pathway end
 to end — Capture, Translate, Act — and sits *on top of* the US-realm baselines
 rather than restating them.
 
-## Shared foundation
+### Shared foundation
 
 - **[US Core 6.1.0](https://hl7.org/fhir/us/core/)** — Patient demographics
   and the standard Observation shape. SPiER's instrument Observations carry a
@@ -18,7 +16,7 @@ rather than restating them.
   — the per-role conformance pattern ([Conformance](conformance.html)) and the
   derived-concept modeling the suicide-risk concept layer follows.
 
-## HL7 US Behavioral Health Profiles (USCDI+ Behavioral Health)
+### HL7 US Behavioral Health Profiles (USCDI+ Behavioral Health)
 
 The [HL7 US Behavioral Health Profiles IG](https://build.fhir.org/ig/HL7/us-behavioral-health-profiles/)
 expresses the USCDI+ Behavioral Health data elements as FHIR. It is **broad

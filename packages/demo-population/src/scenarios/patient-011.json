@@ -1264,6 +1264,9 @@
         }
       ],
       "created": "2026-08-02T15:10:00.000Z",
+      "period": {
+        "start": "2026-08-02T15:10:00.000Z"
+      },
       "title": "Stanley-Brown Safety Plan",
       "activity": [
         {
@@ -1685,7 +1688,7 @@
       "encounter": {
         "reference": "Encounter/p011-enc-caring-contact"
       },
-      "sent": "2026-08-11T09:00:00.000Z",
+      "sent": "2026-08-10T09:00:00.000Z",
       "medium": [
         {
           "coding": [
@@ -1965,7 +1968,7 @@
       ],
       "note": [
         {
-          "text": "Intake completed 2026-05-27."
+          "text": "Intake completed five days after the referral."
         }
       ],
       "category": [
@@ -2673,8 +2676,8 @@
         "reference": "Patient/patient-011"
       },
       "period": {
-        "start": "2026-08-11T09:00:00.000Z",
-        "end": "2026-08-11T09:10:00.000Z"
+        "start": "2026-08-10T09:00:00.000Z",
+        "end": "2026-08-10T09:10:00.000Z"
       }
     }
   ],

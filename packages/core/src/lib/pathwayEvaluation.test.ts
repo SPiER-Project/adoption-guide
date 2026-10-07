@@ -376,7 +376,7 @@ describe('what a tier owes, and what retires it', () => {
     const { primary, alsoDue, tier } = evaluate(recordFor('patient-006'))
     expect(tier?.code).toBe('moderate')
     expect(primary?.kind).toBe('safety-plan')
-    expect(primary?.reason).toBe('CAMS SSF-5 on Aug 6: moderate risk.')
+    expect(primary?.reason).toBe('CAMS SSF-5 on Jul 30: moderate risk.')
     expect(alsoDue.map(o => o.kind)).toEqual(['crisis-resources', 'reassess'])
   })
 

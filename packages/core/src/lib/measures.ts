@@ -480,11 +480,14 @@ const CRITERIA: Record<string, (ctx: Ctx) => boolean> = {
   'Safety Plan In Place Before Transition': ctx => {
     const index = ctx.indexTransition
     if (index === undefined) return false
+    // A plan is in place from `period.start` — the element the CQL reads, and
+    // the one the CarePlan mappers write from the response's `authored`. This
+    // used to fall back to `created`, then to `date` (which CarePlan does not
+    // have), so a plan with no period passed here and failed the CQL: the
+    // dashboard and the published measure disagreed on every demo safety plan.
+    // `created` is when the record was written, not when the plan took effect.
     return ctx.safetyPlans.some(p => {
-      const start = timeOf((p as { period?: { start?: string } }).period?.start)
-      // Fall back to created/date where a plan carries no period.
-      const created = timeOf((p as { created?: string; date?: string }).created ?? (p as { date?: string }).date)
-      const at = Number.isFinite(start) ? start : created
+      const at = timeOf((p as { period?: { start?: string } }).period?.start)
       return Number.isFinite(at) && at <= index
     })
   },

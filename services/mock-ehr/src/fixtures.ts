@@ -30,7 +30,7 @@
  *    gap survived. `check-scenario-resources.mjs` requires the link offline; this
  *    is the second line of defence.
  */
-import { POPULATION_SCENARIOS } from '@spier/demo-population'
+import { POPULATION_SCENARIOS, daysSinceAnchor, populationScenariosAsOf } from '@spier/demo-population'
 import { MRN_SYSTEM } from '@spier/core/lib/fhircast'
 
 /** The least a resource must be for this server to serve it. */
@@ -161,7 +161,7 @@ export interface HeldResource {
   resource: MockResource
 }
 
-function buildHeld(): HeldResource[] {
+function buildHeld(scenarios: Record<string, unknown>): HeldResource[] {
   const held: HeldResource[] = []
 
   // The 14 Patients, from the generated IG examples.
@@ -177,7 +177,7 @@ function buildHeld(): HeldResource[] {
     throw new Error('[mock-ehr] No Patient resources found. Run `npm run copy-fhir` in web/ first.')
   }
 
-  for (const [patientId, scenario] of Object.entries(POPULATION_SCENARIOS)) {
+  for (const [patientId, scenario] of Object.entries(scenarios)) {
     for (const [bucket, entries] of Object.entries(scenario as unknown as Record<string, unknown>)) {
       if (NON_FHIR_BUCKETS.has(bucket)) continue
       const type = FHIR_BUCKETS[bucket]
@@ -221,12 +221,21 @@ function buildHeld(): HeldResource[] {
   return held
 }
 
-export const HELD_RESOURCES: HeldResource[] = buildHeld()
+/**
+ * Every resource this server holds, dated AS AUTHORED — against the scenarios'
+ * anchor day, not today.
+ *
+ * ⚠️ **Do not serve this.** It is the dataset's shape: which resources exist,
+ * their ids, types and patient links, which a date shift never changes. Anything
+ * a client reads goes through `heldResourcesAsOf()`, or the chart reads every
+ * patient as overdue by the time since the anchor — two months, the first time
+ * it was measured. See `packages/demo-population/src/scenarioDates.ts`.
+ */
+export const HELD_RESOURCES: HeldResource[] = buildHeld(POPULATION_SCENARIOS)
 
-/** `Type/id` → resource, for the read-by-id route. */
-export const RESOURCES_BY_KEY: Map<string, MockResource> = (() => {
+function indexByKey(held: HeldResource[]): Map<string, MockResource> {
   const index = new Map<string, MockResource>()
-  for (const { resource } of HELD_RESOURCES) {
+  for (const { resource } of held) {
     if (typeof resource.id !== 'string' || !resource.id) continue
     const key = `${resource.resourceType}/${resource.id}`
     if (index.has(key)) {
@@ -235,7 +244,38 @@ export const RESOURCES_BY_KEY: Map<string, MockResource> = (() => {
     index.set(key, resource)
   }
   return index
-})()
+}
+
+/** `Type/id` → resource, as authored. Membership only — see `HELD_RESOURCES`. */
+export const RESOURCES_BY_KEY: Map<string, MockResource> = indexByKey(HELD_RESOURCES)
+
+let servedMemo: { days: number; held: HeldResource[]; byKey: Map<string, MockResource> } | undefined
+
+function served(now: Date) {
+  const days = daysSinceAnchor(now)
+  if (servedMemo?.days !== days) {
+    // Rebuilt through `buildHeld`, so every invariant it throws on holds for the
+    // served set too. The Patients are not shifted: they come from their own
+    // directory, and a birthDate moved forward would make everyone younger.
+    const held = buildHeld(populationScenariosAsOf(now))
+    servedMemo = { days, held, byKey: indexByKey(held) }
+  }
+  return servedMemo
+}
+
+/**
+ * What this server SERVES: every resource with its dates moved to `now`'s UTC
+ * day, so each scenario reads as designed whatever the calendar says.
+ * Memoized per day.
+ */
+export function heldResourcesAsOf(now: Date = new Date()): HeldResource[] {
+  return served(now).held
+}
+
+/** `Type/id` → served resource, for the read-by-id route. */
+export function resourceByKeyAsOf(key: string, now: Date = new Date()): MockResource | undefined {
+  return served(now).byKey.get(key)
+}
 
 /** Every resource type this server holds at least one of. */
 export const HELD_TYPES: string[] = [

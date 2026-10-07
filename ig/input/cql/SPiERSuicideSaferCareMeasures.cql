@@ -274,17 +274,24 @@ define "Risk Tier Documented During Episode":
 // have not adopted TL-009 / TL-030 therefore cannot compute the follow-up
 // measures at all — a true finding about their pathway, not a measure gap.
 
+/* Both return System.DateTime (`.value`), NOT the FHIR element. Communication.sent
+ * is a FHIR.dateTime and DocumentReference.date a FHIR.instant, so returning the
+ * elements made "Care Transition Dates" a List<Choice<FHIR.dateTime, FHIR.instant>>
+ * — a type a Library output parameter cannot carry. IG Publisher 2.3.4 warned and
+ * reported it as `Any`; 2.3.5 (R6-based) has no `Any` in its type enum, threw, and
+ * published the Library WITHOUT ELM: "ELM generation failed ... Unknown FHIRTypes
+ * code 'Any'". Keep every public define's type expressible as one FHIR type. */
 define "Safety Handoffs In Period":
   [Communication] C
     where ConformsTo(C, "Safety Handoff Profile")
       and C.sent during "Measurement Period"
-    return C.sent
+    return C.sent.value
 
 define "Discharge Packets In Period":
   [DocumentReference] D
     where ConformsTo(D, "Discharge Packet Profile")
       and D.date during "Measurement Period"
-    return D.date
+    return D.date.value
 
 define "Care Transition Dates":
   "Safety Handoffs In Period" union "Discharge Packets In Period"
@@ -295,7 +302,7 @@ define "Has A Documented Care Transition":
 /* The most recent transition in the period is the index for every
    post-transition window below. */
 define "Index Transition Date":
-  Max("Care Transition Dates" D return D.value)
+  Max("Care Transition Dates")
 
 // ─── Measure 3 — Safety plan before discharge ────────────────
 
@@ -304,6 +311,10 @@ define "Safety Plans":
     where (ConformsTo(P, "Stanley Brown Profile") or ConformsTo(P, "Crisis Response Plan Profile"))
       and P.status in { 'active', 'completed' }
 
+/* A plan is dated by period.start alone: when it came into effect. `created`
+   is when the record was written, and is not read. A plan with no period never
+   counts. SPiER's CarePlan mappers (and StanleyBrownQRToCarePlan) write
+   period.start from the QuestionnaireResponse's `authored`. */
 define "Safety Plan In Place Before Transition":
   "Has A Documented Care Transition"
     and exists (

@@ -3,7 +3,7 @@
     {
       "id": "p003-phq9",
       "questionnaireName": "PHQ-9",
-      "completedAt": "2026-08-11T09:30:00.000Z",
+      "completedAt": "2026-08-11T00:00:00.000Z",
       "resource": {
         "resourceType": "QuestionnaireResponse",
         "id": "p003-phq9",
@@ -12,7 +12,7 @@
         "subject": {
           "reference": "Patient/patient-003"
         },
-        "authored": "2026-08-11T09:30:00.000Z",
+        "authored": "2026-08-11T00:00:00.000Z",
         "item": [
           {
             "linkId": "q1",
@@ -162,7 +162,7 @@
       "subject": {
         "reference": "Patient/patient-003"
       },
-      "effectiveDateTime": "2026-08-11T09:30:00.000Z",
+      "effectiveDateTime": "2026-08-11T00:00:00.000Z",
       "valueInteger": 4,
       "interpretation": [
         {
@@ -212,7 +212,7 @@
       "subject": {
         "reference": "Patient/patient-003"
       },
-      "effectiveDateTime": "2026-08-11T09:30:00.000Z",
+      "effectiveDateTime": "2026-08-11T00:00:00.000Z",
       "valueInteger": 1,
       "interpretation": [
         {
@@ -274,7 +274,7 @@
       "subject": {
         "reference": "Patient/patient-003"
       },
-      "effectiveDateTime": "2026-08-11T09:30:00.000Z",
+      "effectiveDateTime": "2026-08-11T00:00:00.000Z",
       "derivedFrom": [
         {
           "reference": "Observation/p003-phq9-item9"
