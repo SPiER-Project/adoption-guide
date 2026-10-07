@@ -108,6 +108,7 @@ define "Suicide Risk Episode Profile": 'http://thespierproject.org/fhir/Structur
 define "Pathway Stage System": 'http://thespierproject.org/fhir/CodeSystem/spier-pathway-stage'
 define "Risk Tier System": 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier'
 define "Closure Reason Extension": 'http://thespierproject.org/fhir/StructureDefinition/episode-closure-reason'
+define "Handoff Content System": 'http://thespierproject.org/fhir/CodeSystem/spier-handoff-content'
 define "Handoff Content Extension": 'http://thespierproject.org/fhir/StructureDefinition/handoff-content-item'
 define "Caring Contact Opt Out Extension": 'http://thespierproject.org/fhir/StructureDefinition/caring-contact-opt-out'
 
@@ -311,7 +312,11 @@ define "Safety Plan In Place Before Transition":
     )
 
 /* Answerable only because TL-009 and TL-030 agreed on one content vocabulary:
-   `safety-plan-copy` means the same thing on a handoff and on a packet. */
+   `safety-plan-copy` means the same thing on a handoff and on a packet.
+
+   EVERY coding is read, not `coding[0]`: a content item that carries a site's
+   local code first and SPiER's as a translation is still a copy of the plan.
+   A coding with no system is accepted, as the TypeScript engine accepts it. */
 define "Patient Copy Of Safety Plan Documented":
   "Has A Documented Care Transition"
     and exists (
@@ -321,7 +326,11 @@ define "Patient Copy Of Safety Plan Documented":
           and exists (
             D.extension E
               where E.url = "Handoff Content Extension"
-                and (E.value as FHIR.CodeableConcept).coding[0].code.value = "Safety plan copy".code
+                and exists (
+                  ((E.value as FHIR.CodeableConcept).coding) C
+                    where (C.system is null or C.system.value = "Handoff Content System")
+                      and C.code.value = "Safety plan copy".code
+                )
           )
     )
 
@@ -361,6 +370,11 @@ define "Lethal Means Counseling During Episode":
    this. */
 define "Deferring Discharge Dispositions": { 'psy', 'hosp', 'long', 'rehab', 'aadvice' }
 
+/* The codes above mean these things in HL7's discharge-disposition system and
+   nothing in particular anywhere else, so a local `psy` does not grant the
+   exception. */
+define "Discharge Disposition System": 'http://terminology.hl7.org/CodeSystem/discharge-disposition'
+
 define "Episode Encounters":
   [Encounter] E
     where E.period overlaps "Most Recent Episode".period
@@ -370,7 +384,8 @@ define "Transferred Or Left Before Means Counseling":
     "Episode Encounters" E
       where exists (
         E.hospitalization.dischargeDisposition.coding C
-          where C.code.value in "Deferring Discharge Dispositions"
+          where C.system.value = "Discharge Disposition System"
+            and C.code.value in "Deferring Discharge Dispositions"
       )
   )
 

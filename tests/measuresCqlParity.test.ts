@@ -92,12 +92,6 @@ const WHY = {
   stageResolution:
     "TS resolves an artifact's stage from meta.tag, then category, then a derived-from QuestionnaireResponse; the CQL " +
     'TaggedStage() reads meta.tag only.',
-  packetCoding:
-    'The CQL reads `coding[0]` of each handoff-content-item, so safety-plan-copy as a second coding (a translation) is ' +
-    'missed; TS reads every coding in the SPiER system. The CQL is wrong.',
-  dispositionSystem:
-    'The CQL matches the discharge-disposition CODE in any system; TS requires the HL7 discharge-disposition system. ' +
-    "A local 'psy' grants the CQL's exception and not the dashboard's.",
   performedPeriod:
     'The CQL requires the whole performedPeriod `during` the episode; TS reads only its start. Counseling that began ' +
     'inside the episode and ran past its close counts on the dashboard only.',
@@ -119,8 +113,6 @@ const KNOWN_DIVERGENCES: Record<string, string> = {
   'bp-positive-by-abnormal :: Has A Positive Screen': WHY.positiveScreen,
   'bp-stage-in-category :: Has A Suicide Risk Screen': WHY.stageResolution,
   'bp-stage-in-category :: Has A Positive Screen': WHY.stageResolution,
-  'bp-packet-copy-second-coding :: Patient Copy Of Safety Plan Documented': WHY.packetCoding,
-  'bp-disposition-local-system :: Transferred Or Left Before Means Counseling': WHY.dispositionSystem,
   'bp-counseling-period-overruns-episode :: Lethal Means Counseling During Episode': WHY.performedPeriod,
 }
 
