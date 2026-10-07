@@ -248,7 +248,9 @@ npm run check:pathway    # the Suicide Safer Care Pathway PlanDefinition is almo
                          # branch by `action.code`, so `tier-low`'s condition rewritten to
                          # `= 'moderate'` passed this gate AND all of `npm test`; an engine
                          # running the published expression would have applied it to the wrong
-                         # tier. And a definitionCanonical must resolve to an
+                         # tier. Since 2026-10-07 the FSH writes code and condition from one
+                         # parameter (`RuleSet: TierBranch`), so (f) now guards a branch that
+                         # bypasses the RuleSet. And a definitionCanonical must resolve to an
                          # ActivityDefinition / PlanDefinition / Questionnaire, not merely exist
 npm run check:readers    # every observation mapper's answer READS vs the Questionnaire's
                          # declared item `type` — see fhir-conformance.md.

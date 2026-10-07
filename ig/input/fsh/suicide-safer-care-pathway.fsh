@@ -254,11 +254,7 @@ Usage: #definition
     * id = "tier-low"
     * title = "Low risk"
     * description = "Obligations for a patient whose current suicide-risk tier is low."
-    * code[+] = SPiERSuicideRiskTier#low "Low risk"
-    * condition[+]
-      * kind = #applicability
-      * expression.language = #text/fhirpath
-      * expression.expression = "%episode.extension('http://thespierproject.org/fhir/StructureDefinition/episode-current-risk-tier').value.coding.where(system = 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier').code = 'low'"
+    * insert TierBranch(low, "Low risk")
     * action[+]
       * id = "low-share-crisis-resources"
       * title = "Share patient-facing crisis resources"
@@ -287,11 +283,7 @@ Usage: #definition
     * id = "tier-moderate"
     * title = "Moderate risk"
     * description = "Obligations for a patient whose current suicide-risk tier is moderate. Adds collaborative safety planning to the low-tier obligations."
-    * code[+] = SPiERSuicideRiskTier#moderate "Moderate risk"
-    * condition[+]
-      * kind = #applicability
-      * expression.language = #text/fhirpath
-      * expression.expression = "%episode.extension('http://thespierproject.org/fhir/StructureDefinition/episode-current-risk-tier').value.coding.where(system = 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier').code = 'moderate'"
+    * insert TierBranch(moderate, "Moderate risk")
     * action[+]
       * id = "moderate-share-crisis-resources"
       * title = "Share patient-facing crisis resources"
@@ -329,11 +321,7 @@ Usage: #definition
     * id = "tier-high"
     * title = "High risk"
     * description = "Obligations for a patient whose current suicide-risk tier is high. Adds the diagram's high-risk-only protocol to the moderate-tier obligations."
-    * code[+] = SPiERSuicideRiskTier#high "High risk"
-    * condition[+]
-      * kind = #applicability
-      * expression.language = #text/fhirpath
-      * expression.expression = "%episode.extension('http://thespierproject.org/fhir/StructureDefinition/episode-current-risk-tier').value.coding.where(system = 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier').code = 'high'"
+    * insert TierBranch(high, "High risk")
     * action[+]
       * id = "high-share-crisis-resources"
       * title = "Share patient-facing crisis resources"

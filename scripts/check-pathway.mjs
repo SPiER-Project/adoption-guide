@@ -43,8 +43,10 @@
  *       tier system, and every `extension('…')` a condition reads is a
  *       StructureDefinition SPiER publishes. The condition is what an engine
  *       executes; SPiER selects branches by `action.code`, so the two can
- *       disagree with every test green. The tier is typed twice per branch in
- *       the FSH — a parameterised RuleSet would make that structural.
+ *       disagree with every test green. Since 2026-10-07 both are written
+ *       from one parameter by `RuleSet: TierBranch` (concept-layer.fsh), so a
+ *       branch built with it cannot disagree; this rule still reads the
+ *       compiled JSON, so a branch written WITHOUT the RuleSet is still caught.
  *
  * (e) READING NOTHING IS AN ERROR. A missing generated file, zero parsed
  * actions, zero tier codes, zero stage codes or an empty canonical index all
