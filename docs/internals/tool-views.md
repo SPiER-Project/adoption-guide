@@ -324,10 +324,34 @@ could would be worse than nothing. `Appointment` is a resource type in
 `<strong>Appointment</strong>`, an identifier in `AppointmentResource`, and a
 reference prefix in `` `Appointment/${a.id}` `` — one token, three meanings, and
 only the first is prose. So RULE 3 parses each recorder with **TypeScript's own
-parser** and reads **JSXText nodes only**: what is rendered as words.
-Identifiers, imports, template literals and string attributes are invisible to
-it by construction, which is why `draftTitle="Live FHIR Communication"` needs no
-exemption. The `fhirNote={…}` subtree is skipped whole.
+parser** and reads **what is rendered as words**: JSXText nodes, and the string
+value of every JSX attribute not on its `NOT_WORDS_ATTRS` deny list — `title`,
+`label`, `optional`, `help`, `placeholder`, a list heading's `title`, including
+either branch of a conditional and a template's literal parts. Identifiers,
+imports and code-valued attributes stay invisible by construction. The
+`fhirNote={…}` subtree is skipped whole, and `draft` / `draftTitle` are on the
+deny list for the same reason: they render inside the inspection-gated
+`CodeDrawer`.
+
+⚠️ **It read JSXText alone until 2026-10-07, and the leak was in the
+attributes.** *Next Appointment & Follow-Up Tracking* (a recorder title), *Task
+type* (a field label), *Consent / Information-Sharing Status* and *Consent
+history* passed it, and `check:jargon`'s clinical scan passed them too, because
+its `ALSO_ENGLISH` carve-out names those three words. The plural was the second
+hole — `\bAppointment\b` does not match *Appointments on this chart* or *Safety
+Tasks* — so the pattern is now `s?`. All six were reworded to name the act
+(*Book and Track the Follow-Up Visit*, *What needs doing*, *Record the Patient's
+Sharing Decision*, *Sharing decisions on this chart*, *Visits booked on this
+chart*, *Safety Work — …*). Restoring the six originals fails six times; a
+conditional, a `{'…'}` literal, a template, `help` and `??` each fail as plants;
+and denying `title` and `label` trips the attribute floor.
+
+The deny list is a deny list on purpose: an attribute added tomorrow is read
+until someone writes down that it is a code. The cost is the Title Case title,
+where every word is capitalised and the case-sensitive match cannot tell
+"Next Appointment" from "an Appointment". Inside a recorder the answer is the
+same either way — name the act — which is why RULE 3 takes that cost and
+`check:jargon`, reading the whole clinical tree, does not.
 
 ⚠️ **A word list could not have caught the field help, so the tag is the rule
 there.** `caring-contact-opt-out` is a kebab-case slug and nothing distinguishes
@@ -350,12 +374,15 @@ restored verbatim rather than a synthetic defect:
 
 ### What RULE 3 still cannot see
 
-- **A resource type it has not been taught.** The list is 15 names. A recorder
+- **A resource type it has not been taught.** The list is 18 names. A recorder
   writing an `AllergyIntolerance` would pass.
 - **A recorder that is not one.** The view set is derived from "renders
   `<WorkflowForm>`", which is right today and is why the detection throws rather
   than passing when it matches nothing — but a recorder built on some other
   frame is outside the rule.
+- **A string a recorder builds in code.** `report(\`Appointment marked …\`)`
+  is an argument, not an attribute or JSXText, so a save notice is outside the
+  rule; `check:jargon` reads it, under `ALSO_ENGLISH`.
 - **`QuestionnaireView` and the fillers.** They render no lede, so there is
   nothing to check; if one grows prose, RULE 3 will not be looking.
 - **Jargon that is not FHIR.** "denominator", "SHALL", "TL-032" and "SNOMED

@@ -116,12 +116,14 @@ npm run check:fhir-render # the clinician-facing app shows no raw FHIR. `Inspect
                        # ⚠️ A text scan cannot do it — `Appointment` is a resource type in
                        # `<strong>Appointment</strong>`, an identifier in `AppointmentResource`
                        # and a reference prefix in `Appointment/${id}`, one token and three
-                       # meanings. So it reads TypeScript's own JSXText nodes: what renders as
-                       # WORDS. Identifiers, imports, template literals and string attributes
-                       # are invisible by construction, which is why draftTitle="Live FHIR
-                       # Communication" needs no exemption, and the `fhirNote={…}` subtree —
-                       # the implementer's half, rendered inside the useInspect()-gated
-                       # CodeDrawer — is skipped whole.
+                       # meanings. So it reads what TypeScript's parser says renders as
+                       # WORDS: JSXText, and since 2026-10-07 every string attribute not on
+                       # NOT_WORDS_ATTRS (title, label, help, …) — a recorder title, a field
+                       # label and a list heading had named Appointment, Task and Consent past
+                       # it, and past check:jargon's ALSO_ENGLISH carve-out. The resource-type
+                       # match takes a plural (`s?`). The `fhirNote={…}` subtree and
+                       # draft/draftTitle — the implementer's half, rendered inside the
+                       # useInspect()-gated CodeDrawer — are skipped.
                        # ⚠️ **A word list could not have caught the field help**, so there the
                        # TAG is the rule: `caring-contact-opt-out` is a kebab-case slug and
                        # nothing tells it from "no-show follow-up" by spelling. What does is
@@ -130,7 +132,7 @@ npm run check:fhir-render # the clinician-facing app shows no raw FHIR. `Inspect
                        # recorder view renders no `<code>` outside `fhirNote`.
                        # Six plants, the first two being the ORIGINAL text restored verbatim
                        # rather than a synthetic defect. ⚠️ What RULE 3 still cannot see: a
-                       # resource type not on its 15-name list; a recorder built on some other
+                       # resource type not on its 18-name list; a recorder built on some other
                        # frame than <WorkflowForm> (the detection THROWS on matching nothing,
                        # which is the half that is covered); the Questionnaire fillers, which
                        # render no lede; and non-FHIR jargon — "denominator", "SHALL", a bare

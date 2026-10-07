@@ -80,15 +80,26 @@
    ⚠️ On the panel's BODY, which owns the inset (check:template RULE 4b), and
    not on the page root. It sat on `.panel-shell .form-view, .panel-shell
    .patient-chart` — padding on a page root under a qualified selector, which
-   the template gate could not see until it read compound selectors. Same
-   clearance, same two pages: the body's own `--space-3` plus the bar plus a
-   margin of real space, applied only while one of those roots is inside it.
+   the template gate could not see until it read compound selectors. The
+   clearance is the body's own `--space-3` plus the bar plus a margin of real
+   space.
+
+   ⚠️ Keyed on the DRAWER, not on the pages that could hold one. It was
+   `:has(.form-view, .patient-chart)`, which was right when every form drew the
+   drawer — but since inspection went guide-only (2026-09-17) `CodeDrawer`
+   returns null on the clinical surface, so the panel was reserving 64px under
+   every form and the chart for a bar that never renders, in the one shell that
+   exists to reclaim vertical space. `.code-drawer` exists only when the bar
+   does (EHR chrome renders `.debug-sidebar` instead), so the condition is now
+   the cause rather than a proxy for it. ⚠️ The `--space-3` is a copy of
+   `.panel-shell__body`'s padding in apps/clinical/src/css/PanelShell.css;
+   change both.
 
    ⚠️ Derived from `--code-drawer-bar-height`, not guessed. The first version used
    `--space-8` (32px) against a bar that rendered 34px — measured at **-2px
    clearance**, which is the hand-duplicated-constant failure this repo keeps
    catching elsewhere. One token, both consumers, plus a margin of real space. */
-.panel-shell__body:has(.form-view, .patient-chart) {
+.panel-shell__body:has(.code-drawer) {
   padding-bottom: calc(var(--space-3) + var(--code-drawer-bar-height) + var(--space-4));
 }
 

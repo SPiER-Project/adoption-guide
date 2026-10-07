@@ -30,15 +30,22 @@ export const RESOURCE_TYPES = [
  *
  * ⚠️ **The difference between the two gates is this set, and it is a real
  * difference rather than a softening.** `check:fhir-render` RULE 3 reads a
- * RECORDER's JSXText — a few hundred words, all of it prose about what the
- * recorder writes — so "Records an Appointment" there means the resource and
- * the full list is right. The clinical scan reads every string in two whole
- * trees, where *Next Appointment & Follow-Up Tracking* is a form title, *Task
- * type* is a field label and *Consent history* is a list heading. Firing on
- * those would teach the next person to route around the gate.
+ * RECORDER's rendered words — its JSXText and its prose attributes, a few
+ * hundred strings, all of it about what the recorder writes — so "Records an
+ * Appointment" there means the resource and the full list is right. The
+ * clinical scan reads every string in three whole trees, where "Appointment",
+ * "Consent" and "Task" are the chart's own record labels (`KIND_WORD` in
+ * `apps/clinical/src/lib/recordKeys.ts`, chosen as the word a clinician uses)
+ * and "Appointment marked attended." is a save notice. Firing on those would
+ * teach the next person to route around the gate — tried 2026-10-07 with the
+ * full list and plurals: six hits, none of them the wire format.
  *
- * The cost is stated: a recorder's lede saying "Records a Consent" passes the
- * clinical scan. RULE 3 fails it, which is why both gates exist.
+ * The cost is stated: a recorder saying "Records a Consent" — in its lede, its
+ * title or a field label — passes the clinical scan. RULE 3 fails it, which is
+ * why both gates exist. ⚠️ RULE 3 read only JSXText until 2026-10-07, and the
+ * three examples this comment used to give (*Next Appointment & Follow-Up
+ * Tracking*, *Task type*, *Consent history*) were recorder attributes that
+ * neither gate failed; they were reworded and RULE 3 now reads attributes.
  */
 export const ALSO_ENGLISH = new Set([
   'Appointment', 'Task', 'Consent', 'Procedure', 'Encounter', 'Flag',

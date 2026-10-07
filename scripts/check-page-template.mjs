@@ -589,7 +589,7 @@ function targetOf(selector, cls) {
   const has = new RegExp(`\\.${escaped}(?![\\w-])`)
   const compounds = selector.trim().split(/\s*[>+~]\s*(?![^(]*\))|\s+(?![^(]*\))/).filter(Boolean)
   // `:has(.root)` and `:not(.root)` are conditions on the subject, not the
-  // subject: `.panel-shell__body:has(.form-view)` styles the body.
+  // subject: `.panel-shell__body:has(.code-drawer)` styles the body.
   const subject = (compounds.at(-1) ?? '').replace(/:(?:has|not)\([^)]*\)/g, '')
   if (has.test(subject) && !subject.includes('::')) return 'self'
   if (subject === '*' && new RegExp(`\\.${escaped}(?![\\w-])[^\\s>+~]*\\s*>\\s*\\*$`).test(selector.trim())) return 'kids'

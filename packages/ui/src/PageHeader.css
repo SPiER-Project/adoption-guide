@@ -121,7 +121,7 @@
    that rather than let it wrap.
 
    It does NOT keep every title on one line, and is not meant to: the form views
-   carry titles like "Safety Tasks — reassessment, care gaps, escalation", which
+   carry titles like "Safety Work — reassessment, care gaps, escalation", which
    wraps to three lines at 375px. That is fine where this is not — each form view
    is its own page with no sibling to line up against. */
 /* stylelint-disable-next-line media-feature-name-value-allowed-list -- not a layout breakpoint: the

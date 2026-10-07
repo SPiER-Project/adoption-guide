@@ -92,7 +92,7 @@ export function SafetyTaskView() {
 
   return (
     <WorkflowForm
-      title="Safety Tasks — reassessment, care gaps, escalation"
+      title="Safety Work — reassessment, care gaps, escalation"
       lede={
         <>
           Puts a piece of safety work on the chart under{' '}
@@ -152,7 +152,7 @@ export function SafetyTaskView() {
       )}
 
       <form className="workflow-form" onSubmit={handleSubmit}>
-        <WorkflowField label="Task type">
+        <WorkflowField label="What needs doing">
           <select className="workflow-input" value={taskType} onChange={e => setTaskType(e.target.value)}>
             {SAFETY_TASK_TYPES.map(t => (
               <option key={t.code} value={t.code}>{t.display}</option>
