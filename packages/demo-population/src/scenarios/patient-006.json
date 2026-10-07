@@ -3,7 +3,7 @@
     {
       "id": "p006-cams-a",
       "questionnaireName": "CAMS SSF-5: Section A",
-      "completedAt": "2026-08-06T10:00:00.000Z",
+      "completedAt": "2026-07-30T10:00:00.000Z",
       "resource": {
         "resourceType": "QuestionnaireResponse",
         "id": "p006-cams-a",
@@ -12,7 +12,7 @@
         "subject": {
           "reference": "Patient/patient-006"
         },
-        "authored": "2026-08-06T10:00:00.000Z",
+        "authored": "2026-07-30T10:00:00.000Z",
         "item": [
           {
             "linkId": "core-ratings",
@@ -137,7 +137,7 @@
       "subject": {
         "reference": "Patient/patient-006"
       },
-      "effectiveDateTime": "2026-08-06T10:00:00.000Z",
+      "effectiveDateTime": "2026-07-30T10:00:00.000Z",
       "valueInteger": 4,
       "interpretation": [
         {
@@ -187,7 +187,7 @@
       "subject": {
         "reference": "Patient/patient-006"
       },
-      "effectiveDateTime": "2026-08-06T10:00:00.000Z",
+      "effectiveDateTime": "2026-07-30T10:00:00.000Z",
       "valueInteger": 4,
       "interpretation": [
         {
@@ -236,7 +236,7 @@
       "subject": {
         "reference": "Patient/patient-006"
       },
-      "effectiveDateTime": "2026-08-06T10:00:00.000Z",
+      "effectiveDateTime": "2026-07-30T10:00:00.000Z",
       "valueCodeableConcept": {
         "coding": [
           {
@@ -307,7 +307,7 @@
       "subject": {
         "reference": "Patient/patient-006"
       },
-      "effectiveDateTime": "2026-08-06T10:00:00.000Z",
+      "effectiveDateTime": "2026-07-30T10:00:00.000Z",
       "derivedFrom": [
         {
           "reference": "Observation/p006-cams-risk"

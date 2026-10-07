@@ -73,19 +73,19 @@ if (typeof ANCHOR !== 'string' || typeof shiftDates !== 'function' || typeof isI
  *
  * Comments name the reassessment state each scenario shows on any day, as
  * DERIVED today; `tests/scenarioDates.test.ts` pins the same table, so a change
- * to one is a decision. ⚠️ 001 and 006 were re-dated on 2026-08-11 to show
- * "high/7d, overdue ~3" and "high/7d, due in 2" (the demo's red and amber
- * cases); since the caseload row reads the harmonized tier (2026-09-21) both
- * derive moderate/14d, and 003 and 008 moved with them. Restoring that mix is
- * a delta here plus --apply.
+ * to one is a decision. ⚠️ 001 and 006 were first re-dated to these states as
+ * high/7d; once the caseload row read the harmonized tier (2026-09-21) both
+ * derived moderate/14d and lost them, and on 2026-10-06 each moved 7 days
+ * earlier to restore them. 003 (designed no-baseline) and 008 (designed ~2
+ * weeks) still differ from their original design.
  */
 const SHIFTS = {
-  'patient-001.json': 0, // moderate/14d → due in 4 days (designed: high/7d, overdue ~3)
+  'patient-001.json': 0, // moderate/14d → overdue by 3 days, the red case
   'patient-002.json': 0, // not on the pathway → no cadence
   'patient-003.json': 0, // low/30d → due in 30 days (designed: no-baseline); item-9 answer on the anchor day
   'patient-004.json': 0, // moderate/14d → due today
   'patient-005.json': 0, // acute → no routine cadence
-  'patient-006.json': 0, // moderate/14d → due in 9 days (designed: high/7d, due in 2 — the amber case)
+  'patient-006.json': 0, // moderate/14d → due in 2 days, the amber "due in 48 hours" case
   'patient-007.json': 0, // moderate/14d → no-baseline
   'patient-008.json': 0, // low/30d → due in 6 days (designed: ~2 weeks)
   'patient-009.json': 0, // high/7d → overdue by 6 days

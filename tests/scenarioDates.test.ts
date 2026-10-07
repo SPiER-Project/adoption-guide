@@ -54,21 +54,19 @@ describe('populationScenariosAsOf', () => {
 
   /**
    * The state each patient shows on ANY day, pinned so a change to one is a
-   * decision rather than a side effect. ⚠️ Four of these are not what the
-   * fixtures were designed to show: `SHIFTS` in `scripts/shift-scenario-dates.mjs`
-   * aimed 001 at "high/7d, overdue ~3" and 006 at "high/7d, due in 2" (the amber
-   * case), but since the caseload row reads the harmonized tier rather than the
-   * loudest alert (2026-09-21) both derive moderate/14d. 003 (designed
-   * no-baseline) and 008 (designed ~2 weeks) moved with them. Restoring the
-   * designed mix is a fixture change made with `--apply`, then a change here.
+   * decision rather than a side effect. 001 is the demo's red case (overdue by
+   * 3) and 006 its amber one (due within 48 hours); both lost those states when
+   * the caseload row began reading the harmonized tier (2026-09-21), and were
+   * re-dated 7 days earlier on 2026-10-06 to get them back. ⚠️ 003 (designed
+   * no-baseline) and 008 (designed ~2 weeks) still differ from their design.
    */
   const SERVED_STATES: Record<string, Record<string, unknown>> = {
-    'patient-001': { kind: 'scheduled', intervalDays: 14, status: 'scheduled', daysUntilDue: 4 },
+    'patient-001': { kind: 'scheduled', intervalDays: 14, status: 'overdue', daysUntilDue: -3 },
     'patient-002': { kind: 'no-cadence' },
     'patient-003': { kind: 'scheduled', intervalDays: 30, status: 'scheduled', daysUntilDue: 30 },
     'patient-004': { kind: 'scheduled', intervalDays: 14, status: 'due-today', daysUntilDue: 0 },
     'patient-005': { kind: 'no-cadence' },
-    'patient-006': { kind: 'scheduled', intervalDays: 14, status: 'scheduled', daysUntilDue: 9 },
+    'patient-006': { kind: 'scheduled', intervalDays: 14, status: 'due-soon', daysUntilDue: 2 },
     'patient-007': { kind: 'no-baseline', intervalDays: 14 },
     'patient-008': { kind: 'scheduled', intervalDays: 30, status: 'scheduled', daysUntilDue: 6 },
     'patient-009': { kind: 'scheduled', intervalDays: 7, status: 'overdue', daysUntilDue: -6 },
