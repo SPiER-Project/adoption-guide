@@ -23,7 +23,7 @@
  *     which criterion each population names all come from
  *     `packages/fhir-artifacts/generated/Measure-*.json` (the glob below). So
  *     adding a group in FSH automatically requires a criterion here, and
- *     `npm run check:measures` fails if one is missing. The only hand-written
+ *     tests/measures.test.ts fails if one is missing. The only hand-written
  *     part is CRITERIA below — the actual logic.
  *
  *  2. WINDOW LOGIC IS REUSED, NOT REIMPLEMENTED. The 7-/30-day follow-up
@@ -212,7 +212,7 @@ export const MEASURE_SPECS: MeasureSpec[] = MEASURES.map(m => ({
   }),
 }))
 
-/** Every criterion expression any Measure references. Used by tests/measures.test.ts (check:measures reads the Measures itself). */
+/** Every criterion expression any Measure references. Used by tests/measures.test.ts (which also reads the raw Measure JSON). */
 export function referencedCriteria(): string[] {
   const names = new Set<string>()
   for (const m of MEASURE_SPECS) {
@@ -436,7 +436,7 @@ function sentWithin(messages: CommunicationResource[], from: number, windowMs: n
 // The criteria — one per named definition in the Measures
 // ─────────────────────────────────────────────────────────────
 // Names match `Measure.group.population.criteria.expression` exactly, and
-// check:measures enforces that correspondence in both directions.
+// tests/measures.test.ts enforces that correspondence in both directions.
 
 const CRITERIA: Record<string, (ctx: Ctx) => boolean> = {
   // ── Measure 1: positive screen → assessment ──
@@ -640,7 +640,7 @@ function applicableIntervalDays(pair: {
   return pair.precedingTier ? REASSESSMENT_INTERVAL_DAYS[pair.precedingTier] : undefined
 }
 
-/** Criterion names this engine implements. Used by check:measures. */
+/** Criterion names this engine implements. Used by tests/measures.test.ts. */
 export function implementedCriteria(): string[] {
   return Object.keys(CRITERIA).sort()
 }
@@ -695,7 +695,7 @@ export function evaluateMeasure(
       for (const [code, expr] of Object.entries(g.criteria)) {
         const fn = CRITERIA[expr]
         // A missing criterion is a programming error, not a false result —
-        // check:measures exists so this cannot reach a build.
+        // tests/measures.test.ts exists so this cannot reach a build.
         if (!fn) throw new Error(`No implementation for measure criterion "${expr}"`)
         populations[code] = fn(ctx)
       }

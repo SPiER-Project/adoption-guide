@@ -2,7 +2,7 @@
  * The measure CQL and the measure TypeScript must compute the same answer.
  *
  * A population criterion lives in four places (docs/internals/measures.md) and
- * `check:measures` ties only the FSH names to the TypeScript names. Until this
+ * `tests/measures.test.ts` ties only the FSH names to the TypeScript names. Until this
  * file, NOTHING compared what the CQL — the published, normative statement —
  * computes with what `evaluateMeasure()` — what the app runs — computes. A
  * planted 7→8-day change to the follow-up window in measures.ts passed every

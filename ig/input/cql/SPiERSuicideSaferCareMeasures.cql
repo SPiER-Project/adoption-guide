@@ -55,7 +55,7 @@
  * reference implementation* — it is what the app runs and what `npm test`
  * covers. This library is the portable, normative statement of the same
  * criteria, so a consumer can evaluate the measures without reimplementing
- * them. `npm run check:measures` ties the Measure criterion names to the TS
+ * them. tests/measures.test.ts ties the Measure criterion names to the TS
  * implementations; the publisher ties them to this file; and
  * tests/measuresCqlParity.test.ts EXECUTES this file against the TypeScript,
  * patient by patient, and fails where the two answers differ. Change a window

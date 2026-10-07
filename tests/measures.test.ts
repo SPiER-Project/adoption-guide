@@ -224,13 +224,16 @@ describe('the index transition the app writes', () => {
 describe('measure specs derived from the generated FHIR', () => {
   it('loads all eight measures and eleven groups', () => {
     // Eight since #296 added SPiERReassessmentOnTime. A bare count is a weak
-    // assertion on its own, which is why check:measures ties every criterion
+    // assertion on its own, which is why the next two tests tie every criterion
     // reference to an implementation in both directions.
     expect(MEASURE_SPECS).toHaveLength(8)
     expect(MEASURE_SPECS.flatMap(m => m.groups)).toHaveLength(11)
   })
 
   it('implements every criterion the Measures reference', () => {
+    // Floored: two empty lists agree with each other perfectly.
+    expect(referencedCriteria().length).toBeGreaterThanOrEqual(11)
+    expect(implementedCriteria().length).toBeGreaterThanOrEqual(11)
     const missing = referencedCriteria().filter(c => !implementedCriteria().includes(c))
     expect(missing).toEqual([])
   })
@@ -239,23 +242,96 @@ describe('measure specs derived from the generated FHIR', () => {
     const orphans = implementedCriteria().filter(c => !referencedCriteria().includes(c))
     expect(orphans).toEqual([])
   })
+})
 
-  it('gives every group a code from the SPiER measure-group CodeSystem', () => {
-    for (const m of MEASURE_SPECS) {
-      for (const g of m.groups) {
-        expect(g.code).toMatch(/^[a-z0-9-]+$/)
-        expect(g.code).not.toBe('unknown')
-      }
-    }
+// ─── The Measure resources themselves (was scripts/check-measures.mjs C–E) ───
+//
+// ⚠️ These read the GENERATED JSON, not `MEASURE_SPECS`. The derived specs fall
+// back to a group's `id` when it carries no group code (`coding?.code ?? g.id`),
+// and keep only the population codes they recognise — so a group with no code,
+// or a population coded outside measure-population, reads as healthy through
+// them. The tests that checked C and D through the specs passed exactly that
+// planted defect; the gate script that read the JSON did not. Rules A and B
+// (criteria implemented / no orphans) are the two tests above.
+
+interface RawMeasure {
+  id?: string
+  group?: {
+    id?: string
+    code?: { coding?: { system?: string; code?: string }[] }
+    population?: { code?: { coding?: { system?: string; code?: string }[] }; criteria?: { expression?: string } }[]
+  }[]
+}
+
+const MEASURE_GROUP_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/spier-measure-group'
+const MEASURE_POPULATION_SYSTEM = 'http://terminology.hl7.org/CodeSystem/measure-population'
+const VALID_POPULATIONS = new Set([
+  'initial-population',
+  'numerator',
+  'numerator-exclusion',
+  'denominator',
+  'denominator-exclusion',
+  'denominator-exception',
+  'measure-population',
+  'measure-population-exclusion',
+  'measure-observation',
+])
+
+const RAW_MEASURES = Object.values(
+  import.meta.glob<RawMeasure>('../packages/fhir-artifacts/generated/Measure-*.json', { eager: true, import: 'default' }),
+)
+const GROUP_CODES = new Set(
+  Object.values(
+    import.meta.glob<{ url?: string; concept?: { code: string }[] }>(
+      '../packages/fhir-artifacts/generated/CodeSystem-*.json',
+      { eager: true, import: 'default' },
+    ),
+  )
+    .filter(cs => cs.url === MEASURE_GROUP_SYSTEM)
+    .flatMap(cs => (cs.concept ?? []).map(c => c.code)),
+)
+const RAW_GROUPS = RAW_MEASURES.flatMap(m => (m.group ?? []).map(g => ({ label: `${m.id}/${g.id ?? 'unnamed-group'}`, g })))
+
+describe('the generated Measure resources', () => {
+  it('reads every Measure and the measure-group CodeSystem (a read of nothing is not a pass)', () => {
+    // Floors, not counts: the count test above pins 8 / 11 through the specs.
+    expect(RAW_MEASURES.length).toBeGreaterThanOrEqual(4)
+    expect(RAW_GROUPS.length).toBeGreaterThanOrEqual(8)
+    expect(GROUP_CODES.size).toBeGreaterThanOrEqual(8)
   })
 
-  it('gives every group a denominator and a numerator criterion', () => {
-    for (const m of MEASURE_SPECS) {
-      for (const g of m.groups) {
-        expect(Object.keys(g.criteria)).toContain('denominator')
-        expect(Object.keys(g.criteria)).toContain('numerator')
+  // C + E: the group code is the MeasureReport ↔ Measure join key — the IG
+  // Publisher errors without one — and it must be one the CodeSystem declares.
+  it('codes every group from the spier-measure-group CodeSystem, with a declared code', () => {
+    const problems = RAW_GROUPS.flatMap(({ label, g }) => {
+      const code = (g.code?.coding ?? []).find(c => c.system === MEASURE_GROUP_SYSTEM)?.code
+      if (!code) return [`${label}: no group code from ${MEASURE_GROUP_SYSTEM}`]
+      if (!GROUP_CODES.has(code)) return [`${label}: group code "${code}" is not declared in spier-measure-group`]
+      return []
+    })
+    expect(problems).toEqual([])
+  })
+
+  // D: every population is coded from measure-population with a real code and
+  // names a criterion, and a proportion group without both a denominator and a
+  // numerator is not computable.
+  it('gives every group a coded denominator and numerator, and every population a criterion', () => {
+    const problems = RAW_GROUPS.flatMap(({ label, g }) => {
+      const out: string[] = []
+      const codes = new Set<string>()
+      for (const p of g.population ?? []) {
+        const code = (p.code?.coding ?? []).find(c => c.system === MEASURE_POPULATION_SYSTEM)?.code
+        if (!code) { out.push(`${label}: a population has no code from ${MEASURE_POPULATION_SYSTEM}`); continue }
+        if (!VALID_POPULATIONS.has(code)) out.push(`${label}: "${code}" is not a measure-population code`)
+        if (!p.criteria?.expression) out.push(`${label}/${code}: no criteria.expression`)
+        codes.add(code)
       }
-    }
+      for (const required of ['denominator', 'numerator']) {
+        if (!codes.has(required)) out.push(`${label}: missing a ${required} population`)
+      }
+      return out
+    })
+    expect(problems).toEqual([])
   })
 })
 

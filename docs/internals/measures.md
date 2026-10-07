@@ -8,13 +8,19 @@ here for the reasoning. Every ⚠️ below is a defect that shipped: the paragra
 exists because something passed while checking nothing, or read correct-looking
 and was false. See [`docs/internals/README.md`](README.md).
 
-⚠️ **A measure change lands in FOUR places, and `check:measures` only ties two
-of them together.** A population criterion lives in `ig/input/fsh/measure-and-share.fsh`
+⚠️ **A measure change lands in FOUR places, and `tests/measures.test.ts` only ties
+two of them together.** A population criterion lives in `ig/input/fsh/measure-and-share.fsh`
 (the published definition), `ig/input/cql/SPiERSuicideSaferCareMeasures.cql` (the
 portable statement, compiled by the IG Publisher) and `packages/core/src/lib/measures.ts`
 (the executable reference implementation the app runs) — and if it changes
-scoring, in `MeasureDashboard.tsx` too. `check:measures` asserts the FSH
-criterion names and the TS implementations agree in both directions; the
+scoring, in `MeasureDashboard.tsx` too. `tests/measures.test.ts` asserts the FSH
+criterion names and the TS implementations agree in both directions, and —
+reading the generated Measure JSON, not the engine's derived specs — that every
+group carries a declared measure-group code and a coded denominator and
+numerator. (Those were `check:measures`' rules A–E until 2026-10-07. The
+spec-based versions of C and D that already sat in the test file passed a group
+with no code and a population coded outside measure-population, because the
+specs fall back to the group id and drop codes they do not recognise.) The
 publisher asserts the CQL compiles; and `tests/measuresCqlParity.test.ts`
 asserts the CQL and the TypeScript compute the same answer.
 
