@@ -44,6 +44,7 @@ import type {
 import type { RegistryPatient } from '../registry'
 import { toRegistryPatient } from './registryPatient'
 import type { DerivedArtifacts, FhirDataSource } from './types'
+import { DataSourceError, httpStatusOf, isAuthorizationStatus } from './failure'
 import { LIFECYCLE_RESOURCE_TYPES } from './lifecycleTypes'
 import type {
   AppointmentResource,
@@ -83,9 +84,8 @@ function questionnaireNameFor(qr: QuestionnaireResponseResource): string {
  * present rather than a bare "request failed".
  */
 function describeCreateError(resourceType: string, err: unknown): string {
-  const e = err as { status?: number; statusCode?: number; message?: string; response?: { status?: number } }
-  const status = e?.statusCode ?? e?.status ?? e?.response?.status
-  const detail = e?.message ?? (typeof err === 'string' ? err : String(err))
+  const status = httpStatusOf(err)
+  const detail = (err as { message?: string } | null)?.message ?? (typeof err === 'string' ? err : String(err))
   return status
     ? `Failed to create ${resourceType} — HTTP ${status}: ${detail}`
     : `Failed to create ${resourceType}: ${detail}`
@@ -336,7 +336,7 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
 
   private resolvePatientId(patientId: string | null): string {
     const pid = patientId ?? this.client.patient.id
-    if (!pid) throw new Error('The SMART launch did not include a patient context.')
+    if (!pid) throw new DataSourceError('no-patient', 'The SMART launch did not include a patient context.')
     return pid
   }
 
@@ -616,12 +616,16 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
    * here: `saveResponse` receives the slice key and must scope its writes to
    * that patient even if it differs from `client.patient.id`.
    */
-  private targetFor(pid: string): WritebackTarget {
+  private targetFor(pid: string, refusals: (number | undefined)[] = []): WritebackTarget {
     return {
       createResource: async (resource: FhirResource) => {
         try {
           return { id: await this.create(this.toCreatePayload(resource, pid)) }
         } catch (err) {
+          // The ladder flattens a failure to a string for the scorecard, so the
+          // status is kept here — `saveResponse` needs it to tell "refused this
+          // session" from "refused the write".
+          refusals.push(httpStatusOf(err))
           throw new Error(describeCreateError(resource.resourceType, err))
         }
       },
@@ -701,7 +705,8 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
 
     const { caps, ok } = await this.probeCapabilities()
     const plan = buildWritePlan(caps, this.writebackConfig, artifacts)
-    const result = await executeWritePlan(plan, this.targetFor(pid), artifacts, this.writebackConfig)
+    const refusals: (number | undefined)[] = []
+    const result = await executeWritePlan(plan, this.targetFor(pid, refusals), artifacts, this.writebackConfig)
 
     this.lastWriteback = {
       at: new Date().toISOString(),
@@ -717,11 +722,20 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
     // Nothing landed at all — not even the universal floor. That is a failed
     // save, not a degraded one, so it must reach the caller's error surface
     // instead of being reported only in the scorecard.
+    //
+    // ⚠️ **Thrown as a coded `DataSourceError`, and the message is not copy.**
+    // It names every resource type and HTTP status, which is the point of it as
+    // a diagnostic and exactly what the clinician must not read; the chart words
+    // the `kind` itself (see `failure.ts`). Every refusal being a 401/403 makes
+    // it an access problem rather than a rejected write, which is a different
+    // thing for the clinician to do about it.
     if (!result.steps.some(step => step.outcome === 'written')) {
       const detail = result.steps
         .map(step => `${step.resourceType}: ${step.error ?? step.reason ?? step.outcome}`)
         .join('; ')
-      throw new Error(`Writeback failed — no resource was created. ${detail}`)
+      const kind =
+        refusals.length > 0 && refusals.every(isAuthorizationStatus) ? 'not-authorized' : 'nothing-saved'
+      throw new DataSourceError(kind, `Writeback failed — no resource was created. ${detail}`)
     }
   }
 

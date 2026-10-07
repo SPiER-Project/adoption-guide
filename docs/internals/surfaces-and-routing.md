@@ -214,6 +214,23 @@ inventory, which was built by listing `FhirJsonViewer`'s call sites.
 than a thing to remember: serialize a resource or render a `<pre>` and you must
 have asked `useInspect()`. It covers the prose too ([`tool-views.md`](tool-views.md) §4).
 
+⚠️ **No gate reads a string core builds at runtime, and the chart's error
+banner printed one for its whole life.** `dataSourceError` was the thrown
+message — "Writeback failed — no resource was created. QuestionnaireResponse:
+Failed to create QuestionnaireResponse — HTTP 422: …", or fhirclient's status
+line with the server's OperationOutcome appended — rendered verbatim on the
+care pathway and *What's on file* until 2026-10-07. `check:jargon` reads this
+app's literals; the message was assembled in `SmartDataSource`. It is now a
+`DataSourceFailure` (`packages/core/src/lib/dataSource/failure.ts`): a `kind`
+the clinical app words in `DataSourceErrorNotice`, and the original as
+`detail`, which nothing on the clinical surface renders — not even behind
+`useInspect()`, which is never on there (the scorecard's first fix of the same
+leak was that dead branch). The rule for the class: **an error or outcome that
+reaches the clinician from core carries a code, and the app words the code.**
+`apps/clinical/src/pages/dataSourceError.test.tsx` mounts the real provider
+over fhirclient's real `HttpError` and drives every kind; a new path into
+`dataSourceError` needs a case there, or nothing sees it.
+
 ⚠️ **The 18 fillers and 11 recorders are ONE element definition**
 (`packages/tool-views/src/data/toolViews.tsx` — a package since 2026-09-19, so
 the rule is a boundary rather than a convention), rendered by two route

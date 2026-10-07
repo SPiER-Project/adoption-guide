@@ -17,6 +17,7 @@ import { PageHeader } from '@spier/ui/PageHeader'
 import { Notice } from '@spier/ui/Notice'
 import { usePatient } from '@spier/tool-views/context/PatientContext'
 import { OnFileList } from '../components/OnFileList'
+import { DataSourceErrorNotice } from '../components/DataSourceErrorNotice'
 import { useOnFileGroups } from '../lib/onFileGroups'
 
 export function PatientOnFile() {
@@ -81,11 +82,7 @@ export function PatientOnFile() {
         lede={`${total} ${total === 1 ? 'record' : 'records'}`}
       />
 
-      {dataSourceError && (
-        <Notice tone="danger" title="EHR data error.">
-          {dataSourceError}
-        </Notice>
-      )}
+      <DataSourceErrorNotice error={dataSourceError} />
       {isSliceLoading && <Notice tone="info">Loading chart data from the connected EHR…</Notice>}
 
       <OnFileList groups={groups} />
