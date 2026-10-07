@@ -351,11 +351,11 @@ npm run check:reassessment # the per-tier reassessment cadence agrees across all
                          # appearing for `imminent` would answer an open clinical
                          # question by accident
 npm test                 # vitest
-npm run check:outputs    # ⚠️ LAST, and after `npm test` on purpose — see below
-npm run check:published-profiles  # ⚠️ same, and the complement — see below
+npm run check:outputs    # ⚠️ LAST, and after `npm test` on purpose — see below. Both
+                         # ends: declared outputs (part A) and published profiles (part B)
 ```
 
-## `check:outputs` — the producing half of a tool's contract
+## `check:outputs` part A — the producing half of a tool's contract
 
 The only gate in `verify` that runs **after** the tests, because the tests are
 what produce its input.
@@ -450,9 +450,13 @@ to stamp.
   background job is out of scope, because scope is "has a `TOOL_VIEWS` slug".
 
 
-## `check:published-profiles` — the complement, from the other end
+## `check:outputs` part B — the complement, from the other end
 
-`check:outputs` starts from what a tool **declares** — a
+⚠️ Parts A and B were two gates, `check:outputs` and `check:published-profiles`,
+until 2026-10-07: they read the same corpus from opposite ends with two
+readers, and only A checked the corpus was fresh. One file now, one read.
+
+Part A starts from what a tool **declares** — a
 `PlanDefinition.action.output` — and asks whether the app emits a resource
 claiming it. That is the right question for a tool whose recorder drifted from
 its own IG page, and it is structurally blind to a profile **no tool declares**.
@@ -473,11 +477,10 @@ TL-009's shape one layer up. Its exemption expired on 2026-10-06, when
 resource against the profiles it CLAIMS, so a profile nothing claims is never
 the subject of a check. Publishing more profiles can never fail that gate.
 
-So this gate starts from the published set: every `kind: resource`,
+So part B starts from the published set: every `kind: resource`,
 `derivation: constraint` StructureDefinition is claimed by something in
-`.runtime-fhir`, or is named in `EXEMPT` with a reason. It runs after
-`npm test` for the same reason `check:outputs` does — the tests produce the
-corpus.
+`.runtime-fhir`, or is named in `EXEMPT` with a reason. Like part A, it
+reads what `npm test` produces.
 
 **`EXEMPT` expires.** An entry whose profile turns up in the corpus fails, so a
 fixed gap deletes its own exemption instead of leaving a stale claim that the
@@ -491,7 +494,7 @@ proposes the problem-list entry through a CDS card and a clinician asserts it.
 
 ⚠️ **What it cannot see.** It checks a profile is claimed *at all*, not that
 every builder which ought to claim it does: three C-SSRS mappers sit behind one
-profile, and with one of them unstamped both this gate and `check:outputs` stay
+profile, and with one of them unstamped both parts stay
 green — and so does the validator, which never checks a profile nothing claims.
 That case is held by the EMITTER instead: `runtimeFhir.emit.test.ts` asserts,
 per response, that the results derived from it claim every Observation/Condition
@@ -499,10 +502,9 @@ profile its PlanDefinition action declares (joined per ActivityDefinition, read
 off the generated wiring). Planted 2026-10-06: `cssrsFull.ts` unstamped → both
 gates green, that test red.
 
-⚠️ **It does not re-check corpus freshness.** `check:outputs` already asserts
-`.runtime-fhir` is newer than the builders that produce it, runs in the same
-`verify`, and fails the run first. A second copy of that logic would drift from
-the first.
+**Corpus freshness is checked once, for both parts.** It used to live in part
+A alone, and B relied on running after it in `verify`; run on its own, B read a
+stale tree without complaint.
 
 ## The clinical surface (in the CI build job, not in `verify`)
 
