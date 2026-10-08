@@ -96,7 +96,7 @@ Three things in that document are **derived**, not restated:
   becoming a resource type.
 - the **consolidated profile-gap list**, concatenated from each step's
   `profileGaps` in step order — so it renumbers itself when a step is added.
-- the **gating issues**, de-duplicated from each step's `gatingIssues`.
+- the **gating issues**, de-duplicated from each step's `gatingIssues`. Each entry declares the `tool` it concerns (or `null`), and an entry on a tool the app already launches must say what is still missing, in `remaining`.
 
 Those last two used to be hand-maintained tallies of the tables above them.
 `--check` now also asserts they stay honest: a step whose binding says `**gap**`
