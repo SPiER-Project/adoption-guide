@@ -806,20 +806,16 @@
             "patient-011/ed-11-7-2a"
           ],
           "fhirText": "`Task` series (24–48h call, 7-day visit) + `CommunicationRequest` + `Communication` (per-attempt outreach) + `PlanDefinition` (follow-up cadence) + registry enrollment",
-          "profileBinding": "SPiER Caring Contact ([built — `spier-caring-contact`](../../ig/input/fsh/follow-up.fsh)) — TL-010 is built and launchable at `/patient/workflow/caring-contact`; **gap** — no PlanDefinition schedules the series, and the ED-SAFE telephone protocol ([TL-012](https://github.com/SPiER-Project/adoption-guide/issues/28)) it would envelope is not modelled",
+          "profileBinding": "SPiER Caring Contact ([built — `spier-caring-contact`](../../ig/input/fsh/follow-up.fsh)) — TL-010 is built and launchable at `/patient/workflow/caring-contact`, and each follow-up call is recordable as a SPiER Follow-Up Outreach Attempt ([built — `spier-outreach-attempt`](../../ig/input/fsh/follow-up.fsh), TL-033); **gap** — no PlanDefinition schedules the series: neither the caring-contact cadence ([#628](https://github.com/SPiER-Project/adoption-guide/issues/628)) nor the ED-SAFE telephone-call protocol it would envelope",
           "cdsHook": null,
           "profileGaps": [
             "Caring Contacts PlanDefinition (the schedule, not the contact)",
-            "ED-SAFE telephone follow-up protocol"
+            "ED-SAFE telephone follow-up protocol (the call schedule; each call is already recordable)"
           ],
           "gatingIssues": [
             {
-              "number": 26,
-              "label": "Caring Contacts"
-            },
-            {
-              "number": 28,
-              "label": "ED-SAFE"
+              "number": 628,
+              "label": "Caring-contact schedule"
             }
           ]
         },
@@ -885,7 +881,7 @@
         }
       ],
       "summary": "**Care transitions and follow-up** — transition-of-care packet, post-discharge caring contacts with overdue escalation.",
-      "note": "**Gating tools:** Caring Contacts (#26) — the contact itself is built (`spier-caring-contact`); what is missing is a PlanDefinition to schedule the series, and the ED-SAFE protocol (#28) it would envelope. Transition (#25) is built and no longer gates this section."
+      "note": "**Gating issue:** the caring-contact schedule (#628). The contact itself is built (`spier-caring-contact`), and so is each follow-up call (`spier-outreach-attempt`); what is missing is a PlanDefinition to schedule the series, and the ED-SAFE call protocol it would envelope. Transition is built and no longer gates this section."
     }
   ],
   "extraWalkthroughSteps": {
@@ -905,7 +901,7 @@
     "summaryIntro": "A 28-year-old woman with chronic pain and recent job loss presents to a general medical Emergency Department with severe insomnia and anxiety. The EHR-supported workflow covers:",
     "gapsIntro": "Profiles that do not yet exist in the SPiER IG and are required by the ED scenario:",
     "gapsFooter": "These map to issue [#52](https://github.com/SPiER-Project/adoption-guide/issues/52) (non-Questionnaire workflows) for catalog modeling and to issue [#53](https://github.com/SPiER-Project/adoption-guide/issues/53) for IG profile-page publication.",
-    "gatingIntro": "Existing tool epics that must advance from `status:planned` to `status:built` for the ED profile to be complete:",
+    "gatingIntro": "Open issues that must close for the ED profile to be complete:",
     "proposedIntro": "Steps SPiER proposes adding to the scenario. They are **not** part of the workbook the working group circulated, and are marked \"(proposed)\" wherever they appear so a reviewer can accept or reject each one. They close three gaps in the original: the patient is never an actor, there are no alternate or exception flows, and consent appears as an input but never as a step. Their EHR-S FM references are drafts and need checking against the published EHR-S FM function list, like every other reference in this document."
   }
 }

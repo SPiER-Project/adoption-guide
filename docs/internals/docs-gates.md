@@ -94,7 +94,7 @@ Both parsers **fail when they read nothing** rather than passing over an unread
 file, which is the #232 / #261 failure mode and was planted-and-verified before
 this shipped. When a gap genuinely closes, promote the binding (name the profile
 and link its FSH), delete the `profileGaps` entries, drop the gating entry, and
-rebuild — the consolidated gap list and the gating-promotions list are derived,
+rebuild — the consolidated gap list and the gating-issues list are derived,
 so neither is edited by hand. Where a profile covers only *part* of a claim,
 narrow the text to what is still missing instead of promoting it whole; eight of
 the sixteen #341 corrections were that shape.

@@ -105,12 +105,12 @@ A 28-year-old woman with chronic pain and recent job loss presents to a general 
 | 11.7-0A (proposed) | ED Clinician | Consent and Privacy Manager | `Consent` (scope, recipients, expiry) + `Provenance` (basis for an emergency disclosure) | SPiER Suicide-Safety Information-Sharing Consent ([built — `spier-information-sharing-consent`](../../ig/input/fsh/handoffs.fsh)) carries permit/deny, the named recipient and the period; **gap** — the legal-basis specifics | IN.1.9 Manage Patient Privacy and Confidentiality; IN.4 Manage Health Information Sharing; IN.2.2 Auditable Records | n/a |
 | 11.7-1A | ED Clinician | Orderer | `ServiceRequest` (urgent outpatient referral) + `Appointment` request + `Communication` to receiving provider | SPiER Suicide-Safety Referral ServiceRequest ([built — `spier-safety-referral`](../../ig/input/fsh/handoffs.fsh)) + SPiER Follow-Up Appointment ([built — `spier-follow-up-appointment`](../../ig/input/fsh/handoffs.fsh)) + SPiER Suicide-Safety Handoff Communication ([built — `spier-safety-handoff`](../../ig/input/fsh/handoffs.fsh)) — TL-009 is built and launchable at `/patient/workflow/transition` | DC.2.5 Order Entry — Referrals; DC.1.6.1 Order Entry | `order-select` |
 | 11.7-1B | EHR System | Transmitter / Care Transition Packager | `Bundle` (transition-of-care packet) + `Composition` + `Provenance` for delivery acknowledgement | **gap** — Suicide-Specific Transition-of-Care Bundle profile | DC.2.7.1 Care Plan, Guideline, Protocol Generation; IN.4 Manage Health Information Sharing | n/a |
-| 11.7-2A | EHR System | Follow-Up Protocol Manager | `Task` series (24–48h call, 7-day visit) + `CommunicationRequest` + `Communication` (per-attempt outreach) + `PlanDefinition` (follow-up cadence) + registry enrollment | SPiER Caring Contact ([built — `spier-caring-contact`](../../ig/input/fsh/follow-up.fsh)) — TL-010 is built and launchable at `/patient/workflow/caring-contact`; **gap** — no PlanDefinition schedules the series, and the ED-SAFE telephone protocol ([TL-012](https://github.com/SPiER-Project/adoption-guide/issues/28)) it would envelope is not modelled | DC.2.4.3 Care Plans Protocols; DC.2.4 Manage Care Plans | n/a |
+| 11.7-2A | EHR System | Follow-Up Protocol Manager | `Task` series (24–48h call, 7-day visit) + `CommunicationRequest` + `Communication` (per-attempt outreach) + `PlanDefinition` (follow-up cadence) + registry enrollment | SPiER Caring Contact ([built — `spier-caring-contact`](../../ig/input/fsh/follow-up.fsh)) — TL-010 is built and launchable at `/patient/workflow/caring-contact`, and each follow-up call is recordable as a SPiER Follow-Up Outreach Attempt ([built — `spier-outreach-attempt`](../../ig/input/fsh/follow-up.fsh), TL-033); **gap** — no PlanDefinition schedules the series: neither the caring-contact cadence ([#628](https://github.com/SPiER-Project/adoption-guide/issues/628)) nor the ED-SAFE telephone-call protocol it would envelope | DC.2.4.3 Care Plans Protocols; DC.2.4 Manage Care Plans | n/a |
 | 11.7-2B | Care Team | Outreach / Monitor | `Communication` (outreach attempt) + updated `Observation` (current risk) + updated `CarePlan` | Reuses earlier profiles | DC.2.4 Manage Care Plans; DC.1.3.1 Manage Alerts | n/a |
 | 11.7-2C | EHR System | Exception / Escalation Manager | `Task` status transitions to overdue + `Communication` (supervisor alert) + `Flag` (escalated follow-up status) | SPiER Safety Task ([built — `spier-safety-task`](../../ig/input/fsh/risk-episode.fsh)) with the escalation-trigger extension ([`spier-escalation-trigger`](../../ig/input/fsh/risk-episode.fsh)), whose codes include `missed-follow-up`, `missed-outreach-window` and `failed-contact-sequence` | IN.5.1 Support Decision Logic; DC.1.3.1 Manage Alerts | n/a |
 | 11.7-2D (proposed) | Patient (or caregiver) | Follow-Up Participant | `Communication` (received, with outcome) + `Consent` (withdrawal or channel change) | SPiER Follow-Up Outreach Attempt ([built — `spier-outreach-attempt`](../../ig/input/fsh/follow-up.fsh)) with the outreach-outcome extension ([`spier-outreach-outcome`](../../ig/input/fsh/follow-up.fsh): `patient-reached`, `no-answer`, `message-left`, `unable-to-reach`, `wrong-contact-info`, `patient-declined`, `reached-support-person`); a withdrawal of consent is a deny provision on the SPiER Information-Sharing Consent ([built](../../ig/input/fsh/handoffs.fsh)) | DC.2.4 Manage Care Plans; DC.1.3.1 Manage Alerts | n/a |
 
-**Gating tools:** Caring Contacts (#26) — the contact itself is built (`spier-caring-contact`); what is missing is a PlanDefinition to schedule the series, and the ED-SAFE protocol (#28) it would envelope. Transition (#25) is built and no longer gates this section.
+**Gating issue:** the caring-contact schedule (#628). The contact itself is built (`spier-caring-contact`), and so is each follow-up call (`spier-outreach-attempt`); what is missing is a PlanDefinition to schedule the series, and the ED-SAFE call protocol it would envelope. Transition is built and no longer gates this section.
 
 ---
 
@@ -167,13 +167,12 @@ Profiles that do not yet exist in the SPiER IG and are required by the ED scenar
 20. Disclosure consent legal basis: 42 CFR Part 2 programs, minor consent, and the emergency exception
 21. Suicide-Specific Transition-of-Care Bundle
 22. Caring Contacts PlanDefinition (the schedule, not the contact)
-23. ED-SAFE telephone follow-up protocol
+23. ED-SAFE telephone follow-up protocol (the call schedule; each call is already recordable)
 
 These map to issue [#52](https://github.com/SPiER-Project/adoption-guide/issues/52) (non-Questionnaire workflows) for catalog modeling and to issue [#53](https://github.com/SPiER-Project/adoption-guide/issues/53) for IG profile-page publication.
 
-## Gating tool promotions
+## Gating issues
 
-Existing tool epics that must advance from `status:planned` to `status:built` for the ED profile to be complete:
+Open issues that must close for the ED profile to be complete:
 
-- [#26 Caring Contacts](https://github.com/SPiER-Project/adoption-guide/issues/26)
-- [#28 ED-SAFE](https://github.com/SPiER-Project/adoption-guide/issues/28)
+- [#628 Caring-contact schedule](https://github.com/SPiER-Project/adoption-guide/issues/628)

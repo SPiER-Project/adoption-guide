@@ -96,7 +96,7 @@ Three things in that document are **derived**, not restated:
   becoming a resource type.
 - the **consolidated profile-gap list**, concatenated from each step's
   `profileGaps` in step order — so it renumbers itself when a step is added.
-- the **gating tool promotions**, de-duplicated from each step's `gatingIssues`.
+- the **gating issues**, de-duplicated from each step's `gatingIssues`.
 
 Those last two used to be hand-maintained tallies of the tables above them.
 `--check` now also asserts they stay honest: a step whose binding says `**gap**`
