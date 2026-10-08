@@ -175,4 +175,4 @@ These map to issue [#52](https://github.com/SPiER-Project/adoption-guide/issues/
 
 Open issues that must close for the ED profile to be complete:
 
-- [#628 Caring-contact schedule](https://github.com/SPiER-Project/adoption-guide/issues/628)
+- [#628 Caring-contact schedule](https://github.com/SPiER-Project/adoption-guide/issues/628) — TL-010 is built; still missing: a PlanDefinition that schedules the post-discharge cadence

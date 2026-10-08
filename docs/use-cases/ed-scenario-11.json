@@ -815,7 +815,9 @@
           "gatingIssues": [
             {
               "number": 628,
-              "label": "Caring-contact schedule"
+              "label": "Caring-contact schedule",
+              "tool": "TL-010",
+              "remaining": "a PlanDefinition that schedules the post-discharge cadence"
             }
           ]
         },
