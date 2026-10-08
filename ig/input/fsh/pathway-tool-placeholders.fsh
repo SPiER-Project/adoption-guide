@@ -30,7 +30,7 @@ Usage: #definition
 * status = #draft
 * experimental = true
 * publisher = "SPiER"
-* description = "Create a suicide-risk flag or start the suicide-risk workflow after a positive screen. Placeholder ActivityDefinition — the ASQ and PHQ-9 Item 9 cases are already FHIR-encoded as Clarify Risk stage triggers; this placeholder catalogues the generalized flag/workflow capability."
+* description = "Start the suicide-risk workflow after a positive screen. The generalized trigger is modelled: the Clarify Risk stage fires on any harmonized suicide-risk concept with a positive interpretation derived from an Identify Possible Risk screen, so every screen that translates into the concept layer is covered by one rule. Still a placeholder in one respect: no flag, work-queue entry or notification is written for the trigger yet."
 * purpose = "Make positive screens actionable: chart flag, work-queue entry, notification, and next-step routing."
 * kind = #Task
 // Licensing — see instrument-licensing.fsh

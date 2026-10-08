@@ -74,6 +74,7 @@ import { isRiskConcept, PHQ9_ITEM9_LOINC } from './riskConcept'
 import { CRISIS_RESOURCES_PROFILE } from './crisisResources'
 import { COUNSELING_PROFILE } from './lethalMeans'
 import { loadPathway, type PathwayAction, type PathwayModel } from './pathway'
+import { isPositiveScreenConcept } from './positiveScreenTrigger'
 import { stageForArtifact, toolForResponse, type FhirResourceLike } from './patientPathway'
 import {
   reassessmentStateForTier,
@@ -275,9 +276,13 @@ function assessmentArtifacts(slice: PatientSlice): Dated<FhirResourceLike>[] {
 /**
  * Every screen result that found something, oldest first.
  *
- * The published gate is "item 9 ≥ 1, or a result that crosswalks above
- * no-risk" — never `RiskAlert.level`, which is an instrument's own reading of
- * itself. Both halves are read off the record here.
+ * The published gate is "item 9 ≥ 1, or a positive screen concept" — never
+ * `RiskAlert.level`, which is an instrument's own reading of itself. Both
+ * halves are read off the record here. The second half is the Clarify Risk
+ * stage's `on-positive-screen` trigger, applied as published by
+ * `positiveScreenTrigger.ts` (a risk concept, interpretation POS, tagged with
+ * the screening stage); until #629 it was restated here as "tier above no-risk
+ * and a screen by stage", which no published artifact said.
  *
  * ⚠️ **Dated, because the gate is a statement about ONE screen.** "A positive
  * screen with no assessment after it" has to compare the assessment against
@@ -299,9 +304,7 @@ function positiveScreens(slice: PatientSlice): Array<{ resource: FhirResourceLik
       positives.push(o)
       continue
     }
-    if (!isRiskConcept(o) || stageForArtifact(o as FhirResourceLike, slice) !== 'identify-possible-risk') continue
-    const tier = tierForCodings(o.valueCodeableConcept?.coding)
-    if (tier && tier !== 'no-risk') positives.push(o)
+    if (isPositiveScreenConcept(o)) positives.push(o)
   }
   return positives
     .map(o => {
