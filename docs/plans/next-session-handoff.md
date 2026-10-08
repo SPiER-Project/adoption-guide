@@ -650,17 +650,17 @@ was deleted rather than relabelled. The host launches the dashboard.
 |---|---|---|
 | #412 | The IG package is published but unreachable — nothing links `package.tgz` and `thespierproject.fhir` is not in the FHIR registry, so Getting Started §1's instruction cannot be followed | — |
 | #125 | Consolidate hardcoded example Observations into IG example instances | M7 |
-| #228 | [TL-009] Write the handoff-content-item checklist from the transition recorder | M3 |
-| #128 | Export a configured pathway as a FHIR Bundle (Preset → PlanDefinition subset) | M5 |
+| #128 | Export a configured pathway as a FHIR Bundle (Preset → PlanDefinition subset) | — |
+| #628 | [TL-010] Schedule caring contacts on the declared post-discharge cadence | — |
+| #629 | [TL-026] One positive-screen trigger on the harmonized risk concept (gated on #93's sign-off) | M4 |
 | #277 | [Epic] Suicide Care Dashboard — a CoCM registry spec and the five gaps it exposes | — |
-| #259 | [Epic] Data dictionary: two-layer concept model, cross-stage correlation | — |
 
-**Deliberately parked, not drift:** the ten `status:built` tool epics (#20, #23,
-#24, #25, #26, #168, #170, #172, #175, #176) stay open by design and carry **no
-milestone** — milestones hold finishable tasks and a per-tool epic never finishes.
-TL-028/029/044/045 (#166, #167, #182, #183) are unscheduled `status:future`
-placeholders, also unmilestoned. **The one exception is #164** (TL-026, Positive
-Screen Flag): `status:planned` and in M4, so it is the only one actually scheduled.
+**Per-tool epics are retired (2026-10-07).** The ten `status:built` tool epics,
+the four `status:future` placeholders and #164 were closed: built, decided, or
+blocked by licensing. The two pieces of real work left in them became the tasks
+#628 and #629 above. Tool work is a `type:task` with a `tool:TL-0NN` label from
+now on (see [`../README.md`](../README.md) § Roadmap). #228 and #259 are closed;
+#128 left M5 because it does not depend on the pilot partners.
 
 ## Orientation — the embedded-panel doc set, in reading order
 
