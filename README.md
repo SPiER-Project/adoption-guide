@@ -121,7 +121,7 @@ Eleven instruments are modeled today: ASQ, BSSA, C-SSRS, CAMS, CRP, PHQ-9, PSS-3
 
 Tool-level and cross-cutting work is tracked in [GitHub Issues](https://github.com/SPiER-Project/adoption-guide/issues), which is the **only** place the roadmap lives — there is no site mirror and no committed snapshot. Create and edit issues in GitHub directly; the label taxonomy already exists on the repo and there is no seed step.
 
-Label conventions: `tool:TL-XXX`, `priority:p1|p2|p3`, `status:built|planned|future`, `type:epic|task`, `stage:<slug>`, `area:<slug>`. Cross-cutting workstreams and per-tool epics are listed in [`docs/README.md`](docs/README.md).
+Label conventions: `tool:TL-XXX`, `priority:p1|p2|p3`, `type:epic|task`, `stage:<slug>`, `area:<slug>`. Work on a tool is a `type:task` issue carrying that tool's `tool:TL-XXX` label, and filtering on the label is the per-tool view. There are no per-tool epics, and the `status:built|planned|future` labels are retired: a tool's build status comes from the catalog and its ActivityDefinition, not from GitHub. Cross-cutting workstreams are listed in [`docs/README.md`](docs/README.md).
 
 ## Contributing
 
