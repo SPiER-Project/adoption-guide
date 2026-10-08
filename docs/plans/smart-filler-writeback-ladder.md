@@ -181,13 +181,22 @@ derived artifacts with `deriveFromResponse`, the same call `PatientProvider`
 makes. Nothing hand-writes a resource shape. Both new suites were verified to
 **fail** against planted defects before being trusted.
 
+## Closed since
+
+- **CDS card `type: 'smart'` link** (#375). When the service is configured with
+  a SMART launch URL, `cardLink()` in `packages/core/src/lib/cdsHooks/cards.ts`
+  emits a `type: 'smart'` link whose `appContext` carries the tool as an
+  `intent`. The standalone CDS Worker always is, since it requires
+  `SMART_LAUNCH_URL`. `type: 'absolute'` is left only for the in-app cards,
+  where SPiER itself follows the link.
+
 ## Still open
 
-- **Live sandbox validation.** Nothing offline can test the capability probing or
-  the Tier-0 fallback against a real server, and those are the parts most likely
-  to be wrong. See [`../smart-sandbox-testing.md`](../smart-sandbox-testing.md).
-- **CDS card `type: 'smart'` link.** `cdsHooks/types.ts` already declares it as
-  *"unused by SPiER today"*; every card emits `type: 'absolute'`.
+- **Live sandbox validation against a server we did not write.**
+  `services/mock-ehr/src/smartDataSource.integration.test.ts` now drives a real
+  `SmartDataSource` through the capability probing and the Tier-0 fallback, but
+  only against the mock EHR, so a third-party server is still untested. See
+  [`../smart-sandbox-testing.md`](../smart-sandbox-testing.md).
 - **Adoption-pathways guide page** — the SMART app as the low-floor on-ramp,
   native EHR documents as the recommended end state.
 - **Should the demo set `alwaysWriteDocument`?** Currently it does not, so an
