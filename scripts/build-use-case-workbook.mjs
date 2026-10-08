@@ -381,7 +381,7 @@ function wgCsv(doc) {
  *
  * Two lists at the foot are derived rather than restated: the consolidated
  * profile gaps come from each step's `profileGaps` in step order, and the
- * gating-tool promotions from each step's `gatingIssues`, de-duplicated. They
+ * gating issues from each step's `gatingIssues`, de-duplicated. They
  * used to be hand-maintained tallies of the tables above them, which is the
  * classic place for a count to go quietly stale.
  */
@@ -453,7 +453,7 @@ function renderMarkdown(doc) {
   }
   out.push('', m.gapsFooter, '')
 
-  out.push('## Gating tool promotions', '', m.gatingIntro, '')
+  out.push('## Gating issues', '', m.gatingIntro, '')
   const seen = new Set()
   for (const { step } of allSteps(doc)) {
     for (const issue of step.gatingIssues ?? []) {
