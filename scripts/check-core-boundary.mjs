@@ -51,12 +51,26 @@
  * not code, property names (`opts.window`) and declarations of a local with a
  * DOM name are not uses, and type positions (`InstanceType<typeof X>`) erase.
  *
- * ⚠️ **What it cannot see**: a host that reaches a DOM global through
- * anything but a binding — a property (`const o = { g: globalThis };
- * o.g.localStorage`), a call's return (`getGlobal().localStorage`),
- * `Reflect.get(globalThis, 'localStorage')`, or a computed key
- * (`globalThis[name]`). DOM types in signatures erase too, but those are now a
- * compile error: core's `lib` has no DOM since 2026-10-07.
+ *   6. A host may not ESCAPE. It may be read from (`.x`, `['literal']`),
+ *      feature-detected, compared with `===`, or bound to an unexported alias or
+ *      a destructuring — nothing else. Passed to a call (`Reflect.get(globalThis,
+ *      'localStorage')`), returned (`() => globalThis`), stored in an object or
+ *      array, spread or exported, it is a handle on every global that no rule can
+ *      follow, so it fails where it LEAVES: that is what catches
+ *      `o.g.localStorage` and `getGlobal().document`, whose use sites carry no
+ *      host. `globalThis.self` / `.window` / `.globalThis` are the host again.
+ *   7. A host indexed by a COMPUTED key (`globalThis[name]`) fails: only a
+ *      literal key names something this gate can check. And `eval(…)` /
+ *      `Function(…)` fail outright — code built from a string reaches any global.
+ *      ⚠️ Rules 6 and 7 closed the four forms rule 5's first version listed as
+ *      unseen (2026-10-07); all planted red, none present in core.
+ *
+ * ⚠️ **What it cannot see**: a global object handed IN from outside core — a
+ * parameter typed `typeof globalThis` that an app fills with `globalThis` is,
+ * inside core, an ordinary parameter (and passing what core needs as a
+ * parameter is the recommended fix, so the gate cannot forbid the shape). Nor a
+ * host returned by a dependency outside the repo. DOM types in signatures are a
+ * compile error, not this gate's: core's `lib` has no DOM since 2026-10-07.
  */
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -188,6 +202,59 @@ const guardRe = (g, hosts) => new RegExp(
   `typeof\\s+(?:(?:${[...hosts].map(escapeRe).join('|')})\\s*\\.\\s*)?${g}\\s*[!=]==?\\s*['"]undefined['"]`,
 )
 
+/** Wrappers that do not change which object an expression is (see `unwrap`). */
+const isWrapper = (n) => n && (ts.isParenthesizedExpression(n) || ts.isAsExpression(n) || ts.isSatisfiesExpression(n) ||
+  ts.isNonNullExpression(n) || ts.isTypeAssertionExpression(n))
+
+/** Is this host identifier in a VALUE position — not a declared name, a key, or a type? */
+function isHostValue(id) {
+  const p = id.parent
+  if ((ts.isVariableDeclaration(p) || ts.isParameter(p) || ts.isBindingElement(p) ||
+       ts.isFunctionDeclaration(p) || ts.isImportSpecifier(p) || ts.isImportClause(p)) && p.name === id) return false
+  if (ts.isBindingElement(p) && p.propertyName === id) return false
+  if ((ts.isPropertyAccessExpression(p) && p.name === id) ||
+      ((ts.isPropertyAssignment(p) || ts.isPropertySignature(p) || ts.isPropertyDeclaration(p) ||
+        ts.isMethodDeclaration(p)) && p.name === id)) return false
+  if (ts.isTypeQueryNode(p) || ts.isTypeReferenceNode(p) || ts.isQualifiedName(p)) return false
+  return true
+}
+
+const EQUALITY = new Set([
+  ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken,
+  ts.SyntaxKind.EqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsToken,
+])
+
+/** Why the host expression `child` escapes into `parent`, or null when it does not. */
+function hostEscape(child, parent) {
+  if (ts.isPropertyAccessExpression(parent) && parent.expression === child) return null
+  if (ts.isElementAccessExpression(parent) && parent.expression === child) {
+    // RULE 7 — a computed key can name any global; only a literal can be checked.
+    const k = parent.argumentExpression
+    return ts.isStringLiteralLike(k) || ts.isNumericLiteral(k) ? null : 'is indexed by a computed key'
+  }
+  if (ts.isTypeOfExpression(parent)) return null
+  if (ts.isBinaryExpression(parent) && EQUALITY.has(parent.operatorToken.kind)) return null
+  if (ts.isBinaryExpression(parent) && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+    if (parent.left === child) return null // `g = …` rebinds the alias
+    return ts.isIdentifier(parent.left) ? null : 'is stored in a property'
+  }
+  if (ts.isParameter(parent) && parent.initializer === child) return null
+  if (ts.isVariableDeclaration(parent) && parent.initializer === child) {
+    const exported = ts.getCombinedModifierFlags(parent) & ts.ModifierFlags.Export
+    return exported ? 'is exported' : null
+  }
+  if (ts.isCallExpression(parent) || ts.isNewExpression(parent)) {
+    return parent.expression === child ? 'is called' : 'is passed to a call'
+  }
+  if (ts.isReturnStatement(parent) || ts.isArrowFunction(parent)) return 'is returned'
+  if (ts.isPropertyAssignment(parent) || ts.isShorthandPropertyAssignment(parent) ||
+      ts.isArrayLiteralExpression(parent) || ts.isSpreadElement(parent) || ts.isSpreadAssignment(parent)) {
+    return 'is stored in an object or array'
+  }
+  if (ts.isExportSpecifier(parent) || ts.isExportAssignment(parent)) return 'is exported'
+  return `escapes into a ${ts.SyntaxKind[parent.kind]}`
+}
+
 let detected = 0
 for (const f of tsFiles) {
   const rel = relative(root, f)
@@ -196,7 +263,12 @@ for (const f of tsFiles) {
   const locals = localNames(sf)
   const hosts = hostAliases(sf)
   /** Is `e` a host object — `globalThis`, `self`, `window`, or an alias of one, however cast? */
-  const isHost = (e) => { const u = unwrap(e); return ts.isIdentifier(u) && hosts.has(u.text) }
+  const isHost = (e) => {
+    const u = unwrap(e)
+    if (ts.isIdentifier(u)) return hosts.has(u.text)
+    // `globalThis.self`, `self.window`, `globalThis.globalThis` are the host again.
+    return ts.isPropertyAccessExpression(u) && HOSTS.has(u.name.text) && isHost(u.expression)
+  }
   const lineOf = (n) => sf.getLineAndCharacterOfPosition(n.getStart(sf)).line + 1
 
   const use = (g, node) => {
@@ -240,6 +312,31 @@ for (const f of tsFiles) {
         const key = el.propertyName ?? el.name
         if (ts.isIdentifier(key) && FORBIDDEN_GLOBALS.has(key.text)) use(key.text, el)
       }
+    }
+
+    // RULE 6 — a host may not ESCAPE. It may be read from (`.x`, `['x']`),
+    // feature-detected, compared, or bound to an unexported alias or a
+    // destructuring; nothing else. Passed to a call (`Reflect.get(globalThis,
+    // 'localStorage')`), returned, stored in an object or array, spread or
+    // exported, it is a handle on every global that no rule here can follow —
+    // the property (`o.g.localStorage`) and call-return (`getGlobal().document`)
+    // forms are caught where the host leaves, not where it is used.
+    if (ts.isIdentifier(node) && hosts.has(node.text) && isHostValue(node)) {
+      let child = node
+      while (isWrapper(child.parent)) child = child.parent
+      const why = hostEscape(child, child.parent)
+      if (why) {
+        fail(
+          `${rel}:${lineOf(node)}: \`${node.text}\` ${why} — packages/core may read a named global off the ` +
+            'global object, never hand the object itself on. Take what you need as a parameter from the app.',
+        )
+      }
+    }
+
+    // `eval` / `Function` rebuild the global object from a string, past every rule above.
+    if ((ts.isCallExpression(node) || ts.isNewExpression(node)) && ts.isIdentifier(node.expression) &&
+        (node.expression.text === 'eval' || node.expression.text === 'Function') && !locals.has(node.expression.text)) {
+      fail(`${rel}:${lineOf(node)}: \`${node.expression.text}(…)\` in packages/core — code built from a string can reach any global, and this gate cannot read it`)
     }
 
     if (ts.isIdentifier(node) && FORBIDDEN_GLOBALS.has(node.text)) {

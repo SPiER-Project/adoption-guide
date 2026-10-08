@@ -201,8 +201,12 @@ npm run check:core-boundary # packages/core stays React-free and DOM-free — th
                          # tsc, eslint AND this gate when planted. Closed the same day in
                          # this gate: a host is any name bound to one (to a fixed point),
                          # seen through casts, and destructuring a host is a use — seven
-                         # alias forms planted red. Still unseen: a host reached through a
-                         # property, a call's return, `Reflect.get`, or a computed key.
+                         # alias forms planted red. Then the four it still missed — a host
+                         # reached through a property, a call's return, `Reflect.get`, or a
+                         # computed key: a host may not ESCAPE (passed, returned, stored,
+                         # exported), a computed key on one fails, and so do `eval` and
+                         # `Function(…)`. Still unseen: a global object an app passes INTO
+                         # core as a parameter.
 npm run check:guide-boundary # the Adoption Guide holds no patient data — it explains and
                          # configures the pathway; the caseload lives on the EHR side
                          # (#391). Walks the WHOLE guide app from main.tsx and fails on
