@@ -134,6 +134,12 @@ const SCENARIOS = [
     csv: join(USE_CASES, 'dist', 'HL7_BH_USE_CASES-ED-Scenario-11.csv'),
     md: join(USE_CASES, 'ed-scenario-11.md'),
   },
+  {
+    source: join(USE_CASES, 'inpatient-scenario-12.json'),
+    xlsx: join(USE_CASES, 'dist', 'HL7_BH_USE_CASES-Inpatient-Scenario-12.xlsx'),
+    csv: join(USE_CASES, 'dist', 'HL7_BH_USE_CASES-Inpatient-Scenario-12.csv'),
+    md: join(USE_CASES, 'inpatient-scenario-12.md'),
+  },
 ]
 
 /**
@@ -161,6 +167,9 @@ const KNOWN_RESOURCES = new Set([
   'EpisodeOfCare',
   'Flag',
   'List',
+  'Measure',
+  'MeasureReport',
+  'MedicationRequest',
   'Observation',
   'PlanDefinition',
   'Procedure',
