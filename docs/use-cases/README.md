@@ -15,7 +15,14 @@ dist/HL7_BH_USE_CASES-ED-Scenario-11.csv    ← same sheet, flat
 ed-scenario-11.md                           ← the FHIR / functional mapping
 ```
 
-⚠️ **Never hand-edit `dist/` or `ed-scenario-11.md`.** Same rule as
+Two scenarios are built this way: the ED scenario above, which the working
+group circulated, and [`inpatient-scenario-12.json`](inpatient-scenario-12.json),
+a **SPiER draft** of its admission branch, written from one SME walkthrough and
+not yet reviewed by that SME or seen by the working group. Its number is
+provisional. Its steps carry a `transcript` timestamp range, not rendered; the
+transcript itself is not committed, because it names people and a health system.
+
+⚠️ **Never hand-edit `dist/` or a generated `<id>.md`.** Same rule as
 `packages/fhir-artifacts/generated/`: the next build silently discards your
 change. Edit the JSON and rebuild.
 
@@ -210,7 +217,9 @@ Two details worth keeping:
 
 1. Write `docs/use-cases/<id>.json` in the same shape.
 2. Add an entry to `SCENARIOS` in `scripts/build-use-case-workbook.mjs`.
-3. Build, and commit the JSON alongside its `dist/` outputs.
+3. Build, and commit the JSON alongside its `dist/` outputs. ⚠️ The root
+   `.gitignore` ignores every `dist/`, so the outputs need `git add -f`; CI's
+   `--check` fails on a missing file, which is how a forgotten one shows up.
 
 Sheet names are capped at 31 characters and may not contain `[]:*?/\` — the
 circulated workbook's tab was literally named `FINAL Emergency Department Use `,
@@ -221,4 +230,6 @@ checks. The writer now fails loudly instead.
 
 - [`ed-scenario-11.md`](ed-scenario-11.md) — the narrative FHIR/profile mapping
   and the consolidated list of 22 missing profiles.
+- [`inpatient-scenario-12.md`](inpatient-scenario-12.md) — the same for the
+  inpatient draft.
 - CI: [`.github/workflows/use-case-workbook.yml`](../../.github/workflows/use-case-workbook.yml)
