@@ -276,7 +276,10 @@
   border-left-color: var(--brand-primary);
 }
 
+/* Inline, beside the label or inside the legend's sentence — the reset sets
+   every svg to `display: block`, which dropped it onto a line of its own. */
 .pathway-notes__audience {
+  display: inline-block;
   margin-left: var(--space-1);
   color: var(--brand-primary);
   vertical-align: text-bottom;
