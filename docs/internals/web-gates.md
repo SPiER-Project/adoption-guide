@@ -1173,6 +1173,31 @@ which the source scan reads as two harmless halves — fails the gate through th
 rendered half alone. The same plant spelling `QuestionnaireResponse` or
 `SPiERSuicideRiskConcept` stays green.
 
+⚠️ **The rendered half then mounted only the pages chosen because they render
+core's values** — the tool pages, the Data Dictionary, Adoption Readiness and
+the two pathway pages — so the same runtime-assembled name on any other guide
+page passed. Since 2026-10-09 it mounts the guide's real `App` (route table,
+`AdoptionGuide` layout, shell chrome) at every path in `GUIDE_SECTIONS`, at
+`/overview` and at every catalogued tool, with no page list of its own; a probe
+asserts each mount LANDED on its path, because a route that redirected to the
+front door would be read as the front door and pass. A page settles when its
+header is up AND no `.route-loading` fallback is left: the tool's form is a
+second lazy chunk, and the old test read the page before it arrived. A floor on
+the tool pages that rendered an instrument header (16, floored at 8) keeps that
+honest.
+
+That race had been hiding seven live leaks, all fixed in the same change: two
+published `Questionnaire.description`s (C-SSRS Pediatric cited
+`licensing/MEMO.md`, Since Last Contact `issue #220`) shown in the "About this
+instrument" drawer, and five recorders' `fhirNote` drawers on the guide's tool
+pages — four issue numbers, a 2026-09-17 rename date, and `applySharingConsent()`.
+`fhirNote` is skipped by the clinician's scan on purpose and `packages/tool-views`
+is outside the guide's source scan, so the rendered half was the only reader
+those strings had. Proven by planting a runtime-assembled `SmartDataSource`,
+`WritebackScorecard` and `issue #637` on Why SPiER (a page the old test never
+mounted), and by restoring one `(#263)` to a recorder's note: each fails the gate
+through the rendered half with zero source-scan hits.
+
 What it cannot see, stated so a green run is not read as more than it is:
 
 - **The 29 shared tool views' SOURCE, under the guide's rules.** They reach a
@@ -1182,10 +1207,10 @@ What it cannot see, stated so a green run is not read as more than it is:
 - **The published FSH text itself.** `Description` and `copyright` cite the
   licensing memos and `issue #64` — provenance in the IG, where it belongs. The
   guide renders `readerCopyright(copyright)`, and that is what is checked.
-- **A computed string on a page the rendered half does not mount.** Folding
-  sees what the source spells out; a value from a prop or a call is read in its
-  literal halves, and only the pages `readerCopy.test.tsx` mounts are read
-  whole.
+- **Text a page renders only after an interaction** — a submitted form's
+  result, a simulator state other than the first, an error a reader triggers.
+  Every guide page is mounted, but only in its arrival state; anything else gets
+  the source scan, which reads a computed string in its literal halves.
 - **Prose that names no machinery and is still about the build.** "It was called
   the Patient App until 2026-09-17" fails on the date; the same sentence without
   one passes and is just as much about this repo.

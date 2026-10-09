@@ -446,8 +446,8 @@ for (const [name, value] of Object.entries(catalog)) {
 /**
  * The rendered half, run from here so that THIS gate goes red when a page
  * renders a raw value. `apps/guide/src/pages/readerCopy.test.tsx` mounts the
- * guide pages that render core's prose — every tool's page, the Data
- * Dictionary, the pathway pages — and applies the same rule list AND the same
+ * guide's real app at every page `GUIDE_SECTIONS` declares, `/overview` and
+ * every tool's page, waits for each lazy form to settle, and applies the same rule list AND the same
  * repo-identifier index (lib/reader-jargon.mjs) to their text. A value scan cannot see `ToolPage`
  * printing `tool.copyright` instead of `readerCopyright(tool.copyright)`; a
  * render can. (`npm test` runs it too; it is a few seconds, and the gate is
