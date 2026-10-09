@@ -144,7 +144,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   // sidebar lit two rows for one page. The layout already asks one function
   // which section owns a path, for the title, eyebrow, width and pager; the
   // sidebar asking a different one is how they drift. So it asks that one.
-  const active = resolveGuidePath(useLocation().pathname)?.section
+  const resolved = resolveGuidePath(useLocation().pathname)
+  const active = resolved?.section
+  // ⚠️ **Still one lit row when a nested one is the page.** A subsection with a
+  // `nav` label has a row of its own under its section, so on that page the
+  // NESTED row takes the pill and `aria-current`, and the section row is only
+  // marked open. A subsection with no row (the published protocol) still
+  // borrows its section's, as before.
+  const litSub = resolved?.subsection?.nav ? resolved.subsection : undefined
 
   return (
     <>
@@ -167,17 +174,41 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             // see the note on it.
             const group = guideGroupLabel(section.group)
             const prev = i > 0 ? guideGroupLabel(GUIDE_SECTIONS[i - 1].group) : undefined
+            const nested = (section.subsections ?? []).filter(sub => sub.nav)
             return (
               <Fragment key={section.path}>
                 {group !== prev && <p className="sidebar-group-heading">{group}</p>}
                 <Link
                   to={guideHref(section.path)}
-                  className={cx('sidebar-link', 'sidebar-link--child', active === section && 'active')}
-                  aria-current={active === section ? 'page' : undefined}
+                  className={cx(
+                    'sidebar-link',
+                    'sidebar-link--child',
+                    active === section && (litSub ? 'sidebar-link--open' : 'active'),
+                  )}
+                  aria-current={active === section && !litSub ? 'page' : undefined}
                   onClick={onClose}
                 >
                   {section.label}
                 </Link>
+                {/* The section's own pages, nested under it while it is open —
+                    the setting pathways under Care Pathway. Shown only for the
+                    open section so the column stays the guide's outline rather
+                    than every page in it. */}
+                {active === section && nested.length > 0 && (
+                  <div className="sidebar-sublist" role="group" aria-label={`${section.label} pages`}>
+                    {nested.map(sub => (
+                      <Link
+                        key={sub.path}
+                        to={guideHref(sub.path)}
+                        className={cx('sidebar-link', 'sidebar-link--grandchild', litSub === sub && 'active')}
+                        aria-current={litSub === sub ? 'page' : undefined}
+                        onClick={onClose}
+                      >
+                        {sub.nav}
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </Fragment>
             )
           })}

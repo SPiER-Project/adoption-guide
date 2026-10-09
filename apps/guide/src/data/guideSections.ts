@@ -148,7 +148,25 @@ export interface GuideSection {
    * guide layout owns the width for every page under it and a sub-page root
    * may not declare one (`check:template` RULE 5a).
    */
-  subsections?: { path: string; label: string }[]
+  subsections?: GuideSubsection[]
+}
+
+/**
+ * A page of a section that is not a section of its own.
+ *
+ * `nav` puts it in the SIDEBAR, nested under its section while that section is
+ * open, with `nav` as the row's (shorter) label — `label` stays the page's
+ * title. Opt-in, and most subsections stay out on purpose: `pathway/protocol`
+ * is a second VIEW of Care Pathway reached by one link from the explainer, not
+ * a place of its own (adoption-guide UX audit §4.2), and `tools/:toolRef` is
+ * one page per tool. The setting pathways are the case for it: each is a
+ * different protocol, and a reader looking for "the inpatient pathway" looks
+ * in the menu (Brad, 2026-10-09).
+ */
+export interface GuideSubsection {
+  path: string
+  label: string
+  nav?: string
 }
 
 /**
@@ -206,8 +224,8 @@ export const GUIDE_SECTIONS: GuideSection[] = [
     // them; settingPathways.test.ts fails the two apart.
     subsections: [
       { path: 'pathway/protocol', label: 'The published protocol' },
-      { path: 'pathway/emergency-department', label: 'In the emergency department' },
-      { path: 'pathway/inpatient', label: 'In inpatient psychiatric care' },
+      { path: 'pathway/emergency-department', label: 'In the emergency department', nav: 'Emergency department' },
+      { path: 'pathway/inpatient', label: 'In inpatient psychiatric care', nav: 'Inpatient psychiatric care' },
     ],
   },
   // `wide`: two catalogue tables.
@@ -371,7 +389,7 @@ export function guideGroupLabel(id: GuideGroupId): string {
  */
 export function resolveGuidePath(
   path: string,
-): { section: GuideSection; subsection?: { path: string; label: string } } | undefined {
+): { section: GuideSection; subsection?: GuideSubsection } | undefined {
   // Everything under /guide, with the leading and trailing slashes gone.
   const rest = path.replace(/^\/guide\/?/, '').replace(/\/$/, '')
   if (!rest) return undefined

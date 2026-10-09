@@ -396,15 +396,16 @@ export function CarePathway() {
           composed-of entries, in order, by label — and only the route is the
           guide's. A setting with no page is a build error in
           settingPathways.test.ts, not a silently missing row here.
+          ⚠️ No intro sentence either (2026-10-09): #650 and #652 each fit
+          the budget alone and merged to 879 together, so the sentence went —
+          the heading and the two links carry it, and the sidebar nests the
+          same two pages under Care Pathway.
           ⚠️ Labels only. The artifact's one-line display for each setting
           cost this page 55 words and its budget (pageLength.test.tsx); each
           sub-page opens with what the setting adds, which is where a reader
           who clicked wants it. */}
       <section className="care-pathway__settings" aria-labelledby="pathway-settings-title">
         <h3 id="pathway-settings-title" className="pathway-section-title">In specific settings</h3>
-        <p className="care-pathway__para">
-          The same pathway in each setting: the tiers above, and what the setting adds.
-        </p>
         <ul className="care-pathway__setting-list">
           {model.settingPathways.map(setting => {
             const page = SETTING_PATHWAY_PAGES.find(p => p.canonical === setting.resource)
