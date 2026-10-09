@@ -128,6 +128,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
 import { join } from 'node:path'
+import { stripVTControlCharacters } from 'node:util'
 
 import ts from 'typescript'
 
@@ -478,7 +479,7 @@ const clinicalRendered = spawnSync(
 // CI colours it (`Tests \x1b[22m \x1b[1m\x1b[32m11 passed`), so a bare regex
 // failed the gate on a green run there and passed it locally, where it is plain.
 // The check exists because `-t` matching nothing exits 0 with every test skipped.
-const clinicalSummary = `${clinicalRendered.stdout ?? ''}`.replace(/\x1b\[[0-9;]*m/g, '')
+const clinicalSummary = stripVTControlCharacters(`${clinicalRendered.stdout ?? ''}`)
 if (clinicalRendered.status !== 0 || !/Tests\s+\d+ passed/.test(clinicalSummary)) {
   process.stderr.write(`${clinicalRendered.stdout ?? ''}${clinicalRendered.stderr ?? ''}`)
   fail(`${CLINICAL_RENDERED_TEST} failed — a clinical page renders the wire format, or the test could not run; see above`)
