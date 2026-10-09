@@ -12,9 +12,13 @@
  * reader of a tool page until the 2026-10 gate audit. So this mounts the pages
  * whose prose comes from somewhere else — every catalogued tool’s page, the
  * Data Dictionary, the readiness table (whose tooltips carry each notice), the
- * two pathway pages — and runs the SAME rule list
- * (`scripts/lib/reader-jargon.mjs`) over everything they render, closed
+ * two pathway pages — and runs the SAME rule list AND the same repo-identifier
+ * index (`scripts/lib/reader-jargon.mjs`) over everything they render, closed
  * drawers included: a reader can open a drawer.
+ *
+ * ⚠️ **The index joined on 2026-10-09.** Until then this applied the six regex
+ * rules only, so a page rendering `SmartDataSource` or `buildWritePlan` from a
+ * value no source scan reads passed here AND in check:jargon.
  *
  * Excluded: `<pre>` and the FHIR JSON panel, which are the wire format shown
  * on purpose (a timestamp in a resource is not a repo date), and form controls.
@@ -34,7 +38,7 @@ import { PatientProvider } from '@spier/app-shell/context/PatientProvider'
 import { SmartContext } from '@spier/app-shell/context/SmartContext'
 import { InspectContext } from '@spier/tool-views/context/InspectContext'
 import { PresentationProvider } from '@spier/tool-views/context/PresentationProvider'
-import { repoJargonIn } from '../../../../scripts/lib/reader-jargon.mjs'
+import { indexRepoIdentifiers, repoJargonIn } from '../../../../scripts/lib/reader-jargon.mjs'
 import { ToolPage } from './ToolPage'
 import { DataDictionary } from './DataDictionary'
 import { AdoptionReadiness } from './AdoptionReadiness'
@@ -44,6 +48,9 @@ import { EmergencyDepartmentPathway } from './EmergencyDepartmentPathway'
 import { InpatientPathway } from './InpatientPathway'
 
 afterEach(cleanup)
+
+/** Built once: the same index check:jargon builds, FHIR and artifact names subtracted. */
+const IDENTIFIERS = indexRepoIdentifiers()
 
 const realFetch = globalThis.fetch
 beforeAll(() => {
@@ -85,7 +92,7 @@ function readerRuns(root: Element): string[] {
 
 function hitsIn(root: Element): string[] {
   return readerRuns(root)
-    .map((run) => ({ run, hit: repoJargonIn(run) }))
+    .map((run) => ({ run, hit: repoJargonIn(run, IDENTIFIERS.all) }))
     .filter(({ hit }) => hit)
     .map(({ run, hit }) => `${hit!.rule} "${hit!.match}" in: ${run.slice(0, 140)}`)
 }
@@ -105,6 +112,16 @@ function renderToolPage(ref: string) {
     </MemoryRouter>,
   )
 }
+
+describe('the repo-identifier index', () => {
+  // Liveness: an empty index would make every page below pass the identifier
+  // rule. Halved from check:jargon's live counts (541 camelCase, 370 PascalCase).
+  it('was built', () => {
+    expect(IDENTIFIERS.camel.size).toBeGreaterThan(270)
+    expect(IDENTIFIERS.pascal.size).toBeGreaterThan(185)
+    expect(IDENTIFIERS.fhirTypeNames.size).toBeGreaterThan(94)
+  })
+})
 
 describe('what a tool page renders', () => {
   it('covers the catalogue', () => {

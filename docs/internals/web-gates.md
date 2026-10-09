@@ -1123,6 +1123,56 @@ wire fields, all legitimately shown to an implementer — while proving nothing
 about what it did catch. The index makes the rule mean what its name says and
 grows with the repo instead of with the gate.
 
+⚠️ **Until 2026-10-09 the index held camelCase names only, so every class,
+React component and exported type passed.** Planting "SmartDataSource" into the
+Provider App page's prose left the gate green while `buildWritePlan`,
+`guideSections.ts` and `#637` each failed it. The index now also holds
+PascalCase names — exported `class` / `function` / `const` / `type` /
+`interface` / `enum` bindings and file or directory basenames — where the shape
+is a lower-to-upper hump (`WritebackScorecard`, `CSSRSItemCoding`), so an
+ALL-CAPS constant (`TOOLS`, `HEX`) and a one-word name (`Patient`) stay out:
+those are acronyms and English to a reader. Two derived lists are subtracted
+from it, because a guide reader is supposed to meet those names:
+
+- **Every FHIR R4 resource and complex-datatype name** — 189, read from the R4
+  model `fhirpath` ships (`fhirpath/fhir-context/r4`, generated from the spec's
+  StructureDefinitions), by `fhirR4TypeNames()` in `scripts/lib/fhir-vocabulary.mjs`.
+  `QuestionnaireResponse` and `CapabilityStatement` are the standard's words,
+  and a repo type that shares one — `CodeableConcept` and `HumanName` today — is
+  the spec's word first. `fhirpath` is a dependency of `@formbox/renderer`, not
+  a direct one; a missing or reshaped model throws, and its count is floored.
+- **Every published artifact's `name`** in the generated IG — 217, the
+  `SPiERSuicideRiskConcept` and `AdministerPHQ9` a reader will find in the IG.
+  Profile names are ALLOWED in guide copy: an implementer reading the guide is
+  being pointed at the published artifact, which is its identity rather than
+  this repo's machinery. No TypeScript export shares one today, so this
+  subtraction removes nothing yet; it is written down so the first one that
+  does is not a reason to stop naming the profile. The clinician's scan still
+  bans SPiER profile names outright, for a different reader.
+
+The first run over the tree found one hit: a `console.warn` in app-shell's
+local data source naming `LocalDataSource`. A devtools message has the same
+reader as an `Error`, so `console.*(…)` arguments are now skipped like
+`throw new Error(…)` — and a plain string beside it naming the same class still
+fails. Proven 2026-10-09: four plain plants, a `+`-folded one and a
+template-folded one went red in guide JSX, as did one in a generated
+`documentation.display` and one in an app-shell string; FHIR type names, the two
+subtracted repo exports, a profile name, an ALL-CAPS constant and `FHIRcast`
+stayed green. The floors are per shape and per subtraction list (camelCase,
+PascalCase, R4 type names, artifact names), so an empty exclusion list cannot
+quietly turn into a ban on the standard's own words.
+
+⚠️ **The rendered half had no identifier rule at all until the index moved into
+`scripts/lib/reader-jargon.mjs`** (2026-10-09, the day after it learned
+PascalCase). Only the script built the index, so `readerCopy.test.tsx` applied
+the six regex rules and nothing else; a page rendering `SmartDataSource` from a
+value no source scan reads passed both halves. Now `indexRepoIdentifiers()` and
+`repoJargonIn(text, index)` are shared, the test floors the index it built, and
+a name the source spells only in pieces — `{['Smart', 'DataSource'].join('')}`,
+which the source scan reads as two harmless halves — fails the gate through the
+rendered half alone. The same plant spelling `QuestionnaireResponse` or
+`SPiERSuicideRiskConcept` stays green.
+
 What it cannot see, stated so a green run is not read as more than it is:
 
 - **The 29 shared tool views' SOURCE, under the guide's rules.** They reach a
@@ -1132,8 +1182,10 @@ What it cannot see, stated so a green run is not read as more than it is:
 - **The published FSH text itself.** `Description` and `copyright` cite the
   licensing memos and `issue #64` — provenance in the IG, where it belongs. The
   guide renders `readerCopyright(copyright)`, and that is what is checked.
-- **A computed string.** Folding sees what the source spells out; a value from
-  a prop or a call is read in its literal halves.
+- **A computed string on a page the rendered half does not mount.** Folding
+  sees what the source spells out; a value from a prop or a call is read in its
+  literal halves, and only the pages `readerCopy.test.tsx` mounts are read
+  whole.
 - **Prose that names no machinery and is still about the build.** "It was called
   the Patient App until 2026-09-17" fails on the date; the same sentence without
   one passes and is just as much about this repo.

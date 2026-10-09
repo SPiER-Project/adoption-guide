@@ -163,7 +163,14 @@ describe('CarePathway — the explainer', () => {
     const owed = crisis.querySelectorAll('td.pathway-matrix__cell--owed')
     expect(owed).toHaveLength(1)
     expect(owed[0].getAttribute('colspan')).toBe('3')
-    expect(owed[0].textContent).toBe('Owed at every tier')
+    // A span is a band, named by the tiers it covers; a single tier is a check
+    // whose word ("Owed at this tier") is for a screen reader only.
+    expect(owed[0].querySelector('.pathway-matrix__band')?.textContent).toBe('Owed: All tiers')
+    const plan = matrix().getByText('Complete a collaborative safety plan').closest('tr')!
+    expect(plan.querySelector('.pathway-matrix__band')?.textContent).toBe('Owed: Moderate and high risk')
+    const stat = matrix().getByText('STAT safety evaluation').closest('tr')!
+    expect(stat.querySelector('.pathway-matrix__band')).toBeNull()
+    expect(stat.querySelector('.pathway-matrix__mark')?.textContent).toBe('Owed at this tier')
     expect(document.querySelector('.pathway-matrix .pathway-notes')).toBeNull()
     expect(document.querySelector('.pathway-matrix .pathway-stage-chip')).toBeNull()
   })
