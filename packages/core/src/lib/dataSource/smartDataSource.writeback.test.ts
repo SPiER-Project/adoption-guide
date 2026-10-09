@@ -294,7 +294,11 @@ describe('saveResponse — total failure', () => {
 })
 
 describe('saveResponse — an instrument with no Observations', () => {
-  it('omits Tier 2, and the clean QR write satisfies the ladder', async () => {
+  // Decided 2026-10-09 (#638): a form with no scores writes the readable copy
+  // even when the form itself saved. Many EHRs store a QuestionnaireResponse and
+  // display nothing from it; the live sandbox run (#640) left a Stanley-Brown
+  // plan in the chart as exactly that. This test pinned the opposite until then.
+  it('omits Tier 2, and writes the readable copy beside the clean form write', async () => {
     const { client, posted } = fakeClient()
     const source = new SmartDataSource(client as never)
     const { entry } = submission({ q1: true, q5: true })
@@ -305,23 +309,31 @@ describe('saveResponse — an instrument with no Observations', () => {
 
     expect(step(source, 2)).toBeUndefined()
     expect(step(source, 1)?.outcome).toBe('written')
-    // The floor is conditional, so a clean discrete write skips it — the
-    // DEFAULT policy (`alwaysWriteDocument: false`). Worth knowing: an EHR can
-    // store a QuestionnaireResponse and still have no viewer that renders one,
-    // and the Tier-0 narrative is the only human-readable artifact SPiER writes.
-    // A deployment that wants it regardless sets `alwaysWriteDocument`.
-    expect(typesOf(posted)).toEqual(['QuestionnaireResponse'])
-    expect(step(source, 0)?.outcome).toBe('skipped')
+    expect(typesOf(posted)).toEqual(['QuestionnaireResponse', 'DocumentReference'])
+    expect(step(source, 0)?.outcome).toBe('written')
+  })
+})
+
+describe('saveResponse — an instrument WITH scores', () => {
+  it('skips the readable copy when every part landed, by default', async () => {
+    const { client, posted } = fakeClient()
+    const source = new SmartDataSource(client as never)
+    const { entry, derived } = submission({ q1: true, q5: true })
+
+    await source.saveResponse(PATIENT, entry, derived)
+
+    expect(typesOf(posted)).not.toContain('DocumentReference')
+    expect(step(source, 0)?.skip).toBe('not-needed')
   })
 
-  it('writes the readable narrative anyway when alwaysWriteDocument is set', async () => {
+  it('writes the readable copy anyway when alwaysWriteDocument is set', async () => {
     const { client, posted } = fakeClient()
     const source = new SmartDataSource(client as never, { alwaysWriteDocument: true })
-    const { entry } = submission({ q1: true, q5: true })
+    const { entry, derived } = submission({ q1: true, q5: true })
 
-    await source.saveResponse(PATIENT, entry, null)
+    await source.saveResponse(PATIENT, entry, derived)
 
-    expect(typesOf(posted)).toEqual(['QuestionnaireResponse', 'DocumentReference'])
+    expect(typesOf(posted)).toContain('DocumentReference')
     expect(step(source, 0)?.outcome).toBe('written')
   })
 })

@@ -30,9 +30,10 @@
  * ladder had a Tier-3 Condition proposal until it was retired (a screen never
  * becomes a Condition). Do not describe one.
  *
- * ⚠️ **The readable copy is written only on fallback today.** Whether to write
- * it on every save is an open policy question (#638); the third drawer states
- * the current behaviour, and is what changes when that is decided.
+ * The readable copy is written when a higher rung did not land, AND for every
+ * form that produces no scores (#638, decided 2026-10-09): an EHR that stores a
+ * completed form without displaying it would otherwise show nothing readable
+ * for a safety plan. The "How it decides" drawer states it.
  *
  * Same shape as the three "see it running" pages (adoption-guide audit §4.4):
  * what it is, the list, then closed drawers — caveats demoted, never deleted.
@@ -124,7 +125,9 @@ export function SavingToEhrGuide() {
           <p>
             Before writing, the app reads the EHR&rsquo;s <code>CapabilityStatement</code> and
             attempts a rung only if the EHR says it can create that type. If a rung is refused or
-            fails, the readable copy carries the result instead.
+            fails, the readable copy carries the result instead. A form with no scores, such as a
+            safety plan, always gets the readable copy too: an EHR may store the completed form
+            without displaying it, and such a form has no results that would show instead.
           </p>
           <p>
             A rung that did not land is shown, never hidden or retried into looking complete. It is
@@ -133,7 +136,7 @@ export function SavingToEhrGuide() {
           </p>
         </Disclosure>
 
-        <Disclosure summary="What this does and does not prove" hint="two servers, and an open question">
+        <Disclosure summary="What this does and does not prove" hint="two servers">
           <ul className="surface-guide__list">
             <li>
               <strong>Every rung has been exercised against the stand-in EHR SPiER runs</strong>,
@@ -141,11 +144,6 @@ export function SavingToEhrGuide() {
               save has run against the public SMART Health IT sandbox, a server SPiER did not
               write. That sandbox accepts everything, so a refused rung has only been seen on
               the stand-in.
-            </li>
-            <li>
-              <strong>Today the readable copy is written only as a fallback.</strong> An EHR that
-              stores the completed form without displaying it therefore shows nothing readable.
-              Whether to write the copy on every save is an open decision.
             </li>
           </ul>
         </Disclosure>

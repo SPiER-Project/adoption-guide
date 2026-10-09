@@ -89,9 +89,10 @@ export interface WritebackArtifacts {
 
 /**
  * Which tiers to attempt. Defaults encode the plan's policy: discrete tiers 1–2
- * on (still gated by capability). `alwaysWriteDocument` forces the
- * Tier-0 floor even when the discrete tiers fully captured the data (useful for
- * the demo, where the human-readable rendering is wanted regardless).
+ * on (still gated by capability). The Tier-0 floor runs when a discrete tier
+ * did not land, or when the form produced no scores (#638); `alwaysWriteDocument`
+ * forces it on every save, even when the discrete tiers captured everything and
+ * the EHR will display the scores.
  */
 export interface WritebackConfig {
   /** default true */

@@ -43,7 +43,7 @@ Climbing = a more capable EHR. Ordered here by tier; **execution** order is
 
 | Tier | Resource | Role | Default |
 |---|---|---|---|
-| 0 | `DocumentReference` | The universal floor: a readable HTML rendering **plus** the raw QR as base64 FHIR JSON, so discrete data is recoverable even where no discrete tier landed. | Conditional — fires when the discrete tiers did not all land cleanly, or on `alwaysWriteDocument` |
+| 0 | `DocumentReference` | The universal floor: a readable HTML rendering **plus** the raw QR as base64 FHIR JSON, so discrete data is recoverable even where no discrete tier landed. | Conditional — fires when the discrete tiers did not all land cleanly, when the form produced no scores (#638), or on `alwaysWriteDocument` |
 | 1 | `QuestionnaireResponse` | The discrete capture; SDC-canonical, most broadly supported, and the resource every higher rung references. | On, gated by capability |
 | 2 | `Observation` | Scored + harmonized risk-tier Observations — the computable rung. | On, gated by capability |
 
@@ -201,15 +201,24 @@ makes. Nothing hand-writes a resource shape. Both new suites were verified to
   `SMART_LAUNCH_URL`. `type: 'absolute'` is left only for the in-app cards,
   where SPiER itself follows the link.
 
+- **Adoption-pathways guide page** (#637, PR #645) — `/guide/provider-app/saving-to-the-ehr`:
+  the SMART app as the low-floor on-ramp, native EHR documents as the
+  recommended end state.
+- **When the readable copy is written** (#638, decided 2026-10-09 — the middle
+  of three options). The floor now also fires for **any save that derives no
+  Observation**, even when the form itself landed. The gap it closes: many EHRs
+  *store* a QuestionnaireResponse and render nothing, so a form with no scores —
+  a safety plan, a recorder's form — reached the chart as nothing a clinician
+  could read; the live sandbox run left a Stanley-Brown plan exactly like that.
+  A form WITH scores still skips the copy when everything landed, because the
+  EHR shows its results. The two options not taken: `alwaysWriteDocument` on
+  for every save (simplest, but a duplicate document beside data the EHR
+  already displays), and leaving it fallback-only. The rule is derived from the
+  save, not a list of instruments, so a new form needs no entry;
+  `alwaysWriteDocument` remains for a site that wants a copy of everything.
+
 ## Still open
 
-- **Adoption-pathways guide page** (#637) — the SMART app as the low-floor
-  on-ramp, native EHR documents as the recommended end state.
-- **Should the demo set `alwaysWriteDocument`?** Currently it does not, so an
-  instrument with no Observations writes only a QuestionnaireResponse and no
-  readable narrative. Many EHRs can *store* a QR while rendering nothing, which
-  is exactly the case Tier 0 exists for. Deliberately left at the module's
-  default rather than changed as a side effect of wiring — it is a policy call
-  (#638).
+Nothing. Every item #350 listed is closed.
 
 [#350]: https://github.com/SPiER-Project/adoption-guide/issues/350
