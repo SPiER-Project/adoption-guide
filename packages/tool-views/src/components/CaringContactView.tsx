@@ -104,8 +104,7 @@ export function CaringContactView() {
           Writes a <strong>Communication</strong> on the <strong>SPiERCaringContact</strong>{' '}
           profile. The adherence measure matches its numerator on that profile, and the{' '}
           <code>caring-contact-opt-out</code> extension is what its{' '}
-          <code>denominator-exclusion</code> reads — which is why this is not the generic recorder
-          (#211).
+          <code>denominator-exclusion</code> reads — which is why this is not the generic recorder.
         </>
       }
       draft={draft}
