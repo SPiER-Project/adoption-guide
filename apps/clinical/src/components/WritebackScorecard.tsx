@@ -128,6 +128,10 @@ export function WritebackScorecard({ report }: { report: WritebackReport | null 
 
   const written = report.result.steps.filter(s => s.outcome === 'written')
   const failed = report.result.steps.filter(s => s.outcome === 'failed')
+  // The parts this save NEEDED. A readable copy skipped as not needed, or a part
+  // turned off in settings, is not a part that failed to save — counting it
+  // made a complete save read "2 of 3 parts saved" against a real EHR (#640).
+  const needed = report.result.steps.filter(s => s.skip !== 'not-needed' && s.skip !== 'disabled')
 
   return (
     <Card as="section" className="writeback-scorecard" aria-labelledby="writeback-scorecard-heading">
@@ -136,8 +140,8 @@ export function WritebackScorecard({ report }: { report: WritebackReport | null 
         title="Saved to the EHR"
         meta={
           <>
-            {written.length} of {report.result.steps.length}{' '}
-            {report.result.steps.length === 1 ? 'part' : 'parts'} saved
+            {written.length} of {needed.length}{' '}
+            {needed.length === 1 ? 'part' : 'parts'} saved
             {failed.length > 0 ? `, ${failed.length} failed` : ''}.
           </>
         }

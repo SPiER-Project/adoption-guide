@@ -1,114 +1,135 @@
 # Testing SPiER against the SMART Health IT sandbox
 
-How to exercise the app's SMART on FHIR live read/write path (`SmartDataSource`)
-against the public [SMART App Launcher](https://launch.smarthealthit.org)
-sandbox. No client registration or backend is required — the app is a public
-client using PKCE (fhirclient's default).
+How to exercise the clinical app's SMART on FHIR live read/write path
+(`SmartDataSource`) against the public [SMART App Launcher](https://launch.smarthealthit.org)
+sandbox — a FHIR server SPiER did not write (Smile CDR). No client registration
+or backend is required: the app is a public client using PKCE (fhirclient's
+default), and the sandbox accepts any `client_id`.
 
-## How the launch flow works with the hash router
+⚠️ **The sandbox is public and shared.** Every resource you save is visible to
+anyone using it and cannot be deleted. Use its synthetic patients only, and type
+nothing that looks like real data.
 
-The app is served from a static host (GitHub Pages) under the Vite base path
-`/adoption-guide/`, with `HashRouter` routes. Two constraints follow:
+## How the launch reaches the app
 
-1. **OAuth redirect URIs cannot carry hash fragments** (RFC 6749 §3.1.2), and
-   GitHub Pages serves no path other than the app base — so the registered
-   redirect URI is the app base itself (e.g.
-   `https://<host>/adoption-guide/`).
+The SMART apps are the **clinical** build (`apps/clinical`), served by
+`services/clinical` at the `clinical` origin in `deploy-origins.json`, and
+locally by `npm run dev:clinical` (port 5174). The guide carries no SMART
+plumbing. The app is served at its base path with `HashRouter` routes, so two
+constraints follow:
+
+1. **OAuth redirect URIs cannot carry hash fragments** (RFC 6749 §3.1.2), so the
+   redirect URI is the app base itself (`http://localhost:5174/` locally).
 2. fhirclient reads `iss`/`launch` (launch leg) and `code`/`state` (redirect
    leg) from the **real query string**, not the hash.
 
-`apps/guide/src/main.tsx` therefore bootstraps both legs: when the app loads at its
-base URL with `?iss=…&launch=…` it routes to `#/launch`, and with
-`?code=…&state=…` it routes to `#/redirect`, keeping the query string intact
-for fhirclient.
+`packages/app-shell/src/bootstrap.tsx` therefore bootstraps both legs: loaded at
+its base URL with `?iss=…&launch=…` it routes to `#/launch`, and with
+`?code=…&state=…` to `#/redirect`, keeping the query string intact.
 
-**Launcher config implication:** the app's *launch URL* is the plain app base —
-**not** `…/#/launch`. If the launch URL contains a `#`, the launcher appends
-`?launch=…&iss=…` after the fragment and fhirclient never sees the params.
+## Launching
 
-## Exact launcher configuration
+### From the launcher UI
 
-At <https://launch.smarthealthit.org>:
+At <https://launch.smarthealthit.org>: Launch Type **Provider EHR Launch**, FHIR
+Version **R4**, *Simulate launch within the EHR UI* off, pick a patient and a
+provider, and set **App's Launch URL** to the plain app base —
+`http://localhost:5174/` locally, or the clinical origin. **Not** `…/#/launch`:
+with a `#` in the launch URL the launcher appends `?launch=…&iss=…` after the
+fragment and fhirclient never sees them.
 
-| Field | Value |
-| --- | --- |
-| Launch Type | Provider EHR Launch |
-| FHIR Version | R4 |
-| Simulate launch within the EHR UI | off (open in new tab) |
-| Patient(s) | pick any (e.g. *Kendall Keeling*) |
-| Provider(s) | pick any |
-| **App's Launch URL** | `http://localhost:5173/adoption-guide/` (local dev) or `https://spier-project.github.io/adoption-guide/` (deployed) |
+### URL-driven (no clicks — what the 2026-10-09 run used)
 
-Client Identity Validation can stay off (the app sends `client_id:
-spier-client`, which the open sandbox accepts). Press **Launch** — the app
-authorizes, exchanges the code, and lands on the Patient Chart reading the
-launch patient's live data.
+The launcher encodes its settings in the `launch` token, a base64url JSON array:
+`[launch_type_index, patient, provider, encounter, skip_login, skip_auth,
+sim_ehr, scope, redirect_uris, client_id, client_secret, auth_error, jwks_url,
+jwks, client_type_index, pkce_index, fhir_server]`.
 
-For local dev, start the server first (`npm run dev` at the repo root).
-
-### URL-driven launch (no launcher UI — useful for scripted testing)
-
-The launcher encodes its sim settings in the `launch` token: a base64url JSON
-array `[launch_type_index, patient, provider, encounter, skip_login,
-skip_auth, sim_ehr, …]`. With `skip_login`/`skip_auth` set, the authorize
-endpoint redirects straight back — the whole flow runs with zero clicks:
+⚠️ **`skip_login` needs a provider id.** With the provider empty — which is what
+this page's previous example did — the launcher stops at a practitioner login
+page, whatever `skip_login` says. Give it a `Practitioner` id from the sandbox:
 
 ```sh
-TOKEN=$(node -e "console.log(Buffer.from(JSON.stringify(
-  [0, '<patient-id>', '', 'AUTO', 1, 1, 0, '', '', '', '', '', '', '', 0, 0]
-)).toString('base64url'))")
-open "http://localhost:5173/adoption-guide/?iss=https%3A%2F%2Flaunch.smarthealthit.org%2Fv%2Fr4%2Ffhir&launch=$TOKEN"
+B=https://launch.smarthealthit.org/v/r4/fhir
+curl -s "$B/Patient?_count=5&_elements=id,name"
+curl -s "$B/Practitioner?_count=2&_elements=id"
 ```
 
-Patient ids can be listed from the open endpoint:
-`https://r4.smarthealthit.org/Patient?_count=5&_elements=id,name`.
+```sh
+TOKEN=$(node -e "console.log(Buffer.from(JSON.stringify([0,'<patient-id>','<practitioner-id>','AUTO',1,1,0,'','','','','','','',0,0,''])).toString('base64url'))")
+```
+
+```sh
+open "http://localhost:5174/?iss=https%3A%2F%2Flaunch.smarthealthit.org%2Fv%2Fr4%2Ffhir&launch=$TOKEN"
+```
 
 ## What to verify
 
-1. **Read:** after launch, the chart shows the launch patient's banner (name,
-   DOB, SMART badge) and loads their server data. A fresh sandbox patient has
-   no SPiER data — foreign survey Observations appear under **Other activity**
-   (collapsed) and in Patient Documents. A foreign **PHQ-9** is the exception —
-   it derives via the code-based fallback and does produce a risk alert (see
-   *Known limitations*).
-2. **Write:** submit a PHQ-9 from the sidebar. Since #351 the write climbs the
-   **writeback ladder** (`packages/core/src/lib/writeback/`, driven by
-   `SmartDataSource.saveResponse`): the server's CapabilityStatement is probed,
-   the QuestionnaireResponse is POSTed first, then each derived Observation with
-   `derivedFrom` pointing at the server-assigned QR id and `subject` set to the
-   launch patient. A `DocumentReference` may also be written — see step 4. Every
-   tier's outcome is rendered by the **writeback scorecard** on the chart. See
-   [`plans/smart-filler-writeback-ladder.md`](plans/smart-filler-writeback-ladder.md).
-3. **Round-trip:** the chart refreshes from the server after the save — the
-   response, its Observations (staged under *Identify Possible Risk* via their
-   pathway `meta.tag`), and the recomputed risk alert appear. Confirm
-   server-side:
+1. **Read.** The chart shows the launch patient's banner with the SMART badge,
+   and the pathway reads from what is on file. A fresh sandbox patient has no
+   SPiER data, so Step 1 is due; their own records (smoking status, medication
+   documentation) appear under *What's on file*.
+2. **Write.** Submit an instrument, then press **Save to the chart**. The save
+   climbs the writeback ladder (`packages/core/src/lib/writeback/`, driven by
+   `SmartDataSource.saveResponse`; see
+   [`plans/smart-filler-writeback-ladder.md`](plans/smart-filler-writeback-ladder.md)):
+   capability probe, the QuestionnaireResponse first, then each derived
+   Observation with `derivedFrom` pointing at the **server-assigned** response
+   id, then the readable copy only if something above it did not land.
+3. **Round-trip.** Back on the chart, the save is there **immediately** — the
+   pathway advances and the banner shows the new risk. Confirm server-side,
+   remembering that this server's search lags (see the results below):
 
    ```sh
-   curl -s -H "Authorization: Bearer <token>" \
-     "https://launch.smarthealthit.org/v/r4/fhir/QuestionnaireResponse?patient=<patient-id>"
+   curl -s "https://launch.smarthealthit.org/v/r4/fhir/QuestionnaireResponse?patient=<patient-id>"
    ```
 
-   Or simply re-launch the same patient — the submission is still there.
-4. **Errors surface, no silent fallback — but read this carefully, it changed
-   in #351.** Nothing is ever written to localStorage in SMART mode; that half
-   still holds. What changed is *where* a rejection shows up.
+4. **Errors surface.** A **partial** rejection is reported by the scorecard, per
+   part, while the readable copy carries the data and `saveResponse` resolves; the
+   red **EHR data error** banner means a **total** failure (nothing created, not
+   even the floor). Verify both paths. The public sandbox accepts every write, so
+   a refusal can only be exercised against the mock EHR's capability profiles.
 
-   A **partial** rejection no longer produces the red banner. If the server
-   refuses `Observation.create`, the ladder records that tier as `failed`, fires
-   the Tier-0 `DocumentReference` floor so the data is still recoverable, and
-   `saveResponse` **resolves successfully**. The failure is reported in the
-   writeback scorecard, per tier, with the HTTP status — not as a save error.
-   That is the ladder's designed degradation, not a swallowed error.
+## Results: SMART Health IT R4 sandbox, 2026-10-09 (#640)
 
-   The red **EHR data error** banner now means a **total** failure: not one
-   resource was created, not even the floor. `saveResponse` throws only in that
-   case.
+One synthetic patient (Wendy Littel); a PHQ-9 (positive item 9), a Stanley-Brown
+safety plan and an ASQ (non-acute positive), each submitted and saved.
 
-   ⚠️ So verifying "errors surface" means checking **both** paths: refuse one
-   resource type and confirm the scorecard names it while the floor lands; refuse
-   *everything* and confirm the banner appears. Checking only the banner would
-   now pass while a whole tier failed silently.
+**Held** — what the mock EHR had shown, now seen on a server SPiER did not write:
+
+- The launch, the token's scopes and the patient-scoped reads.
+- The CapabilityStatement parsed, and advertised `create` for every rung.
+- **Server-assigned ids** (numeric here, not UUIDs) were remapped correctly: every
+  stored Observation's `derivedFrom` names the response's server id.
+- Profiles and pathway-stage tags on the Observations, CarePlan, Encounter and
+  EpisodeOfCare were stored as sent. The server does not validate profiles, so
+  this proves storage, not conformance.
+- The readable copy was correctly *not* written: every part above it landed.
+
+**Found and fixed in this change:**
+
+| What happened | Why the mock could not show it | Fix |
+|---|---|---|
+| The chart showed the chart as it was **before** a save — "No suicide-risk screen on file" over a screen just saved — for about a minute. | Smile CDR makes a write searchable only after the request returns; a read by id found it at once. The mock indexes synchronously. | `SmartDataSource` remembers what it wrote this session and adds anything the search has not returned yet (`mergeWritten`). Re-verified live: the ASQ appeared on the chart seconds after its save. |
+| Every saved QuestionnaireResponse was stored with `status: in-progress`. | Nothing in the mock or the tests read the stored status; fixtures were built `completed`. | The form view marks a submitted response `completed`; the renderer hands back `in-progress` even from its submit. Re-verified: the ASQ was stored `completed`. |
+| The scorecard read "2 of 3 parts saved" for a complete save. | The same on the mock — but nobody had looked at a complete save's headline. | It counts only the parts the save needed; a readable copy skipped as not needed is not an unsaved part. |
+| This page's launch example stopped at a practitioner login. | — | The launch token above now carries a practitioner id. |
+
+**Seen, not fixed here:**
+
+- **Three `404`s in the console during the safety-plan save**, with every resource
+  present on the server afterwards and no part reported failed. The save path
+  makes no read by id, and the browser does not expose a cross-origin status, so
+  the requests were not identified.
+- **A response launched from the chart's own card carries no stage tag** (only a
+  `?tool=` launch stamps one). Stage resolution falls back to the Questionnaire's
+  canonical, which is unambiguous for these instruments — not a defect, but a
+  reader of the raw server data sees untagged responses.
+- **The problem-list card shows "LOINC 93374-7" on the clinician's screen.** The
+  string is built in core from the published PlanDefinition, which the jargon
+  check does not read; it is not specific to this server.
+- **The ASQ's "screening result category" is asked of the clinician**, not
+  calculated from the answers.
 
 ## Known limitations
 

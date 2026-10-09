@@ -271,6 +271,22 @@ describe('QuestionnaireView — the two exits from the results screen', () => {
     expect(document.querySelector('.submit-result-summary')).not.toBeNull()
   })
 
+  // The real renderer hands back `in-progress` even from its submit handler, so
+  // every saved response reached a third-party EHR as in-progress (#640). A
+  // submitted form is a completed one, whatever the renderer said.
+  it('saves a submitted response as completed, even when the renderer says in-progress', async () => {
+    form.submitted = { ...highRiskScreen(), status: 'in-progress' }
+    renderScreener()
+    submit()
+
+    await waitFor(() => expect(document.querySelector('.submit-review')).not.toBeNull())
+    saveButton().click()
+
+    await waitFor(() => expect(addResponse).toHaveBeenCalledTimes(1))
+    const [, written] = addResponse.mock.calls[0] as [string, QuestionnaireResponseResource]
+    expect(written.status).toBe('completed')
+  })
+
   it('Start over returns to a blank form and keeps the results out of the chart', async () => {
     form.submitted = highRiskScreen()
     renderScreener()

@@ -133,12 +133,14 @@ export function SavingToEhrGuide() {
           </p>
         </Disclosure>
 
-        <Disclosure summary="What this does and does not prove" hint="one server, and an open question">
+        <Disclosure summary="What this does and does not prove" hint="two servers, and an open question">
           <ul className="surface-guide__list">
             <li>
               <strong>Every rung has been exercised against the stand-in EHR SPiER runs</strong>,
-              including one that refuses scores and one that accepts only documents. A server SPiER
-              did not write has not yet been tried.
+              including one that refuses scores and one that accepts only documents, and the full
+              save has run against the public SMART Health IT sandbox, a server SPiER did not
+              write. That sandbox accepts everything, so a refused rung has only been seen on
+              the stand-in.
             </li>
             <li>
               <strong>Today the readable copy is written only as a fallback.</strong> An EHR that
