@@ -250,8 +250,8 @@ describe('the sidebar groups the guide by the reader’s question', () => {
     ['/guide/pathway/protocol', 'Care Pathway'],
     ['/guide/tools/TL-003', 'Tools'],
     // …unless it has a row of its own, nested under its section.
-    ['/guide/pathway/emergency-department', 'Emergency department'],
-    ['/guide/pathway/inpatient', 'Inpatient psychiatric care'],
+    ['/guide/pathway/emergency-department', 'Emergency'],
+    ['/guide/pathway/inpatient', 'Inpatient'],
   ])('lights exactly one row on %s, and it is %s', (path, label) => {
     renderAt(path)
     const guideNav = screen.getByRole('navigation', { name: 'Adoption Guide' })

@@ -195,7 +195,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     open section so the column stays the guide's outline rather
                     than every page in it. */}
                 {active === section && nested.length > 0 && (
-                  <div className="sidebar-sublist" role="group" aria-label={`${section.label} pages`}>
+                  <div role="group" aria-label={`${section.label} pages`}>
                     {nested.map(sub => (
                       <Link
                         key={sub.path}

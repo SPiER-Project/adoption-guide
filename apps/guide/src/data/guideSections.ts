@@ -156,7 +156,10 @@ export interface GuideSection {
  *
  * `nav` puts it in the SIDEBAR, nested under its section while that section is
  * open, with `nav` as the row's (shorter) label — `label` stays the page's
- * title. Opt-in, and most subsections stay out on purpose: `pathway/protocol`
+ * title. ⚠️ A nested row is the same pill as every other row (foundation.css,
+ * the --nav-* tokens), so its label has 147px at the row's 14px type: "Emergency
+ * department" (170) and "Inpatient psychiatric care" (184) did not fit, and the
+ * fix is a shorter label, never a smaller row. Opt-in, and most subsections stay out on purpose: `pathway/protocol`
  * is a second VIEW of Care Pathway reached by one link from the explainer, not
  * a place of its own (adoption-guide UX audit §4.2), and `tools/:toolRef` is
  * one page per tool. The setting pathways are the case for it: each is a
@@ -224,8 +227,8 @@ export const GUIDE_SECTIONS: GuideSection[] = [
     // them; settingPathways.test.ts fails the two apart.
     subsections: [
       { path: 'pathway/protocol', label: 'The published protocol' },
-      { path: 'pathway/emergency-department', label: 'In the emergency department', nav: 'Emergency department' },
-      { path: 'pathway/inpatient', label: 'In inpatient psychiatric care', nav: 'Inpatient psychiatric care' },
+      { path: 'pathway/emergency-department', label: 'In the emergency department', nav: 'Emergency' },
+      { path: 'pathway/inpatient', label: 'In inpatient psychiatric care', nav: 'Inpatient' },
     ],
   },
   // `wide`: two catalogue tables.
