@@ -326,7 +326,10 @@ export function CarePathway() {
       {/* ── The tier table, lit by the simulator ──────────────── */}
       <section aria-labelledby="pathway-tiers-title">
         <h3 id="pathway-tiers-title" className="pathway-section-title">What each tier is owed</h3>
-        <PathwayTierTable tiers={tiers} activeTierCode={simulation.tierCode} framed density="summary" />
+        {/* No tier until an answer derives one: an all-No screen leaves the
+            table at full strength rather than faded, so it reads as the
+            reference it is instead of as disabled. */}
+        <PathwayTierTable tiers={tiers} activeTierCode={activeTier ? simulation.tierCode : undefined} framed density="summary" />
       </section>
 
       {/* ── One link onward: the implementer's page ────────────── */}

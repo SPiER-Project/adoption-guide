@@ -515,7 +515,10 @@
   width: 46%;
 }
 
-.pathway-matrix--summary .pathway-matrix__cell--owed {
+/* Every mark centred under its tier — the dash too, which DataTable's own
+   cell alignment otherwise left-aligned beside centred "Owed" marks. */
+.pathway-matrix--summary .pathway-matrix__cell,
+.pathway-matrix--summary .pathway-matrix__tier {
   text-align: center;
 }
 

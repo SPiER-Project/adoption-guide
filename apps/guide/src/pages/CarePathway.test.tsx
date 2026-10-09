@@ -179,15 +179,18 @@ describe('CarePathway simulator', () => {
     ).toBeDefined()
   })
 
-  it('derives no-risk from an all-No screen, and every column stays unlit', () => {
+  it('derives no-risk from an all-No screen, and the table stays at full strength', () => {
     renderPage()
     expect(derivedTier()).toBe('no-risk')
     // ...and says so beside the questions, matching the artifact's negative-assessment note.
     expect(resultPanel().title).toBe('Does not enter the pathway')
     expect(resultPanel().owed).toEqual([])
     expect(document.querySelector('.pathway-sim__exit')?.textContent).toMatch(/does not enter the pathway/)
+    // No tier was chosen, so nothing is lit AND nothing is faded: the table
+    // stays at full strength until an answer derives a tier.
     expect(document.querySelector('.pathway-matrix__cell--active')).toBeNull()
-    expect(document.querySelectorAll('.pathway-matrix__cell--dimmed').length).toBeGreaterThan(0)
+    expect(document.querySelector('.pathway-matrix__cell--dimmed')).toBeNull()
+    expect(document.querySelector('th[aria-current="true"]')).toBeNull()
   })
 
   it('derives high from a single endorsed q5, through the shipped mapper, and lights that column', () => {
