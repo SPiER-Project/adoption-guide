@@ -4,3 +4,4 @@
 export const RESOURCE_TYPES: string[]
 export const ALSO_ENGLISH: Set<string>
 export const WIRE_ONLY_RESOURCE_TYPES: string[]
+export function fhirR4TypeNames(): Set<string>

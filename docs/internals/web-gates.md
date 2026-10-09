@@ -1149,6 +1149,17 @@ stayed green. The floors are per shape and per subtraction list (camelCase,
 PascalCase, R4 type names, artifact names), so an empty exclusion list cannot
 quietly turn into a ban on the standard's own words.
 
+⚠️ **The rendered half had no identifier rule at all until the index moved into
+`scripts/lib/reader-jargon.mjs`** (2026-10-09, the day after it learned
+PascalCase). Only the script built the index, so `readerCopy.test.tsx` applied
+the six regex rules and nothing else; a page rendering `SmartDataSource` from a
+value no source scan reads passed both halves. Now `indexRepoIdentifiers()` and
+`repoJargonIn(text, index)` are shared, the test floors the index it built, and
+a name the source spells only in pieces — `{['Smart', 'DataSource'].join('')}`,
+which the source scan reads as two harmless halves — fails the gate through the
+rendered half alone. The same plant spelling `QuestionnaireResponse` or
+`SPiERSuicideRiskConcept` stays green.
+
 What it cannot see, stated so a green run is not read as more than it is:
 
 - **The 29 shared tool views' SOURCE, under the guide's rules.** They reach a
@@ -1158,8 +1169,10 @@ What it cannot see, stated so a green run is not read as more than it is:
 - **The published FSH text itself.** `Description` and `copyright` cite the
   licensing memos and `issue #64` — provenance in the IG, where it belongs. The
   guide renders `readerCopyright(copyright)`, and that is what is checked.
-- **A computed string.** Folding sees what the source spells out; a value from
-  a prop or a call is read in its literal halves.
+- **A computed string on a page the rendered half does not mount.** Folding
+  sees what the source spells out; a value from a prop or a call is read in its
+  literal halves, and only the pages `readerCopy.test.tsx` mounts are read
+  whole.
 - **Prose that names no machinery and is still about the build.** "It was called
   the Patient App until 2026-09-17" fails on the date; the same sentence without
   one passes and is just as much about this repo.

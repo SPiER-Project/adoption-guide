@@ -7,4 +7,14 @@ export interface JargonRule {
 }
 
 export const REPO_RULES: JargonRule[]
-export function repoJargonIn(text: string): { rule: string; match: string } | null
+export interface RepoIdentifierIndex {
+  camel: Set<string>
+  pascal: Set<string>
+  subtracted: Set<string>
+  fhirTypeNames: Set<string>
+  artifactNames: Set<string>
+  all: Set<string>
+}
+
+export function indexRepoIdentifiers(): RepoIdentifierIndex
+export function repoJargonIn(text: string, identifiers: Set<string>): { rule: string; match: string } | null
