@@ -56,9 +56,9 @@
  * `npm run check:surface-links` can read them; a computed target is the one
  * form that gate cannot see.
  */
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
-import { Check } from 'lucide-react'
+import { Check, ChevronDown } from 'lucide-react'
 import { cssrsScreener } from '@spier/core/data/questionnaires'
 import { buildNativeQuestionnaireResponse } from '@spier/core/lib/nativeQuestionnaireResponse'
 import { mapCSSRSScreener } from '@spier/core/lib/observationMappers/cssrsScreener'
@@ -71,6 +71,7 @@ import { guideHref } from '../data/guideSections'
 import '@spier/app-shell/css/CarePathway.css'
 import { Button } from '@spier/ui/Button'
 import { Card } from '@spier/ui/Card'
+import { cx } from '@spier/ui/cx'
 
 /* ─── The simulator's questions, derived from the Questionnaire ─── */
 
@@ -112,6 +113,25 @@ function questionText(linkId: string): string {
 
 /* ─── The page ───────────────────────────────────────────────── */
 
+/**
+ * Whether any of the observed element is on screen.
+ *
+ * Starts `false` and stays there without an `IntersectionObserver` (jsdom),
+ * which leaves the sticky result bar SHOWN — the bar is the fallback, the
+ * panel the thing it stands in for, so an unmeasured page keeps both.
+ */
+function useInView(ref: RefObject<HTMLElement | null>): boolean {
+  const [inView, setInView] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const observer = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting))
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [ref])
+  return inView
+}
+
 export function CarePathway() {
   const location = useLocation()
 
@@ -120,6 +140,13 @@ export function CarePathway() {
   })
 
   const loaded = usePathway()
+
+  // On a phone the result panel sits under all six questions, so a reader
+  // ticking Q1 sees nothing change. A one-line bar sticks to the bottom of the
+  // screen while the questions are in view and steps aside once the panel
+  // itself is on screen.
+  const resultRef = useRef<HTMLDivElement>(null)
+  const resultInView = useInView(resultRef)
 
   const simulation = useMemo(() => {
     // Mirror the form: `q6-recent` is `enableWhen` q6 = Yes, so an unanswered
@@ -272,9 +299,40 @@ export function CarePathway() {
                 </li>
               ))}
             </ul>
+
+            {/* The phone's stand-in for the panel: sticky to the bottom of the
+                screen while the questions are in view, hidden at desktop
+                widths (the panel is beside the questions there) and while
+                the panel itself is on screen. Not a live region — the panel
+                is, and one announcement per answer is enough. The dock is
+                zero-height, so the bar overlays the questions and reserves no
+                gap under Q6 when it steps aside. */}
+            <div className="pathway-sim__dock">
+              <button
+                type="button"
+                className={cx(
+                  'pathway-sim__bar',
+                  `pathway-sim__bar--${simulation.tierCode}`,
+                  resultInView && 'pathway-sim__bar--hidden',
+                )}
+                aria-hidden={resultInView || undefined}
+                tabIndex={resultInView ? -1 : undefined}
+                onClick={() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              >
+                <span className="pathway-sim__result-label">Result</span>
+                <span className="pathway-sim__bar-tier">{activeTier?.title ?? 'Does not enter the pathway'}</span>
+                {activeTier && (
+                  <span className="pathway-sim__bar-count">
+                    {owed.length} owed
+                  </span>
+                )}
+                <ChevronDown size={16} aria-hidden="true" className="pathway-sim__bar-go" />
+              </button>
+            </div>
           </div>
 
           <div
+            ref={resultRef}
             className={`pathway-sim__result pathway-sim__result--${simulation.tierCode}`}
             data-tier={simulation.tierCode}
             aria-live="polite"

@@ -682,6 +682,69 @@
   }
 }
 
+/* The phone's one-line result: sticky to the bottom of the screen while the
+   questions are in view (its dock's containing block is the questions column,
+   so it comes to rest over Q6), faded out while the full panel is on screen,
+   and gone at 1024px and up, where the panel sits beside the questions. The
+   dock is zero-height and the bar hangs off it, so stepping aside leaves no
+   gap where the bar was. */
+.pathway-sim__dock {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  height: 0;
+}
+
+.pathway-sim__bar {
+  font: var(--type-ui);
+  position: absolute;
+  right: 0;
+  bottom: var(--space-3);
+  left: 0;
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-card);
+  box-shadow: var(--shadow-lg);
+  color: var(--text-strong);
+  text-align: left;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.pathway-sim__bar--low { border-color: var(--risk-low-edge); background-color: var(--risk-low-soft); }
+.pathway-sim__bar--moderate { border-color: var(--risk-moderate-edge); background-color: var(--risk-moderate-soft); }
+.pathway-sim__bar--high { border-color: var(--risk-high-edge); background-color: var(--risk-high-soft); }
+
+.pathway-sim__bar--hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pathway-sim__bar-tier {
+  flex: 1;
+  font-weight: var(--font-weight-semibold);
+}
+
+.pathway-sim__bar-count {
+  font: var(--type-caption);
+  color: var(--text-muted);
+}
+
+.pathway-sim__bar-go {
+  flex: none;
+  color: var(--text-muted);
+}
+
+@media (min-width: 1024px) {
+  .pathway-sim__dock {
+    display: none;
+  }
+}
+
 .pathway-sim__questions {
   display: flex;
   flex-direction: column;
