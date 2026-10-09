@@ -87,12 +87,17 @@ import { GUIDE_SURFACE_LINKS } from '../data/surfaceLinks'
 import { MOCK_EHR_LABEL, MOCK_EHR_URL } from '../data/surfaces'
 import { guideToolHref, toolForFormSlug, toolForms, toolsSharingForm } from '../data/toolForms'
 import '../css/ToolPage.css'
+import { InlineMarkdown } from '../components/InlineMarkdown'
 
 /** The catalogue's record of what a tool is for: its description, the settings it belongs in, its tags. */
 function AboutDrawer({ tool }: { tool: Tool }) {
   return (
     <Disclosure summary="What it is for" hint={tool.settings.join(' · ')}>
-      {tool.description && <p className="tool-page__desc">{tool.description}</p>}
+      {tool.description && (
+        <p className="tool-page__desc">
+          <InlineMarkdown text={tool.description} />
+        </p>
+      )}
       {tool.settings.length > 0 && (
         <div className="tool-page__chips">
           <span className="tool-page__chips-label">Settings</span>

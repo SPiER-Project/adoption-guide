@@ -70,6 +70,17 @@
   color: var(--text-body);
 }
 
+/* A code span from the description's markdown (a FHIR search query, an
+   operation name). It may run the width of the column with no space in it, so
+   it breaks anywhere rather than relying on the paragraph's break-word. */
+.tool-page__desc code {
+  overflow-wrap: anywhere;
+  padding: 0 var(--space-0-5);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-muted);
+  font-family: var(--font-mono);
+}
+
 .tool-page__chips {
   font: var(--type-caption);
   display: flex;
