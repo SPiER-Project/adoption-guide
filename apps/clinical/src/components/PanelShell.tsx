@@ -65,7 +65,7 @@ import { useScrollToTopOnNavigate } from '@spier/app-shell/hooks/useScrollToHash
 import { usePatient } from '@spier/tool-views/context/PatientContext'
 import { usePresentation } from '@spier/tool-views/context/PresentationContext'
 import { PatientIdentityStrip } from '@spier/app-shell/components/PatientIdentityStrip'
-import { useIsNarrow } from '../hooks/useIsNarrow'
+import { useIsNarrow } from '@spier/app-shell/hooks/useIsNarrow'
 import '../css/PanelShell.css'
 
 export function PanelShell() {

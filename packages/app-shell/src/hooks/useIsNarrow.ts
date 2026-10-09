@@ -17,6 +17,10 @@ export const PHONE_BREAKPOINT = 640
  * The element's OWN width, not the window's: this runs inside a host EHR's
  * iframe, where the window is the frame and the frame is what the host sized.
  *
+ * Two callers: `PanelShell` (apps/clinical) measures the panel's chrome, and the
+ * pathway's tier table (components/PathwayView.tsx) measures its own box, which
+ * is why it lives in app-shell — the table renders on the guide too.
+ *
  * ⚠️ **A width of zero is "not measured yet", never "narrow".** jsdom reports 0
  * for every element, and so does a real browser for one frame before layout, so
  * a naive `width < 640` starts life true everywhere — which would make the
