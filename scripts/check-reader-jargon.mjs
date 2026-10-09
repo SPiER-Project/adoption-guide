@@ -132,10 +132,10 @@ import { join } from 'node:path'
 import ts from 'typescript'
 
 import { appRoot, relRepo, REPO_ROOT, walkExt } from './lib/app-roots.mjs'
-import { fhirR4TypeNames, RESOURCE_TYPES, WIRE_ONLY_RESOURCE_TYPES } from './lib/fhir-vocabulary.mjs'
+import { RESOURCE_TYPES, WIRE_ONLY_RESOURCE_TYPES } from './lib/fhir-vocabulary.mjs'
 import { reportFloors } from './lib/floors.mjs'
 import { loadCore } from './lib/load-core.mjs'
-import { REPO_RULES } from './lib/reader-jargon.mjs'
+import { indexRepoIdentifiers, REPO_RULES, repoJargonIn } from './lib/reader-jargon.mjs'
 
 let failures = 0
 function fail(msg) {
@@ -143,132 +143,25 @@ function fail(msg) {
   failures++
 }
 
-// ── The repo's own identifiers, camelCase and PascalCase ───────────────────
+// ── The repo's own identifiers ─────────────────────────────────────────────
 
-/**
- * Trees whose names are "this repo's machinery". `docs/` is absent because a
- * doc's file name is caught by the source-file rule, and `ig/` because a FHIR
- * artifact's file name is too.
- */
-const SYMBOL_ROOTS = ['apps', 'packages', 'scripts', 'services', 'shims', 'tests']
-
-/**
- * ⚠️ **Installed and generated trees, which are not "this repo's machinery".**
- * Each Worker under `services/` has its own `node_modules`, so on a machine
- * where they are installed the index went from 454 names to 976 — every
- * camelCase export of every dependency, which would ban `createRoot` or
- * `useSyncExternalStore` from reader copy and mean nothing when it fired.
- * Caught because the gate prints the count on every run and the floor called it
- * out as slack; it would otherwise have depended on whether someone had run
- * `npm install` in a service.
- */
-const NOT_OURS = /(?:^|\/)(?:node_modules|dist|dist-[^/]+|fsh-generated|generated|\.wrangler)(?:\/|$)/
-
-/** camelCase with at least one interior capital — `buildCdsCards`, not `tools`. */
-const CAMEL = /^[a-z][a-z0-9]*(?:[A-Z][A-Za-z0-9]*)+$/
-
-/**
- * PascalCase with a lower-to-upper hump — `SmartDataSource`, `WritebackScorecard`,
- * `CSSRSItemCoding`; not `TOOLS`, `HEX` or `Patient`.
- *
- * ⚠️ **Added 2026-10-09, after a planted "SmartDataSource" in the Provider App
- * page's prose passed.** The index was camelCase-only, so every class, React
- * component and exported type — the names a sentence about the build is most
- * likely to quote — was invisible to it. The hump is the shape test: an ALL-CAPS
- * constant (`TOOLS`, `CONFIG`) is also an acronym a reader may meet, and a
- * single capitalised word is English.
- */
-const PASCAL = /^[A-Z][A-Za-z0-9]*[a-z][A-Z][A-Za-z0-9]*$/
-
-/** Every word-shaped token; membership in the index is the test, not the shape. */
-const WORD_TOKEN = /\b[A-Za-z][A-Za-z0-9]*\b/g
-
-/**
- * ⚠️ **Names a reader of the guide is SUPPOSED to meet, subtracted from the
- * PascalCase half.** Both are derived, neither is typed:
- *
- *   - every FHIR R4 resource and datatype name (`fhirR4TypeNames`, from the R4
- *     model `fhirpath` ships) — guide copy names `QuestionnaireResponse`,
- *     `CapabilityStatement` and `PlanDefinition` as the standard's own words,
- *     and a repo type that shares one is the spec's word first;
- *   - every published artifact's `name` in the generated IG
- *     (`SPiERSuicideRiskConcept`, `AdministerPHQ9`) — the guide shows these as
- *     what an implementer will find in the IG, which is the artifact's identity
- *     and not this repo's machinery. Today no TypeScript export shares one, so
- *     the subtraction removes nothing; it states the decision, so the first
- *     export that does is not a reason to stop naming the profile.
- *
- * The clinical scan bans SPiER profile names outright (its own rule, below);
- * that is a different reader, and this does not loosen it.
- */
-function publishedArtifactNames() {
-  const names = new Set()
-  if (!existsSync(GENERATED_DIR)) return names // its absence fails below
-  for (const file of walkExt(GENERATED_DIR, ['.json'])) {
-    try {
-      const r = JSON.parse(readFileSync(file, 'utf8'))
-      if (typeof r?.name === 'string' && typeof r?.url === 'string') names.add(r.name)
-    } catch {
-      // not a resource; copy-fhir's own gates own the tree's shape
-    }
-  }
-  return names
-}
-
-const GENERATED_DIR = join(REPO_ROOT, 'packages/fhir-artifacts/generated')
-const fhirTypeNames = fhirR4TypeNames()
-const artifactNames = publishedArtifactNames()
-const readerVocabulary = new Set([...fhirTypeNames, ...artifactNames])
-
-/**
- * Every camelCase or PascalCase name this repo defines: exported bindings
- * (classes, components, types and constants included), plus file and directory
- * names (`observationMappers` is a directory, and was quoted at a reader as one;
- * `SmartDataSource.ts` is a file).
- */
-function indexRepoIdentifiers() {
-  const camel = new Set()
-  const pascal = new Set()
-  const subtracted = new Set()
-  const add = (name) => {
-    if (CAMEL.test(name)) camel.add(name)
-    else if (PASCAL.test(name)) {
-      if (readerVocabulary.has(name)) subtracted.add(name)
-      else pascal.add(name)
-    }
-  }
-  for (const root of SYMBOL_ROOTS) {
-    for (const file of walkExt(join(REPO_ROOT, root), ['.ts', '.tsx', '.mjs'])) {
-      const rel = relRepo(file)
-      if (NOT_OURS.test(rel)) continue
-      for (const segment of rel.split('/')) add(segment.replace(/\.(tsx?|mjs)$/, ''))
-      const src = readFileSync(file, 'utf8')
-      const decl = /\bexport\s+(?:default\s+)?(?:declare\s+)?(?:abstract\s+)?(?:async\s+)?(?:const|let|function|class|type|interface|enum)\s+([A-Za-z_$][\w$]*)/g
-      for (const m of src.matchAll(decl)) add(m[1])
-    }
-  }
-  return { camel, pascal, subtracted }
-}
-
-const { camel: camelIdentifiers, pascal: pascalIdentifiers, subtracted: subtractedIdentifiers } = indexRepoIdentifiers()
-const repoIdentifiers = new Set([...camelIdentifiers, ...pascalIdentifiers])
+// Built in lib/reader-jargon.mjs, shared with the guide's rendered-copy test.
+const {
+  camel: camelIdentifiers,
+  pascal: pascalIdentifiers,
+  subtracted: subtractedIdentifiers,
+  fhirTypeNames,
+  artifactNames,
+  all: repoIdentifiers,
+} = indexRepoIdentifiers()
 
 // ── The rules ──────────────────────────────────────────────────────────────
 
 // Shared with the guide's rendered-copy test — see lib/reader-jargon.mjs.
 const RULES = REPO_RULES
 
-/** The first rule `text` breaks, or null. The identifier rule is last: it needs the index. */
-function jargonIn(text) {
-  for (const rule of RULES) {
-    const m = rule.re.exec(text)
-    if (m) return { rule: rule.name, match: m[0].trim() }
-  }
-  for (const m of text.matchAll(WORD_TOKEN)) {
-    if (repoIdentifiers.has(m[0])) return { rule: 'a repo identifier', match: m[0] }
-  }
-  return null
-}
+/** The first rule `text` breaks, or null — the shared rules, then the identifier index. */
+const jargonIn = (text) => repoJargonIn(text, repoIdentifiers)
 
 // ── Half one: the guide's reader strings ───────────────────────────────────
 
@@ -448,6 +341,7 @@ for (const file of guideFiles) {
  * produced. The generated tree is a precondition (`verify` runs copy-fhir
  * first), and its absence fails here rather than reading as "nothing to scan".
  */
+const GENERATED_DIR = join(REPO_ROOT, 'packages/fhir-artifacts/generated')
 if (!existsSync(GENERATED_DIR)) {
   fail(`${relRepo(GENERATED_DIR)} is missing — run \`npm run copy-fhir\` first; the published documentation cannot be read without it`)
 }
@@ -553,8 +447,8 @@ for (const [name, value] of Object.entries(catalog)) {
  * The rendered half, run from here so that THIS gate goes red when a page
  * renders a raw value. `apps/guide/src/pages/readerCopy.test.tsx` mounts the
  * guide pages that render core's prose — every tool's page, the Data
- * Dictionary, the pathway pages — and applies the same rule list
- * (lib/reader-jargon.mjs) to their text. A value scan cannot see `ToolPage`
+ * Dictionary, the pathway pages — and applies the same rule list AND the same
+ * repo-identifier index (lib/reader-jargon.mjs) to their text. A value scan cannot see `ToolPage`
  * printing `tool.copyright` instead of `readerCopyright(tool.copyright)`; a
  * render can. (`npm test` runs it too; it is a few seconds, and the gate is
  * not complete without it.)
