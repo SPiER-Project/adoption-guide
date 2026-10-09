@@ -264,7 +264,18 @@ export const GUIDE_SECTIONS: GuideSection[] = [
   // at. ⚠️ The "patient app" in repo-and-package-boundaries.md and
   // licensing-verification-backlog.md means that FUTURE patient-facing app and
   // is deliberately not renamed.
-  { path: 'provider-app', label: 'Provider App', group: 'running', width: 'prose' },
+  //
+  // Its subsection is the writeback ladder as an ADOPTION choice — which rung a
+  // site starts on and which it is aiming for (#637). A second view of the same
+  // app, reached from the page's "What was saved back" bullet, so a subsection
+  // rather than an eighth sidebar row.
+  {
+    path: 'provider-app',
+    label: 'Provider App',
+    group: 'running',
+    width: 'prose',
+    subsections: [{ path: 'provider-app/saving-to-the-ehr', label: 'Saving to the EHR' }],
+  },
   { path: 'dashboard', label: 'Population Dashboard', group: 'running', width: 'prose' },
   // The THIRD thing that runs the pathway. It was filed under "Configure"
   // until 2026-09-15, which misread it — the page configures nothing, it is
