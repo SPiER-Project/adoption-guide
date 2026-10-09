@@ -18,3 +18,8 @@ export interface RepoIdentifierIndex {
 
 export function indexRepoIdentifiers(): RepoIdentifierIndex
 export function repoJargonIn(text: string, identifiers: Set<string>): { rule: string; match: string } | null
+
+/** What a clinician may not be shown — the wire format. */
+export const CLINICAL_RULES: JargonRule[]
+/** The first clinical-or-repo rule `text` breaks, or null. */
+export function clinicalJargonIn(text: string): { rule: string; match: string } | null

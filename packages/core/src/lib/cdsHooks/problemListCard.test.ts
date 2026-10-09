@@ -138,14 +138,34 @@ describe('buildProblemListGuidanceCard — content comes from the artifact', () 
     expect(card.summary.length).toBeLessThanOrEqual(140)
   })
 
-  it('carries the verified SNOMED CT concepts the pathway names', () => {
-    // Not literals this file chose: the FSH's problem-list action names them,
-    // and both are members of the verified SPiERSuicideRelatedProblem value set
-    // (suicide-related-conditions.fsh). Asserted here so a card that lost the
-    // guidance text fails rather than prompting a coding decision with no codes.
-    expect(card.detail).toContain('6471006') // Suicidal thoughts
-    expect(card.detail).toContain('225444004') // At increased risk for suicide
-    expect(card.detail).toContain('spier-suicide-related-problem-vs')
+  it('names the problems in words, and carries their verified value set as data', () => {
+    // The words are the FSH's, and both are members of the verified
+    // SPiERSuicideRelatedProblem value set (suicide-related-conditions.fsh).
+    // Asserted so a card that lost the guidance text fails rather than
+    // prompting a coding decision with nothing to code.
+    expect(card.detail).toContain('Suicidal thoughts')
+    expect(card.detail).toContain('At increased risk for suicide')
+    // ⚠️ The concept ids and the value-set canonical are NOT in `detail` since
+    // 2026-10-09: `detail` is shown to a clinician by every host, and a code or
+    // a canonical as a word is the wire format (check:jargon's clinical rules;
+    // apps/clinical/src/components/guidanceCardCopy.test.tsx). They travel in
+    // the extension, where a host's code reads them.
+    expect(card.detail).not.toContain('6471006')
+    expect(card.detail).not.toContain('http')
+    expect(card.extension?.['spier-problem-value-sets']).toEqual([
+      'http://thespierproject.org/fhir/ValueSet/spier-suicide-related-problem-vs',
+    ])
+  })
+
+  it('says the tier and its date in words, and carries the concept as codes', () => {
+    expect(card.detail).toMatch(/^Current suicide-risk level: High risk \(recorded Aug 5(, 2026)?\)\./)
+    expect(card.detail).not.toContain('93374-7')
+    expect(card.detail).not.toContain('2026-08-05')
+    expect(card.extension?.['spier-risk-concept']).toEqual({
+      code: { system: 'http://loinc.org', code: '93374-7' },
+      valueCoding: { system: RISK_TIER_SYSTEM, code: 'high', display: 'High risk' },
+      effective: '2026-08-05T10:00:00.000Z',
+    })
   })
 
   it('carries the CORRECTED ICD-10-CM crosswalk and never Z91.82', () => {
@@ -161,8 +181,8 @@ describe('buildProblemListGuidanceCard — content comes from the artifact', () 
     expect(card.detail).not.toContain('Z91.82')
   })
 
-  it('says, in the card itself, that SPiER does not create the Condition', () => {
-    expect(card.detail).toContain('SPiER does not create the Condition')
+  it('says, in the card itself, that SPiER does not add the problem-list entry', () => {
+    expect(card.detail).toContain('SPiER does not add the problem-list entry')
   })
 })
 

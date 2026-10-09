@@ -420,8 +420,13 @@ Usage: #definition
     * title = "Consider a suicide-related problem-list entry"
     * description = "Where clinically warranted, add a suicide-related finding to the patient's problem list. SPiER surfaces the verified coding; the assertion is the clinician's."
     * documentation[+].type = #documentation
+    // The concept ids (6471006, 225444004) are NOT restated in this display: it
+    // is read verbatim into the problem-list CDS card's `detail`, which a
+    // clinician reads in the chart and in a host EHR, where a code as a word is
+    // the wire format. They live in the value set `resource` names, beside
+    // their verification, and the card carries that canonical in its extension.
     * documentation[=].label = "SNOMED CT is primary"
-    * documentation[=].display = "US problem lists store SNOMED CT, so the primary coding comes from the SPiER Suicide-Related Problem value set — every member of which was verified against the publishing authority. For a patient on this pathway the usual entries are \"Suicidal thoughts\" (SNOMED CT 6471006) or \"At increased risk for suicide\" (SNOMED CT 225444004)."
+    * documentation[=].display = "US problem lists store SNOMED CT, so the primary coding comes from the SPiER Suicide-Related Problem value set — every member of which was verified against the publishing authority. For a patient on this pathway the usual entries are \"Suicidal thoughts\" or \"At increased risk for suicide\"."
     * documentation[=].resource = "http://thespierproject.org/fhir/ValueSet/spier-suicide-related-problem-vs"
     // ⚠️ ICD-10-CM literals. NO GATE CHECKS THESE — the nightly terminology
     // check covers LOINC, SNOMED and terminology.hl7.org only — so the

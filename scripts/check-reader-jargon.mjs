@@ -132,10 +132,9 @@ import { join } from 'node:path'
 import ts from 'typescript'
 
 import { appRoot, relRepo, REPO_ROOT, walkExt } from './lib/app-roots.mjs'
-import { RESOURCE_TYPES, WIRE_ONLY_RESOURCE_TYPES } from './lib/fhir-vocabulary.mjs'
 import { reportFloors } from './lib/floors.mjs'
 import { loadCore } from './lib/load-core.mjs'
-import { indexRepoIdentifiers, REPO_RULES, repoJargonIn } from './lib/reader-jargon.mjs'
+import { CLINICAL_RULES, clinicalJargonIn, indexRepoIdentifiers, REPO_RULES, repoJargonIn } from './lib/reader-jargon.mjs'
 
 let failures = 0
 function fail(msg) {
@@ -462,71 +461,9 @@ if (rendered.status !== 0) {
 
 // ── Half three: the clinician's strings ────────────────────────────────────
 
-/**
- * What a clinician may not be shown, and where each rule came from.
- *
- * Clinical-app audit §1.9 measured the clinical surface and found the wire
- * format in the words rather than in the JSON: `QuestionnaireResponse · Sep 3`
- * on every artifact row, `Tier 0 · DocumentReference` under every writeback
- * rung, a canonical URL in monospace leading the protocol page, an issue number
- * as the explanation of an empty measure, `LOINC 93374-7` inside the
- * problem-list card's own sentence. `check:fhir-render` RULE 3 had already
- * settled the rule for the eleven recorders' ledes (`docs/internals/tool-views.md`
- * §4); this is that rule over the rest of the surface.
- *
- *   a FHIR resource type   `QuestionnaireResponse · …`   — every artifact row
- *   a FHIR element path    `Appointment.status`          — a recorder's field help
- *   a LOINC or SNOMED code `LOINC 93374-7`               — the problem-list card
- *   a canonical URL        `http://thespierproject.org/…` — the protocol page
- *   an issue number        `#52`, `(#350)`                — the walkthrough, measures
- *   a tier or rung number  `Tier 0`, `rung 2`             — Saved to the EHR
- *
- * ⚠️ **The rule set is the DIFFERENCE from the guide's, not a superset.** An
- * npm script or a `packages/…` path is just as wrong here, and it is caught by
- * the guide's six rules, which this scan also applies. What it does NOT apply
- * is the repo-identifier rule: `useInspect`, `evaluatePathway` and
- * `stageLeadTools` are this repo's names and they appear in these trees as
- * code, not as words, which is exactly the false-positive class the guide's
- * index was built to avoid — and the deny list below cannot separate them
- * reliably enough in an app tree of this size.
- *
- * ⚠️ **Four positions a reader never sees, beyond the guide scan's.** They are
- * code that happens to be spelled as a string, and every one of them would
- * otherwise fire on `resource.resourceType === 'Observation'`:
- *
- *   - a comparison operand (`=== 'Observation'`) — a discriminator, never prose
- *   - a `switch` case label (`case 'DocumentReference':`) — the same thing
- *   - a type position (`'all' | 'responses'`, `Record<'CarePlan', …>`)
- *   - an argument to a string or collection method (`.replace('CarePlan/', '')`,
- *     `.startsWith`, `.has`, `.get`) — a prefix or a key, never a sentence
- *
- * ⚠️ **What it cannot see.** A resource type not on `RESOURCE_TYPES` (the list
- * is 18 and states its own limit); a string assembled from parts, which is how
- * `${type} · ${status}` would read to it as two harmless halves; and prose that
- * is wrong for a clinician without naming any of these five things — "the
- * denominator excludes them" passes, and it is exactly what the recorder pass
- * had to fix by hand.
- */
-const CLINICAL_RULES = [
-  {
-    name: 'a FHIR resource type',
-    // `WIRE_ONLY_…`, not the whole list — see `lib/fhir-vocabulary.mjs` for the
-    // eight names that are ordinary English in this copy and why RULE 3 keeps
-    // them while this scan does not.
-    re: new RegExp(`\\b(?:${WIRE_ONLY_RESOURCE_TYPES.join('|')})\\b`),
-  },
-  // An element path names the wire format whichever half the type is in.
-  { name: 'a FHIR element path', re: new RegExp(`\\b(?:${RESOURCE_TYPES.join('|')})\\.[a-z]\\w*`) },
-  { name: 'a SPiER profile name', re: /\bSPiER[A-Z]\w+/ },
-  // A LOINC code is digits-dash-digit; SNOMED is 6–18 bare digits, so it is
-  // matched only where a word says what it is — a bare "1234567" in clinician
-  // copy is a phone number or a total far more often than it is a concept id.
-  { name: 'a LOINC code', re: /\b\d{2,6}-\d\b/ },
-  { name: 'a SNOMED or LOINC code', re: /\b(?:LOINC|SNOMED|SNOMED CT)\b[^.]{0,20}?\b\d{4,18}\b/i },
-  { name: 'a canonical URL', re: /https?:\/\/[^\s"']*\/fhir\/[A-Za-z]/ },
-  { name: 'an issue number', re: /(?:^|[\s(])#\d{2,4}\b/ },
-  { name: 'a tier or rung number', re: /\b(?:tier|rung)\s+\d\b/i },
-]
+// The rules themselves — and the function applying them — live in
+// `lib/reader-jargon.mjs` (`CLINICAL_RULES`, `clinicalJargonIn`), so a test
+// that renders a clinician's card applies the SAME list rather than a copy.
 
 /**
  * JSX attributes a clinician never meets.
@@ -562,18 +499,6 @@ const INSPECTION_ONLY_ELEMENTS = new Set(['CodeDrawer', 'FhirJsonViewer', 'Pathw
  * must keep reaching the rules.
  */
 const COMPOSITE_ID = /^\S*\/\S*$/
-
-/**
- * Phrases in which a resource type is an instrument's own published name.
- *
- * ⚠️ **Empty, and that is the answer rather than an omission.** The one case
- * — *SBQ-R — Suicide Behaviors Questionnaire* — is handled by `ALSO_ENGLISH` in
- * `lib/fhir-vocabulary.mjs`, which is a rule about a word rather than a list of
- * the sentences it appears in. Kept as the escape hatch for the case that is
- * genuinely a phrase and not a word; adding a second entry should feel like
- * evidence that the word belongs in `ALSO_ENGLISH` instead.
- */
-const PUBLISHED_INSTRUMENT_NAMES = []
 
 /**
  * Modules whose clinician copy is a LATER PR's, with the reason.
@@ -726,17 +651,6 @@ function clinicianStrings(rel, src) {
 
   walk(sf)
   return { runs: out, sawJsx }
-}
-
-/** The first rule `text` breaks, over the clinical seven plus the guide's six. */
-function clinicalJargonIn(text) {
-  let subject = text
-  for (const name of PUBLISHED_INSTRUMENT_NAMES) subject = subject.split(name).join('')
-  for (const rule of [...CLINICAL_RULES, ...RULES]) {
-    const m = rule.re.exec(subject)
-    if (m) return { rule: rule.name, match: m[0].trim() }
-  }
-  return null
 }
 
 // ⚠️ `packages/tool-views` is not an APP root — `lib/app-roots.mjs` declares

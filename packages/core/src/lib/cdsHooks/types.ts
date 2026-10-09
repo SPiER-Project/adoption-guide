@@ -92,6 +92,22 @@ export interface SpierCardExtension {
    * can render a client-side `<Link>` instead of a full page navigation.
    */
   'spier-router-paths'?: Record<string, string>
+  /**
+   * The problem-list card only: the harmonized risk concept its tier was read
+   * from, as codes. `detail` says the same thing in a clinician's words — a
+   * code is the wire format there, and `detail` is shown to a clinician by
+   * every host — so the coded form lives here (see `problemListCard.ts`).
+   */
+  'spier-risk-concept'?: {
+    code: { system: string; code: string }
+    valueCoding: { system: string; code: string; display?: string }
+    effective?: string
+  }
+  /**
+   * The problem-list card only: the value set canonical(s) the pathway's
+   * guidance notes point at — the verified SNOMED CT concepts to offer.
+   */
+  'spier-problem-value-sets'?: string[]
 }
 
 /** A CDS Hooks 2.0 Card. https://cds-hooks.org/specification/current/#card-attributes */

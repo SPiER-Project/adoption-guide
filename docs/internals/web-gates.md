@@ -1198,8 +1198,26 @@ those strings had. Proven by planting a runtime-assembled `SmartDataSource`,
 mounted), and by restoring one `(#263)` to a recorder's note: each fails the gate
 through the rendered half with zero source-scan hits.
 
+⚠️ **The clinician's rules lived only in the script until 2026-10-09, so the
+one test that could read a runtime-built card had nothing to load.** The
+problem-list CDS card put "LOINC 93374-7", an ISO date, two SNOMED CT ids and a
+value-set canonical in front of a clinician with the gate green: its sentence is
+assembled in core, partly from the pathway artifact, and the clinical scan reads
+literals in the app trees. `CLINICAL_RULES` and `clinicalJargonIn` now live in
+`scripts/lib/reader-jargon.mjs` beside the repo rules, the gate imports them, and
+`apps/clinical/src/components/guidanceCardCopy.test.tsx` applies the same list to
+the rail rendered from the REAL builder over every demo patient (floored at three
+patients with the card). Proven by restoring the old first sentence, a SNOMED id
+in the FSH note, and the value-set trailer — each fails 22 of its 26 cases. The
+decision about `detail` itself is in
+[`surfaces-and-routing.md`](surfaces-and-routing.md).
+
 What it cannot see, stated so a green run is not read as more than it is:
 
+- **A clinician string core builds at runtime, other than the guidance cards**
+  — the test above reads those, `dataSourceError.test.tsx` the data-source
+  errors and the scorecard test the writeback outcome; any other core-built
+  sentence reaching the clinical surface is read by nothing.
 - **The 29 shared tool views' SOURCE, under the guide's rules.** They reach a
   guide reader as rendered on a tool page, and the rendered half reads every
   tool's page with drawers included; a string a page does not render on mount
