@@ -110,11 +110,6 @@ export async function executeWritePlan(
       const stepResult = await writeObservations(target, artifacts.observations, serverRefs)
       steps.push(stepResult)
       inScopeDiscreteOutcomes.push(stepResult.outcome)
-    } else if (step.resourceType === 'Condition' && artifacts.condition) {
-      const payload = remapReferences(artifacts.condition, serverRefs)
-      const stepResult = toStepResult(step, await tryCreate(target, payload))
-      steps.push(stepResult)
-      inScopeDiscreteOutcomes.push(stepResult.outcome)
     }
   }
 

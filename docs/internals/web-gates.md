@@ -505,8 +505,9 @@ app does not write something it now does. An entry naming a profile the IG no
 longer publishes fails too.
 
 One entry today, and it is a **decision**, not a debt:
-`spier-suicide-related-condition` — writeback Tier 3, default off; SPiER
-proposes the problem-list entry through a CDS card and a clinician asserts it.
+`spier-suicide-related-condition` — SPiER prompts the problem-list entry through
+a CDS card and the clinician asserts it; the app writes none (the writeback's
+Tier-3 Condition proposal was retired by #639).
 (`spier-suicide-risk-concept` sat beside it as a debt until it expired, above.)
 
 ⚠️ **What it cannot see.** It checks a profile is claimed *at all*, not that

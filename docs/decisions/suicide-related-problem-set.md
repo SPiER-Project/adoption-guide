@@ -16,6 +16,12 @@ fabrication the crosswalks refuse when they map a low-fidelity instrument to
 the widest defensible tier rather than the most alarming one. So SPiER derives
 no `Condition` from any screen, and no mapper in the app does either.
 
+That includes the SMART app's writeback. Its ladder carried an opt-in "Tier 3"
+that proposed an `unconfirmed` problem-list Condition, coded with the risk
+tier, from a screen's result; it was retired on 2026-10-09
+([#639](https://github.com/SPiER-Project/adoption-guide/issues/639)) before its
+confirmation UI was built, because it was this rule's exact counterexample.
+
 ## Why `verificationStatus` is required and `code` is extensible
 
 `verificationStatus` is required so that a consumer can tell a confirmed assertion

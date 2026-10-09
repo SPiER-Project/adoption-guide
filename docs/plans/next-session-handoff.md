@@ -354,12 +354,10 @@ scripts folder.
   `tier-derivation` extension saying which is which. **Do not re-derive that
   split** — the mappers settle it: C-SSRS computes the tier and never reads the
   answer; SAFE-T and PSS-Full read it.
-- **#350** holds three ladder items — the CDS card `type:'smart'` link, the
-  adoption-pathways guide page, and live sandbox validation. **Do not file
-  duplicates**; a previous handoff said "none of it has an issue yet", which would
-  have produced three. `gh issue view 350` is the authority.
-- **No issue yet** — the Tier-3 confirmation UI, and whether the demo should set
-  `alwaysWriteDocument`. File before starting either.
+- **#350 is closed**, split 2026-10-09 into #637 (adoption-pathways guide page),
+  #638 (whether the demo sets `alwaysWriteDocument`), #639 (the Tier-3 Condition
+  proposal — **retired**, a screen never becomes a Condition) and #640 (a
+  third-party sandbox run). The CDS card `type:'smart'` link was done in #375.
 - **Safari is untested and is the one remaining way the framed panel fails on a
   machine that is not this one.** The embed flag has to survive the OAuth redirect,
   so it lives in `sessionStorage` — and under full third-party storage blocking

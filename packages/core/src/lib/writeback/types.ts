@@ -25,10 +25,16 @@
  *   Tier 2 — Observation        scored + harmonized risk-tier Observations
  *                               (SDC "extract"): the more advanced, more
  *                               immediately-consumable rung.
- *   Tier 3 — Condition          opt-in only, default OFF. Proposes a
- *                               problem-list entry from the harmonized risk
- *                               tier; a human must confirm before it is
- *                               written (governance — see conditionProposal.ts).
+ *
+ * ⚠️ There is no Tier 3, and the ladder never writes a problem-list Condition.
+ * It had one — an opt-in "Condition proposal" coded with the risk tier and
+ * stamped `unconfirmed` — until #639 retired it: it derived a Condition from a
+ * SCREEN, which the published rule forbids ("a screen never becomes a
+ * Condition", docs/decisions/suicide-related-problem-set.md). A problem-list
+ * entry is the clinician's assertion, from the SNOMED suicide-related problem
+ * set; SPiER's part is the CDS problem-list card that prompts it. (CAMS Section
+ * B's driver Conditions are not this: they are clinician-recorded content of
+ * the instrument, and ride the Tier-2 step with the Observations.)
  *
  * NOTE the Tier 1/2 ordering: QuestionnaireResponse is the LOWER discrete rung
  * (raw capture, easiest, SDC-canonical) and Observation is the HIGHER rung
@@ -42,14 +48,13 @@ import type {
 } from '../../types/fhir'
 
 /** Numeric tier rank. Higher = more capable EHR / more integrated data. */
-export type WriteTier = 0 | 1 | 2 | 3
+export type WriteTier = 0 | 1 | 2
 
-/** The four resource types the ladder can write, one per tier. */
+/** The three resource types the ladder writes, one per tier. */
 export type WritebackResourceType =
   | 'DocumentReference'
   | 'QuestionnaireResponse'
   | 'Observation'
-  | 'Condition'
 
 /**
  * What a server can create, distilled from its CapabilityStatement (see
@@ -61,19 +66,17 @@ export type ServerCapabilities = Record<string, { create: boolean }>
 /**
  * The resources a completed instrument produces, handed to the ladder. `qr` and
  * `documentReference` are always present; `observations` may be empty (some
- * instruments produce CarePlans, not Observations); `condition` is present only
- * when the Tier-3 proposal is enabled and the screen warrants one.
+ * instruments produce CarePlans, not Observations).
  */
 export interface WritebackArtifacts {
   qr: QuestionnaireResponseResource
   observations: ObservationResource[]
   documentReference: FhirResource
-  condition?: FhirResource
 }
 
 /**
  * Which tiers to attempt. Defaults encode the plan's policy: discrete tiers 1–2
- * on (still gated by capability), Tier 3 off. `alwaysWriteDocument` forces the
+ * on (still gated by capability). `alwaysWriteDocument` forces the
  * Tier-0 floor even when the discrete tiers fully captured the data (useful for
  * the demo, where the human-readable rendering is wanted regardless).
  */
@@ -82,8 +85,6 @@ export interface WritebackConfig {
   enableQuestionnaireResponse?: boolean
   /** default true */
   enableObservation?: boolean
-  /** default false — opt-in, needs explicit in-UI confirmation upstream */
-  enableConditionProposal?: boolean
   /** default false */
   alwaysWriteDocument?: boolean
 }
@@ -92,7 +93,6 @@ export interface WritebackConfig {
 export interface ResolvedWritebackConfig {
   enableQuestionnaireResponse: boolean
   enableObservation: boolean
-  enableConditionProposal: boolean
   alwaysWriteDocument: boolean
 }
 
@@ -102,7 +102,7 @@ export interface ResolvedWritebackConfig {
  *  - `attempt`     — supported and enabled; will be POSTed.
  *  - `unsupported` — enabled but the server can't create this type; counts as a
  *                    coverage gap (triggers the Tier-0 floor).
- *  - `disabled`    — turned off by config (e.g. Tier 3 default); NOT a gap.
+ *  - `disabled`    — turned off by config; NOT a gap.
  */
 export type StepDisposition = 'attempt' | 'unsupported' | 'disabled'
 
@@ -166,13 +166,11 @@ export interface WritebackTarget {
  * What the scorecard renders: one writeback run, with enough context to explain
  * every absence as well as every write.
  *
- * `result.steps` alone is NOT sufficient for the site-readiness diagnostic, for
- * a reason that is easy to miss: `buildWritePlan` OMITS the Tier-3 step entirely
- * when the proposal is disabled (ladder.ts) — it does not emit a `disabled`
- * step. So a scorecard reading only `steps` shows silence where the governance
- * story ("a Condition is never auto-written") is the most important thing to
- * say. Carrying the resolved `config` is what lets the UI distinguish
- * "deliberately off" from "never considered".
+ * `result.steps` alone is NOT sufficient for the site-readiness diagnostic:
+ * `buildWritePlan` omits the Tier-2 step entirely when there are no
+ * Observations, and a disabled tier is a choice, not a gap. Carrying the
+ * resolved `config` is what lets the UI distinguish "deliberately off" from
+ * "never considered".
  */
 export interface WritebackReport {
   /** ISO timestamp of the run, so a stale scorecard is recognizable as stale. */

@@ -8,13 +8,14 @@
  * EHR cannot yet accept, which is what an adoption conversation needs.
  *
  * So this component is built around explaining ABSENCES, and it cannot do that
- * from `WritebackResult.steps` alone:
- *  - `buildWritePlan` omits the Tier-3 step entirely when the Condition proposal
- *    is disabled (the default), so "off by design" has to come from the resolved
- *    config, not from a missing row;
- *  - it also omits Tier 2 when the instrument produced no Observations, which is
- *    a property of the instrument, not a failure of the server.
- * Both would otherwise render as unexplained gaps. See `WritebackReport`.
+ * from `WritebackResult.steps` alone: `buildWritePlan` omits Tier 2 when the
+ * instrument produced no Observations, which is a property of the instrument,
+ * not a failure of the server, and would otherwise render as an unexplained
+ * gap. See `WritebackReport`.
+ *
+ * There is no problem-list rung. The ladder had a Tier-3 "Condition proposal"
+ * until #639 retired it — a screen never becomes a Condition — so the scorecard
+ * no longer offers one, even as "off by design".
  */
 import type { WritebackReport, WriteStepResult, WriteTier } from '@spier/core/lib/writeback/types'
 import '../css/WritebackScorecard.css'
@@ -60,11 +61,6 @@ const RUNGS: Array<{ tier: WriteTier; label: string; blurb: string }> = [
     tier: 2,
     label: 'Its scores and risk level',
     blurb: 'The total, the item scores and the risk level, as numbers the EHR can act on.',
-  },
-  {
-    tier: 3,
-    label: 'A problem-list proposal',
-    blurb: 'Opt-in only, and never added to the problem list without a clinician confirming it.',
   },
 ]
 
@@ -117,12 +113,7 @@ function stepDetail(step: WriteStepResult): string {
  * own governance policy, and collapsing them would make the scorecard useless
  * for the adoption rubric it feeds.
  */
-function absenceReason(tier: WriteTier, report: WritebackReport): string {
-  if (tier === 3) {
-    return report.config.enableConditionProposal
-      ? 'Enabled, but no proposal was warranted — a negative screen does not propose a problem.'
-      : 'Off by design. Enabling it requires an explicit clinician confirmation step.'
-  }
+function absenceReason(tier: WriteTier): string {
   if (tier === 2) {
     return 'This form has no score of its own to save — some record a plan instead.'
   }
@@ -178,7 +169,7 @@ export function WritebackScorecard({ report }: { report: WritebackReport | null 
               {step ? (
                 <p className="writeback-scorecard__detail">{stepDetail(step)}</p>
               ) : (
-                <p className="writeback-scorecard__detail">{absenceReason(rung.tier, report)}</p>
+                <p className="writeback-scorecard__detail">{absenceReason(rung.tier)}</p>
               )}
             </li>
           )
