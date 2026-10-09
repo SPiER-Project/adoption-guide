@@ -206,6 +206,7 @@ const RULES = {
   // pathway
   'pathway-stages.fsh': 'pathway',
   'suicide-safer-care-pathway.fsh': 'pathway',
+  'setting-pathways.fsh': 'pathway',
   'pathway-tool-placeholders.fsh': 'pathway',
   'tool-id-identifier.fsh': 'pathway',
   'instrument-licensing.fsh': 'pathway',

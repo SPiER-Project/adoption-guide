@@ -55,6 +55,8 @@ const Overview = lazy(() => import('./pages/Overview').then(m => ({ default: m.O
 const AdoptionGuide = lazy(() => import('./pages/AdoptionGuide').then(m => ({ default: m.AdoptionGuide })))
 const CarePathway = lazy(() => import('./pages/CarePathway').then(m => ({ default: m.CarePathway })))
 const CarePathwayProtocol = lazy(() => import('./pages/CarePathwayProtocol').then(m => ({ default: m.CarePathwayProtocol })))
+const EmergencyDepartmentPathway = lazy(() => import('./pages/EmergencyDepartmentPathway').then(m => ({ default: m.EmergencyDepartmentPathway })))
+const InpatientPathway = lazy(() => import('./pages/InpatientPathway').then(m => ({ default: m.InpatientPathway })))
 const PatientJourney = lazy(() => import('./pages/PatientJourney').then(m => ({ default: m.PatientJourney })))
 const DataDictionary = lazy(() => import('./pages/DataDictionary').then(m => ({ default: m.DataDictionary })))
 const CdsServiceGuide = lazy(() => import('./pages/CdsServiceGuide').then(m => ({ default: m.CdsServiceGuide })))
@@ -142,6 +144,14 @@ function AppRoutes() {
                 FULL sub-path; that is what makes it CHECKED — check:guide-boundary
                 derives the guide's page set from that file. */}
             <Route path="pathway/protocol" element={<CarePathwayProtocol />} />
+            {/* The setting pathways: the core protocol as it applies in one care
+                setting, each a SUBSECTION of Care Pathway for the same reason
+                the protocol page is. Which settings exist is the artifact's
+                (the core protocol's relatedArtifact composed-of); which page
+                draws each is data/settingPathways.ts, and its test holds the
+                two in agreement. */}
+            <Route path="pathway/emergency-department" element={<EmergencyDepartmentPathway />} />
+            <Route path="pathway/inpatient" element={<InpatientPathway />} />
             {/* ⚠️ Declared in this exact `<Route path="x" element={<Comp />}>`
                 form on purpose: check-guide-boundary.mjs reads the route table to
                 find each section's component, and a different shape would make it

@@ -98,6 +98,27 @@ the list look complete**:
 | Positive assessment → problem-list entry / risk flag | [SPiERRiskStatusDocumented](Measure-SPiERRiskStatusDocumented.html) | **Partial.** The risk-status half is measured; the problem-list half cannot be, because SPiER never writes a `Condition` from a screen and so has no numerator. |
 | Safety plan / resources provided, per tier | [SPiERSafetyPlanBeforeDischarge](Measure-SPiERSafetyPlanBeforeDischarge.html) | **Partial.** Anchored on a care transition, not stratified by tier, and not counting crisis-resource sharing — the two gaps. |
 
+### The pathway in specific settings
+
+This pathway is written for ongoing care and names no setting. A care setting
+changes who does each step, when, and what surrounds it — precautions,
+observation, admission, discharge — but not what a positive screen or a risk
+tier means. So each setting is its own `clinical-protocol` PlanDefinition that
+applies this one:
+
+| Setting | PlanDefinition | Status |
+|---|---|---|
+| Emergency department | [SPiEREDSuicideCarePathway](PlanDefinition-SPiEREDSuicideCarePathway.html) | Follows the HL7 Behavioral Health working group's emergency department scenario; only the steps the working group circulated are encoded. |
+| Inpatient psychiatric care | [SPiERInpatientSuicideCarePathway](PlanDefinition-SPiERInpatientSuicideCarePathway.html) | **Draft, awaiting clinical review.** Written from one inpatient subject-matter walkthrough; what it left open is not encoded. |
+
+The two directions are both on the artifacts: this pathway lists each setting
+as `relatedArtifact` `composed-of`, and each setting names this pathway as
+`derived-from`. A setting declares where it applies as `useContext` **venue**,
+never `focus`, and carries **no tier branch** — what each tier is owed is
+stated once, here. The emergency department pathway reaches the inpatient one
+as a step: its admission action's `definitionCanonical` is the inpatient
+PlanDefinition, which is how an engine applies one protocol from inside another.
+
 ### Related artifacts
 
 - [SPiERReassessmentSchedule](PlanDefinition-SPiERReassessmentSchedule.html) —

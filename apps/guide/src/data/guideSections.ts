@@ -202,7 +202,13 @@ export const GUIDE_SECTIONS: GuideSection[] = [
     label: 'Care Pathway',
     group: 'understand',
     width: 'wide',
-    subsections: [{ path: 'pathway/protocol', label: 'The published protocol' }],
+    // The setting pathways' labels repeat data/settingPathways.ts, which owns
+    // them; settingPathways.test.ts fails the two apart.
+    subsections: [
+      { path: 'pathway/protocol', label: 'The published protocol' },
+      { path: 'pathway/emergency-department', label: 'In the emergency department' },
+      { path: 'pathway/inpatient', label: 'In inpatient psychiatric care' },
+    ],
   },
   // `wide`: two catalogue tables.
   //

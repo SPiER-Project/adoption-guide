@@ -58,6 +58,8 @@ import { GUIDE_SECTIONS } from '../data/guideSections'
 import { AdoptionReadiness } from './AdoptionReadiness'
 import { CarePathway } from './CarePathway'
 import { CarePathwayProtocol } from './CarePathwayProtocol'
+import { EmergencyDepartmentPathway } from './EmergencyDepartmentPathway'
+import { InpatientPathway } from './InpatientPathway'
 import { CdsServiceGuide } from './CdsServiceGuide'
 import { DataDictionary } from './DataDictionary'
 import { EhrAdoptionRubric } from './EhrAdoptionRubric'
@@ -139,6 +141,21 @@ const CAPS: Record<string, { cap: number; why: string }> = {
     why: 'The implementer’s page: the spine with its table, the pending-definition strip and provenance, ' +
       'nearly all of it rendered from the artifact. Long on purpose, and the reason the explainer is short.',
   },
+  // ⚠️ Two setting pathways, two numbers — unlike the "see it running" pages
+  // they are not one pattern held to one length: each spine is the ARTIFACT's,
+  // and inpatient care has more steps than an emergency department visit.
+  // Both measured 2026-10-09 on first render, rounded up.
+  'pathway/emergency-department': {
+    cap: 700,
+    why: 'A setting pathway: a two-sentence lede, the spine rendered from its PlanDefinition, one pending ' +
+      'note and provenance. 652 on first render; the spine is the bulk and is the artifact’s words.',
+  },
+  'pathway/inpatient': {
+    cap: 975,
+    why: 'A setting pathway, longer than the emergency department’s because a stay has more steps and the ' +
+      'draft carries a review notice and four pending items. 924 on first render; the spine is the bulk ' +
+      'and is the artifact’s words, so shortening it is an FSH edit, not a page edit.',
+  },
   tools: {
     cap: 1300,
     why: 'PR 4 replaced 40 accordion cards with 40 rows. Almost all of it is the catalogue — a tool’s name and ' +
@@ -199,6 +216,8 @@ const PAGES: Record<string, () => ReactElement> = {
   '/overview': Overview,
   pathway: CarePathway,
   'pathway/protocol': CarePathwayProtocol,
+  'pathway/emergency-department': EmergencyDepartmentPathway,
+  'pathway/inpatient': InpatientPathway,
   tools: PatientJourney,
   'tools/readiness': AdoptionReadiness,
   'provider-app': ProviderAppGuide,

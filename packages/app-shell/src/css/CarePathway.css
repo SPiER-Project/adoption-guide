@@ -147,6 +147,49 @@
   line-height: var(--line-height-normal);
 }
 
+/* The nested pathways: one row per setting, hung off a rule so they read as
+   branches of the pathway above rather than as a second list of steps. */
+.care-pathway__settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.care-pathway__settings .pathway-section-title {
+  margin: 0;
+}
+
+.care-pathway__setting-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0 0 0 var(--space-4);
+  border-left: var(--space-0-5) solid var(--border-default);
+  list-style: none;
+}
+
+.care-pathway__setting-link {
+  font: var(--type-running);
+  color: var(--brand-link);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* A step whose realization is another setting pathway: the nesting a reader
+   follows, so it reads as a link rather than as an artifact name. */
+.pathway-obligation__handover {
+  font: var(--type-caption);
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+  color: var(--brand-link);
+  font-weight: var(--font-weight-semibold);
+}
+
+.pathway-obligation__handover:hover {
+  text-decoration: underline;
+}
+
 /* The one link onward to the protocol page: a title, a sentence, a button. */
 .care-pathway__onward .pathway-section-title {
   margin: 0;

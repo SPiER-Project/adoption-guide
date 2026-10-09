@@ -118,6 +118,22 @@ Usage: #definition
 * relatedArtifact[=].label = "KPI 3 (in part)"
 * relatedArtifact[=].display = "Percentage of patients whose safety plan is in place, and whose own copy is documented, at a care transition. The diagram's KPI 3 asks the question per risk tier and includes crisis resources; this Measure is transition-anchored and not tier-stratified, so it answers part of it — see the Care Pathway page."
 * relatedArtifact[=].resource = "http://thespierproject.org/fhir/Measure/SPiERSafetyPlanBeforeDischarge"
+// ─── The setting pathways that apply this protocol ───────────
+//
+// setting-pathways.fsh says what these are. `#composed-of` and not an action:
+// an action with no condition is a step an engine would apply to every patient,
+// and a setting is where the patient IS, not a step this protocol takes. Each
+// setting pathway names this one back as `#derived-from`; check:pathway holds
+// the two directions in agreement. The guide lists the settings from these
+// entries, so a third setting appears there by being added here.
+* relatedArtifact[+].type = #composed-of
+* relatedArtifact[=].label = "Emergency department"
+* relatedArtifact[=].display = "This pathway as applied in an emergency department: screening at triage, immediate safety, assessment, care while the patient remains in the department, and discharge or admission."
+* relatedArtifact[=].resource = "http://thespierproject.org/fhir/PlanDefinition/SPiEREDSuicideCarePathway"
+* relatedArtifact[+].type = #composed-of
+* relatedArtifact[=].label = "Inpatient psychiatric care"
+* relatedArtifact[=].display = "This pathway as applied during an inpatient psychiatric stay: screening on admission, per-shift reassessment, safety planning from admission, and a co-signed safety plan at discharge. A draft awaiting clinical review."
+* relatedArtifact[=].resource = "http://thespierproject.org/fhir/PlanDefinition/SPiERInpatientSuicideCarePathway"
 // The Emotional Fire Safety Plan is a NowMattersNow patient-education artifact,
 // not a SPiER tool. Plan question 5 is still open on whether SPiER keeps it,
 // substitutes, or drops it; until then it is a documentation URL on the

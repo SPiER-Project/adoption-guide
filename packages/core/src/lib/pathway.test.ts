@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import {
   loadPathway,
+  loadSettingPathway,
   parsePathway,
+  parseProtocol,
   PATHWAY_URL,
   type PathwayAction,
 } from './pathway'
@@ -132,6 +134,44 @@ describe('the published pathway artifact', () => {
     expect(model.relatedArtifacts.length).toBe(3)
     expect(model.relatedArtifacts.map(r => r.label)).toEqual(['KPI 1', 'KPI 2 (in part)', 'KPI 3 (in part)'])
   })
+
+  // ⚠️ The setting pathways are relatedArtifacts in the JSON, and the
+  // provenance panel titles relatedArtifacts "Measured by". Lifted out, they
+  // cannot be shown as measures; left in, the KPI assertion above would still
+  // pass on a list that grew two non-measures, so this asserts the split itself.
+  it('lifts the setting pathways out of relatedArtifacts', () => {
+    expect(model.settingPathways.map(s => s.label)).toEqual(['Emergency department', 'Inpatient psychiatric care'])
+    expect(model.relatedArtifacts.some(r => r.type === 'composed-of')).toBe(false)
+    expect(model.venues).toEqual([])
+  })
+})
+
+describe('the setting pathways, as published', () => {
+  const core = loadPathway()
+
+  it.each(core.settingPathways.map(s => [s.label, s.resource!] as const))(
+    '%s loads, names the core pathway as its source, and declares its setting',
+    (_label, url) => {
+      const setting = loadSettingPathway(url)
+      expect(setting.url).toBe(url)
+      expect(setting.derivedFrom.map(d => d.resource)).toEqual([PATHWAY_URL])
+      expect(setting.venues.length).toBeGreaterThan(0)
+      expect(setting.steps.length).toBeGreaterThan(3)
+      expect(setting.relatedArtifacts.some(r => r.type === 'derived-from')).toBe(false)
+    },
+  )
+
+  it('the emergency department hands over to inpatient care as a step', () => {
+    const [ed, inpatient] = core.settingPathways.map(s => loadSettingPathway(s.resource!))
+    const handover = flatten(ed.steps).find(a => a.definitionCanonical === inpatient.url)
+    expect(handover?.title).toMatch(/admit/i)
+  })
+
+  it('refuses a canonical the core pathway does not list as a setting', () => {
+    expect(() => loadSettingPathway('http://thespierproject.org/fhir/PlanDefinition/SPiERReassessmentSchedule')).toThrow(
+      /not one of the core pathway's setting pathways/,
+    )
+  })
 })
 
 describe('the parser refuses what it cannot read', () => {
@@ -227,6 +267,18 @@ describe('the parser refuses what it cannot read', () => {
       ],
     } as unknown as (typeof plan.action)[number])
     expect(() => parsePathway(plan)).toThrow(/2 tier branches/)
+  })
+
+  it('parses a protocol with no tier branch as a protocol, and refuses it as the core pathway', () => {
+    const plan = minimalPlan()
+    plan.action[0].action = []
+    expect(() => parseProtocol(plan)).not.toThrow()
+    expect(() => parsePathway(plan)).toThrow(/no tier branch found/)
+  })
+
+  it('throws on a setting link that names no resource', () => {
+    const plan = { ...minimalPlan(), relatedArtifact: [{ type: 'composed-of', label: 'Nowhere' }] }
+    expect(() => parseProtocol(plan)).toThrow(/composed-of relatedArtifact names no resource/)
   })
 
   it('throws when the tier branch mixes tiered and untiered children', () => {

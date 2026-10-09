@@ -40,6 +40,8 @@ import { DataDictionary } from './DataDictionary'
 import { AdoptionReadiness } from './AdoptionReadiness'
 import { CarePathway } from './CarePathway'
 import { CarePathwayProtocol } from './CarePathwayProtocol'
+import { EmergencyDepartmentPathway } from './EmergencyDepartmentPathway'
+import { InpatientPathway } from './InpatientPathway'
 
 afterEach(cleanup)
 
@@ -126,6 +128,9 @@ const PAGES: [string, string, () => ReactElement][] = [
   ['tools/readiness', '/guide/tools/readiness', AdoptionReadiness],
   ['pathway', '/guide/pathway', CarePathway],
   ['pathway/protocol', '/guide/pathway/protocol', CarePathwayProtocol],
+  // The setting pathways render their PlanDefinition's prose, like the protocol page.
+  ['pathway/emergency-department', '/guide/pathway/emergency-department', EmergencyDepartmentPathway],
+  ['pathway/inpatient', '/guide/pathway/inpatient', InpatientPathway],
 ]
 
 describe('what the pages that render core prose show', () => {

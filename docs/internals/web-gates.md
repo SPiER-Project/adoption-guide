@@ -266,6 +266,19 @@ npm run check:pathway    # the Suicide Safer Care Pathway PlanDefinition is almo
                          # parameter (`RuleSet: TierBranch`), so (f) now guards a branch that
                          # bypasses the RuleSet. And a definitionCanonical must resolve to an
                          # ActivityDefinition / PlanDefinition / Questionnaire, not merely exist
+                         # Rule (g), 2026-10-09: the SETTING pathways (setting-pathways.fsh —
+                         # emergency department, inpatient). The core lists each as
+                         # relatedArtifact composed-of and each names the core as derived-from;
+                         # the guide draws its list from the first, so the two must agree both
+                         # ways. Each is held to (b)-(d) plus three of its own: a useContext
+                         # VENUE; NO useContext focus — tools.ts derives a tool's stage from PDs
+                         # with a stage focus, last reference winning, so a setting pathway with
+                         # one silently moves every tool it names; and NO tier coding, because
+                         # what each tier is owed is the core's branch alone. All six planted
+                         # (dropped link, focus, tier code, dangling canonical, timing, no venue)
+                         # went red. ⚠️ It cannot see whether a setting pathway's CONTENT is
+                         # settled — the inpatient one is a draft awaiting clinical review, and
+                         # that is page copy and an FSH comment, not anything a gate reads
 npm run check:readers    # every observation mapper's answer READS vs the Questionnaire's
                          # declared item `type` — see fhir-conformance.md.
                          # ⚠️ And every `.answer` / `.value<Type>` access in a mapper must be one

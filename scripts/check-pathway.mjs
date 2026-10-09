@@ -48,6 +48,13 @@
  *       branch built with it cannot disagree; this rule still reads the
  *       compiled JSON, so a branch written WITHOUT the RuleSet is still caught.
  *
+ *   (g) SETTING PATHWAYS (ig/input/fsh/setting-pathways.fsh) are listed both
+ *       ways — the core's `composed-of` and each setting's `derived-from` —
+ *       and each is held to (b), (c) and (d), plus: a `useContext` venue, NO
+ *       `useContext` focus (which would move every tool it references to a
+ *       different stage in the catalogue), and NO risk-tier coding (the tier
+ *       branch is the core protocol's alone). See the block above the floors.
+ *
  * (e) READING NOTHING IS AN ERROR. A missing generated file, zero parsed
  * actions, zero tier codes, zero stage codes or an empty canonical index all
  * exit non-zero rather than passing vacuously. That is the #232 / #261 family,
@@ -129,6 +136,7 @@ try {
  * the same reason: an empty index green-lights everything it never read.
  */
 const canonicals = new Map() // canonical URL -> resourceType
+const docsByUrl = new Map() // canonical URL -> the resource, for rule (g)
 for (const file of readdirSync(fhirDir).filter((f) => f.endsWith('.json'))) {
   let doc
   try {
@@ -136,7 +144,10 @@ for (const file of readdirSync(fhirDir).filter((f) => f.endsWith('.json'))) {
   } catch {
     continue // not every .json in here is a FHIR resource
   }
-  if (typeof doc?.url === 'string') canonicals.set(doc.url, doc.resourceType)
+  if (typeof doc?.url === 'string') {
+    canonicals.set(doc.url, doc.resourceType)
+    docsByUrl.set(doc.url, doc)
+  }
 }
 if (canonicals.size === 0) {
   bail(
@@ -145,21 +156,89 @@ if (canonicals.size === 0) {
   )
 }
 
+/* ─── The rules every protocol shares ─────────────────────────── */
+
+/** (d) Stage codes are real pathway stages. Returns how many it examined. */
+function checkStages(codings, path) {
+  let examined = 0
+  for (const coding of codings.filter((c) => c.system === STAGE_SYSTEM)) {
+    examined++
+    if (!stageCodes.has(coding.code)) {
+      fail(
+        `${path}: action.code names pathway stage "${coding.code}", which is not in SPiERPathwayStage ` +
+          `(${[...stageCodes].join(', ')}). The step would not tie back to any stage in the catalogue.`,
+      )
+    }
+  }
+  return examined
+}
+
+/**
+ * (b) A step's definitionCanonical resolves to a generated artifact of a type an
+ * engine can apply. Returns how many canonicals it examined, for the floors.
+ */
+function checkDefinition(action, path) {
+  let examined = 0
+  const def = action.definitionCanonical
+  if (typeof def === 'string') {
+    examined++
+    const bare = def.split('|')[0] // strip any |version
+    const type = canonicals.get(bare)
+    if (!type) {
+      fail(
+        `${path}: definitionCanonical "${def}" does not resolve to any artifact in ` +
+          'packages/fhir-artifacts/generated/ — the step points at nothing a consumer can fetch',
+      )
+    } else if (!DEFINITION_TYPES.has(type)) {
+      // ⚠️ Added 2026-10-06: resolving was the whole rule, so a step pointing at
+      // the tier CodeSystem — a real canonical, of a resource no engine can
+      // $apply — passed.
+      fail(
+        `${path}: definitionCanonical "${def}" resolves to a ${type}. PlanDefinition.action.definition ` +
+          `must be one of ${[...DEFINITION_TYPES].join(' | ')} (FHIR R4) — a consumer cannot apply a ${type}.`,
+      )
+    }
+  } else if (def != null) {
+    fail(`${path}: definitionCanonical is not a string (${typeof def})`)
+  }
+  if (action.definitionUri != null) {
+    fail(
+      `${path}: definitionUri is set. This pathway references SPiER artifacts by canonical so they can be ` +
+        'resolved and checked; a raw URI is unresolvable and would slip past rule (b).',
+    )
+  }
+  return examined
+}
+
+/** (c) No timing of any kind, on any action, of any protocol. */
+function checkNoTiming(action, path) {
+  for (const key of Object.keys(action)) {
+    if (/^timing[A-Z]/.test(key)) {
+      fail(
+        `${path}: carries \`${key}\`. The reassessment cadence has exactly ONE home — ` +
+          'PlanDefinition/SPiERReassessmentSchedule — and is already stated three times, held in ' +
+          'agreement by `npm run check:reassessment`. A fourth statement here is the drift that design ' +
+          'prevents: reference the schedule by definitionCanonical instead.',
+      )
+    }
+  }
+}
+
 /* ─── Walk every action, at every depth ─────────────────────── */
 
-/** @type {{ action: any, path: string }[]} */
-const flat = []
-const walk = (actions, prefix) => {
+/** Every action of a protocol, at every depth, with a path naming it. */
+function flatten(actions, prefix = 'action', out = []) {
   actions.forEach((action, i) => {
     const path = `${prefix}[${action.id ?? i}]`
-    flat.push({ action, path })
-    if (Array.isArray(action.action)) walk(action.action, `${path}.action`)
+    out.push({ action, path })
+    if (Array.isArray(action.action)) flatten(action.action, `${path}.action`, out)
   })
+  return out
 }
 if (!Array.isArray(plan.action) || plan.action.length === 0) {
   bail('the pathway has no actions at all — there is no protocol to check')
 }
-walk(plan.action, 'action')
+const flat = flatten(plan.action)
 
 if (flat.length === 0) bail('walked the pathway and found zero actions — refusing to pass vacuously')
 
@@ -243,58 +322,103 @@ for (const { action, path } of flat) {
     }
   }
 
-  // (d) Stage codes are real pathway stages.
-  for (const coding of codings.filter((c) => c.system === STAGE_SYSTEM)) {
-    stageCodeCount++
-    if (!stageCodes.has(coding.code)) {
-      fail(
-        `${path}: action.code names pathway stage "${coding.code}", which is not in SPiERPathwayStage ` +
-          `(${[...stageCodes].join(', ')}). The step would not tie back to any stage in the catalogue.`,
-      )
-    }
-  }
+  stageCodeCount += checkStages(codings, path)
 
-  // (b) Every definitionCanonical resolves to a generated artifact.
-  const def = action.definitionCanonical
-  if (typeof def === 'string') {
-    canonicalCount++
-    const bare = def.split('|')[0] // strip any |version
-    const type = canonicals.get(bare)
-    if (!type) {
-      fail(
-        `${path}: definitionCanonical "${def}" does not resolve to any artifact in ` +
-          'packages/fhir-artifacts/generated/ — the step points at nothing a consumer can fetch',
-      )
-    } else if (!DEFINITION_TYPES.has(type)) {
-      // ⚠️ Added 2026-10-06: resolving was the whole rule, so a step pointing at
-      // the tier CodeSystem — a real canonical, of a resource no engine can
-      // $apply — passed.
-      fail(
-        `${path}: definitionCanonical "${def}" resolves to a ${type}. PlanDefinition.action.definition ` +
-          `must be one of ${[...DEFINITION_TYPES].join(' | ')} (FHIR R4) — a consumer cannot apply a ${type}.`,
-      )
-    }
-  } else if (def != null) {
-    fail(`${path}: definitionCanonical is not a string (${typeof def})`)
-  }
-  if (action.definitionUri != null) {
+  canonicalCount += checkDefinition(action, path)
+  checkNoTiming(action, path)
+}
+
+/* ─── (g) The setting pathways ──────────────────────────────── */
+//
+// ig/input/fsh/setting-pathways.fsh: the core protocol as it applies in one
+// care setting. The core names each as `relatedArtifact #composed-of`, each
+// names the core back as `#derived-from`, and the guide draws the list from the
+// former — so the two directions must agree, or a setting is published that no
+// reader can reach (or listed that does not say it applies this protocol).
+// Each setting pathway is then held to the rules every protocol shares — (b),
+// (c), (d) — plus three of its own:
+//
+//   - it declares its setting as `useContext` VENUE;
+//   - it carries NO `useContext` focus. The tool catalogue derives a tool's
+//     pathway stage from PlanDefinitions with a stage focus, last reference
+//     winning (packages/core/src/data/catalog/tools.ts), so a setting pathway
+//     with one would silently move every tool it references;
+//   - it carries NO risk-tier coding. The tier branch is the core protocol's;
+//     a setting that branched on tiers would be a second statement of what each
+//     tier is owed, which nothing compares against the first.
+
+const CORE_URL = plan.url
+const composedOf = (plan.relatedArtifact ?? [])
+  .filter((r) => r.type === 'composed-of')
+  .map((r) => r.resource)
+const derivedFromCore = [...docsByUrl.values()]
+  .filter(
+    (d) =>
+      d.resourceType === 'PlanDefinition' &&
+      (d.relatedArtifact ?? []).some((r) => r.type === 'derived-from' && r.resource === CORE_URL),
+  )
+  .map((d) => d.url)
+
+for (const url of composedOf) {
+  if (!derivedFromCore.includes(url)) {
     fail(
-      `${path}: definitionUri is set. This pathway references SPiER artifacts by canonical so they can be ` +
-        'resolved and checked; a raw URI is unresolvable and would slip past rule (b).',
+      `relatedArtifact composed-of "${url}" is not a generated PlanDefinition naming the core pathway as ` +
+        'derived-from — the guide would list a setting that does not say it applies this protocol',
     )
   }
+}
+for (const url of derivedFromCore) {
+  if (!composedOf.includes(url)) {
+    fail(
+      `${url} names the core pathway as derived-from, but the core pathway does not list it as ` +
+        'composed-of — a setting pathway published that no reader of the guide can reach',
+    )
+  }
+}
 
-  // (c) No timing of any kind, anywhere.
-  for (const key of Object.keys(action)) {
-    if (/^timing[A-Z]/.test(key)) {
+let settingActionCount = 0
+let settingStageCount = 0
+let settingCanonicalCount = 0
+for (const url of composedOf) {
+  const doc = docsByUrl.get(url)
+  if (!doc || doc.resourceType !== 'PlanDefinition') continue // reported above
+  const label = doc.name ?? url
+  const contexts = doc.useContext ?? []
+  if (!contexts.some((c) => c.code?.code === 'venue')) {
+    fail(`${label}: declares no useContext venue — a setting pathway that does not name its setting`)
+  }
+  if (contexts.some((c) => c.code?.code === 'focus')) {
+    fail(
+      `${label}: carries a useContext focus. The tool catalogue reads a stage from that, last reference ` +
+        'winning, so every tool this pathway references would move stage. Declare the setting as venue.',
+    )
+  }
+  if (!Array.isArray(doc.action) || doc.action.length === 0) {
+    fail(`${label}: has no actions — there is no protocol to check`)
+    continue
+  }
+  for (const { action, path } of flatten(doc.action)) {
+    settingActionCount++
+    const where = `${label} ${path}`
+    const codings = (action.code ?? []).flatMap((c) => c.coding ?? [])
+    if (codings.some((c) => c.system === TIER_SYSTEM)) {
       fail(
-        `${path}: carries \`${key}\`. The reassessment cadence has exactly ONE home — ` +
-          'PlanDefinition/SPiERReassessmentSchedule — and is already stated three times, held in ' +
-          'agreement by `npm run check:reassessment`. A fourth statement here is the drift that design ' +
-          'prevents: reference the schedule by definitionCanonical instead.',
+        `${where}: carries a risk-tier coding. What each tier is owed is the core protocol's tier branch; ` +
+          'a setting pathway that branches on tiers restates it where nothing compares the two.',
       )
     }
+    settingStageCount += checkStages(codings, where)
+    settingCanonicalCount += checkDefinition(action, where)
+    checkNoTiming(action, where)
   }
+}
+
+if (composedOf.length === 0 || settingActionCount === 0) {
+  fail(
+    `rule (g) examined ${composedOf.length} setting pathway(s) and ${settingActionCount} action(s) — ` +
+      'the core pathway lists none, so the rule passed over nothing. If every setting pathway was ' +
+      'retired on purpose, retire this rule with them.',
+  )
 }
 
 /* ─── Floors: a rule that examined nothing has not passed ───── */
@@ -346,4 +470,9 @@ console.log(`  ${stageCodeCount} stage coding(s) resolve against SPiERPathwaySta
 console.log(`  ${canonicalCount} definitionCanonical(s) resolve against ${canonicals.size} generated canonicals`)
 console.log(`  ${tierConditionCount} tier condition(s) test their own branch's tier; ${conditionExtensionCount} condition extension(s) resolve`)
 console.log('  0 timing[x] on any action — the reassessment cadence stays referenced, not restated')
+console.log(
+  `  ${composedOf.length} setting pathway(s), listed both ways: ${settingActionCount} action(s), ` +
+    `${settingStageCount} stage coding(s) and ${settingCanonicalCount} definitionCanonical(s) resolve; ` +
+    'each declares a venue and no focus, and none branches on a tier',
+)
 console.log('\npathway check passed.')
