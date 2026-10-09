@@ -97,6 +97,13 @@
  * catch. The index makes the rule mean what its name says, and it grows with
  * the repo rather than with this file.
  *
+ * ⚠️ **PascalCase joined the index on 2026-10-09** — classes, components and
+ * exported types (`SmartDataSource`, `WritebackScorecard`), which a planted
+ * sentence quoted at a reader and passed. Minus every FHIR R4 resource and
+ * datatype name (derived from `fhirpath`'s R4 model) and every published
+ * artifact `name` in the generated IG: those are the reader's vocabulary, not
+ * this repo's machinery. See `PASCAL` and `readerVocabulary` below.
+ *
  * ── What it cannot see ────────────────────────────────────────────────────
  *
  * ⚠️ **The 29 shared tool views are out of the GUIDE's SOURCE scan, and in the
@@ -125,7 +132,7 @@ import { join } from 'node:path'
 import ts from 'typescript'
 
 import { appRoot, relRepo, REPO_ROOT, walkExt } from './lib/app-roots.mjs'
-import { RESOURCE_TYPES, WIRE_ONLY_RESOURCE_TYPES } from './lib/fhir-vocabulary.mjs'
+import { fhirR4TypeNames, RESOURCE_TYPES, WIRE_ONLY_RESOURCE_TYPES } from './lib/fhir-vocabulary.mjs'
 import { reportFloors } from './lib/floors.mjs'
 import { loadCore } from './lib/load-core.mjs'
 import { REPO_RULES } from './lib/reader-jargon.mjs'
@@ -136,7 +143,7 @@ function fail(msg) {
   failures++
 }
 
-// ── The repo's own camelCase identifiers ───────────────────────────────────
+// ── The repo's own identifiers, camelCase and PascalCase ───────────────────
 
 /**
  * Trees whose names are "this repo's machinery". `docs/` is absent because a
@@ -159,32 +166,92 @@ const NOT_OURS = /(?:^|\/)(?:node_modules|dist|dist-[^/]+|fsh-generated|generate
 
 /** camelCase with at least one interior capital — `buildCdsCards`, not `tools`. */
 const CAMEL = /^[a-z][a-z0-9]*(?:[A-Z][A-Za-z0-9]*)+$/
-const CAMEL_TOKEN = /\b[a-z][a-z0-9]*(?:[A-Z][A-Za-z0-9]*)+\b/g
 
 /**
- * Every camelCase name this repo defines: exported bindings, plus file and
- * directory names (`observationMappers` is a directory, and was quoted at a
- * reader as one).
+ * PascalCase with a lower-to-upper hump — `SmartDataSource`, `WritebackScorecard`,
+ * `CSSRSItemCoding`; not `TOOLS`, `HEX` or `Patient`.
+ *
+ * ⚠️ **Added 2026-10-09, after a planted "SmartDataSource" in the Provider App
+ * page's prose passed.** The index was camelCase-only, so every class, React
+ * component and exported type — the names a sentence about the build is most
+ * likely to quote — was invisible to it. The hump is the shape test: an ALL-CAPS
+ * constant (`TOOLS`, `CONFIG`) is also an acronym a reader may meet, and a
+ * single capitalised word is English.
  */
-function indexRepoIdentifiers() {
+const PASCAL = /^[A-Z][A-Za-z0-9]*[a-z][A-Z][A-Za-z0-9]*$/
+
+/** Every word-shaped token; membership in the index is the test, not the shape. */
+const WORD_TOKEN = /\b[A-Za-z][A-Za-z0-9]*\b/g
+
+/**
+ * ⚠️ **Names a reader of the guide is SUPPOSED to meet, subtracted from the
+ * PascalCase half.** Both are derived, neither is typed:
+ *
+ *   - every FHIR R4 resource and datatype name (`fhirR4TypeNames`, from the R4
+ *     model `fhirpath` ships) — guide copy names `QuestionnaireResponse`,
+ *     `CapabilityStatement` and `PlanDefinition` as the standard's own words,
+ *     and a repo type that shares one is the spec's word first;
+ *   - every published artifact's `name` in the generated IG
+ *     (`SPiERSuicideRiskConcept`, `AdministerPHQ9`) — the guide shows these as
+ *     what an implementer will find in the IG, which is the artifact's identity
+ *     and not this repo's machinery. Today no TypeScript export shares one, so
+ *     the subtraction removes nothing; it states the decision, so the first
+ *     export that does is not a reason to stop naming the profile.
+ *
+ * The clinical scan bans SPiER profile names outright (its own rule, below);
+ * that is a different reader, and this does not loosen it.
+ */
+function publishedArtifactNames() {
   const names = new Set()
-  for (const root of SYMBOL_ROOTS) {
-    for (const file of walkExt(join(REPO_ROOT, root), ['.ts', '.tsx', '.mjs'])) {
-      const rel = relRepo(file)
-      if (NOT_OURS.test(rel)) continue
-      for (const segment of rel.split('/')) {
-        const base = segment.replace(/\.(tsx?|mjs)$/, '')
-        if (CAMEL.test(base)) names.add(base)
-      }
-      const src = readFileSync(file, 'utf8')
-      const decl = /\bexport\s+(?:async\s+)?(?:const|let|function|class|type|interface)\s+([A-Za-z_$][\w$]*)/g
-      for (const m of src.matchAll(decl)) if (CAMEL.test(m[1])) names.add(m[1])
+  if (!existsSync(GENERATED_DIR)) return names // its absence fails below
+  for (const file of walkExt(GENERATED_DIR, ['.json'])) {
+    try {
+      const r = JSON.parse(readFileSync(file, 'utf8'))
+      if (typeof r?.name === 'string' && typeof r?.url === 'string') names.add(r.name)
+    } catch {
+      // not a resource; copy-fhir's own gates own the tree's shape
     }
   }
   return names
 }
 
-const repoIdentifiers = indexRepoIdentifiers()
+const GENERATED_DIR = join(REPO_ROOT, 'packages/fhir-artifacts/generated')
+const fhirTypeNames = fhirR4TypeNames()
+const artifactNames = publishedArtifactNames()
+const readerVocabulary = new Set([...fhirTypeNames, ...artifactNames])
+
+/**
+ * Every camelCase or PascalCase name this repo defines: exported bindings
+ * (classes, components, types and constants included), plus file and directory
+ * names (`observationMappers` is a directory, and was quoted at a reader as one;
+ * `SmartDataSource.ts` is a file).
+ */
+function indexRepoIdentifiers() {
+  const camel = new Set()
+  const pascal = new Set()
+  const subtracted = new Set()
+  const add = (name) => {
+    if (CAMEL.test(name)) camel.add(name)
+    else if (PASCAL.test(name)) {
+      if (readerVocabulary.has(name)) subtracted.add(name)
+      else pascal.add(name)
+    }
+  }
+  for (const root of SYMBOL_ROOTS) {
+    for (const file of walkExt(join(REPO_ROOT, root), ['.ts', '.tsx', '.mjs'])) {
+      const rel = relRepo(file)
+      if (NOT_OURS.test(rel)) continue
+      for (const segment of rel.split('/')) add(segment.replace(/\.(tsx?|mjs)$/, ''))
+      const src = readFileSync(file, 'utf8')
+      const decl = /\bexport\s+(?:default\s+)?(?:declare\s+)?(?:abstract\s+)?(?:async\s+)?(?:const|let|function|class|type|interface|enum)\s+([A-Za-z_$][\w$]*)/g
+      for (const m of src.matchAll(decl)) add(m[1])
+    }
+  }
+  return { camel, pascal, subtracted }
+}
+
+const { camel: camelIdentifiers, pascal: pascalIdentifiers, subtracted: subtractedIdentifiers } = indexRepoIdentifiers()
+const repoIdentifiers = new Set([...camelIdentifiers, ...pascalIdentifiers])
 
 // ── The rules ──────────────────────────────────────────────────────────────
 
@@ -197,7 +264,7 @@ function jargonIn(text) {
     const m = rule.re.exec(text)
     if (m) return { rule: rule.name, match: m[0].trim() }
   }
-  for (const m of text.matchAll(CAMEL_TOKEN)) {
+  for (const m of text.matchAll(WORD_TOKEN)) {
     if (repoIdentifiers.has(m[0])) return { rule: 'a repo identifier', match: m[0] }
   }
   return null
@@ -303,6 +370,10 @@ function readerStrings(rel, src) {
     // Never rendered: the module graph, and a message only a developer reads.
     if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) return
     if (ts.isNewExpression(node) && /Error$/.test(node.expression.getText(sf))) return
+    // ⚠️ A devtools message, read by whoever has the console open — the same
+    // reader as an Error's. Skipped once the index learned PascalCase, because
+    // `[LocalDataSource] saveArtifact: …` was its only hit and is not on a page.
+    if (ts.isCallExpression(node) && /^console\.\w+$/.test(node.expression.getText(sf))) return
     if (ts.isJsxText(node)) return push(node, node.getText(sf))
     if (ts.isJsxAttribute(node)) {
       if (CODE_ATTRS.has(node.name.getText(sf))) return
@@ -377,7 +448,6 @@ for (const file of guideFiles) {
  * produced. The generated tree is a precondition (`verify` runs copy-fhir
  * first), and its absence fails here rather than reading as "nothing to scan".
  */
-const GENERATED_DIR = join(REPO_ROOT, 'packages/fhir-artifacts/generated')
 if (!existsSync(GENERATED_DIR)) {
   fail(`${relRepo(GENERATED_DIR)} is missing — run \`npm run copy-fhir\` first; the published documentation cannot be read without it`)
 }
@@ -834,7 +904,14 @@ const floorsHeld = reportFloors(
     // The generated tree replaced the FSH line scan with the same 48 strings,
     // so the floor carried over unchanged.
     { source: 'packages/fhir-artifacts/generated', dimension: 'documentation string(s)', actual: fshStrings, floor: 24 },
-    { source: 'the repo', dimension: 'camelCase identifier(s) indexed', actual: repoIdentifiers.size, floor: 200 },
+    // The identifier index, per shape and per subtraction (2026-10-09: 541
+    // camelCase, 370 PascalCase, 189 R4 type names, 217 published artifact
+    // names). The two subtraction lists are floored too: an empty one would
+    // read as "nothing to excuse" and silently ban the standard's own words.
+    { source: 'the repo', dimension: 'camelCase identifier(s) indexed', actual: camelIdentifiers.size, floor: 270 },
+    { source: 'the repo', dimension: 'PascalCase identifier(s) indexed', actual: pascalIdentifiers.size, floor: 185 },
+    { source: 'fhirpath/fhir-context/r4', dimension: 'FHIR R4 type name(s) subtracted', actual: fhirTypeNames.size, floor: 94 },
+    { source: 'packages/fhir-artifacts/generated', dimension: 'published artifact name(s) subtracted', actual: artifactNames.size, floor: 108 },
     // Halved and rounded down from the live counts on the day the clinical scan
     // landed: 76 modules walked (74 read, 2 deferred) / 1,118 clinician strings.
     { source: 'apps/clinical + packages/tool-views', dimension: 'module(s) parsed', actual: clinicalFiles.filter((f) => !f.startsWith(APP_SHELL_SRC + '/')).length, floor: 38 },
@@ -852,7 +929,9 @@ if (failures === 0 && floorsHeld) {
     `✓ no repo vocabulary in reader copy: ${guideStrings} reader string(s) across ` +
       `${guideFiles.length} Adoption Guide + app-shell module(s), ${fshStrings} documentation string(s) in ` +
       `${generatedFiles.length} generated resource(s) and ${coreStrings} catalogue value(s), against ${RULES.length + 1} rules ` +
-      `(${repoIdentifiers.size} repo identifiers indexed); the rendered guide pages pass the same rules`,
+      `(${camelIdentifiers.size} camelCase + ${pascalIdentifiers.size} PascalCase repo identifiers indexed; ` +
+      `${subtractedIdentifiers.size} repo name(s) shared with FHIR R4 or a published artifact left out: ` +
+      `${[...subtractedIdentifiers].sort().join(', ') || 'none'}); the rendered guide pages pass the same rules`,
   )
   console.log(
     `✓ no wire vocabulary in clinician copy: ${clinicalStrings} string(s) across ` +

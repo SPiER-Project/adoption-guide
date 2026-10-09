@@ -1,3 +1,5 @@
+import { createRequire } from 'node:module'
+
 /**
  * The words that mean "this is the wire format", for the gates that forbid them
  * in front of a clinician.
@@ -54,3 +56,28 @@ export const ALSO_ENGLISH = new Set([
 
 /** Resource types that are only ever the wire format when written as a word. */
 export const WIRE_ONLY_RESOURCE_TYPES = RESOURCE_TYPES.filter((t) => !ALSO_ENGLISH.has(t))
+
+/**
+ * Every FHIR R4 resource and complex-datatype name — `QuestionnaireResponse`,
+ * `CapabilityStatement`, `CodeableConcept`, `ContactPoint` — 189 of them.
+ *
+ * ⚠️ **Derived, not typed.** Read from the R4 model `fhirpath` ships
+ * (`fhirpath/fhir-context/r4`, its `type2Parent` table, which is generated from
+ * the R4 StructureDefinitions), so it is the whole spec rather than the 18 names
+ * SPiER happens to write. `check:jargon` subtracts it from the repo-identifier
+ * index: guide copy legitimately names any resource or datatype, and a repo type
+ * that shares the spec's name (`Measure`, `Bundle`) is the spec's word first.
+ *
+ * `fhirpath` arrives through `@formbox/renderer`, not as a direct dependency; the
+ * repo already relies on its `fhir-context/*` layout (the R5 shim). A missing or
+ * reshaped module throws here, and the caller floors the count.
+ */
+export function fhirR4TypeNames() {
+  const model = createRequire(import.meta.url)('fhirpath/fhir-context/r4')
+  if (!model?.type2Parent || typeof model.type2Parent !== 'object') {
+    throw new Error('fhirpath/fhir-context/r4 has no type2Parent table — the R4 type list cannot be derived')
+  }
+  // Primitive types are lowercase (`string`, `dateTime`) and are not names a
+  // reader would see capitalised; only the capitalised ones are kept.
+  return new Set(Object.keys(model.type2Parent).filter((t) => /^[A-Z]/.test(t)))
+}
