@@ -403,7 +403,7 @@ export function CarePathway() {
       <section className="care-pathway__settings" aria-labelledby="pathway-settings-title">
         <h3 id="pathway-settings-title" className="pathway-section-title">In specific settings</h3>
         <p className="care-pathway__para">
-          The same pathway in each setting: the tiers above, and what the setting adds.
+          The same pathway, plus what each setting adds.
         </p>
         <ul className="care-pathway__setting-list">
           {model.settingPathways.map(setting => {
