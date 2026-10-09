@@ -2,7 +2,7 @@
 // the rest of packages/core: plain data, which the apps render.
 //
 // Anything in this file is UI/demo concern (button copy, badge styling,
-// adoption-rubric maturity targets, inline example resources). The clinical
+// adoption-rubric maturity targets, which IG example instance a tool shows). The clinical
 // fields (id/name/purpose/stageId/questionnaireUrl) come from FHIR
 // ActivityDefinitions in ig/input/fsh/ and are wired up in tools.ts.
 //
@@ -77,144 +77,27 @@ export interface ToolUiMetadata {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Inline FHIR example resources
-// (TODO: replace with reads from packages/fhir-artifacts/generated/Observation-Example*.json
-//  once a viewer page lists IG instances directly.)
+// FHIR example resources — the IG's own example instances
 // ─────────────────────────────────────────────────────────────
-
-const PHQ9_ITEM9_EXAMPLE = {
-  resourceType: 'Observation',
-  id: 'phq9-item9-example',
-  status: 'final',
-  category: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/observation-category', code: 'survey' }] }],
-  code: { coding: [{ system: 'http://loinc.org', code: '44260-8', display: 'Thoughts that you would be better off dead, or of hurting yourself in some way in last 2 weeks [Reported.PHQ]' }] },
-  subject: { reference: 'Patient/123' },
-  effectiveDateTime: '2026-03-19T10:30:00Z',
-  valueInteger: 2,
-  // `display` is HL7's for code A; the instrument's own wording goes in `text`.
-  // These payloads are what the guide shows a reader as "this is the shape SPiER
-  // emits", so a drifted display here teaches the defect as well as shipping it.
-  interpretation: [{
-    coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: 'Abnormal' }],
-    text: 'Positive — suicide risk screening indicated',
-  }],
-}
-
-const ASQ_RESULT_EXAMPLE = {
-  resourceType: 'Observation',
-  id: 'asq-result-example',
-  status: 'final',
-  category: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/observation-category', code: 'survey' }] }],
-  code: { coding: [{ system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' }] },
-  subject: { reference: 'Patient/123' },
-  effectiveDateTime: '2026-03-19T10:35:00Z',
-  valueCodeableConcept: {
-    coding: [{ system: 'http://thespierproject.org/fhir/CodeSystem/asq-screening-result', code: 'non-acute-positive', display: 'Non-Acute Positive Screen' }],
-  },
-}
-
-const BSSA_DISPOSITION_EXAMPLE = {
-  resourceType: 'Observation',
-  id: 'bssa-disposition-example',
-  status: 'final',
-  category: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/observation-category', code: 'survey' }] }],
-  code: { coding: [{ system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' }] },
-  subject: { reference: 'Patient/123' },
-  effectiveDateTime: '2026-07-15T14:20:00Z',
-  valueCodeableConcept: {
-    coding: [{ system: 'http://thespierproject.org/fhir/CodeSystem/bssa-disposition', code: 'further-evaluation-necessary', display: 'Further evaluation of risk is necessary' }],
-  },
-  interpretation: [{
-    coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: 'Abnormal' }],
-    text: 'Further evaluation of risk is necessary',
-  }],
-}
-
-const PSS3_RESULT_EXAMPLE = {
-  resourceType: 'Observation',
-  id: 'pss3-result-example',
-  status: 'final',
-  category: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/observation-category', code: 'survey' }] }],
-  code: { coding: [{ system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' }] },
-  subject: { reference: 'Patient/123' },
-  effectiveDateTime: '2026-07-15T09:10:00Z',
-  valueCodeableConcept: {
-    coding: [{ system: 'http://thespierproject.org/fhir/CodeSystem/pss3-result', code: 'positive', display: 'Positive Screen (suicide risk)' }],
-  },
-  interpretation: [{
-    coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: 'Abnormal' }],
-    text: 'Positive suicide-risk screen',
-  }],
-}
-
-const SAFET_RISK_LEVEL_EXAMPLE = {
-  resourceType: 'Observation',
-  id: 'safet-risk-level-example',
-  status: 'final',
-  category: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/observation-category', code: 'survey' }] }],
-  code: { coding: [{ system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' }] },
-  subject: { reference: 'Patient/123' },
-  effectiveDateTime: '2026-07-15T15:05:00Z',
-  valueCodeableConcept: {
-    coding: [{ system: 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier', code: 'moderate', display: 'Moderate risk' }],
-  },
-  interpretation: [{
-    coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: 'Abnormal' }],
-    text: 'Moderate risk',
-  }],
-  note: [{ text: 'Value binds directly to the shared suicide-risk tier — no per-instrument crosswalk. Rationale: ideation with plan but no intent; multiple risk factors, few protective factors.' }],
-}
-
-const CSSRS_SLV_EXAMPLE = {
-  resourceType: 'Observation',
-  id: 'cssrs-since-last-contact-risk-level-example',
-  status: 'final',
-  category: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/observation-category', code: 'survey' }] }],
-  code: { coding: [{ system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' }] },
-  subject: { reference: 'Patient/123' },
-  effectiveDateTime: '2026-07-15T12:00:00Z',
-  valueCodeableConcept: {
-    // Dual-coded: SPiER-local C-SSRS tier + matching LOINC answer (LL465-6) for HL7 interop.
-    coding: [
-      { system: 'http://thespierproject.org/fhir/CodeSystem/cssrs-risk-level', code: 'moderate', display: 'Moderate' },
-      { system: 'http://loinc.org', code: 'LA6751-7', display: 'Moderate' },
-    ],
-    text: 'Moderate Risk — ideation with method, no intent (since last visit)',
-  },
-  interpretation: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'A', display: 'Abnormal' }] }],
-}
-
-const CAMS_VITAL_EXAMPLE = {
-  resourceType: 'Observation',
-  id: 'cams-psychological-pain-example',
-  status: 'final',
-  category: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/observation-category', code: 'survey' }] }],
-  code: {
-    coding: [{ system: 'http://thespierproject.org/fhir/CodeSystem/cams-ssf', code: 'psychological-pain', display: 'Psychological Pain' }],
-    text: 'CAMS SSF: Psychological Pain — local code pending LOINC submission',
-  },
-  subject: { reference: 'Patient/123' },
-  effectiveDateTime: '2026-03-19T11:00:00Z',
-  valueInteger: 4,
-  interpretation: [{
-    coding: [{ system: 'http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation', code: 'H', display: 'High' }],
-    text: 'Elevated (4/5)',
-  }],
-  note: [{ text: 'Track longitudinally across CAMS sessions to show trending.' }],
-}
-
-const CAMS_DRIVER_EXAMPLE = {
-  resourceType: 'Condition',
-  id: 'cams-driver-example',
-  clinicalStatus: { coding: [{ system: 'http://terminology.hl7.org/CodeSystem/condition-clinical', code: 'active' }] },
-  category: [
-    { coding: [{ system: 'http://thespierproject.org/fhir/CodeSystem/cams-driver-category', code: 'suicide-driver', display: 'Suicide Driver' }] },
-    { coding: [{ system: 'http://thespierproject.org/fhir/CodeSystem/cams-driver-type', code: 'direct', display: 'Direct Driver' }] },
-  ],
-  code: { text: 'Relationship conflict with spouse — feeling trapped and hopeless' },
-  subject: { reference: 'Patient/123' },
-  note: [{ text: 'Track on problem list until resolved. Update clinicalStatus to "resolved" at CAMS disposition.' }],
-}
+//
+// Authored ONCE, as `Usage: #example` Instances in ig/input/fsh/, and shown here
+// as SUSHI compiled them. Until #125 these were eight hand-written TypeScript
+// copies, which drifted from the IG's examples (an interpretation display that
+// was not HL7's, a subject of `Patient/123`) and were checked by nothing the
+// IG's examples are checked by: the HL7 validator, the IG Publisher, and
+// `check:codings`' resource-level terminology run. A guide reader is shown
+// these as "the shape SPiER emits", so they have to be the shape the IG
+// publishes. To change one, edit its FSH Instance; to add one, author the
+// Instance first and import its compiled JSON here.
+import ASQ_RESULT_EXAMPLE from '@spier/fhir-artifacts/generated/Observation-ExampleASQResultNonAcutePositive.json'
+import PHQ9_ITEM9_EXAMPLE from '@spier/fhir-artifacts/generated/Observation-ExamplePHQ9Item9Positive.json'
+import PSS3_RESULT_EXAMPLE from '@spier/fhir-artifacts/generated/Observation-ExamplePSS3Positive.json'
+import CSSRS_PEDIATRIC_EXAMPLE from '@spier/fhir-artifacts/generated/Observation-ExampleCSSRSPediatricLowRisk.json'
+import CSSRS_SLC_EXAMPLE from '@spier/fhir-artifacts/generated/Observation-ExampleCSSRSSinceLastContactModerateRisk.json'
+import BSSA_DISPOSITION_EXAMPLE from '@spier/fhir-artifacts/generated/Observation-ExampleBSSADispositionFurtherEval.json'
+import CAMS_VITAL_EXAMPLE from '@spier/fhir-artifacts/generated/Observation-ExampleCAMSSSFPsychologicalPain.json'
+import CAMS_DRIVER_EXAMPLE from '@spier/fhir-artifacts/generated/Condition-ExampleCAMSSuicideDriver.json'
+import SAFET_RISK_LEVEL_EXAMPLE from '@spier/fhir-artifacts/generated/Observation-ExampleSAFETRiskLevelModerate.json'
 
 // ─────────────────────────────────────────────────────────────
 // UI metadata per tool id
@@ -334,7 +217,7 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
       ],
       workflowTrigger: 'High/moderate → safety planning; involve parent/guardian per protocol for youth.',
     },
-    fhirExamples: [{ title: 'C-SSRS Pediatric → Observation (risk level)', resource: CSSRS_SLV_EXAMPLE }],
+    fhirExamples: [{ title: 'C-SSRS Pediatric → Observation (risk level)', resource: CSSRS_PEDIATRIC_EXAMPLE }],
   },
   'TL-026': {
     shortName: 'Risk Workflow Trigger',
@@ -372,7 +255,7 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
       ],
       workflowTrigger: 'High/moderate → safety planning; reassessment updates the current risk workflow.',
     },
-    fhirExamples: [{ title: 'C-SSRS Since Last Visit → Observation (risk level)', resource: CSSRS_SLV_EXAMPLE }],
+    fhirExamples: [{ title: 'C-SSRS Since Last Visit → Observation (risk level)', resource: CSSRS_SLC_EXAMPLE }],
   },
   'TL-005': {
     shortName: 'BSSA',

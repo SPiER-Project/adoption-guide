@@ -285,10 +285,19 @@ const SCAN = [
   // terminology.hl7.org literals inside `systemLabel()` are prefix tests, not
   // codings, and are correctly skipped: their enclosing block has no `system`
   // field for the extractor to match.)
+  //
+  // THO went 14 → 0 on 2026-10-09 (#125), and its floor 7 → 0 with it. Every one
+  // of those codings was in the eight hand-written example resources in
+  // tool-ui-metadata.ts, which now import the IG's own example Instances
+  // instead. The codings did not leave the gate's reach: they are in the FSH
+  // examples, which `validate-fhir.mjs --tx` checks at resource level in the
+  // same nightly run. A 0 floor asserts nothing here, deliberately — the
+  // catalog no longer holds a THO literal for it to protect, and LOINC and
+  // SNOMED keep this tree's liveness check.
   {
     path: 'packages/core/src/data/catalog',
     exts: ['.ts', '.tsx'],
-    minCodings: { loinc: 17, snomed: 1, tho: 7 },
+    minCodings: { loinc: 17, snomed: 1, tho: 0 },
   },
   // Real zeros, verified rather than assumed. The Worker reuses the web catalog
   // instead of restating codes; its only two LOINC literals are in
