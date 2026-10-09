@@ -322,9 +322,9 @@ export function DischargePacketView() {
           packet is an <em>object</em> that persists. <code>context.related</code> carries the
           live resources it was assembled from, and the included-item checklist rides as repeating{' '}
           <code>handoff-content-item</code> extensions. This is the one screen in SPiER where a
-          recorded preference <em>changes</em> an artifact rather than sitting beside it (#227) —
-          the rules are in <code>applySharingConsent()</code>, and anything excluded is recorded as
-          a withheld item with its basis, because a packet silently missing a section is
+          recorded preference <em>changes</em> an artifact rather than sitting beside it: the
+          patient&rsquo;s sharing consent decides what is left out, and anything excluded is recorded
+          as a withheld item with its basis, because a packet silently missing a section is
           indistinguishable from a bug.
         </>
       }

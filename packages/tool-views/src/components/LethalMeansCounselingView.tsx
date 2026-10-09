@@ -160,8 +160,7 @@ export function LethalMeansCounselingView() {
         <>
           Two halves, because the FHIR has two. One{' '}
           <strong>Procedure</strong> (<strong>SPiERLethalMeansCounseling</strong>) is all the
-          completion measure counts, and nothing in the app wrote it before this recorder existed
-          (#210). Then one <strong>Observation</strong> per means, with the action as the value and{' '}
+          completion measure counts. Then one <strong>Observation</strong> per means, with the action as the value and{' '}
           <code>status</code> separating <code>final</code> (done) from <code>preliminary</code>{' '}
           (agreed) — which is what makes follow-up possible. Nothing is required to be secured:
           counseling a patient who declines is still counseling.
