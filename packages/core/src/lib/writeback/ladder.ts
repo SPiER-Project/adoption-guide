@@ -22,6 +22,7 @@
  * outcomes.
  */
 import { canCreate } from './capability'
+import { WRITE_TIER_RESOURCE } from './types'
 import type {
   ResolvedWritebackConfig,
   ServerCapabilities,
@@ -61,18 +62,18 @@ export function buildWritePlan(
   // Tier 1 — QuestionnaireResponse (foundational discrete capture, written first).
   steps.push({
     tier: 1,
-    resourceType: 'QuestionnaireResponse',
+    resourceType: WRITE_TIER_RESOURCE[1],
     role: 'discrete',
-    disposition: discreteDisposition(cfg.enableQuestionnaireResponse, capabilities, 'QuestionnaireResponse'),
+    disposition: discreteDisposition(cfg.enableQuestionnaireResponse, capabilities, WRITE_TIER_RESOURCE[1]),
   })
 
   // Tier 2 — Observation (derived extraction). Only when there are Observations.
   if (artifacts.observations.length > 0) {
     steps.push({
       tier: 2,
-      resourceType: 'Observation',
+      resourceType: WRITE_TIER_RESOURCE[2],
       role: 'discrete',
-      disposition: discreteDisposition(cfg.enableObservation, capabilities, 'Observation'),
+      disposition: discreteDisposition(cfg.enableObservation, capabilities, WRITE_TIER_RESOURCE[2]),
     })
   }
 
@@ -80,7 +81,7 @@ export function buildWritePlan(
   // the universal fallback, so capability is not a gate here).
   steps.push({
     tier: 0,
-    resourceType: 'DocumentReference',
+    resourceType: WRITE_TIER_RESOURCE[0],
     role: 'floor',
     disposition: 'attempt',
   })

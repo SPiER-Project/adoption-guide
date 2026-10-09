@@ -100,8 +100,9 @@ export function ProviderAppGuide() {
             follow-up activity, grouped by the stage each belongs to.
           </li>
           <li>
-            <strong>What was saved back</strong> &mdash; after a submit, which of the writes landed
-            in the EHR, itemised by resource type.
+            <strong>What was saved back</strong> &mdash; after a save, which of the writes landed
+            in the EHR. <Link to="/guide/provider-app/saving-to-the-ehr">How saving works</Link>,
+            and where a site starts.
           </li>
         </ul>
       </section>

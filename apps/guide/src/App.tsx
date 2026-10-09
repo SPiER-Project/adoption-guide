@@ -59,6 +59,7 @@ const PatientJourney = lazy(() => import('./pages/PatientJourney').then(m => ({ 
 const DataDictionary = lazy(() => import('./pages/DataDictionary').then(m => ({ default: m.DataDictionary })))
 const CdsServiceGuide = lazy(() => import('./pages/CdsServiceGuide').then(m => ({ default: m.CdsServiceGuide })))
 const ProviderAppGuide = lazy(() => import('./pages/ProviderAppGuide').then(m => ({ default: m.ProviderAppGuide })))
+const SavingToEhrGuide = lazy(() => import('./pages/SavingToEhrGuide').then(m => ({ default: m.SavingToEhrGuide })))
 const PopulationDashboardGuide = lazy(() => import('./pages/PopulationDashboardGuide').then(m => ({ default: m.PopulationDashboardGuide })))
 const EhrAdoptionRubric = lazy(() => import('./pages/EhrAdoptionRubric').then(m => ({ default: m.EhrAdoptionRubric })))
 const AdoptionReadiness = lazy(() => import('./pages/AdoptionReadiness').then(m => ({ default: m.AdoptionReadiness })))
@@ -146,6 +147,7 @@ function AppRoutes() {
                 find each section's component, and a different shape would make it
                 fail to resolve the page rather than silently skip it. */}
             <Route path="provider-app" element={<ProviderAppGuide />} />
+            <Route path="provider-app/saving-to-the-ehr" element={<SavingToEhrGuide />} />
             {/* Renamed 2026-09-17: the app is the clinician's, launched from a
                 patient's chart. `/guide/patient-app` was published and was what
                 /patient/chart pointed at, so it redirects rather than 404s.

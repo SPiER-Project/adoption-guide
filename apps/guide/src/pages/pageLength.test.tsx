@@ -65,6 +65,7 @@ import { Overview } from './Overview'
 import { PatientJourney } from './PatientJourney'
 import { PopulationDashboardGuide } from './PopulationDashboardGuide'
 import { ProviderAppGuide } from './ProviderAppGuide'
+import { SavingToEhrGuide } from './SavingToEhrGuide'
 import { WhySpier } from './WhySpier'
 
 afterEach(cleanup)
@@ -156,6 +157,12 @@ const CAPS: Record<string, { cap: number; why: string }> = {
   'provider-app': { cap: SURFACE_GUIDE_CAP, why: SURFACE_GUIDE_WHY },
   dashboard: { cap: SURFACE_GUIDE_CAP, why: SURFACE_GUIDE_WHY },
   'cds-service': { cap: SURFACE_GUIDE_CAP, why: SURFACE_GUIDE_WHY },
+  'provider-app/saving-to-the-ehr': {
+    cap: 330,
+    why: 'Built to the "see it running" pattern its parent uses, so held to the same number: the intro, three ' +
+      'rungs, where a site starts and ends, then three closed drawers carrying what it never writes, how it ' +
+      'decides, and what is not yet proved.',
+  },
   'data-dictionary': {
     cap: 1200,
     why: '§4.5 asked for navigation rather than cuts, and got it on 2026-09-21: the eight stage tables are closed ' +
@@ -194,6 +201,7 @@ const PAGES: Record<string, () => ReactElement> = {
   tools: PatientJourney,
   'tools/readiness': AdoptionReadiness,
   'provider-app': ProviderAppGuide,
+  'provider-app/saving-to-the-ehr': SavingToEhrGuide,
   dashboard: PopulationDashboardGuide,
   'cds-service': CdsServiceGuide,
   'data-dictionary': DataDictionary,

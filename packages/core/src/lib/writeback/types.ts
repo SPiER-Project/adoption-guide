@@ -57,6 +57,19 @@ export type WritebackResourceType =
   | 'Observation'
 
 /**
+ * The resource each tier writes — the ladder's rungs, stated once.
+ * `buildWritePlan` builds its steps from this, and the guide's page on saving
+ * to the EHR keys its copy by `WriteTier`, so a rung added or removed here is a
+ * compile error in both rather than a page that quietly describes a ladder the
+ * app does not climb.
+ */
+export const WRITE_TIER_RESOURCE = {
+  0: 'DocumentReference',
+  1: 'QuestionnaireResponse',
+  2: 'Observation',
+} as const satisfies Record<WriteTier, WritebackResourceType>
+
+/**
  * What a server can create, distilled from its CapabilityStatement (see
  * capability.ts). Absent keys are treated as unsupported. Only `create` matters
  * for the ladder today.
