@@ -57,10 +57,15 @@
 
 /* No margin: `Disclosure`'s body is a flex column and owns the gap between a
    drawer's children. A margin here would be a second opinion about it. */
+/* `break-word`: a description can quote a FHIR search query
+   (`EpisodeOfCare?type=…&_revinclude=Task:based-on`) with no space in it, which
+   widened TL-037's and TL-043's pages to 417px on a phone. Unlike the element
+   paths' `anywhere`, this breaks only a word that cannot otherwise fit. */
 .tool-page__desc {
   font: var(--type-running);
   margin: 0;
   max-width: var(--measure-prose);
+  overflow-wrap: break-word;
   line-height: var(--line-height-relaxed);
   color: var(--text-body);
 }
@@ -141,10 +146,17 @@
   font-family: var(--font-mono);
 }
 
+/* A FHIRPath expression is one unbroken run of monospace — `CarePlan.activity
+   .where(detail.code.coding.where(system='…'))` — with no space to break at.
+   Unwrapped, opening "Data elements" on a phone pushed the PAGE sideways: 19
+   tool pages widened to as much as 823px at 375. `anywhere` breaks inside the
+   expression, which is the honest choice for code with no natural break point
+   (the table beside it scrolls in its own box instead, as tables should). */
 .tool-page__element-path {
   font: var(--type-caption);
-  font-family: var(--font-mono);
+  overflow-wrap: anywhere;
   color: var(--text-muted);
+  font-family: var(--font-mono);
 }
 
 .tool-page__examples {
