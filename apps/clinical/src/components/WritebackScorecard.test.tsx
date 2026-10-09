@@ -175,6 +175,14 @@ describe('WritebackScorecard', () => {
     expect(text).not.toMatch(/HTTP 422|rejected|1\/3/)
   })
 
+  // Against a real EHR (#640) a complete save read "2 of 3 parts saved": the
+  // readable copy, correctly skipped as not needed, was counted as unsaved.
+  it('counts only the parts a save needed, so a complete save reads complete', async () => {
+    const text = textOf(await ladderReport(ALL_CAPS, {}))
+    expect(text).toMatch(/2 of 2 parts saved\./i)
+    expect(text).not.toMatch(/of 3 parts/i)
+  })
+
   it('explains an unsupported tier as the EHR not accepting it', () => {
     const unsupported: WriteStepResult = {
       tier: 2,

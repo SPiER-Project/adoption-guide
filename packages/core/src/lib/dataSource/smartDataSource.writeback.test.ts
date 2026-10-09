@@ -45,6 +45,12 @@ interface FakeOpts {
   reject?: string[]
   /** Make the /metadata probe fail outright. */
   metadataFails?: boolean
+  /**
+   * How searches answer. `lagging` finds nothing written this session — a server
+   * that indexes after the write returns, which is what the SMART Health IT
+   * sandbox did (#640). `current` finds everything posted, like the mock EHR.
+   */
+  search?: 'lagging' | 'current'
 }
 
 /**
@@ -55,6 +61,7 @@ interface FakeOpts {
  */
 function fakeClient(opts: FakeOpts = {}) {
   const posted: FhirResource[] = []
+  const ids: string[] = []
   const counts: Record<string, number> = {}
   const client = {
     patient: { id: PATIENT },
@@ -62,6 +69,16 @@ function fakeClient(opts: FakeOpts = {}) {
       if (arg === 'metadata') {
         if (opts.metadataFails) throw new Error('HTTP 404 metadata not found')
         return capabilityStatement(opts.creatable ?? ALL_TYPES)
+      }
+      if (typeof arg === 'string') {
+        if (!opts.search) throw new Error(`unexpected search: ${arg}`)
+        if (opts.search === 'lagging') return []
+        const type = arg.split('?')[0]
+        const category = /[?&]category=([^&]+)/.exec(arg)?.[1]
+        return posted
+          .map((r, i) => ({ ...r, id: ids[i] }))
+          .filter(r => r.resourceType === type)
+          .filter(r => !category || JSON.stringify((r as { category?: unknown }).category ?? []).includes(`"${category}"`))
       }
       const req = arg as { url: string; method?: string; body?: string }
       if (req.method !== 'POST') throw new Error(`unexpected request: ${req.url}`)
@@ -72,6 +89,7 @@ function fakeClient(opts: FakeOpts = {}) {
       posted.push(resource)
       counts[resource.resourceType] = (counts[resource.resourceType] ?? 0) + 1
       const id = `srv-${resource.resourceType}-${counts[resource.resourceType]}`
+      ids.push(id)
       return { body: { ...resource, id }, response: { headers: new Headers() } }
     },
   }
@@ -305,5 +323,45 @@ describe('saveResponse — an instrument with no Observations', () => {
 
     expect(typesOf(posted)).toEqual(['QuestionnaireResponse', 'DocumentReference'])
     expect(step(source, 0)?.outcome).toBe('written')
+  })
+})
+
+// Search is not read-your-writes on every server (#640): the SMART Health IT
+// sandbox stored a save at once but did not find it by `patient=` search for
+// about a minute, so the chart re-read straight after a save and showed the
+// chart as it was before it.
+describe('getSlice — a save shows on the chart before the search index catches up', () => {
+  it('includes what this session wrote when the search does not find it yet', async () => {
+    const { client } = fakeClient({ search: 'lagging' })
+    const source = new SmartDataSource(client as never)
+    const { entry, derived } = submission({ q1: true, q5: true })
+    await source.saveResponse(PATIENT, entry, derived)
+
+    const slice = await source.getSlice(null)
+    expect(slice.responses.map(r => r.id)).toEqual(['srv-QuestionnaireResponse-1'])
+    expect(slice.observations.length).toBe(derived?.observations.length)
+    expect(slice.observations.every(o => o.id?.startsWith('srv-Observation-'))).toBe(true)
+  })
+
+  it('counts nothing twice once the search has caught up', async () => {
+    const { client } = fakeClient({ search: 'current' })
+    const source = new SmartDataSource(client as never)
+    const { entry, derived } = submission({ q1: true, q5: true })
+    await source.saveResponse(PATIENT, entry, derived)
+
+    const slice = await source.getSlice(null)
+    expect(slice.responses).toHaveLength(1)
+    expect(slice.observations.length).toBe(derived?.observations.length)
+  })
+
+  it("adds nothing for another patient's chart", async () => {
+    const { client } = fakeClient({ search: 'lagging' })
+    const source = new SmartDataSource(client as never)
+    const { entry, derived } = submission({ q1: true, q5: true })
+    await source.saveResponse(PATIENT, entry, derived)
+
+    const other = await source.getSlice('someone-else')
+    expect(other.responses).toHaveLength(0)
+    expect(other.observations).toHaveLength(0)
   })
 })

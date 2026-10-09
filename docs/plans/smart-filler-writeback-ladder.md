@@ -183,6 +183,17 @@ makes. Nothing hand-writes a resource shape. Both new suites were verified to
 
 ## Closed since
 
+- **Live validation against a server we did not write** (#640). Run on
+  2026-10-09 against the SMART Health IT R4 sandbox (Smile CDR): launch, reads,
+  capability probe, server-id remapping and every discrete rung held. It found
+  three defects the mock could not show — the chart missing a save while the
+  server's search index lagged, responses stored `in-progress`, and a scorecard
+  headline counting a not-needed readable copy as unsaved — all fixed in the same
+  change. Results and the corrected launch steps:
+  [`../smart-sandbox-testing.md`](../smart-sandbox-testing.md). A refusal of one
+  rung can still only be exercised against the mock's capability profiles; the
+  public sandbox accepts everything.
+
 - **CDS card `type: 'smart'` link** (#375). When the service is configured with
   a SMART launch URL, `cardLink()` in `packages/core/src/lib/cdsHooks/cards.ts`
   emits a `type: 'smart'` link whose `appContext` carries the tool as an
@@ -192,11 +203,6 @@ makes. Nothing hand-writes a resource shape. Both new suites were verified to
 
 ## Still open
 
-- **Live sandbox validation against a server we did not write** (#640).
-  `services/mock-ehr/src/smartDataSource.integration.test.ts` now drives a real
-  `SmartDataSource` through the capability probing and the Tier-0 fallback, but
-  only against the mock EHR, so a third-party server is still untested. See
-  [`../smart-sandbox-testing.md`](../smart-sandbox-testing.md).
 - **Adoption-pathways guide page** (#637) — the SMART app as the low-floor
   on-ramp, native EHR documents as the recommended end state.
 - **Should the demo set `alwaysWriteDocument`?** Currently it does not, so an
