@@ -474,7 +474,12 @@ const clinicalRendered = spawnSync(
   ['vitest', 'run', CLINICAL_RENDERED_TEST, '-t', 'names no wire format'],
   { cwd: REPO_ROOT, encoding: 'utf8' },
 )
-if (clinicalRendered.status !== 0 || !/Tests\s+\d+ passed/.test(`${clinicalRendered.stdout ?? ''}`)) {
+// ⚠️ The "passed" check reads vitest's summary with its colour codes stripped:
+// CI colours it (`Tests \x1b[22m \x1b[1m\x1b[32m11 passed`), so a bare regex
+// failed the gate on a green run there and passed it locally, where it is plain.
+// The check exists because `-t` matching nothing exits 0 with every test skipped.
+const clinicalSummary = `${clinicalRendered.stdout ?? ''}`.replace(/\x1b\[[0-9;]*m/g, '')
+if (clinicalRendered.status !== 0 || !/Tests\s+\d+ passed/.test(clinicalSummary)) {
   process.stderr.write(`${clinicalRendered.stdout ?? ''}${clinicalRendered.stderr ?? ''}`)
   fail(`${CLINICAL_RENDERED_TEST} failed — a clinical page renders the wire format, or the test could not run; see above`)
 }
