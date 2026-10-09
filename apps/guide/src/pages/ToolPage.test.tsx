@@ -220,3 +220,17 @@ describe('ToolPage — a form four tools share (TL-039, safety tasks)', () => {
     expect(hrefs).toEqual(others.map((t) => `/guide/tools/${t.id}`))
   })
 })
+
+describe('ToolPage — the description is FHIR markdown, rendered', () => {
+  it('shows a code span as code, without its backticks (TL-037, the registry query)', async () => {
+    renderAt('/guide/tools/TL-037')
+    const desc = await waitFor(() => {
+      const el = document.querySelector('.tool-page__desc')
+      if (!el) throw new Error('no description yet')
+      return el
+    })
+    expect(desc.textContent).not.toContain('`')
+    const code = desc.querySelector('code')
+    expect(code?.textContent).toBe('EpisodeOfCare?type=suicide-safer-care&status=active&_revinclude=Task:based-on')
+  })
+})
