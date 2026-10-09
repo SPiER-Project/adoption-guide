@@ -123,23 +123,27 @@
 
 /* A section's own pages, under it while it is open, hung off a rule so they
    read as that section's and not as rows of the guide outline.
-   ⚠️ The insets are MEASURED, like the outbound notes below: the rule sits
-   left of the parent's label so the nested label starts about where the
-   parent's does, and that leaves "Inpatient psychiatric care" (154px at
-   --type-caption) one line instead of two. Aligning the RULE with the parent's
-   label, the obvious choice, left it 141px and wrapped both rows. */
+   The rule sits directly under the parent's LABEL (the same inset
+   `.sidebar-link--child` derives for its text), and the nested labels start
+   past it — so they read as one level deeper, not level with the rows around
+   them. The first version put the rule left of the parent label and the text
+   2px left of it; it looked unindented (Brad, 2026-10-09).
+   ⚠️ The insets are MEASURED: "Inpatient psychiatric care" is 157px when it is
+   the lit row (semibold) and this leaves it 161px, so it stays one line. At an
+   --space-2 gap after the rule it had exactly 157px and wrapped on a subpixel
+   — any wider left inset wraps it again. */
 .sidebar-sublist {
   display: flex;
   flex-direction: column;
   gap: var(--space-0-5);
-  margin-left: calc(var(--space-3) + var(--space-2));
-  padding-left: var(--space-2);
+  margin-left: calc(var(--space-3) + var(--sidebar-icon-size) + var(--space-2));
+  padding-left: var(--space-1);
   border-left: var(--space-0-5) solid var(--border-default);
 }
 
 .sidebar-link--grandchild {
   font: var(--type-caption);
-  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-2);
+  padding: var(--space-1);
   color: var(--text-muted);
 }
 
