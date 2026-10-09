@@ -29,7 +29,7 @@ its tests agree, and the prose written *about* them is the outlier.
 **This is not cosmetic.** QR-first is load-bearing: `execute.ts` writes the
 QuestionnaireResponse first specifically to capture the server-assigned id, then
 remaps the client-minted `QuestionnaireResponse/<id>` reference inside
-`Observation.derivedFrom` and `Condition.evidence` to it. Reordering to match the
+`Observation.derivedFrom` to it. Reordering to match the
 commit message would silently break provenance on every write — the references
 would point at an id the server never issued.
 
@@ -46,7 +46,17 @@ Climbing = a more capable EHR. Ordered here by tier; **execution** order is
 | 0 | `DocumentReference` | The universal floor: a readable HTML rendering **plus** the raw QR as base64 FHIR JSON, so discrete data is recoverable even where no discrete tier landed. | Conditional — fires when the discrete tiers did not all land cleanly, or on `alwaysWriteDocument` |
 | 1 | `QuestionnaireResponse` | The discrete capture; SDC-canonical, most broadly supported, and the resource every higher rung references. | On, gated by capability |
 | 2 | `Observation` | Scored + harmonized risk-tier Observations — the computable rung. | On, gated by capability |
-| 3 | `Condition` | *Proposes* a problem-list entry, stamped `verificationStatus = unconfirmed`. | **OFF.** Opt-in, requires explicit human confirmation |
+
+There is **no Tier 3**. Until #639 the ladder had an opt-in, default-off
+`Condition` *proposal* — a problem-list entry coded with the risk tier and stamped
+`unconfirmed`, built from a screen's risk alert. It was retired on 2026-10-09
+before its confirmation UI was ever built, because it contradicted a published
+rule: **a screen never becomes a Condition**
+([`../decisions/suicide-related-problem-set.md`](../decisions/suicide-related-problem-set.md)).
+A problem-list entry is the clinician's assertion, from the SNOMED suicide-related
+problem set; SPiER's part is the CDS problem-list card that prompts it. CAMS
+Section B's driver Conditions are a different thing — clinician-recorded content
+of the instrument — and ride the Tier-2 step with the Observations.
 
 ### Two decisions that are not implementation details
 
@@ -60,22 +70,14 @@ as part of ordinary work:
    diagnostic feeding the adoption rubric. It is never hidden, and never retried
    into looking complete. A tier that did not land is the *useful* signal.
 
-### Tier 3 governance, and where it is actually enforced
+### Governance: the ladder writes no Condition
 
-A screening score is an Observation; a problem-list Condition is a clinical
-assertion that is patient-visible under information-blocking rules. So the app
-only ever *proposes* one.
-
-The guarantee is enforced in **`ladder.ts`**, not in the caller:
-`buildWritePlan` omits the Tier-3 step entirely unless
-`config.enableConditionProposal` is set *and* a proposal exists.
-`SmartDataSource.saveResponse` also declines to build the proposal when the tier
-is off, but that is an optimization — verified by planting a defect that removed
-it, which changed no observable behavior because the ladder's own gate caught it.
-Defense in depth, and worth knowing which layer is load-bearing.
-
-`buildConditionProposal` returns `null` for a negative screen: SPiER does not
-propose a problem for a patient who screened negative.
+The ladder cannot write a problem-list Condition: `WriteTier` is `0 | 1 | 2`,
+`WritebackResourceType` has no `Condition`, and `WritebackArtifacts` has no slot
+for one. `ladder.test.ts` and `smartDataSource.writeback.test.ts` pin that no
+config and no elevated screen produce a Condition step, and the scorecard test
+pins that no problem-list rung is offered. The retired Tier-3 design, and why,
+is above the table.
 
 ## Wiring (#350, this change)
 
@@ -95,15 +97,15 @@ produced none — it produced none because nobody pressed the button.
 
 Issue #350 points at `smartDataSource.ts:398`, which is `saveArtifact` — the path
 for CarePlans, Flags, Tasks and lifecycle PUTs. That is the wrong method:
-`saveArtifact` receives one bare resource and has no risk alert, which both
-`buildDocumentReference` and `buildConditionProposal` require.
+`saveArtifact` receives one bare resource and has no risk alert, which
+`buildDocumentReference` requires.
 
 `saveResponse` is the seam. It already receives exactly the ladder's inputs —
 the QR as `entry.resource`, and `DerivedArtifacts { observations, riskAlert }` —
 and its old body was **already a hand-rolled Tier 1 + Tier 2**: create the QR,
 capture the server id, remap `Observation.derivedFrom`. The ladder is a strict
-generalization of that code, adding capability probing, the Tier-0 floor, the
-Tier-3 proposal, and a record of what happened. So the wiring **replaced** that
+generalization of that code, adding capability probing, the Tier-0 floor, and a
+record of what happened. So the wiring **replaced** that
 body rather than being added beside it.
 
 What the old body lacked, and why it mattered: a server that rejected
@@ -111,7 +113,7 @@ Observations lost that data with no trace. The floor now catches it.
 
 ### SMART-only, by design
 
-`LocalDataSource` is untouched. Tier 0 and Tier 3 are meaningless against
+`LocalDataSource` is untouched. The Tier-0 floor is meaningless against
 `localStorage`, and capability probing has nothing to probe.
 
 ### How the result reaches the UI
@@ -147,10 +149,8 @@ degraded writeback is the case where there is no error to show but still
 something the site needs to know.
 
 It is built around explaining **absences**, which it cannot do from
-`WritebackResult.steps` alone. Two rows have no step to render:
+`WritebackResult.steps` alone. One row can have no step to render:
 
-- **Tier 3 disabled** — omitted from the plan entirely, so "off by design" comes
-  from the resolved config. This is why `WritebackReport` carries `config`.
 - **Tier 2 with no Observations** — a property of the instrument (some tools
   produce a CarePlan), not a failure of the server, and it must not read as one.
 
@@ -163,7 +163,7 @@ and certified a mapper against input the app never produces).
 
 Reviewed 2026-08-18 as part of #350. What was checked and **held**:
 
-- the five risk-tier codes and displays in `conditionProposal.ts` match
+- the five risk-tier codes and displays in `conditionProposal.ts` (retired since, #639) match
   `concept-layer.fsh` exactly, and `SPIER_RISK_TIER_SYSTEM` matches the
   `http://thespierproject.org/fhir` canonical. The hand-duplication CLAUDE.md warns about is
   currently correct.
@@ -192,19 +192,18 @@ makes. Nothing hand-writes a resource shape. Both new suites were verified to
 
 ## Still open
 
-- **Live sandbox validation against a server we did not write.**
+- **Live sandbox validation against a server we did not write** (#640).
   `services/mock-ehr/src/smartDataSource.integration.test.ts` now drives a real
   `SmartDataSource` through the capability probing and the Tier-0 fallback, but
   only against the mock EHR, so a third-party server is still untested. See
   [`../smart-sandbox-testing.md`](../smart-sandbox-testing.md).
-- **Adoption-pathways guide page** — the SMART app as the low-floor on-ramp,
-  native EHR documents as the recommended end state.
+- **Adoption-pathways guide page** (#637) — the SMART app as the low-floor
+  on-ramp, native EHR documents as the recommended end state.
 - **Should the demo set `alwaysWriteDocument`?** Currently it does not, so an
   instrument with no Observations writes only a QuestionnaireResponse and no
   readable narrative. Many EHRs can *store* a QR while rendering nothing, which
   is exactly the case Tier 0 exists for. Deliberately left at the module's
-  default rather than changed as a side effect of wiring — it is a policy call.
-- **Tier-3 confirmation UI.** The config is injectable per-source, so opting in
-  is wired; the human-confirmation step it requires is not built.
+  default rather than changed as a side effect of wiring — it is a policy call
+  (#638).
 
 [#350]: https://github.com/SPiER-Project/adoption-guide/issues/350

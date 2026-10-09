@@ -34,7 +34,8 @@ export function isCapabilityProfile(value: unknown): value is CapabilityProfile 
 
 /** Which types each profile advertises `create` for. Reads are never withheld. */
 const CREATABLE: Record<CapabilityProfile, string[]> = {
-  // A modern EHR: every ladder tier lands, including the opt-in Tier 3.
+  // A modern EHR: every ladder tier lands. Condition is for CAMS Section B's
+  // driver Conditions, which ride the Tier-2 step; the ladder writes no other.
   full: ['QuestionnaireResponse', 'Observation', 'Condition', 'DocumentReference'],
   // The interesting middle: discrete capture lands, derived extraction does
   // not. Tier 2 reports `unsupported` and the floor carries the data instead.
@@ -49,7 +50,7 @@ const CREATABLE: Record<CapabilityProfile, string[]> = {
 export const PROFILE_DESCRIPTIONS: Record<CapabilityProfile, string> = {
   full: 'Creates QuestionnaireResponse, Observation, Condition and DocumentReference — every ladder tier lands.',
   'no-observation': 'No Observation create: Tier 2 reports unsupported and the DocumentReference floor carries it.',
-  'documents-only': 'Only DocumentReference create: Tiers 1–3 unsupported, the floor is the whole writeback.',
+  'documents-only': 'Only DocumentReference create: Tiers 1–2 unsupported, the floor is the whole writeback.',
   'read-only': 'No creates at all: the ladder attempts nothing and says so.',
 }
 

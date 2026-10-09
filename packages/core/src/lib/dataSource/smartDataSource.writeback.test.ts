@@ -95,7 +95,8 @@ const typesOf = (posted: FhirResource[]) => posted.map(r => r.resourceType)
 const step = (source: SmartDataSource, tier: number) =>
   source.writebackReport?.result.steps.find(s => s.tier === tier)
 
-// A guard on the fixture itself: every assertion below about Tier 2 and Tier 3
+// A guard on the fixture itself: every assertion below about Tier 2 and the
+// absent Condition
 // assumes this response derives Observations AND an elevated risk alert. If the
 // mapper or the Questionnaire changes so it does not, these tests must fail
 // here rather than silently testing an empty ladder.
@@ -218,8 +219,12 @@ describe('saveResponse — the Tier-0 floor', () => {
   })
 })
 
-describe('saveResponse — Tier 3 governance', () => {
-  it('never writes a Condition by default, even on an elevated screen', async () => {
+// A screen never becomes a Condition (#639). The ladder once had an opt-in
+// Tier-3 "Condition proposal"; it is gone, and this pins that nothing in the
+// save path writes one — on an elevated screen, against a server that can
+// create Conditions.
+describe('saveResponse — never a Condition from a screen', () => {
+  it('writes no Condition, even on an elevated screen', async () => {
     const { client, posted } = fakeClient()
     const source = new SmartDataSource(client as never)
     const { entry, derived } = submission({ q1: true, q5: true })
@@ -227,29 +232,7 @@ describe('saveResponse — Tier 3 governance', () => {
     await source.saveResponse(PATIENT, entry, derived)
 
     expect(typesOf(posted)).not.toContain('Condition')
-    // Absent from the plan entirely — the scorecard states this from the config.
-    expect(step(source, 3)).toBeUndefined()
-    expect(source.writebackReport?.config.enableConditionProposal).toBe(false)
-  })
-
-  it('proposes an unconfirmed Condition when explicitly opted in', async () => {
-    const { client, posted } = fakeClient()
-    const source = new SmartDataSource(client as never, { enableConditionProposal: true })
-    const { entry, derived } = submission({ q1: true, q5: true })
-
-    await source.saveResponse(PATIENT, entry, derived)
-
-    const condition = posted.find(r => r.resourceType === 'Condition') as {
-      verificationStatus?: { coding?: { code?: string }[] }
-      evidence?: { detail?: { reference?: string }[] }[]
-    }
-    expect(condition).toBeDefined()
-    expect(condition.verificationStatus?.coding?.[0]?.code).toBe('unconfirmed')
-    // Provenance points at the SERVER-assigned QR id, not the client one.
-    expect(condition.evidence?.[0]?.detail?.[0]?.reference).toBe(
-      'QuestionnaireResponse/srv-QuestionnaireResponse-1',
-    )
-    expect(step(source, 3)?.outcome).toBe('written')
+    expect(source.writebackReport?.result.steps.map(s => s.resourceType)).not.toContain('Condition')
   })
 })
 

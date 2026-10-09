@@ -6,14 +6,10 @@
  * The scorecard's whole purpose is explaining what did NOT happen — an
  * incomplete writeback is displayed deliberately, as a site-readiness
  * diagnostic. So these tests are weighted toward absences and failures rather
- * than the happy path, and they pin the two cases that cannot be read off
- * `WritebackResult.steps` at all:
- *
- *  1. Tier 3 is omitted from the plan entirely when disabled, so "off by design"
- *     must come from the resolved config.
- *  2. An empty `capabilities` map means either "the server advertises nothing" or
- *     "the probe failed", and presenting the latter as the former would be a
- *     false claim about the site's readiness.
+ * than the happy path. One case cannot be read off `WritebackResult.steps` at
+ * all: an empty `capabilities` map means either "the server advertises
+ * nothing" or "the probe failed", and presenting the latter as the former
+ * would be a false claim about the site's readiness.
  */
 import { describe, it, expect } from 'vitest'
 import { render } from '@testing-library/react'
@@ -38,7 +34,6 @@ function report(
     config: {
       enableQuestionnaireResponse: true,
       enableObservation: true,
-      enableConditionProposal: false,
       alwaysWriteDocument: false,
     },
     capabilities: { QuestionnaireResponse: { create: true } },
@@ -87,7 +82,6 @@ const ladderArtifacts: WritebackArtifacts = {
   qr: ladderQr,
   observations: ladderObservations,
   documentReference: { resourceType: 'DocumentReference' },
-  condition: { resourceType: 'Condition' },
 }
 
 /** A fake EHR that refuses what `refuse` says, in the SMART data source's words. */
@@ -116,7 +110,7 @@ async function ladderReport(
 }
 
 const LADDER_RUNS: Array<[string, () => Promise<WritebackReport>]> = [
-  ['everything saved, several scores', () => ladderReport(ALL_CAPS, { enableConditionProposal: true })],
+  ['everything saved, several scores', () => ladderReport(ALL_CAPS, {})],
   [
     'some scores refused',
     () => ladderReport(ALL_CAPS, {}, (r, nth) => r.resourceType === 'Observation' && nth !== 2),
@@ -146,24 +140,12 @@ describe('WritebackScorecard', () => {
     expect(container.innerHTML).toBe('')
   })
 
-  it('states Tier 3 is off by design when the config disabled it', () => {
-    const text = textOf(report([qrWritten]))
-    expect(text).toMatch(/Off by design/i)
-    expect(text).toMatch(/explicit clinician confirmation/i)
-  })
-
-  it('distinguishes "enabled but not warranted" from "off by design" on Tier 3', () => {
-    const enabled = report([qrWritten], {
-      config: {
-        enableQuestionnaireResponse: true,
-        enableObservation: true,
-        enableConditionProposal: true,
-        alwaysWriteDocument: false,
-      },
-    })
-    const text = textOf(enabled)
-    expect(text).toMatch(/no proposal was warranted/i)
-    expect(text).not.toMatch(/Off by design/i)
+  // A screen never becomes a Condition (#639): the writeback offers no
+  // problem-list rung at all — not as "off by design", not as a proposal.
+  it('offers no problem-list rung, on any run', async () => {
+    for (const [, run] of LADDER_RUNS) {
+      expect(textOf(await run())).not.toMatch(/problem.list|proposal|Off by design/i)
+    }
   })
 
   it('says the probe failed rather than implying the server refused', () => {

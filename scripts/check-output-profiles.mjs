@@ -207,9 +207,10 @@ const UNCLAIMED = {}
  */
 const EXEMPT = {
   'spier-suicide-related-condition':
-    'Writeback ladder Tier 3, default OFF: SPiER PROPOSES a suicide-related problem-list '
-    + 'entry through a CDS card (cdsHooks/problemListCard.ts) and a human asserts it. The '
-    + 'corpus is generated with default config, so it contains none by construction. '
+    'A problem-list entry is the clinician\'s assertion, never derived from a screen '
+    + '(docs/decisions/suicide-related-problem-set.md): SPiER PROMPTS one through a CDS card '
+    + '(cdsHooks/problemListCard.ts) and the clinician records it in the EHR. The app writes '
+    + 'none — the writeback ladder\'s Tier-3 Condition proposal was retired (#639). '
     + 'Deliberate — the assertion is the clinician\'s, not the app\'s.',
 }
 

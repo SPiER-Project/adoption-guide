@@ -30,7 +30,6 @@ import { deriveFromResponse } from '../deriveFromResponse'
 import { stageForArtifact, PATHWAY_STAGE_SYSTEM, type FhirResourceLike } from '../patientPathway'
 import type { RiskAlert } from '../observationMappers'
 import { parseCapabilityStatement } from '../writeback/capability'
-import { buildConditionProposal } from '../writeback/conditionProposal'
 import { buildDocumentReference } from '../writeback/documentReference'
 import { executeWritePlan } from '../writeback/execute'
 import { buildWritePlan, resolveConfig } from '../writeback/ladder'
@@ -295,7 +294,7 @@ function assembleSlice(buckets: SliceBuckets): PatientSlice {
 export class SmartDataSource implements FhirDataSource, WritebackTarget {
   private readonly listeners = new Set<() => void>()
   private readonly client: SmartClient
-  /** Writeback policy. Injected so the Tier-3 confirm flow can opt in per-write. */
+  /** Writeback policy. Injected so a caller (or a test) can turn a tier off. */
   private readonly writebackConfig: WritebackConfig
   /**
    * The most recent writeback run, for the scorecard. Held here rather than
@@ -679,28 +678,14 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
       riskAlert: derived?.riskAlert ?? null,
     })
 
-    // Tier 3 is built only when enabled — `WritebackArtifacts.condition` present
-    // means "a proposal was warranted", and buildWritePlan reads it that way.
-    // buildConditionProposal returns null for a negative screen.
-    const condition =
-      cfg.enableConditionProposal && derived?.riskAlert
-        ? buildConditionProposal({
-            riskAlert: derived.riskAlert,
-            patientId: pid,
-            derivedFromRefs: [`QuestionnaireResponse/${entry.id}`],
-            recordedDate: entry.completedAt,
-          })
-        : null
-
     const artifacts: WritebackArtifacts = {
       // Keeps the client id: `executeWritePlan` needs it to remap the
-      // `QuestionnaireResponse/<id>` references inside the Observations and the
-      // Condition proposal to the server-assigned id. `toCreatePayload` strips
+      // `QuestionnaireResponse/<id>` references inside the Observations to the
+      // server-assigned id. `toCreatePayload` strips
       // it before the POST.
       qr,
       observations: derived?.observations ?? [],
       documentReference,
-      ...(condition ? { condition } : {}),
     }
 
     const { caps, ok } = await this.probeCapabilities()
