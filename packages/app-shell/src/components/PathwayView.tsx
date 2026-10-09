@@ -49,7 +49,7 @@
  * the guide page. "Where is this patient on the pathway" is the scenario phase's
  * job, and the panel already has the patient's own rail on the chart behind it.
  */
-import { type ReactNode } from 'react'
+import { type ReactNode, useRef } from 'react'
 import { Check, ChevronDown } from 'lucide-react'
 import { FhirJsonViewer } from '@spier/tool-views/components/FhirJsonViewer'
 import { useInspect } from '@spier/tool-views/context/InspectContext'
@@ -59,6 +59,7 @@ import {
   type PathwayModel,
 } from '@spier/core/lib/pathway'
 import { buildTierMatrix } from '@spier/core/lib/pathwayMatrix'
+import { useIsNarrow } from '../hooks/useIsNarrow'
 import '../css/CarePathway.css'
 import { cx } from '@spier/ui/cx'
 import { Notice } from '@spier/ui/Notice'
@@ -191,18 +192,73 @@ export interface PathwayTierTableProps {
 }
 
 /**
- * Obligation × tier. A cell spanning several tiers is one obligation those
- * tiers state identically; a dash is a tier that does not owe it. The first
- * body row is each tier's gate, in the artifact's own words.
+ * The tiers an owed cell covers, in words: "All tiers", "High risk", or
+ * "Moderate and high risk" — the tier titles the artifact publishes, folded
+ * when they share the " risk" suffix so a two-tier span does not read
+ * "Moderate risk and High risk".
  */
-export function PathwayTierTable({ tiers, activeTierCode, framed, density = 'full' }: PathwayTierTableProps) {
+function tierSpanLabel(tiers: PathwayAction[], tierCodes: string[]): string {
+  if (tierCodes.length === tiers.length && tiers.length > 1) return 'All tiers'
+  const titles = tiers
+    .filter(tier => tierCodes.includes(tier.tier?.code ?? 'unknown'))
+    .map(tier => tier.title)
+  if (titles.length === 1) return titles[0]
+  const suffix = ' risk'
+  if (titles.every(title => title.toLowerCase().endsWith(suffix))) {
+    const names = titles.map(title => title.slice(0, -suffix.length))
+    const joined = `${names.slice(0, -1).join(', ')} and ${names[names.length - 1].toLowerCase()}`
+    return `${joined}${suffix}`
+  }
+  return `${titles.slice(0, -1).join(', ')} and ${titles[titles.length - 1]}`
+}
+
+/**
+ * Obligation × tier — as a grid where there is room for one, and as one card
+ * per obligation where there is not.
+ *
+ * **Which one is decided by the table's OWN width**, through `useIsNarrow`, not
+ * by the viewport: the clinician's panel is a ~470px frame inside a full-size
+ * screen. The grid needs ~44rem for four readable columns; in the panel it
+ * scrolled sideways inside its box and showed the obligation column and Low
+ * risk only — the High-risk column, which owes four of the six, was off the
+ * edge with no scrollbar on a Mac to say so. The card list carries the same
+ * facts with the tiers as chips. Unmeasured (jsdom, the first frame) is wide.
+ */
+export function PathwayTierTable(props: PathwayTierTableProps) {
+  const boxRef = useRef<HTMLDivElement>(null)
+  const narrow = useIsNarrow(boxRef)
+  return (
+    <div ref={boxRef} className="pathway-tiers">
+      {narrow ? <TierList {...props} /> : <TierGrid {...props} />}
+    </div>
+  )
+}
+
+/** The lit / faded / neither state of something that covers `tierCodes`. */
+function selection(activeTierCode: string | undefined, tierCodes: string[]) {
+  if (activeTierCode === undefined) return undefined
+  return tierCodes.includes(activeTierCode) ? 'active' : 'dimmed'
+}
+
+/**
+ * The grid. A cell spanning several tiers is one obligation those tiers state
+ * identically, drawn as a band across them; a check is one tier; a dash is a
+ * tier that does not owe it. In the full density the first body row is each
+ * tier's gate, in the artifact's own words.
+ *
+ * ⚠️ **The band carries the span; the words do not have to.** The span used to
+ * be a pill reading "Owed at every tier", centred in its cell — which put it
+ * under the MIDDLE column, so "crisis resources" read as moderate-only unless
+ * you read the pill. A band the width of the cell shows the span, and "All
+ * tiers" names it.
+ */
+function TierGrid({ tiers, activeTierCode, framed, density = 'full' }: PathwayTierTableProps) {
   const rows = buildTierMatrix(tiers)
   const full = density === 'full'
-  const selecting = activeTierCode !== undefined
-  const state = (tierCodes: string[]) =>
-    !selecting ? undefined
-      : tierCodes.includes(activeTierCode) ? 'pathway-matrix__cell--active'
-      : 'pathway-matrix__cell--dimmed'
+  const state = (tierCodes: string[]) => {
+    const s = selection(activeTierCode, tierCodes)
+    return s && `pathway-matrix__cell--${s}`
+  }
 
   return (
     <DataTable framed={framed} tableClassName={cx('pathway-matrix', !full && 'pathway-matrix--summary')}>
@@ -211,7 +267,7 @@ export function PathwayTierTable({ tiers, activeTierCode, framed, density = 'ful
           <th scope="col" className="pathway-matrix__corner">Obligation</th>
           {tiers.map(tier => {
             const code = tier.tier?.code ?? 'unknown'
-            const active = selecting && code === activeTierCode
+            const active = code === activeTierCode
             return (
               <th
                 key={tier.id}
@@ -262,10 +318,18 @@ export function PathwayTierTable({ tiers, activeTierCode, framed, density = 'ful
                   colSpan={cell.span}
                   className={cx('pathway-matrix__cell', 'pathway-matrix__cell--owed', state(cell.tierCodes))}
                 >
-                  <span className="pathway-matrix__mark">
-                    <Check size={14} aria-hidden="true" />
-                    {cell.span === tiers.length && tiers.length > 1 ? 'Owed at every tier' : 'Owed'}
-                  </span>
+                  {cell.span > 1 ? (
+                    <span className="pathway-matrix__band">
+                      <Check size={14} aria-hidden="true" />
+                      <span className="pathway-matrix__hidden">Owed: </span>
+                      {tierSpanLabel(tiers, cell.tierCodes)}
+                    </span>
+                  ) : (
+                    <span className="pathway-matrix__mark">
+                      <Check size={16} aria-hidden="true" />
+                      <span className="pathway-matrix__hidden">Owed at this tier</span>
+                    </span>
+                  )}
                   {full && <DocumentationNotes docs={cell.action.documentation} />}
                 </td>
               ) : (
@@ -282,6 +346,63 @@ export function PathwayTierTable({ tiers, activeTierCode, framed, density = 'ful
         ))}
       </tbody>
     </DataTable>
+  )
+}
+
+/**
+ * The narrow form: one card per obligation, the tiers that owe it as chips.
+ * Same rows, same order, same notes as the grid — only the axis moves. A tier
+ * that does not owe an obligation is simply not among its chips, which is what
+ * the grid's dash says.
+ */
+function TierList({ tiers, activeTierCode, density = 'full' }: PathwayTierTableProps) {
+  const rows = buildTierMatrix(tiers)
+  const full = density === 'full'
+
+  return (
+    <div className="pathway-tier-list">
+      {/* The grid's gate row, as a definition list: which patient each tier is. */}
+      {full && (
+        <dl className="pathway-tier-list__gates">
+          {tiers.map(tier => (
+            <div key={tier.id} className="pathway-tier-list__gate">
+              <dt className={cx('pathway-tier-chip', `pathway-tier-chip--${tier.tier?.code ?? 'unknown'}`)}>
+                {tier.title}
+              </dt>
+              <dd>{tier.description}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      <ul className="pathway-tier-list__items">
+        {rows.map(row => {
+          const owed = row.cells.filter(cell => cell.kind === 'owed')
+          const s = selection(activeTierCode, owed.flatMap(cell => cell.tierCodes))
+          return (
+            <li key={row.title} className={cx('pathway-tier-list__item', s && `pathway-tier-list__item--${s}`)}>
+              <p className="pathway-obligation__title">{row.title}</p>
+              {row.description && <p className="pathway-obligation__desc">{row.description}</p>}
+              {full && (
+                <p className="pathway-obligation__meta">
+                  {row.stage && <span className="pathway-stage-chip">{row.stage.display ?? row.stage.code}</span>}
+                  <Realization canonical={row.definitionCanonical} label={row.definitionLabel} />
+                </p>
+              )}
+              {owed.map(cell => (
+                <div key={cell.tierCodes.join('+')} className="pathway-tier-list__owed">
+                  <span className="pathway-tier-list__label">
+                    <Check size={14} aria-hidden="true" />
+                    <span className="pathway-matrix__hidden">Owed: </span>
+                    {tierSpanLabel(tiers, cell.tierCodes)}
+                  </span>
+                  {full && <DocumentationNotes docs={cell.action.documentation} />}
+                </div>
+              ))}
+            </li>
+          )
+        })}
+      </ul>
+    </div>
   )
 }
 

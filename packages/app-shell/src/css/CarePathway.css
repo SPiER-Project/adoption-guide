@@ -451,12 +451,30 @@
   margin-top: var(--space-2);
 }
 
+/* One tier owes it: a check in a disc. The column header names the tier and
+   the section title says "owed", so the mark needs no word of its own — the
+   word is in the visually-hidden span for a screen reader. */
 .pathway-matrix__mark {
-  font: var(--type-label);
   display: inline-flex;
+  width: var(--space-6);
+  height: var(--space-6);
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--status-success-border);
+  border-radius: var(--radius-pill);
+  background-color: var(--status-success-bg);
+  color: var(--status-success-text);
+}
+
+/* Several adjacent tiers owe it identically: one band the width of the cell,
+   so the span is visible rather than stated. Its label names the tiers. */
+.pathway-matrix__band {
+  font: var(--type-label);
+  display: flex;
   gap: var(--space-1);
   align-items: center;
-  padding: var(--space-0-5) var(--space-2);
+  justify-content: center;
+  padding: var(--space-1) var(--space-2);
   border: 1px solid var(--status-success-border);
   border-radius: var(--radius-pill);
   background-color: var(--status-success-bg);
@@ -516,10 +534,115 @@
 }
 
 /* Every mark centred under its tier — the dash too, which DataTable's own
-   cell alignment otherwise left-aligned beside centred "Owed" marks. */
+   cell alignment otherwise left-aligned beside the centred checks. */
 .pathway-matrix--summary .pathway-matrix__cell,
 .pathway-matrix--summary .pathway-matrix__tier {
   text-align: center;
+}
+
+/* ── The tier table, narrow: one card per obligation ────────────
+   What PathwayTierTable renders when its own box is under 640px — the panel,
+   a phone. Same rows and notes as the grid; the tiers that owe each
+   obligation become labelled checks under it. */
+.pathway-tier-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.pathway-tier-list__gates {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.pathway-tier-list__gate {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.pathway-tier-list__gate dd {
+  font: var(--type-caption);
+  max-width: var(--measure-prose);
+  margin: 0;
+  color: var(--text-muted);
+  line-height: var(--line-height-normal);
+}
+
+/* A tier's name with its risk colour as a dot — the grid header's swatch. */
+.pathway-tier-chip {
+  font: var(--type-label);
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  color: var(--text-strong);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+
+.pathway-tier-chip::before {
+  width: var(--space-3);
+  height: var(--space-3);
+  border-radius: var(--radius-pill);
+  background-color: var(--border-strong);
+  content: '';
+}
+
+.pathway-tier-chip--low::before { background-color: var(--risk-low-edge); }
+.pathway-tier-chip--moderate::before { background-color: var(--risk-moderate-edge); }
+.pathway-tier-chip--high::before { background-color: var(--risk-high-edge); }
+
+.pathway-tier-list__items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pathway-tier-list__item {
+  padding: var(--space-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-card);
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+/* The simulator's lit tier, as in the grid: an obligation that tier owes on
+   the selected tint, the rest faded. */
+.pathway-tier-list__item--active {
+  background-color: var(--tint-peach-soft);
+}
+
+.pathway-tier-list__item--dimmed {
+  opacity: 0.5;
+}
+
+.pathway-tier-list__owed {
+  margin-top: var(--space-3);
+}
+
+.pathway-tier-list__label {
+  font: var(--type-label);
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--status-success-border);
+  border-radius: var(--radius-pill);
+  background-color: var(--status-success-bg);
+  color: var(--status-success-text);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+
+.pathway-tier-list__owed .pathway-notes {
+  margin-top: var(--space-2);
 }
 
 /* ── The simulator ──────────────────────────────────────────── */
@@ -888,7 +1011,7 @@
    Scoped to `.panel-shell` rather than to a width, because the constraint is
    the chrome the host gave us and not the viewport — the same reasoning
    PageHeader.css's panel variant is built on. The tier table needs nothing
-   here: `DataTable` scrolls it inside its own box at any width. */
+   here: it measures its own box and becomes the card list below 640px. */
 .panel-shell .pathway-step,
 .panel-shell .pathway-provenance,
 .panel-shell .pathway-pending {
