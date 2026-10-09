@@ -26,8 +26,8 @@
  * NOT asserted: how it looks. Layout and the dimming of the two non-selected
  * tier columns are computed styles, invisible to jsdom.
  */
-import { describe, it, expect, afterEach } from 'vitest'
-import { render, screen, cleanup, fireEvent, within } from '@testing-library/react'
+import { describe, it, expect, afterEach, vi } from 'vitest'
+import { render, screen, cleanup, fireEvent, within, act } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { CarePathway } from './CarePathway'
 import { InspectContext } from '@spier/tool-views/context/InspectContext'
@@ -268,5 +268,81 @@ describe('CarePathway simulator', () => {
     expect(json).toContain('valueCoding')
     expect(json).toContain('373066001')
     expect(json).not.toContain('valueBoolean')
+  })
+})
+
+/**
+ * The phone's sticky result bar.
+ *
+ * What it shows, what tapping it does, and when it steps aside. Its stickiness
+ * and its absence at desktop widths are CSS (`position: sticky`, a 1024px media
+ * query), which jsdom does not lay out — those were checked in a browser.
+ */
+describe('CarePathway simulator — the sticky result bar', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  const bar = () => {
+    const el = document.querySelector('.pathway-sim__bar')
+    if (!el) throw new Error('the simulator rendered no result bar')
+    return el as HTMLButtonElement
+  }
+
+  it('says what the panel says, and updates with it', () => {
+    renderPage()
+    expect(bar().querySelector('.pathway-sim__bar-tier')?.textContent).toBe('Does not enter the pathway')
+    expect(bar().querySelector('.pathway-sim__bar-count')).toBeNull()
+    toggle('Q1')
+    expect(bar().querySelector('.pathway-sim__bar-tier')?.textContent).toBe(resultPanel().title)
+    expect(bar().querySelector('.pathway-sim__bar-count')?.textContent).toBe(`${resultPanel().owed.length} owed`)
+    toggle('Q5')
+    expect(bar().querySelector('.pathway-sim__bar-tier')?.textContent).toBe('High risk')
+    expect(bar().querySelector('.pathway-sim__bar-count')?.textContent).toBe('6 owed')
+  })
+
+  it('is not a second live region — the panel announces, once', () => {
+    renderPage()
+    expect(document.querySelectorAll('[aria-live]')).toHaveLength(1)
+    expect(bar().getAttribute('aria-live')).toBeNull()
+  })
+
+  it('scrolls the full panel into view when tapped', () => {
+    const scrolled: Element[] = []
+    const original = Element.prototype.scrollIntoView
+    Element.prototype.scrollIntoView = function scrollIntoView(this: Element) { scrolled.push(this) }
+    try {
+      renderPage()
+      fireEvent.click(bar())
+      expect(scrolled).toEqual([document.querySelector('.pathway-sim__result')])
+    } finally {
+      Element.prototype.scrollIntoView = original
+    }
+  })
+
+  it('steps aside while the panel is on screen, and comes back when it leaves', () => {
+    let report: (visible: boolean) => void = () => {
+      throw new Error('nothing observed the result panel')
+    }
+    const observed: Element[] = []
+    vi.stubGlobal('IntersectionObserver', class {
+      constructor(callback: (entries: Array<{ isIntersecting: boolean }>) => void) {
+        report = visible => callback([{ isIntersecting: visible }])
+      }
+      observe(el: Element) { observed.push(el) }
+      disconnect() {}
+    })
+    renderPage()
+    expect(observed).toEqual([document.querySelector('.pathway-sim__result')])
+    expect(bar().classList.contains('pathway-sim__bar--hidden')).toBe(false)
+
+    act(() => report(true))
+    expect(bar().classList.contains('pathway-sim__bar--hidden')).toBe(true)
+    expect(bar().getAttribute('aria-hidden')).toBe('true')
+    expect(bar().tabIndex).toBe(-1)
+
+    act(() => report(false))
+    expect(bar().classList.contains('pathway-sim__bar--hidden')).toBe(false)
+    expect(bar().getAttribute('aria-hidden')).toBeNull()
   })
 })
