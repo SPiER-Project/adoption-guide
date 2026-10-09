@@ -68,7 +68,75 @@
 .care-pathway__story {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-5);
+}
+
+/* The five things as a numbered stepper: a plum disc per step, joined by a
+   rule, the lead phrase as the step's title. They were five bold-led
+   paragraphs of identical weight, which read as one wall of text — the
+   numbering is the protocol's order, and the order is the point. */
+.care-pathway__steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: care-pathway-step;
+}
+
+.care-pathway__step {
+  position: relative;
+  padding-left: calc(var(--space-7) + var(--space-3));
+  counter-increment: care-pathway-step;
+}
+
+.care-pathway__step::before {
+  font: var(--type-ui);
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  width: var(--space-7);
+  height: var(--space-7);
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  background-color: var(--brand-primary);
+  color: var(--text-on-brand);
+  content: counter(care-pathway-step);
+  font-weight: var(--font-weight-bold);
+}
+
+/* The rule from one disc down to the next, through the gap between steps. */
+.care-pathway__step:not(:last-child)::after {
+  position: absolute;
+  top: calc(var(--space-7) + var(--space-1));
+  bottom: calc(var(--space-5) * -1 + var(--space-1));
+  left: calc(var(--space-7) / 2 - var(--space-0-5) / 2);
+  width: var(--space-0-5);
+  border-radius: var(--radius-pill);
+  background-color: var(--border-default);
+  content: '';
+}
+
+.care-pathway__step strong {
+  display: block;
+  margin-bottom: var(--space-1);
+  color: var(--text-strong);
+  font-family: var(--font-display);
+}
+
+/* The one caveat after the five: quieter than them, and set apart. */
+.care-pathway__aside {
+  font: var(--type-caption);
+  max-width: var(--measure-prose);
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-muted);
+  color: var(--text-body);
+  line-height: var(--line-height-normal);
 }
 
 .care-pathway__para {
@@ -92,11 +160,9 @@
 }
 
 .pathway-section-title {
-  font: var(--type-running);
-  font-family: var(--font-display);
+  font: var(--type-heading);
   margin: 0 0 var(--space-3);
   color: var(--text-strong);
-  font-weight: var(--font-weight-semibold);
 }
 
 /* ── Shared chips and notes ─────────────────────────────────── */
@@ -115,10 +181,13 @@
   white-space: nowrap;
 }
 
+/* A grid, so a step's notes use the card's width instead of stacking down its
+   left half and leaving the right half empty. `min(…, 100%)` lets the same
+   grid collapse to one column in a table cell or the ~470px panel. */
 .pathway-notes {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(20rem, 100%), 1fr));
+  gap: var(--space-3);
   margin: var(--space-3) 0 0;
   padding: 0;
   list-style: none;
@@ -132,21 +201,25 @@
   max-width: var(--measure-prose);
   padding-left: var(--space-3);
   border-left: 2px solid var(--border-strong);
-  color: var(--text-muted);
+  color: var(--text-body);
   line-height: var(--line-height-normal);
 }
 
 .pathway-notes__label {
   font: var(--type-label);
   display: block;
+  margin-bottom: var(--space-1);
   color: var(--text-strong);
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
 }
 
+/* A note can quote a reference ("ActivityDefinition/ProvideMeansSafetyCounseling")
+   longer than a tier column is wide; wrap it rather than run past the cell. */
 .pathway-notes__text {
   display: block;
+  overflow-wrap: anywhere;
 }
 
 .pathway-notes__link,
@@ -193,26 +266,42 @@
   flex-wrap: wrap;
   gap: var(--space-2);
   align-items: baseline;
+  margin-bottom: var(--space-1);
 }
 
+/* The step's number as a disc ahead of its title, the same mark the
+   explainer's stepper uses — it was a faint "1." that read as part of the
+   heading text, so the spine had no visible order at a glance. */
 .pathway-step__title {
-  font: var(--type-running);
-  font-family: var(--font-display);
+  font: var(--type-heading);
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  width: 100%;
   margin: 0;
   color: var(--text-strong);
-  font-weight: var(--font-weight-semibold);
 }
 
 .pathway-step__title::before {
-  color: var(--text-faint);
-  content: counter(pathway-step) '. ';
+  font: var(--type-ui);
+  display: inline-flex;
+  flex: none;
+  width: var(--space-6);
+  height: var(--space-6);
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  background-color: var(--brand-primary);
+  color: var(--text-on-brand);
+  content: counter(pathway-step);
+  font-weight: var(--font-weight-bold);
 }
 
 /* The step card stays full width — it carries chips, gates and a definition
    canonical — while its description is one sentence and gets a measure. It was
    the worst run on the page at 187 characters a line. */
 .pathway-step__desc {
-  font: var(--type-caption);
+  font: var(--type-running);
   margin: var(--space-2) 0 0;
   max-width: var(--measure-prose);
   color: var(--text-body);
@@ -292,8 +381,12 @@
 
 /* Four columns at a floor of ~11rem each. Below that the notes in a cell wrap
    to one word a line; above it the table takes the page width it is given. */
+/* `fixed` so the three tier columns share what the obligation column leaves
+   equally; sized by content, Low risk was squeezed to a third of High's width
+   because its gate sentence happened to be the shortest. */
 .pathway-matrix {
   min-width: 44rem;
+  table-layout: fixed;
 }
 
 .pathway-matrix__corner {
@@ -360,7 +453,9 @@
 
 .pathway-matrix__mark {
   font: var(--type-label);
-  display: inline-block;
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
   padding: var(--space-0-5) var(--space-2);
   border: 1px solid var(--status-success-border);
   border-radius: var(--radius-pill);
@@ -371,7 +466,14 @@
   text-transform: uppercase;
 }
 
+/* `position: relative` is the containing block for the visually-hidden span
+   below. Without one, that absolutely-positioned span resolved against the
+   initial containing block — outside the scrolling `.app-shell__content` — and
+   stretched the DOCUMENT to where the cell sat, so /guide/pathway grew a second
+   scrollbar over ~2,000px of blank page under its footer. The protocol page
+   hid the bug only because its step Card happens to be positioned. */
 .pathway-matrix__cell--none {
+  position: relative;
   color: var(--text-faint);
   text-align: center;
 }
@@ -407,24 +509,25 @@
   opacity: 1;
 }
 
-.pathway-branch__exit {
-  font: var(--type-caption);
-  max-width: var(--measure-prose);
-  margin: var(--space-4) 0 0;
-  padding: var(--space-3);
-  border: 1px dashed var(--border-strong);
-  border-radius: var(--radius-md);
-  color: var(--text-muted);
+/* The explainer's matrix: obligation × tier, a mark per cell and no notes, so
+   the obligation column can take the room the notes used to. */
+.pathway-matrix--summary .pathway-matrix__corner {
+  width: 46%;
+}
+
+/* Every mark centred under its tier — the dash too, which DataTable's own
+   cell alignment otherwise left-aligned beside centred "Owed" marks. */
+.pathway-matrix--summary .pathway-matrix__cell,
+.pathway-matrix--summary .pathway-matrix__tier {
+  text-align: center;
 }
 
 /* ── The simulator ──────────────────────────────────────────── */
 
 .pathway-sim__title {
-  font: var(--type-running);
-  font-family: var(--font-display);
+  font: var(--type-heading);
   margin: 0;
   color: var(--text-strong);
-  font-weight: var(--font-weight-semibold);
 }
 
 .pathway-sim__lede {
@@ -433,6 +536,27 @@
   max-width: var(--measure-prose);
   color: var(--text-muted);
   line-height: var(--line-height-normal);
+}
+
+/* Questions on the left, what they decide on the right — the result used to
+   sit under the questions and the obligations it lit sat past two code
+   drawers, a screen further down. At desktop widths the panel stays beside the
+   questions as the reader scrolls them. */
+.pathway-sim__layout {
+  display: grid;
+  gap: var(--space-5);
+}
+
+@media (min-width: 1024px) {
+  .pathway-sim__layout {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    align-items: start;
+  }
+
+  .pathway-sim__result {
+    position: sticky;
+    top: var(--space-4);
+  }
 }
 
 .pathway-sim__questions {
@@ -482,11 +606,9 @@
 
 .pathway-sim__result {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: var(--space-2);
-  align-items: baseline;
-  margin-top: var(--space-4);
-  padding: var(--space-3);
+  padding: var(--space-4);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   background-color: var(--surface-card);
@@ -506,9 +628,44 @@
 }
 
 .pathway-sim__result-tier {
-  font: var(--type-running);
+  font: var(--type-heading);
   color: var(--text-strong);
-  font-weight: var(--font-weight-bold);
+}
+
+/* The second label in the panel opens a new group, so it gets air above it. */
+.pathway-sim__result-detail + .pathway-sim__result-label {
+  margin-top: var(--space-2);
+}
+
+.pathway-sim__owed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pathway-sim__owed-item {
+  font: var(--type-ui);
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  color: var(--text-strong);
+}
+
+.pathway-sim__owed-mark {
+  flex: none;
+  margin-top: var(--space-0-5);
+  color: var(--status-success-text);
+}
+
+.pathway-sim__exit {
+  font: var(--type-caption);
+  max-width: var(--measure-prose);
+  margin: var(--space-1) 0 0;
+  color: var(--text-body);
+  line-height: var(--line-height-normal);
 }
 
 .pathway-sim__result-detail {
