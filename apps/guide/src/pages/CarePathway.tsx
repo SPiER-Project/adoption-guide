@@ -58,9 +58,11 @@
  */
 import { useMemo, useState } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
+import { Check } from 'lucide-react'
 import { cssrsScreener } from '@spier/core/data/questionnaires'
 import { buildNativeQuestionnaireResponse } from '@spier/core/lib/nativeQuestionnaireResponse'
 import { mapCSSRSScreener } from '@spier/core/lib/observationMappers/cssrsScreener'
+import { buildTierMatrix } from '@spier/core/lib/pathwayMatrix'
 import { tierCodeForLevel } from '@spier/core/lib/reassessment'
 import { PathwayLoadError, PathwayTierTable } from '@spier/app-shell/components/PathwayView'
 import { usePathway } from '@spier/app-shell/hooks/usePathway'
@@ -165,6 +167,14 @@ export function CarePathway() {
       return next
     })
 
+  // What the simulated tier is owed, read off the same matrix the table draws —
+  // so the panel beside the questions and the lit column below cannot disagree.
+  const tiers = model.tierBranch.tiers
+  const activeTier = tiers.find(tier => tier.tier?.code === simulation.tierCode)
+  const owed = buildTierMatrix(tiers)
+    .filter(row => row.cells.some(cell => cell.kind === 'owed' && cell.tierCodes.includes(simulation.tierCode)))
+    .map(row => row.title)
+
   return (
     <div className="care-pathway">
       <p className="care-pathway__lede">
@@ -174,86 +184,125 @@ export function CarePathway() {
 
       {/* ── The five things, in the protocol's own order ──────────── */}
       <section className="care-pathway__story" aria-label="What a suicide-safer care pathway does">
-        <p className="care-pathway__para">
-          <strong>Screen everyone.</strong> Every patient gets a screen that carries a suicidality item
-          &mdash; in primary care, usually the PHQ-9 as part of routine depression screening &mdash; so
-          that risk is found by design rather than by chance. Suicidal thoughts disclosed at any point in
-          care, or a clinician&rsquo;s own concern, enter the same pathway.
-        </p>
-        <p className="care-pathway__para">
-          <strong>Gate on a positive.</strong> A positive item is a gate, not a diagnosis. Item 9 of the
-          PHQ-9 scored 1 or more opens the next step, and a score of 0 closes it, unless clinical judgment
-          says otherwise. Nothing is written to the record on the strength of a screen alone.
-        </p>
-        <p className="care-pathway__para">
-          <strong>Clarify with a validated assessment.</strong> The positive screen is clarified with a
-          validated assessment. SPiER demonstrates the C-SSRS Screener with Triage Points, whose six
-          questions each map to a published risk level. If every answer is no, the patient does not enter
-          the pathway. Otherwise the assessment yields one of three tiers: low, moderate or high.
-        </p>
-        <p className="care-pathway__para">
-          <strong>Tier the response.</strong> The tier decides what the patient is owed. Crisis resources
-          are owed at every tier. From moderate upward, a collaborative safety plan is completed and
-          reviewed at each contact. At high risk the protocol adds a direct question at every contact, an
-          immediate safety evaluation with lethal-means counselling, and an outreach protocol for a missed
-          appointment. The table under the simulator is that matrix.
-        </p>
-        <p className="care-pathway__para">
-          <strong>Keep asking, and step down only by rule.</strong> Risk is reassessed on a cadence the
-          tier sets &mdash; more often when judgment says so &mdash; so a tier is a current fact rather
-          than a label. The source protocol steps a patient down only by rule: a sustained run of negative
-          reassessments, no destabilising event, and a psychiatric consultant&rsquo;s agreement. SPiER has
-          not yet published that rule; the protocol page says why.
-        </p>
-        <p className="care-pathway__para">
+        <ol className="care-pathway__steps">
+          <li className="care-pathway__step">
+            <p className="care-pathway__para">
+              <strong>Screen everyone.</strong> Every patient gets a screen that carries a suicidality item
+              &mdash; in primary care, usually the PHQ-9 as part of routine depression screening &mdash; so
+              that risk is found by design rather than by chance. Suicidal thoughts disclosed at any point in
+              care, or a clinician&rsquo;s own concern, enter the same pathway.
+            </p>
+          </li>
+          <li className="care-pathway__step">
+            <p className="care-pathway__para">
+              <strong>Gate on a positive.</strong> A positive item is a gate, not a diagnosis. Item 9 of the
+              PHQ-9 scored 1 or more opens the next step, and a score of 0 closes it, unless clinical judgment
+              says otherwise. Nothing is written to the record on the strength of a screen alone.
+            </p>
+          </li>
+          <li className="care-pathway__step">
+            <p className="care-pathway__para">
+              <strong>Clarify with a validated assessment.</strong> The positive screen is clarified with a
+              validated assessment. SPiER demonstrates the C-SSRS Screener with Triage Points, whose six
+              questions each map to a published risk level. If every answer is no, the patient does not enter
+              the pathway. Otherwise the assessment yields one of three tiers: low, moderate or high.
+            </p>
+          </li>
+          <li className="care-pathway__step">
+            <p className="care-pathway__para">
+              <strong>Tier the response.</strong> The tier decides what the patient is owed. Crisis resources
+              are owed at every tier. From moderate upward, a collaborative safety plan is completed and
+              reviewed at each contact. At high risk the protocol adds a direct question at every contact, an
+              immediate safety evaluation with lethal-means counselling, and an outreach protocol for a missed
+              appointment. Try it below.
+            </p>
+          </li>
+          <li className="care-pathway__step">
+            <p className="care-pathway__para">
+              <strong>Keep asking, and step down only by rule.</strong> Risk is reassessed on a cadence the
+              tier sets &mdash; more often when judgment says so &mdash; so a tier is a current fact rather
+              than a label. The source protocol steps a patient down only by rule: a sustained run of negative
+              reassessments, no destabilising event, and a psychiatric consultant&rsquo;s agreement. SPiER has
+              not yet published that rule; the protocol page says why.
+            </p>
+          </li>
+        </ol>
+        <p className="care-pathway__aside">
           The instruments are the demonstration, not the requirement. Each step is defined by what it
           accomplishes, so a site that screens with the ASQ or assesses with another validated tool
           satisfies the same protocol. The instruments themselves are in <Link to="/guide/tools">Tools</Link>.
         </p>
       </section>
 
-      {/* ── Simulator ─────────────────────────────────────────── */}
+      {/* ── Simulator: the questions on one side, what they decide on the other ── */}
       <Card as="section" tone="brand" className="pathway-sim" aria-labelledby="pathway-sim-title">
-        <h3 id="pathway-sim-title" className="pathway-sim__title">Try a C-SSRS result</h3>
-        <p className="pathway-sim__lede">
-          Answer the screener as a patient might and watch the tier change. The answers run through the
-          same derivation the app applies to a real submission, so what lights up below is what the app
-          would do.
-        </p>
+        <div className="pathway-sim__layout">
+          <div className="pathway-sim__ask">
+            <h3 id="pathway-sim-title" className="pathway-sim__title">Try a C-SSRS result</h3>
+            <p className="pathway-sim__lede">
+              Answer the screener as a patient might. The answers run through the same derivation the app
+              applies to a real submission, so the result beside them is what the app would do.
+            </p>
 
-        <ul className="pathway-sim__questions">
-          {SIM_LINK_IDS.map((linkId, idx) => (
-            <li key={linkId} className="pathway-sim__question">
-              <label className="pathway-sim__label">
-                <input
-                  type="checkbox"
-                  className="pathway-sim__toggle"
-                  checked={answers[linkId]}
-                  onChange={() => toggle(linkId)}
-                />
-                <span className="pathway-sim__q">Q{idx + 1}</span>
-                <span className="pathway-sim__text">{questionText(linkId)}</span>
-              </label>
-              {linkId === 'q6' && answers.q6 && (
-                <label className="pathway-sim__label pathway-sim__label--nested">
-                  <input
-                    type="checkbox"
-                    className="pathway-sim__toggle"
-                    checked={answers[Q6_RECENT]}
-                    onChange={() => toggle(Q6_RECENT)}
-                  />
-                  <span className="pathway-sim__q">Q6a</span>
-                  <span className="pathway-sim__text">{questionText(Q6_RECENT)}</span>
-                </label>
-              )}
-            </li>
-          ))}
-        </ul>
+            <ul className="pathway-sim__questions">
+              {SIM_LINK_IDS.map((linkId, idx) => (
+                <li key={linkId} className="pathway-sim__question">
+                  <label className="pathway-sim__label">
+                    <input
+                      type="checkbox"
+                      className="pathway-sim__toggle"
+                      checked={answers[linkId]}
+                      onChange={() => toggle(linkId)}
+                    />
+                    <span className="pathway-sim__q">Q{idx + 1}</span>
+                    <span className="pathway-sim__text">{questionText(linkId)}</span>
+                  </label>
+                  {linkId === 'q6' && answers.q6 && (
+                    <label className="pathway-sim__label pathway-sim__label--nested">
+                      <input
+                        type="checkbox"
+                        className="pathway-sim__toggle"
+                        checked={answers[Q6_RECENT]}
+                        onChange={() => toggle(Q6_RECENT)}
+                      />
+                      <span className="pathway-sim__q">Q6a</span>
+                      <span className="pathway-sim__text">{questionText(Q6_RECENT)}</span>
+                    </label>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
 
-        <div className={`pathway-sim__result pathway-sim__result--${simulation.tierCode}`} aria-live="polite">
-          <span className="pathway-sim__result-label">Derived tier</span>
-          <span className="pathway-sim__result-tier">{simulation.tierCode}</span>
-          <span className="pathway-sim__result-detail">{simulation.result.riskAlert.detail}</span>
+          <div
+            className={`pathway-sim__result pathway-sim__result--${simulation.tierCode}`}
+            data-tier={simulation.tierCode}
+            aria-live="polite"
+          >
+            <span className="pathway-sim__result-label">Result</span>
+            <span className="pathway-sim__result-tier">
+              {activeTier?.title ?? 'Does not enter the pathway'}
+            </span>
+            <span className="pathway-sim__result-detail">{simulation.result.riskAlert.detail}</span>
+            {activeTier ? (
+              <>
+                <span className="pathway-sim__result-label">Owed at this tier</span>
+                <ul className="pathway-sim__owed">
+                  {owed.map(title => (
+                    <li key={title} className="pathway-sim__owed-item">
+                      <Check size={14} aria-hidden="true" className="pathway-sim__owed-mark" />
+                      {title}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <p className="pathway-sim__exit">
+                Every screener item is negative, so the simulated patient does not enter the pathway and none
+                of the tier obligations apply.
+              </p>
+            )}
+          </div>
         </div>
 
         <p className="pathway-sim__note">
@@ -277,13 +326,7 @@ export function CarePathway() {
       {/* ── The tier table, lit by the simulator ──────────────── */}
       <section aria-labelledby="pathway-tiers-title">
         <h3 id="pathway-tiers-title" className="pathway-section-title">What each tier is owed</h3>
-        <PathwayTierTable tiers={model.tierBranch.tiers} activeTierCode={simulation.tierCode} framed />
-        {simulation.tierCode === 'no-risk' && (
-          <p className="pathway-branch__exit">
-            Every screener item is negative, so the simulated patient does not enter the pathway and none
-            of the tier obligations apply.
-          </p>
-        )}
+        <PathwayTierTable tiers={tiers} activeTierCode={simulation.tierCode} framed density="summary" />
       </section>
 
       {/* ── One link onward: the implementer's page ────────────── */}

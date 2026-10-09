@@ -50,7 +50,7 @@
  * job, and the panel already has the patient's own rail on the chart behind it.
  */
 import { type ReactNode } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { Check, ChevronDown } from 'lucide-react'
 import { FhirJsonViewer } from '@spier/tool-views/components/FhirJsonViewer'
 import { useInspect } from '@spier/tool-views/context/InspectContext'
 import {
@@ -177,6 +177,17 @@ export interface PathwayTierTableProps {
   activeTierCode?: string
   /** Draw the table in its own frame (outside a Card) rather than bare (inside one). */
   framed?: boolean
+  /**
+   * `full` (the default) is the implementer's table: the gate row, each row's
+   * stage chip and realization, and every note the artifact attaches to a cell.
+   *
+   * `summary` is the explainer's: obligation × tier and nothing else, so the
+   * matrix reads at a glance. Every note is still published, one link away on
+   * the protocol page — the explainer's rows were ~200px tall with them, and a
+   * reader deciding whether to adopt was reading an implementer's footnotes to
+   * find out which tier owes what.
+   */
+  density?: 'full' | 'summary'
 }
 
 /**
@@ -184,8 +195,9 @@ export interface PathwayTierTableProps {
  * tiers state identically; a dash is a tier that does not owe it. The first
  * body row is each tier's gate, in the artifact's own words.
  */
-export function PathwayTierTable({ tiers, activeTierCode, framed }: PathwayTierTableProps) {
+export function PathwayTierTable({ tiers, activeTierCode, framed, density = 'full' }: PathwayTierTableProps) {
   const rows = buildTierMatrix(tiers)
+  const full = density === 'full'
   const selecting = activeTierCode !== undefined
   const state = (tierCodes: string[]) =>
     !selecting ? undefined
@@ -193,7 +205,7 @@ export function PathwayTierTable({ tiers, activeTierCode, framed }: PathwayTierT
       : 'pathway-matrix__cell--dimmed'
 
   return (
-    <DataTable framed={framed} tableClassName="pathway-matrix">
+    <DataTable framed={framed} tableClassName={cx('pathway-matrix', !full && 'pathway-matrix--summary')}>
       <thead>
         <tr>
           <th scope="col" className="pathway-matrix__corner">Obligation</th>
@@ -219,25 +231,29 @@ export function PathwayTierTable({ tiers, activeTierCode, framed }: PathwayTierT
         {/* The gate row: what puts a patient in each column, from the tier
             group's own description. The FHIRPath that a CDS engine evaluates
             for the same question is in the code drawer. */}
-        <tr className="pathway-matrix__gate">
-          <th scope="row" className="pathway-matrix__obligation">
-            <p className="pathway-obligation__title">Applies when</p>
-          </th>
-          {tiers.map(tier => (
-            <td key={tier.id} className={cx('pathway-matrix__cell', state([tier.tier?.code ?? 'unknown']))}>
-              <p className="pathway-matrix__desc">{tier.description}</p>
-            </td>
-          ))}
-        </tr>
+        {full && (
+          <tr className="pathway-matrix__gate">
+            <th scope="row" className="pathway-matrix__obligation">
+              <p className="pathway-obligation__title">Applies when</p>
+            </th>
+            {tiers.map(tier => (
+              <td key={tier.id} className={cx('pathway-matrix__cell', state([tier.tier?.code ?? 'unknown']))}>
+                <p className="pathway-matrix__desc">{tier.description}</p>
+              </td>
+            ))}
+          </tr>
+        )}
         {rows.map(row => (
           <tr key={row.title}>
             <th scope="row" className="pathway-matrix__obligation">
               <p className="pathway-obligation__title">{row.title}</p>
               {row.description && <p className="pathway-obligation__desc">{row.description}</p>}
-              <p className="pathway-obligation__meta">
-                {row.stage && <span className="pathway-stage-chip">{row.stage.display ?? row.stage.code}</span>}
-                <Realization canonical={row.definitionCanonical} label={row.definitionLabel} />
-              </p>
+              {full && (
+                <p className="pathway-obligation__meta">
+                  {row.stage && <span className="pathway-stage-chip">{row.stage.display ?? row.stage.code}</span>}
+                  <Realization canonical={row.definitionCanonical} label={row.definitionLabel} />
+                </p>
+              )}
             </th>
             {row.cells.map(cell =>
               cell.kind === 'owed' ? (
@@ -246,8 +262,11 @@ export function PathwayTierTable({ tiers, activeTierCode, framed }: PathwayTierT
                   colSpan={cell.span}
                   className={cx('pathway-matrix__cell', 'pathway-matrix__cell--owed', state(cell.tierCodes))}
                 >
-                  <span className="pathway-matrix__mark">Owed</span>
-                  <DocumentationNotes docs={cell.action.documentation} />
+                  <span className="pathway-matrix__mark">
+                    <Check size={14} aria-hidden="true" />
+                    {cell.span === tiers.length && tiers.length > 1 ? 'Owed at every tier' : 'Owed'}
+                  </span>
+                  {full && <DocumentationNotes docs={cell.action.documentation} />}
                 </td>
               ) : (
                 <td

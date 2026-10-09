@@ -127,10 +127,11 @@ const CAPS: Record<string, { cap: number; why: string }> = {
       'picks and the step cards — 416 today (423 when the audit measured it).',
   },
   pathway: {
-    cap: 1250,
-    why: 'PR 3 brought it from 2,445 to 1,203: about 460 of the page’s own prose, 180 of the simulator’s ' +
-      'questions and 580 of the artifact’s tier table. The table is rendered from the PlanDefinition, so most ' +
-      'of this budget is not writing anyone does here.',
+    cap: 875,
+    why: 'PR 3 brought it from 2,445 to 1,203; the 2026-10-09 layout pass to 840 by drawing the tier table as ' +
+      'obligation × tier and nothing else — the implementer’s notes on each cell are on the protocol page, ' +
+      'where they were always also published. Most of what remains is the page’s own prose, the simulator’s ' +
+      'questions and the table’s row descriptions.',
   },
   'pathway/protocol': {
     cap: 1950,
