@@ -28,7 +28,7 @@
   font: var(--type-heading);
   margin: 0;
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--brand-primary);
 }
 
@@ -36,7 +36,7 @@
   font: var(--type-ui);
   margin: 0;
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   text-align: right;
 }
 

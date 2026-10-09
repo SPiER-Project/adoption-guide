@@ -10,7 +10,7 @@
 .dd-description {
   font: var(--type-lead);
   color: var(--text-muted);
-  line-height: 1.6;
+  line-height: var(--line-height-relaxed);
   margin: 0 0 var(--space-6) 0;
   max-width: var(--measure-prose);
 }
@@ -61,7 +61,7 @@
 }
 
 .dd-cell-field {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--text-strong);
   /* Wraps now. Under `table-layout: fixed` nowrap no longer buys width — it just
      overflows the budgeted column. */
@@ -127,7 +127,7 @@
    below set `max-width: none` on the same element. One cap, one owner. */
 .dd-cell-desc {
   max-width: var(--measure-prose);
-  line-height: 1.4;
+  line-height: var(--line-height-snug);
   color: var(--text-muted);
 }
 
@@ -195,7 +195,7 @@
   padding: var(--space-0-5) var(--space-1);
   border-radius: var(--radius-sm);
   color: var(--text-muted);
-  line-height: 1;
+  line-height: var(--line-height-none);
 }
 
 .dd-detail-toggle:hover {
@@ -233,7 +233,7 @@
   font: var(--type-caption);
   margin: 0;
   max-width: var(--measure-prose);
-  line-height: 1.5;
+  line-height: var(--line-height-normal);
   color: var(--text-body);
 }
 
@@ -250,7 +250,7 @@
 .dd-detail-label {
   font: var(--type-label);
   flex: 0 0 8.5rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
   color: var(--text-faint);

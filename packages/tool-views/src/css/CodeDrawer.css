@@ -56,7 +56,7 @@
 }
 
 .code-drawer__handle-label {
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--text-strong);

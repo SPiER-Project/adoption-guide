@@ -56,13 +56,13 @@
 
 .writeback-scorecard__rung-label {
   font: var(--type-caption);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--text-strong);
 }
 
 .writeback-scorecard__badge {
   font: var(--type-label);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--text-muted);

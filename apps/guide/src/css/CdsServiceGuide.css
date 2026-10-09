@@ -28,7 +28,7 @@
 .cds-service-guide__pre code {
   font: var(--type-caption);
   font-family: var(--font-mono);
-  line-height: 1.5;
+  line-height: var(--line-height-normal);
   color: var(--text-body);
   white-space: pre;
 }
@@ -37,7 +37,7 @@
 .cds-service-guide__status {
   font: var(--type-ui);
   margin: 0;
-  line-height: 1.6;
+  line-height: var(--line-height-relaxed);
   color: var(--text-muted);
 }
 

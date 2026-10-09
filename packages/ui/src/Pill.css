@@ -15,7 +15,7 @@
   gap: var(--gap-inline);
   padding: var(--space-0-5) var(--space-2);
   border-radius: var(--radius-pill);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   line-height: var(--line-height-tight);
@@ -37,7 +37,7 @@
 .pill--label {
   font: var(--type-caption);
   line-height: var(--line-height-tight);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   letter-spacing: normal;
   text-transform: none;
   /* A label carries a name — "CAMS Suicide Status Form", a FHIR resource type —

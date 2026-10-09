@@ -12,7 +12,7 @@
   border: 1px solid transparent;
   border-radius: var(--radius-pill);
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-tight);
   text-decoration: none;
   white-space: nowrap;

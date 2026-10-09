@@ -80,7 +80,7 @@
 }
 
 .next-action__also-label {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--text-base);
 }
 
