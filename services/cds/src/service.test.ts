@@ -158,7 +158,16 @@ describe('problem-list guidance card (pathway Phase 5)', () => {
     expect(card!.source.url).toBe(
       'http://thespierproject.org/fhir/PlanDefinition/SPiERSuicideSaferCarePathway',
     )
-    expect(card!.detail).toContain('6471006')
+    // The SNOMED CT concepts reach the host as DATA — the pathway's unmarked
+    // note, ids and value set — and as words in `detail`, which it shows a clinician.
+    expect(card!.detail).toContain('Suicidal thoughts')
+    expect(card!.detail).not.toContain('6471006')
+    expect(
+      card!.extension?.['spier-implementer-notes']?.some(
+        n => n.display?.includes('6471006') && n.resource?.endsWith('/spier-suicide-related-problem-vs'),
+      ),
+    ).toBe(true)
+    expect(card!.extension?.['spier-risk-concept']?.code.code).toBe('93374-7')
     expect(card!.detail).toContain('R45.851')
     // The diagram's wrong ICD-10 code. No gate checks ICD-10 literals, so the
     // assertion is the control — see docs/reference/suicide-safer-care-pathway-spec.md

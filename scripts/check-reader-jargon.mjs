@@ -135,7 +135,7 @@ import ts from 'typescript'
 import { appRoot, relRepo, REPO_ROOT, walkExt } from './lib/app-roots.mjs'
 import { reportFloors } from './lib/floors.mjs'
 import { loadCore } from './lib/load-core.mjs'
-import { CLINICAL_RULES, indexRepoIdentifiers, REPO_RULES, repoJargonIn } from './lib/reader-jargon.mjs'
+import { CLINICAL_RULES, clinicalJargonIn, indexRepoIdentifiers, REPO_RULES, repoJargonIn } from './lib/reader-jargon.mjs'
 
 let failures = 0
 function fail(msg) {
@@ -487,8 +487,9 @@ if (clinicalRendered.status !== 0 || !/Tests\s+\d+ passed/.test(clinicalSummary)
 
 // ── Half three: the clinician's strings ────────────────────────────────────
 
-// CLINICAL_RULES — the clinician-copy rules — live in lib/reader-jargon.mjs,
-// shared with the clinical rendered-copy test.
+// The rules themselves — and the function applying them — live in
+// `lib/reader-jargon.mjs` (`CLINICAL_RULES`, `clinicalJargonIn`), so a test
+// that renders a clinician's card applies the SAME list rather than a copy.
 
 /**
  * JSX attributes a clinician never meets.
@@ -524,18 +525,6 @@ const INSPECTION_ONLY_ELEMENTS = new Set(['CodeDrawer', 'FhirJsonViewer', 'Pathw
  * must keep reaching the rules.
  */
 const COMPOSITE_ID = /^\S*\/\S*$/
-
-/**
- * Phrases in which a resource type is an instrument's own published name.
- *
- * ⚠️ **Empty, and that is the answer rather than an omission.** The one case
- * — *SBQ-R — Suicide Behaviors Questionnaire* — is handled by `ALSO_ENGLISH` in
- * `lib/fhir-vocabulary.mjs`, which is a rule about a word rather than a list of
- * the sentences it appears in. Kept as the escape hatch for the case that is
- * genuinely a phrase and not a word; adding a second entry should feel like
- * evidence that the word belongs in `ALSO_ENGLISH` instead.
- */
-const PUBLISHED_INSTRUMENT_NAMES = []
 
 /**
  * Modules whose clinician copy is a LATER PR's, with the reason.
@@ -688,17 +677,6 @@ function clinicianStrings(rel, src) {
 
   walk(sf)
   return { runs: out, sawJsx }
-}
-
-/** The first rule `text` breaks, over the clinical seven plus the guide's six. */
-function clinicalJargonIn(text) {
-  let subject = text
-  for (const name of PUBLISHED_INSTRUMENT_NAMES) subject = subject.split(name).join('')
-  for (const rule of [...CLINICAL_RULES, ...RULES]) {
-    const m = rule.re.exec(subject)
-    if (m) return { rule: rule.name, match: m[0].trim() }
-  }
-  return null
 }
 
 // ⚠️ `packages/tool-views` is not an APP root — `lib/app-roots.mjs` declares

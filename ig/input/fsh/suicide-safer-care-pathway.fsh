@@ -457,9 +457,11 @@ Usage: #definition
     * id = "problem-list-entry"
     * title = "Consider a suicide-related problem-list entry"
     * description = "Where clinically warranted, add a suicide-related finding to the patient's problem list. SPiER surfaces the verified coding; the assertion is the clinician's."
-    // The clinician's half names the entries; the codes behind them are the
-    // implementer's and the CDS card's (problemListCard renders every note on
-    // this step, marked or not, because the card exists to name the codes).
+    // The clinician's half names the entries and the billing codes; the SNOMED
+    // CT ids are the implementer's. The CDS problem-list card follows the same
+    // marker: its `detail` (shown to a clinician by every host) carries the
+    // marked notes, and the unmarked ones travel in the card's extension, so a
+    // host's code still receives the ids (problemListCard.ts).
     * documentation[+].type = #documentation
     * documentation[=].label = "Usual entries"
     * documentation[=].display = "For a patient on this pathway the usual problem-list entries are \"Suicidal thoughts\" or \"At increased risk for suicide\"."
@@ -483,8 +485,16 @@ Usage: #definition
     // SHOW Z91.82. The corrected pair is Z91.51 / Z91.52; bare Z91.5 is a valid
     // category but not billable at that specificity.
     * documentation[+].type = #documentation
+    // Split at the sentence boundary (the rule for a note with two readers):
+    // the codes are the clinician's — a billing code is a word a clinician
+    // meets, unlike a SNOMED CT id — and the verification claim is the
+    // implementer's.
     * documentation[=].label = "ICD-10-CM crosswalk (billing)"
-    * documentation[=].display = "Where a billable ICD-10-CM code is also required: R45.851 (Suicidal ideations) for current ideation, and Z91.51 (Personal history of suicidal behavior) — with Z91.52 (Personal history of nonsuicidal self-harm) as its sibling — for history. These codes are verified. SPiER surfaces them as guidance and never writes them."
+    * documentation[=].display = "Where a billable code is also required: R45.851 (Suicidal ideations) for current ideation; for history, Z91.51 (Personal history of suicidal behavior) or Z91.52 (Personal history of nonsuicidal self-harm)."
+    * documentation[=].extension[ClinicianFacing].valueBoolean = true
+    * documentation[+].type = #documentation
+    * documentation[=].label = "ICD-10-CM verification"
+    * documentation[=].display = "These ICD-10-CM codes are verified. SPiER surfaces them as guidance and never writes them."
   * action[+]
     * id = "contact-frequency"
     * title = "Maintain the tier's frequency of patient contact"

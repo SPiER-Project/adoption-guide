@@ -63,9 +63,11 @@ const INDICATOR_LABEL: Record<CdsIndicator, string> = {
 /**
  * Detail longer than this is clipped behind a "Show more" toggle.
  *
- * ⚠️ The problem-list guidance card's detail is ~200 words of SNOMED, ICD-10 and
- * a ValueSet URL — correct, sourced from the published pathway, pinned by tests,
- * and unreadable as the FIRST thing in a 470px panel. `Card.detail` is GFM per
+ * ⚠️ The problem-list guidance card's detail is ~150 words of problem-list and
+ * ICD-10 guidance — correct, sourced from the published pathway, pinned by tests,
+ * and unreadable as the FIRST thing in a 470px panel. (It also held SNOMED ids
+ * and a value-set URL until 2026-10-09; those are wire words, now in the card's
+ * extension — see guidanceCardCopy.test.tsx.) `Card.detail` is GFM per
  * the spec and both SPiER renderers deliberately print it as text (see
  * problemListCard.ts), so shortening it at the source or rendering markdown are
  * both out; the card is complete, it just does not need to be complete

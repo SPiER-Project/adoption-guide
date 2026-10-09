@@ -23,7 +23,7 @@
  * ⚠️ **No SNOMED CT code, no ICD-10-CM code and no guidance sentence is written
  * in this file.** All of it is read out of the published
  * `PlanDefinition/SPiERSuicideSaferCarePathway` — its `problem-list-entry`
- * action and that action's two `documentation` notes — the same Pattern-A
+ * action and that action's `documentation` notes — the same Pattern-A
  * contract `reassessment.ts` holds for the cadence and `pathway.ts` holds for
  * the guide page. Editing the FSH changes what the card says with no TypeScript
  * change.
@@ -46,8 +46,9 @@
  *
  * React-free and DOM-free (`npm run check:core-boundary`).
  */
+import { shortDate } from '../artifactDate'
 import { observationEffective } from '../observationEffective'
-import { isRiskConcept } from '../riskConcept'
+import { isRiskConcept, RISK_CONCEPT_LOINC } from '../riskConcept'
 import { loadPathway, type PathwayAction, type PathwayModel } from '../pathway'
 import { RISK_TIER_SYSTEM } from '../riskEpisode'
 import type { ObservationResource } from '../../types/fhir'
@@ -180,6 +181,12 @@ function guidanceSource(pathway: PathwayModel): { group: PathwayAction; action: 
         'prompt a coding decision while naming no codes.',
     )
   }
+  if (!action.documentation.some(note => note.clinicianFacing)) {
+    bail(
+      `"${PROBLEM_LIST_ACTION_ID}" marks none of its notes clinician-facing. The card's detail is ` +
+        'those notes, so it would prompt a problem-list entry while naming none to enter.',
+    )
+  }
   return { group, action }
 }
 
@@ -191,12 +198,16 @@ function guidanceSource(pathway: PathwayModel): { group: PathwayAction; action: 
  * purpose — see the comment in `services/mock-ehr/src/chartPage.ts` — so `**` and
  * backticks would reach a clinician as literal punctuation. Emphasis that only
  * renders somewhere else is worse than none.
+ *
+ * ⚠️ **A note's `resource` canonical is not prose.** It was appended as
+ * "Value set: http://…", which is a canonical URL in a clinician's sentence.
+ * Only clinician-facing notes are rendered here, and the note that carries the
+ * value set travels whole in the card's `spier-implementer-notes` extension.
  */
-function renderNote(note: { label?: string; display?: string; url?: string; resource?: string }): string {
-  const body = note.display ?? note.url ?? note.resource ?? ''
+function renderNote(note: { label?: string; display?: string; url?: string }): string {
+  const body = note.display ?? note.url ?? ''
   const head = note.label ? `${note.label}: ` : ''
-  const trailer = note.resource ? ` Value set: ${note.resource}` : ''
-  return `${head}${body}${trailer}`
+  return `${head}${body}`
 }
 
 /**
@@ -221,14 +232,38 @@ export function buildProblemListGuidanceCard(observations: ObservationResource[]
   const pathway = loadPathway()
   const { group, action } = guidanceSource(pathway)
   const tierLabel = tier.display ?? tier.code
-  const recorded = tier.effective ? `, recorded ${tier.effective.slice(0, 10)}` : ''
+  const recordedOn = shortDate(tier.effective)
+  const recorded = recordedOn ? ` (recorded ${recordedOn})` : ''
+  // The pathway's own marker decides who each note is for (#655): the marked
+  // ones are the clinician's and make the detail; the rest — the SNOMED CT ids
+  // and the value set they are verified in — are the implementer's and travel
+  // whole in the extension, exactly as published.
+  const clinicianNotes = action.documentation.filter(note => note.clinicianFacing)
+  const implementerNotes = action.documentation
+    .filter(note => !note.clinicianFacing)
+    .map(({ label, display, url, resource }) => ({
+      ...(label ? { label } : {}),
+      ...(display ? { display } : {}),
+      ...(url ? { url } : {}),
+      ...(resource ? { resource } : {}),
+    }))
 
+  // ⚠️ **`detail` is clinician copy — for every consumer, not just this app.**
+  // CDS Hooks specifies `detail` as text for the host to DISPLAY to its user,
+  // and the host's user is a clinician: the mock EHR showed "LOINC 93374-7"
+  // and an ISO date to one exactly as the SMART app did (2026-10-09). So the
+  // wire facts that sentence used to carry are not deleted, they are moved to
+  // the card's `extension` (`spier-risk-concept`, `spier-implementer-notes`),
+  // where a host's code reads them and the guide's card-JSON viewer shows them.
+  // `apps/clinical/src/components/guidanceCardCopy.test.tsx` holds this detail
+  // to `check:jargon`'s clinical rules, built by this function for every demo
+  // patient — `check:jargon` itself reads literals and cannot see it.
   const detail = [
-    `Current suicide-risk tier: ${tierLabel} (harmonized concept, LOINC 93374-7${recorded}).`,
+    `Current suicide-risk level: ${tierLabel}${recorded}.`,
     action.description ?? action.title,
-    ...action.documentation.map(renderNote),
-    'SPiER does not create the Condition. This card is guidance: the problem-list entry is a ' +
-      "clinician assertion, recorded in the host system's own workflow.",
+    ...clinicianNotes.map(renderNote),
+    'SPiER does not add the problem-list entry. This card is guidance: the entry is the ' +
+      "clinician's assertion, recorded in the host system's own problem-list workflow.",
   ].join('\n\n')
 
   return {
@@ -252,6 +287,17 @@ export function buildProblemListGuidanceCard(observations: ObservationResource[]
       // work happens in the host's own problem-list workflow. Without this the
       // chart offered "configure tools" under a card that has no tool.
       'spier-narrative-only': true,
+      // What the detail's first sentence used to say in wire words: the
+      // harmonized concept the tier was read from, coded, with its timestamp.
+      'spier-risk-concept': {
+        code: { system: 'http://loinc.org', code: RISK_CONCEPT_LOINC },
+        valueCoding: { system: RISK_TIER_SYSTEM, code: tier.code, ...(tier.display ? { display: tier.display } : {}) },
+        ...(tier.effective ? { effective: tier.effective } : {}),
+      },
+      // The notes the pathway does NOT mark clinician-facing, verbatim: the
+      // SNOMED CT ids and their verified value set, for a host's code to offer
+      // as codes. Not rendered by the chart; shown by the guide's JSON viewer.
+      ...(implementerNotes.length > 0 ? { 'spier-implementer-notes': implementerNotes } : {}),
       ...(group.stage ? { 'spier-stage-id': group.stage.code } : {}),
     },
   }

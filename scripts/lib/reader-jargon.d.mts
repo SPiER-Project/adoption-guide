@@ -20,3 +20,6 @@ export interface RepoIdentifierIndex {
 
 export function indexRepoIdentifiers(): RepoIdentifierIndex
 export function repoJargonIn(text: string, identifiers: Set<string>): { rule: string; match: string } | null
+
+/** The first clinical-or-repo rule `text` breaks, or null. */
+export function clinicalJargonIn(text: string): { rule: string; match: string } | null

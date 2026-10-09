@@ -247,3 +247,26 @@ export function repoJargonIn(text, identifiers) {
   }
   return null
 }
+
+/**
+ * Phrases in which a resource type is an instrument's own published name.
+ *
+ * ⚠️ **Empty, and that is the answer rather than an omission.** The one case
+ * — *SBQ-R — Suicide Behaviors Questionnaire* — is handled by `ALSO_ENGLISH` in
+ * `lib/fhir-vocabulary.mjs`, which is a rule about a word rather than a list of
+ * the sentences it appears in. Kept as the escape hatch for the case that is
+ * genuinely a phrase and not a word; adding a second entry should feel like
+ * evidence that the word belongs in `ALSO_ENGLISH` instead.
+ */
+const PUBLISHED_INSTRUMENT_NAMES = []
+
+/** The first rule `text` breaks, over `CLINICAL_RULES` plus `REPO_RULES` — the clinical source scan's test. */
+export function clinicalJargonIn(text) {
+  let subject = text
+  for (const name of PUBLISHED_INSTRUMENT_NAMES) subject = subject.split(name).join('')
+  for (const rule of [...CLINICAL_RULES, ...REPO_RULES]) {
+    const m = rule.re.exec(subject)
+    if (m) return { rule: rule.name, match: m[0].trim() }
+  }
+  return null
+}

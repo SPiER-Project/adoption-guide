@@ -93,6 +93,7 @@ describe('the published pathway artifact', () => {
       'high-reassessment: Clinical judgment',
       'high-every-contact-question: Every contact',
       'problem-list-entry: Usual entries',
+      'problem-list-entry: ICD-10-CM crosswalk (billing)',
     ])
   })
 

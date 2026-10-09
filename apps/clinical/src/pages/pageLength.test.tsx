@@ -591,15 +591,13 @@ describe('every clinical page has a budget', () => {
  * already proves is the whole route table. `check:jargon` runs this file.
  *
  * Excluded, as on the guide's copy of this test: `<pre>` (the wire format shown
- * on purpose, and only under inspection) and form-control values. And ONE
- * element by name: a CDS card's detail (`.cds-card-rationale`). That text is the
- * CDS Hooks card as the service sends it to every EHR — the problem-list card's
- * job is to name the codes behind a coding decision (problemListCard.ts) — and
- * `PatientPathway.tsx` prints it verbatim on purpose rather than rewording a
- * standard payload for one renderer. It is the one place a clinician here meets
- * a code, and it is listed rather than silently passed. Decided 2026-10-09: the
- * card stays as the service sends it — this exemption is the decision, not a
- * gap waiting for one.
+ * on purpose, and only under inspection) and form-control values. ⚠️ A CDS
+ * card's detail (`.cds-card-rationale`) was exempted by name here until later
+ * the same day, on the ground that the problem-list card's job was to name
+ * codes. It is read now: the card's `detail` carries only the pathway's
+ * clinician-facing notes, and the codes travel in its extension
+ * (problemListCard.ts). `components/guidanceCardCopy.test.tsx` reads every demo
+ * patient's card; this reads the one on the chart measured here.
  *
  * What it cannot see: text a page renders only after an interaction, and a
  * patient other than the fullest chart the budgets are measured on.
@@ -615,7 +613,6 @@ function renderedRuns(root: Element): string[] {
     if (node.nodeType !== Node.ELEMENT_NODE) return
     const el = node as Element
     if (['SCRIPT', 'STYLE', 'PRE', 'INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName)) return
-    if (el.classList.contains('cds-card-rationale')) return
     node.childNodes.forEach(walk)
   }
   walk(root)
