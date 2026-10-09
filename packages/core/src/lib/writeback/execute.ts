@@ -113,10 +113,23 @@ export async function executeWritePlan(
     }
   }
 
-  // Tier-0 floor: run when nothing discrete landed cleanly, or on demand.
+  // Tier-0 floor: run when nothing discrete landed cleanly, when the form
+  // produced no scores, or on demand.
+  //
+  // ⚠️ **"No scores" is a reason on its own (#638, decided 2026-10-09).** Many
+  // EHRs store a QuestionnaireResponse and display nothing from it. A form
+  // with scores still reaches the chart as results the EHR shows; a form with
+  // none — a safety plan, a recorder's form — reached it as a stored response
+  // and nothing a clinician could read, which is what the live sandbox run
+  // showed for a Stanley-Brown plan (#640). So a save that derives no
+  // Observation writes the readable copy too. Derived from the save, not from
+  // a list of instruments, so a new form of either kind needs no entry.
+  // `alwaysWriteDocument` still forces it for every save.
+  const noScores = !artifacts.observations.some(o => o.resourceType === 'Observation')
   if (floorStep) {
     const runFloor =
       cfg.alwaysWriteDocument ||
+      noScores ||
       inScopeDiscreteOutcomes.length === 0 ||
       inScopeDiscreteOutcomes.some(o => o !== 'written')
     if (runFloor) {

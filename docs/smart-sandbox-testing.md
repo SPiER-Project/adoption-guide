@@ -104,7 +104,11 @@ safety plan and an ASQ (non-acute positive), each submitted and saved.
 - Profiles and pathway-stage tags on the Observations, CarePlan, Encounter and
   EpisodeOfCare were stored as sent. The server does not validate profiles, so
   this proves storage, not conformance.
-- The readable copy was correctly *not* written: every part above it landed.
+- The readable copy was correctly *not* written for the PHQ-9 and ASQ: every part
+  above it landed. For the **safety plan**, which produces no scores, that left
+  only a stored response — nothing a clinician could read in an EHR that does not
+  display one. **Changed since (#638):** a save with no scores now writes the
+  readable copy as well.
 
 **Found and fixed in this change:**
 
