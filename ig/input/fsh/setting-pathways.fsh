@@ -104,6 +104,7 @@ Usage: #definition
   * documentation[+].type = #documentation
   * documentation[=].label = "Three outcomes"
   * documentation[=].display = "The screen is classified as negative, non-acute positive or acute positive by configurable rules. The status is shown to the whole care team, separately from the tasks it creates, so every role can see it at a glance."
+  * documentation[=].extension[ClinicianFacing].valueBoolean = true
   * documentation[+].type = #documentation
   * documentation[=].label = "Transportability"
   * documentation[=].display = "Any screener whose result feeds the shared suicide-risk concept satisfies this step. The ASQ and the C-SSRS Screener below are the realizations SPiER ships."
@@ -226,6 +227,7 @@ Usage: #definition
   * documentation[+].type = #documentation
   * documentation[=].label = "How patients arrive"
   * documentation[=].display = "From an emergency department (the hospital's own or another), by transfer from another unit, or from the community through the hospital's admissions department, where a level-of-care assessment decides between inpatient, partial hospitalization and outpatient care. The outside record, including any emergency department record, is requested on admission."
+  * documentation[=].extension[ClinicianFacing].valueBoolean = true
   * documentation[+].type = #documentation
   * documentation[=].label = "Transportability"
   * documentation[=].display = "Any screener whose result feeds the shared suicide-risk concept satisfies this step. The C-SSRS Screener below is the realization SPiER ships."

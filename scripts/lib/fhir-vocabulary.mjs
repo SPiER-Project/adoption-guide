@@ -54,8 +54,27 @@ export const ALSO_ENGLISH = new Set([
   'Condition', 'Questionnaire',
 ])
 
-/** Resource types that are only ever the wire format when written as a word. */
-export const WIRE_ONLY_RESOURCE_TYPES = RESOURCE_TYPES.filter((t) => !ALSO_ENGLISH.has(t))
+/**
+ * Type names that are only ever the wire format when written as a word: the
+ * names above that are not also English, PLUS every FHIR R4 resource and
+ * datatype name with a lower-to-upper hump — `CodeSystem`, `ValueSet`,
+ * `CarePlan`, `ActivityDefinition`, `CodeableConcept`.
+ *
+ * ⚠️ **The hump is the test for "not English", and it is derived.** Until
+ * 2026-10-09 this was the 18 names above minus eight, so "A partial CodeSystem
+ * would read as complete" reached a clinician on the published-protocol page and
+ * passed: `CodeSystem` is not a type SPiER writes, so it was not on the list. A
+ * one-hump-free R4 name (`Measure`, `Group`, `Library`, `Schedule`) is an
+ * ordinary word as often as not, so the derived half leaves those out; the
+ * typed half still holds the two single-word names this product only ever means
+ * as resources (`Observation`, `Communication`).
+ */
+export const WIRE_ONLY_RESOURCE_TYPES = [
+  ...new Set([
+    ...RESOURCE_TYPES.filter((t) => !ALSO_ENGLISH.has(t)),
+    ...[...fhirR4TypeNames()].filter((t) => /[a-z][A-Z]/.test(t)),
+  ]),
+]
 
 /**
  * Every FHIR R4 resource and complex-datatype name — `QuestionnaireResponse`,

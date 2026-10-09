@@ -152,9 +152,12 @@ describe('buildProblemListGuidanceCard — content comes from the artifact', () 
     // the extension, where a host's code reads them.
     expect(card.detail).not.toContain('6471006')
     expect(card.detail).not.toContain('http')
-    expect(card.extension?.['spier-problem-value-sets']).toEqual([
-      'http://thespierproject.org/fhir/ValueSet/spier-suicide-related-problem-vs',
-    ])
+    // The pathway marks which notes are the clinician's (#655); the unmarked
+    // SNOMED CT note reaches a host whole, ids and value set included.
+    const notes = card.extension?.['spier-implementer-notes'] ?? []
+    const snomed = notes.find(n => n.resource?.endsWith('/spier-suicide-related-problem-vs'))
+    expect(snomed?.display).toContain('6471006') // Suicidal thoughts
+    expect(snomed?.display).toContain('225444004') // At increased risk for suicide
   })
 
   it('says the tier and its date in words, and carries the concept as codes', () => {

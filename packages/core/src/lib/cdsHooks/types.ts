@@ -104,10 +104,11 @@ export interface SpierCardExtension {
     effective?: string
   }
   /**
-   * The problem-list card only: the value set canonical(s) the pathway's
-   * guidance notes point at — the verified SNOMED CT concepts to offer.
+   * The problem-list card only: the pathway's notes on that step that are NOT
+   * marked clinician-facing, verbatim — the SNOMED CT ids and the value set
+   * they are verified in. `detail` carries the marked notes only.
    */
-  'spier-problem-value-sets'?: string[]
+  'spier-implementer-notes'?: Array<{ label?: string; display?: string; url?: string; resource?: string }>
 }
 
 /** A CDS Hooks 2.0 Card. https://cds-hooks.org/specification/current/#card-attributes */

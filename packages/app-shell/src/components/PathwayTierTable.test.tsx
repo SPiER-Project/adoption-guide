@@ -20,6 +20,7 @@
  */
 import { describe, it, expect, afterEach } from 'vitest'
 import { render, cleanup, within } from '@testing-library/react'
+import { InspectContext } from '@spier/tool-views/context/InspectContext'
 import { usePathway } from '../hooks/usePathway'
 import type { PathwayTierTableProps } from './PathwayView'
 
@@ -42,10 +43,22 @@ afterEach(() => {
   boxWidth = 0
 })
 
-function Table(props: Omit<PathwayTierTableProps, 'tiers'>) {
+function Tiers(props: Omit<PathwayTierTableProps, 'tiers'>) {
   const { model, error } = usePathway()
   if (!model) throw new Error(`the pathway did not load: ${error}`)
   return <PathwayTierTable tiers={model.tierBranch.tiers} {...props} />
+}
+
+/**
+ * The table as the guide draws it — under inspection, every note — unless a
+ * case asks for the clinician's view, which is what the clinical app renders.
+ */
+function Table({ inspect = true, ...props }: Omit<PathwayTierTableProps, 'tiers'> & { inspect?: boolean }) {
+  return (
+    <InspectContext.Provider value={inspect}>
+      <Tiers {...props} />
+    </InspectContext.Provider>
+  )
 }
 
 /** Each card's title and the tier labels under it, in order. */
@@ -98,6 +111,24 @@ describe('PathwayTierTable — the narrow form keeps what the grid says', () => 
       .find(item => item.textContent?.includes('Share patient-facing crisis resources')) as HTMLElement
     expect(within(crisis).getByText('Every tier')).toBeDefined()
     expect(crisis.querySelector('.pathway-stage-chip')).not.toBeNull()
+  })
+
+  it('the clinician\'s view: only the notes the artifact marks clinician-facing, and no definition names', () => {
+    boxWidth = 404
+    render(<Table inspect={false} />)
+    const labels = [...document.querySelectorAll('.pathway-tier-list .pathway-notes__label')].map(l => l.textContent)
+    // Implementer notes ("Every tier", "One home for the cadence", "High risk
+    // only") are gone; the clinician-facing ones remain, and carry no marker —
+    // the marker is the implementer's key, on the guide.
+    expect(labels).toEqual([
+      'Emotional Fire Safety Plan',
+      'Review at each contact',
+      'Clinical judgment',
+      'Every contact',
+    ])
+    expect(document.querySelector('.pathway-notes__audience')).toBeNull()
+    expect(document.querySelector('.pathway-obligation__def')).toBeNull()
+    expect(document.body.textContent).not.toMatch(/ActivityDefinition|PlanDefinition|SPiER[A-Z]/)
   })
 
   it('summary density: no gates, no notes, no chips — as the explainer\'s grid', () => {

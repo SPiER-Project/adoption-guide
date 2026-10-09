@@ -52,7 +52,15 @@ interface RawDocumentation {
   display?: string
   url?: string
   resource?: string
+  extension?: Array<{ url?: string; valueBoolean?: unknown }>
 }
+
+/**
+ * The marker on a note written for the clinician carrying out the step, as
+ * opposed to the implementer (suicide-safer-care-pathway.fsh, "Which notes a
+ * clinician is shown"). Opt-in: an unmarked note is the implementer's.
+ */
+export const CLINICIAN_FACING_URL = 'http://thespierproject.org/fhir/StructureDefinition/clinician-facing'
 
 interface RawCondition {
   kind?: string
@@ -118,6 +126,12 @@ export interface PathwayDocumentation {
   url?: string
   /** A canonical of another SPiER artifact. */
   resource?: string
+  /**
+   * Written for the clinician carrying out the step — what to do, or what to
+   * know to do it — rather than for the implementer. A view shown to a
+   * clinician renders only these; see `CLINICIAN_FACING_URL`.
+   */
+  clinicianFacing: boolean
 }
 
 export interface PathwayCondition {
@@ -229,12 +243,29 @@ const bail = (message: string): never => {
 
 /* ─── Parsing ───────────────────────────────────────────────── */
 
+/**
+ * Whether a note is marked clinician-facing.
+ *
+ * ⚠️ Strict about the value, not lenient: a marker present with anything but a
+ * boolean is a broken artifact, and reading it as `false` would quietly hide a
+ * note its author meant a clinician to see.
+ */
+function clinicianFacing(raw: RawDocumentation, path: string, i: number): boolean {
+  const marker = (raw.extension ?? []).filter(e => e.url === CLINICIAN_FACING_URL)
+  if (marker.length === 0) return false
+  if (marker.length > 1 || typeof marker[0].valueBoolean !== 'boolean') {
+    bail(`${path}.documentation[${i}] carries a malformed clinician-facing marker — one valueBoolean, or none`)
+  }
+  return marker[0].valueBoolean === true
+}
+
 function parseDocumentation(raw: RawDocumentation, path: string, i: number): PathwayDocumentation {
   const doc: PathwayDocumentation = {
     label: raw.label,
     display: raw.display,
     url: raw.url,
     resource: raw.resource,
+    clinicianFacing: clinicianFacing(raw, path, i),
   }
   if (!doc.display && !doc.url && !doc.resource) {
     bail(

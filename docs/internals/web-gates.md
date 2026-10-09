@@ -1088,6 +1088,27 @@ now rendered through `readerCopyright` — the IG text is unchanged); and, in
 app-shell, `npm run copy-fhir` in the pathway's load error and a profile name
 in the protocol page's clinician copy.
 
+⚠️ **The clinician's half had no rendered scan until 2026-10-09, and its
+worst leak was never in a source string.** `/patient/pathway` draws the
+published protocol, so every step's definition name
+(`ActivityDefinition/AdministerPHQ9`), every note ("a suicide-risk result on
+LOINC 93374-7 valued from SPiERSuicideRiskTier") and every code reached a
+clinician from the artifact at runtime, with the gate green. Two changes:
+`CLINICAL_RULES` moved into `scripts/lib/reader-jargon.mjs` and is applied to
+every RENDERED clinical page by `apps/clinical/src/pages/pageLength.test.tsx`
+("names no wire format", run from `check:jargon`), reusing that file's harness
+because it already proves its page list is the route table; and its type list
+grew from the 18 SPiER writes to every humped R4 name, plural included —
+"A partial CodeSystem would read as complete" and "item-9 Observations" both
+passed the old one. The fix on the page is in the artifact: a note says
+whether it is written for the clinician (the `clinician-facing` extension,
+opt-in), and without inspection only marked notes render. One element is
+exempt by name — a CDS card's detail, which is the card as the service sends
+it to every EHR, printed verbatim on purpose. ⚠️ **The exemption was lifted the
+same day**: the problem-list card now follows the same marker, so its `detail`
+carries only the clinician-facing notes and the codes travel in its extension
+(next section), and the page scan reads the card like everything else.
+
 ⚠️ **Three of the strings it was written from were in the ARTIFACT, not the
 app.** `documentation[=].display` on the pathway PlanDefinition said "which is
 what `npm run check:reassessment` exists to prevent", pointed at the header of a
@@ -1198,18 +1219,20 @@ those strings had. Proven by planting a runtime-assembled `SmartDataSource`,
 mounted), and by restoring one `(#263)` to a recorder's note: each fails the gate
 through the rendered half with zero source-scan hits.
 
-⚠️ **The clinician's rules lived only in the script until 2026-10-09, so the
-one test that could read a runtime-built card had nothing to load.** The
-problem-list CDS card put "LOINC 93374-7", an ISO date, two SNOMED CT ids and a
-value-set canonical in front of a clinician with the gate green: its sentence is
-assembled in core, partly from the pathway artifact, and the clinical scan reads
-literals in the app trees. `CLINICAL_RULES` and `clinicalJargonIn` now live in
-`scripts/lib/reader-jargon.mjs` beside the repo rules, the gate imports them, and
-`apps/clinical/src/components/guidanceCardCopy.test.tsx` applies the same list to
-the rail rendered from the REAL builder over every demo patient (floored at three
-patients with the card). Proven by restoring the old first sentence, a SNOMED id
-in the FSH note, and the value-set trailer — each fails 22 of its 26 cases. The
-decision about `detail` itself is in
+⚠️ **The problem-list card's `detail` was read by nothing, twice over.** It
+put "LOINC 93374-7", an ISO date, two SNOMED CT ids and a value-set canonical in
+front of a clinician with the gate green: the sentence is assembled in core,
+partly from the pathway artifact, so the source scan never held it, and the
+rendered scan above exempted `.cds-card-rationale` by name. The card now reads
+the pathway's `clinician-facing` marker like the protocol page does — marked
+notes make `detail`, unmarked ones travel verbatim in `spier-implementer-notes` —
+and the exemption is gone. `clinicalJargonIn` joined `CLINICAL_RULES` in
+`scripts/lib/reader-jargon.mjs`, and
+`apps/clinical/src/components/guidanceCardCopy.test.tsx` applies it to the rail
+rendered from the REAL builder over every demo patient (floored at three
+patients with the card), and to the `detail` a host receives. Proven by
+restoring the old first sentence, the SNOMED note to `detail`, and the
+value-set trailer — each fails it. The decision about `detail` itself is in
 [`surfaces-and-routing.md`](surfaces-and-routing.md).
 
 What it cannot see, stated so a green run is not read as more than it is:

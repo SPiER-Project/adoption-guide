@@ -259,25 +259,26 @@ branch because the guide's pathway pages render it too.
 ⚠️ **A CDS card's `detail` is clinician copy for EVERY consumer, and the
 problem-list card's said "harmonized concept, LOINC 93374-7, recorded
 2026-10-09" in it until 2026-10-09** — built in core
-(`packages/core/src/lib/cdsHooks/problemListCard.ts`), partly from the published
-pathway's `documentation` notes, which also carried two SNOMED CT ids and had a
-value-set canonical appended. Seen on a live SMART sandbox run and on the mock
-EHR alike. **Decided: change `detail` for everyone, not only in the app's
-rendering.** CDS Hooks defines `detail` as text the host displays to its user,
-and the host's user is a clinician — the mock EHR, which plays the host, showed
-the same sentence. An in-app rewrite would have left every host showing the wire
-words, and a second "clinician" variant of the card would be two answers to one
-question. The wire facts are not lost: they moved to the card's `extension`
-(`spier-risk-concept` — the LOINC code, the tier coding, the timestamp — and
-`spier-problem-value-sets`), where a host's code reads them and the guide's
-card-JSON viewer shows them; the SNOMED ids live in the value set those
-canonicals name, and the pathway's FSH note names the problems in words. The
-ICD-10-CM codes stay in the prose: a clinician meets them in billing, and no
-clinical rule names them as the wire format.
+(`packages/core/src/lib/cdsHooks/problemListCard.ts`), followed by every note on
+the pathway step, two SNOMED CT ids and an appended value-set canonical among
+them. Seen on a live SMART sandbox run and on the mock EHR alike. **Decided:
+change `detail` for everyone, not only in the app's rendering** — CDS Hooks
+defines it as text the host displays to its user, the host's user is a
+clinician, and an in-app rewrite would leave every host showing the wire words.
+The same day the published pathway had gained a `clinician-facing` marker on its
+notes, and the card follows it rather than a rule of its own: the marked notes
+(the usual entries, and the ICD-10-CM billing pair — split from its verification
+sentence at the boundary, as any two-reader note is) make `detail`; the unmarked
+ones travel verbatim in the extension (`spier-implementer-notes`: the SNOMED CT
+ids and their value set), beside `spier-risk-concept` (the LOINC code, the tier
+coding, the timestamp). A host's code reads both; the guide's card-JSON viewer
+shows them; nothing is lost from the wire. This replaced a by-name exemption for
+`.cds-card-rationale` in the clinical page scan, which had recorded the opposite
+decision — the card names codes — earlier the same day.
 `apps/clinical/src/components/guidanceCardCopy.test.tsx` renders the rail with
 the real builder's guidance cards for every demo patient and applies
-`check:jargon`'s clinical rules, loaded from `scripts/lib/reader-jargon.mjs`, to
-what renders and to the `detail` a host receives.
+`check:jargon`'s clinical rules, loaded from `scripts/lib/reader-jargon.mjs`,
+to what renders and to the `detail` a host receives.
 
 ⚠️ **The 18 fillers and 11 recorders are ONE element definition**
 (`packages/tool-views/src/data/toolViews.tsx` — a package since 2026-09-19, so

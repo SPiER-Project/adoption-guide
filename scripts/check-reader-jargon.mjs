@@ -128,6 +128,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
 import { join } from 'node:path'
+import { stripVTControlCharacters } from 'node:util'
 
 import ts from 'typescript'
 
@@ -459,6 +460,31 @@ if (rendered.status !== 0) {
   fail(`${RENDERED_TEST} failed — a page renders repo vocabulary, or the test could not run; see above`)
 }
 
+/**
+ * The clinician's half of the same thing: every clinical page, mounted in panel
+ * chrome, scanned with `CLINICAL_RULES`. ⚠️ Added 2026-10-09 because the source
+ * scan below passed `/patient/pathway` while it showed a clinician five
+ * definition names, two profile names and three codes — all read from the
+ * published protocol at runtime, which no source string contains. The harness
+ * is the clinical budget test's, which already proves its page list is the
+ * whole route table; `-t` runs only the wire-format half of that file.
+ */
+const CLINICAL_RENDERED_TEST = 'apps/clinical/src/pages/pageLength.test.tsx'
+const clinicalRendered = spawnSync(
+  'npx',
+  ['vitest', 'run', CLINICAL_RENDERED_TEST, '-t', 'names no wire format'],
+  { cwd: REPO_ROOT, encoding: 'utf8' },
+)
+// ⚠️ The "passed" check reads vitest's summary with its colour codes stripped:
+// CI colours it (`Tests \x1b[22m \x1b[1m\x1b[32m11 passed`), so a bare regex
+// failed the gate on a green run there and passed it locally, where it is plain.
+// The check exists because `-t` matching nothing exits 0 with every test skipped.
+const clinicalSummary = stripVTControlCharacters(`${clinicalRendered.stdout ?? ''}`)
+if (clinicalRendered.status !== 0 || !/Tests\s+\d+ passed/.test(clinicalSummary)) {
+  process.stderr.write(`${clinicalRendered.stdout ?? ''}${clinicalRendered.stderr ?? ''}`)
+  fail(`${CLINICAL_RENDERED_TEST} failed — a clinical page renders the wire format, or the test could not run; see above`)
+}
+
 // ── Half three: the clinician's strings ────────────────────────────────────
 
 // The rules themselves — and the function applying them — live in
@@ -745,7 +771,7 @@ if (failures === 0 && floorsHeld) {
     `✓ no wire vocabulary in clinician copy: ${clinicalStrings} string(s) across ` +
       `${clinicalFiles.length - clinicalDeferred} module(s) in apps/clinical, packages/tool-views and ` +
       `packages/app-shell, against ${CLINICAL_RULES.length + RULES.length} rules ` +
-      `(${clinicalDeferred} deferred with a reason)`,
+      `(${clinicalDeferred} deferred with a reason); every rendered clinical page passes the same rules`,
   )
   process.exit(0)
 }

@@ -451,6 +451,7 @@ groups:
       - PlanDefinition/SPiERSuicideSaferCarePathway
       - PlanDefinition/SPiERTrackFollowUpStage
       - PlanDefinition/SPiERTrackRiskOverTimeStage
+      - StructureDefinition/clinician-facing
       - StructureDefinition/instrument-licensing-status
       - CodeSystem/spier-instrument-licensing-status
       - CodeSystem/spier-pathway-stage
