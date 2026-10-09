@@ -51,7 +51,7 @@
   font: var(--type-lead);
   max-width: var(--measure-prose);
   margin: 0;
-  line-height: 1.6;
+  line-height: var(--line-height-relaxed);
   color: var(--text-body);
 }
 
@@ -96,7 +96,7 @@
 .overview__step-name {
   font: var(--type-running);
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   margin: 0 0 var(--space-2);
   color: var(--brand-primary);
 }
@@ -104,7 +104,7 @@
 .overview__step-body {
   font: var(--type-ui);
   margin: 0;
-  line-height: 1.55;
+  line-height: var(--line-height-relaxed);
   color: var(--text-body);
 }
 
@@ -166,14 +166,14 @@
 .overview__pick-situation {
   font: var(--type-ui);
   margin: 0 0 var(--space-2);
-  line-height: 1.5;
+  line-height: var(--line-height-normal);
   color: var(--text-muted);
 }
 
 .overview__pick-shows {
   font: var(--type-ui);
   margin: 0;
-  line-height: 1.55;
+  line-height: var(--line-height-relaxed);
   color: var(--text-body);
 }
 
@@ -198,7 +198,7 @@
 
 .overview__door-reader {
   font: var(--type-ui);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--brand-primary);
 }
 
@@ -206,6 +206,6 @@
   font: var(--type-running);
   max-width: var(--measure-prose);
   margin: 0;
-  line-height: 1.65;
+  line-height: var(--line-height-relaxed);
   color: var(--text-body);
 }

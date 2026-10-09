@@ -105,7 +105,7 @@
   background-color: var(--brand-primary);
   color: var(--text-on-brand);
   content: counter(care-pathway-step);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 
 /* The rule from one disc down to the next, through the gap between steps. */
@@ -175,7 +175,7 @@
   border-radius: var(--radius-pill);
   background-color: var(--tint-sky-soft);
   color: var(--brand-primary);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   letter-spacing: normal;
   text-transform: uppercase;
   white-space: nowrap;
@@ -210,7 +210,7 @@
   display: block;
   margin-bottom: var(--space-1);
   color: var(--text-strong);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
 }
@@ -294,7 +294,7 @@
   background-color: var(--brand-primary);
   color: var(--text-on-brand);
   content: counter(pathway-step);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 
 /* The step card stays full width — it carries chips, gates and a definition
@@ -330,7 +330,7 @@
   font: var(--type-caption);
   margin: 0;
   color: var(--text-strong);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 /* The smallest type on the page, and so the longest measure for a given width:
@@ -423,7 +423,7 @@
   border-radius: var(--radius-pill);
   background-color: var(--brand-primary);
   color: var(--text-on-brand);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   letter-spacing: normal;
   text-transform: uppercase;
 }
@@ -431,7 +431,7 @@
 /* A row header is the obligation itself — title, sentence, chip, realization —
    set the way `.pathway-obligation` sets them, minus that class's box. */
 .pathway-matrix__obligation {
-  font-weight: 400;
+  font-weight: var(--font-weight-regular);
 }
 
 .pathway-matrix__cell {
@@ -461,7 +461,7 @@
   border-radius: var(--radius-pill);
   background-color: var(--status-success-bg);
   color: var(--status-success-text);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
 }
@@ -594,7 +594,7 @@
   flex: none;
   min-width: var(--space-7);
   color: var(--text-strong);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 
 .pathway-sim__text {
@@ -622,7 +622,7 @@
 .pathway-sim__result-label {
   font: var(--type-label);
   color: var(--text-faint);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
 }
@@ -703,7 +703,7 @@
 .pathway-code__label {
   font: var(--type-running);
   color: var(--text-strong);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .pathway-code__hint {
@@ -733,14 +733,14 @@
   gap: var(--space-2);
   align-items: baseline;
   color: var(--text-strong);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .pathway-code__id {
   font: var(--type-caption);
   color: var(--text-faint);
   font-family: var(--font-mono);
-  font-weight: 400;
+  font-weight: var(--font-weight-regular);
 }
 
 .pathway-code__facts {
@@ -759,7 +759,7 @@
 .pathway-code__kind {
   font: var(--type-label);
   color: var(--text-faint);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
 }
@@ -804,7 +804,7 @@
   font: var(--type-caption);
   margin-top: var(--space-3);
   color: var(--text-strong);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 
 .pathway-pending__list dd {
@@ -837,7 +837,7 @@
 .pathway-provenance__fact dt {
   font: var(--type-label);
   color: var(--text-faint);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
 }
@@ -854,7 +854,7 @@
   font-family: var(--font-display);
   margin: 0;
   color: var(--text-strong);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .pathway-provenance__related {
@@ -878,7 +878,7 @@
   overflow-wrap: anywhere;
   margin: 0 0 var(--space-4);
   color: var(--brand-primary);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   line-height: var(--line-height-normal);
 }
 

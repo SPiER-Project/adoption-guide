@@ -5,19 +5,19 @@
  * ordered list of `WriteStep`s WITHOUT any I/O. It decides each step's
  * *disposition* (attempt / unsupported / disabled) from three inputs only:
  *   1. config      — which tiers are enabled (defaults: QR + Observation on,
- *                    Condition off, floor conditional).
+ *                    floor conditional).
  *   2. capabilities — whether the server advertises `create` for the type.
  *   3. artifacts   — whether there is anything to write (no Observations →
- *                    no Tier-2 step; no proposed Condition → no Tier-3 step).
+ *                    no Tier-2 step).
  *
  * Runtime success/failure and the conditional firing of the Tier-0 floor are
  * NOT decided here — that is `execute`'s job. The plan is the honest statement
  * of intent that the scorecard (Phase 2) renders.
  *
  * Order of the returned steps is the execution order:
- *   Tier 1 QuestionnaireResponse → Tier 2 Observation → Tier 3 Condition →
+ *   Tier 1 QuestionnaireResponse → Tier 2 Observation →
  *   Tier 0 DocumentReference (floor last).
- * QR precedes Observation/Condition because those reference the server-assigned
+ * QR precedes Observation because the Observations reference the server-assigned
  * QR id; the floor is last because whether it runs depends on the discrete
  * outcomes.
  */
@@ -31,12 +31,11 @@ import type {
   WriteStep,
 } from './types'
 
-/** Fill in config defaults: discrete tiers 1–2 on, Tier 3 off, floor conditional. */
+/** Fill in config defaults: discrete tiers 1–2 on, floor conditional. */
 export function resolveConfig(config: WritebackConfig = {}): ResolvedWritebackConfig {
   return {
     enableQuestionnaireResponse: config.enableQuestionnaireResponse ?? true,
     enableObservation: config.enableObservation ?? true,
-    enableConditionProposal: config.enableConditionProposal ?? false,
     alwaysWriteDocument: config.alwaysWriteDocument ?? false,
   }
 }
@@ -74,16 +73,6 @@ export function buildWritePlan(
       resourceType: 'Observation',
       role: 'discrete',
       disposition: discreteDisposition(cfg.enableObservation, capabilities, 'Observation'),
-    })
-  }
-
-  // Tier 3 — Condition (opt-in). Only when enabled AND a proposal exists.
-  if (cfg.enableConditionProposal && artifacts.condition) {
-    steps.push({
-      tier: 3,
-      resourceType: 'Condition',
-      role: 'discrete',
-      disposition: discreteDisposition(true, capabilities, 'Condition'),
     })
   }
 

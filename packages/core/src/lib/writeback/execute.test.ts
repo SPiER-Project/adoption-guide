@@ -24,15 +24,10 @@ const observations: ObservationResource[] = [
   { resourceType: 'Observation', id: 'o2', status: 'final', derivedFrom: [{ reference: 'QuestionnaireResponse/client-qr' }] } as ObservationResource,
 ]
 
-const condition: FhirResource = {
-  resourceType: 'Condition',
-  evidence: [{ detail: [{ reference: 'QuestionnaireResponse/client-qr' }] }],
-}
-
 const documentReference: FhirResource = { resourceType: 'DocumentReference' }
 
 function artifacts(overrides: Partial<WritebackArtifacts> = {}): WritebackArtifacts {
-  return { qr, observations, documentReference, condition, ...overrides }
+  return { qr, observations, documentReference, ...overrides }
 }
 
 /** Fake target: records created resources, assigns predictable server ids. */
@@ -75,18 +70,6 @@ describe('executeWritePlan — happy path (full capability)', () => {
     for (const o of writtenObs) {
       expect(o.derivedFrom).toEqual([{ reference: 'QuestionnaireResponse/srv-QuestionnaireResponse-1' }])
     }
-  })
-
-  it('remaps a Tier-3 Condition proposal evidence ref to the server QR id when enabled', async () => {
-    const target = fakeTarget()
-    const plan = buildWritePlan(ALL, { enableConditionProposal: true }, artifacts())
-    const { steps } = await executeWritePlan(plan, target, artifacts(), { enableConditionProposal: true })
-
-    expect(byTier(steps, 3).outcome).toBe('written')
-    const writtenCondition = target.created.find(r => r.resourceType === 'Condition') as FhirResource
-    expect((writtenCondition.evidence as Array<{ detail: { reference: string }[] }>)[0].detail[0].reference).toBe(
-      'QuestionnaireResponse/srv-QuestionnaireResponse-1',
-    )
   })
 })
 

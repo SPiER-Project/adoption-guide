@@ -12,7 +12,8 @@
         "gap", "row-gap", "column-gap",
         "/radius$/",
         "letter-spacing",
-        "font-family", "font"
+        "font-family", "font",
+        "font-weight", "line-height"
       ],
       {
         "ignoreValues": [
@@ -20,7 +21,7 @@
           "/^var\\(--/",
           "currentcolor",
           "0", "auto",
-          "/^calc\\(/",
+          "/^calc\\((?:\\s|\\*|\\/|\\+|-|\\(|\\)|\\d*\\.?\\d+|var\\(--[\\w-]+\\))*$/",
           "/^(?:(?:repeating-)?(?:linear|radial|conic)-gradient|color-mix)\\((?:\\s|,|\\*|\\/|\\+|\\(|\\)|-?\\d*\\.?\\d+(?:%|deg|turn)?|var\\(--[\\w-]+\\)|calc|transparent|currentcolor|in|srgb|oklab|oklch|to|top|bottom|left|right)*$/"
         ],
         "ignoreFunctions": false,

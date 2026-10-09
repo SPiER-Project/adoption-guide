@@ -129,7 +129,7 @@ export interface PatientContextType {
    * Outcome of the most recent SMART writeback (#350), rendered by
    * `WritebackScorecard` as a site-readiness diagnostic. Null under the local
    * source and before the first submission of a SMART session — the ladder only
-   * runs against a real FHIR server, since Tier 0 and Tier 3 are meaningless
+   * runs against a real FHIR server, since the Tier-0 floor is meaningless
    * against localStorage and capability probing has nothing to probe.
    */
   writebackReport: WritebackReport | null

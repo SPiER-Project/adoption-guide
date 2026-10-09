@@ -57,7 +57,7 @@
 
 .careplan-step-title {
     font: var(--type-caption);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     text-transform: uppercase;
     letter-spacing: var(--tracking-caps);
     color: var(--text-muted);
@@ -67,7 +67,7 @@
 .careplan-step-code {
     font: var(--type-caption);
     color: var(--text-faint);
-    font-weight: 400;
+    font-weight: var(--font-weight-regular);
     margin-left: var(--space-2);
     font-family: var(--font-mono);
 }
@@ -75,7 +75,7 @@
 .careplan-step-description {
     font: var(--type-running);
     color: var(--text-strong);
-    line-height: 1.5;
+    line-height: var(--line-height-normal);
     margin: 0;
 }
 
@@ -102,7 +102,7 @@
     padding: var(--space-2) var(--space-5);
     border: none;
     border-radius: var(--radius-lg);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     cursor: pointer;
     transition: background-color 0.2s, transform 0.15s;
 }
@@ -127,7 +127,7 @@
     padding: var(--space-2) var(--space-5);
     border: 1px solid var(--border-default);
     border-radius: var(--radius-lg);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -151,7 +151,7 @@
     margin: 0;
     color: var(--border-default);
     font-family: var(--font-mono);
-    line-height: 1.5;
+    line-height: var(--line-height-normal);
     white-space: pre-wrap;
     word-break: break-all;
 }

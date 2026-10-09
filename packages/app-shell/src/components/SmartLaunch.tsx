@@ -79,11 +79,11 @@ export function SmartLaunch() {
                     'patient/Encounter.read',
                     'patient/Encounter.write',
 
-                    // Writeback ladder Tier 3 (opt-in Condition proposal).
-                    // Requesting Condition write is harmless — the tier stays
-                    // OFF by default and a human must confirm before any
-                    // Condition is created. Write-only on purpose: nothing
-                    // reads Condition back.
+                    // CAMS Section B's suicide-driver Conditions, which the
+                    // writeback sends with the Observations (Tier 2). Nothing
+                    // else writes a Condition: the ladder's Tier-3 "Condition
+                    // proposal" was retired (#639) — a screen never becomes a
+                    // Condition. Write-only on purpose: nothing reads one back.
                     'patient/Condition.write',
                     // ⚠️ **The worklist scope, requested on EVERY launch, and
                     // that is deliberate.** SMART hands the app an opaque
