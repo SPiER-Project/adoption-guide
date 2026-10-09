@@ -5,7 +5,7 @@
 .md-description {
   font: var(--type-lead);
   color: var(--text-muted);
-  line-height: 1.6;
+  line-height: var(--line-height-relaxed);
   margin: 0 0 var(--space-6) 0;
   max-width: var(--measure-prose);
 }
@@ -21,7 +21,7 @@
 .md-control-label {
   font: var(--type-caption);
   color: var(--text-muted);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .md-select {
@@ -76,7 +76,7 @@
 /* Counts read as columns of numbers; tabular figures keep them aligned. */
 
 .md-group-name {
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
 .md-score {
@@ -84,7 +84,7 @@
 }
 
 .md-score-value {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--text-strong);
 }
 

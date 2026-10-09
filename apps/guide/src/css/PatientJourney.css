@@ -14,7 +14,7 @@
   font: var(--type-lead);
   margin: 0 0 var(--space-3);
   max-width: var(--measure-prose);
-  line-height: 1.6;
+  line-height: var(--line-height-relaxed);
   color: var(--text-body);
 }
 
@@ -22,7 +22,7 @@
   font: var(--type-caption);
   margin: 0 0 var(--space-5);
   max-width: var(--measure-prose);
-  line-height: 1.5;
+  line-height: var(--line-height-normal);
   color: var(--text-muted);
 }
 
@@ -48,7 +48,7 @@
   border: 1px solid var(--border-default);
   border-radius: var(--radius-pill);
   background: var(--surface-card);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--text-body);
   text-decoration: none;
   transition: border-color 0.15s, color 0.15s;
@@ -85,18 +85,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  width: var(--stage-badge-size);
+  height: var(--stage-badge-size);
   border-radius: var(--radius-circle);
   background: var(--brand-primary);
   color: var(--text-on-brand);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 
 .tools-index__stage-title {
   font: var(--type-heading);
   margin: 0;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--text-strong);
 }
 
@@ -104,17 +104,17 @@
   font: var(--type-caption);
   margin: var(--space-1) 0 0;
   max-width: var(--measure-prose);
-  line-height: 1.5;
+  line-height: var(--line-height-normal);
   color: var(--text-muted);
 }
 
 /* ── The rows ──
    Aligned to the left edge of the stage title: past `.tools-index__stage-number`
-   (2rem) and the head's own gap. Derived rather than typed, so it tracks the gap. */
+   (`--stage-badge-size`) and the head's own gap. Derived rather than typed, so it tracks the gap. */
 .tools-index__list {
   display: flex;
   flex-direction: column;
-  margin: 0 0 0 calc(2rem + var(--space-3));
+  margin: 0 0 0 calc(var(--stage-badge-size) + var(--space-3));
   padding: 0;
   list-style: none;
 }
@@ -139,7 +139,7 @@
 
 .tools-index__name {
   font: var(--type-ui);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--brand-link);
   text-decoration: none;
 }
@@ -157,7 +157,7 @@
 
 .tools-index__purpose {
   font: var(--type-ui);
-  line-height: 1.4;
+  line-height: var(--line-height-snug);
   color: var(--text-muted);
 }
 
@@ -184,13 +184,13 @@
 
 /* ── The hand-off drawer: the stage's triggers, closed until asked for ── */
 .tools-index__handoff {
-  margin: var(--space-3) 0 0 calc(2rem + var(--space-3));
+  margin: var(--space-3) 0 0 calc(var(--stage-badge-size) + var(--space-3));
 }
 
 .tools-index__trigger-group {
   font: var(--type-label);
   margin: var(--space-3) 0 0;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--text-muted);
@@ -219,7 +219,7 @@
 }
 
 .tools-index__trigger-event {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--text-strong);
 }
 
@@ -243,6 +243,6 @@
   font: var(--type-caption);
   margin: var(--space-7) 0 0;
   max-width: var(--measure-prose);
-  line-height: 1.5;
+  line-height: var(--line-height-normal);
   color: var(--text-muted);
 }

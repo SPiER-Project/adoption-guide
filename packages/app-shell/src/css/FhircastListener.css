@@ -31,7 +31,7 @@
 
 .fhircast-banner-text {
   flex: 1 1 auto;
-  line-height: 1.35;
+  line-height: var(--line-height-snug);
 }
 
 .fhircast-banner-text em {
@@ -51,7 +51,7 @@
   background: transparent;
   border: none;
   border-radius: var(--radius-sm);
-  line-height: 1;
+  line-height: var(--line-height-none);
   color: var(--text-muted);
   cursor: pointer;
 }

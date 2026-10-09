@@ -323,6 +323,14 @@
      clearance, so content sat 2px underneath. */
   --code-drawer-bar-height: 36px;
 
+  /* Two more of the same kind: a box something else aligns past. Each was a
+     typed size AND a typed term inside a `calc()` on the rule aligned to it —
+     the derived alignment was derived from a copy. A `calc()` on a spacing
+     property now accepts tokens and unitless numbers only, so the term has to
+     be the box's own token. */
+  --sidebar-icon-size: 1.25rem;  /* .sidebar-icon; .sidebar-link--child indents past it */
+  --stage-badge-size:  2rem;     /* .tools-index__stage-number; the stage's rows indent past it */
+
   /* ── Radius scale ───────────────────────────────────────── */
   --radius-xs:  3px;
   --radius-sm:  4px;
@@ -368,8 +376,30 @@
   --type-heading: 600 1.25rem/1.25   var(--font-display); /* 20px */
   --type-title:   600 1.75rem/1.15   var(--font-display); /* 28px */
 
-  --line-height-tight:  1.2;
-  --line-height-normal: 1.5;
+  /* ── Weight and leading: the longhands a rule writes AFTER its role ──────
+     A role sets weight and leading; a rule that needs another says so with one
+     of these, never a number. Both properties joined stylelint's strict-value
+     list on 2026-10-09, with 151 raw weights (six values) and 58 raw
+     line-heights (eleven values, 1 to 1.65) beside two leading tokens that 31
+     rules used.
+     ⚠️ **Four weights, because four are loaded.** The @import above fetches
+     400–700 and `font-synthesis: none` is set, so the 300 and 800 the sweep
+     found were already rendering as 400 and 700 — mapping them changed
+     nothing on screen. A fifth weight is a font request first. */
+  --font-weight-regular:  400;
+  --font-weight-medium:   500;
+  --font-weight-semibold: 600;
+  --font-weight-bold:     700;
+
+  /* Five steps. The sweep snapped 1.15 → tight, 1.3/1.35 → snug, 1.45 →
+     normal, 1.55/1.65 → relaxed: at most 0.1em, mostly 0.05em, the same
+     call the spacing scale made (see docs/internals/css-and-page-template.md).
+     `none` is for a glyph centred in a fixed box — a badge digit, an icon. */
+  --line-height-none:    1;
+  --line-height-tight:   1.2;
+  --line-height-snug:    1.4;
+  --line-height-normal:  1.5;
+  --line-height-relaxed: 1.6;
 
   /* ── Elevation scale ────────────────────────────────────── */
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
@@ -404,8 +434,8 @@
   --font-mono:    ui-monospace, SFMono-Regular, Menlo, 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
 
   font-family: var(--font-body);
-  line-height: 1.5;
-  font-weight: 400;
+  line-height: var(--line-height-normal);
+  font-weight: var(--font-weight-regular);
   color: var(--text-base);
   background-color: var(--surface-card);
 
@@ -493,5 +523,5 @@ h4,
 h5,
 h6 {
   font-family: var(--font-display);
-  line-height: 1.2;
+  line-height: var(--line-height-tight);
 }

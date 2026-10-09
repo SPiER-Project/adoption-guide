@@ -10,7 +10,7 @@
 .rubric-description {
   font: var(--type-lead);
   color: var(--text-muted);
-  line-height: 1.6;
+  line-height: var(--line-height-relaxed);
   margin: 0 0 var(--space-6) 0;
   max-width: var(--measure-prose);
 }
@@ -42,15 +42,15 @@
 
 .rubric-summary-value {
   font: var(--type-title);
-  font-weight: 800;
+  font-weight: var(--font-weight-bold);
   color: var(--text-strong);
-  line-height: 1;
+  line-height: var(--line-height-none);
 }
 
 .rubric-summary-label {
   font: var(--type-label);
   color: var(--text-faint);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
 }
@@ -81,7 +81,7 @@
 .rubric-reset-btn {
   font: var(--type-caption);
   padding: var(--space-1-5) var(--space-3);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--text-muted);
   background: var(--surface-muted);
   border: 1px solid var(--border-default);
@@ -146,9 +146,9 @@
 .rubric-stage-description {
   font: var(--type-caption);
   margin: 0;
-  line-height: 1.5;
+  line-height: var(--line-height-normal);
   color: var(--text-muted);
-  font-weight: 400;
+  font-weight: var(--font-weight-regular);
   max-width: var(--measure-prose);
 }
 
@@ -160,7 +160,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   background: var(--surface-muted);
   color: var(--text-faint);
   flex-shrink: 0;
@@ -174,7 +174,7 @@
 .rubric-stage-title {
   font: var(--type-heading);
   margin: 0;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--text-strong);
 }
 
@@ -186,7 +186,7 @@
 
 .rubric-stage-coverage {
   font: var(--type-caption);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--text-muted);
 }
 
@@ -232,7 +232,7 @@
 }
 
 .rubric-tool-name {
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
 /* ── Maturity Scoring ── */
@@ -243,7 +243,7 @@
 
 .rubric-maturity-label {
   font: var(--type-label);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
   color: var(--text-faint);
@@ -266,7 +266,7 @@
 
 .rubric-maturity-criterion {
   font: var(--type-caption);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--text-body);
 }
 
@@ -275,7 +275,7 @@
   padding: var(--space-1-5) var(--space-1-5);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
   width: 100%;
   transition: background 0.15s;

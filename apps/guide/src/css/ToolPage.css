@@ -44,7 +44,7 @@
   font: var(--type-caption);
   margin: var(--space-4) 0 0;
   max-width: var(--measure-prose);
-  line-height: 1.5;
+  line-height: var(--line-height-normal);
   color: var(--text-muted);
 }
 
@@ -61,7 +61,7 @@
   font: var(--type-running);
   margin: 0;
   max-width: var(--measure-prose);
-  line-height: 1.55;
+  line-height: var(--line-height-relaxed);
   color: var(--text-body);
 }
 
@@ -75,7 +75,7 @@
 
 .tool-page__chips-label {
   margin-right: var(--space-1);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--text-muted);
 }
 
@@ -128,7 +128,7 @@
 }
 
 .tool-page__element-name {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--text-strong);
 }
 
@@ -161,7 +161,7 @@
   font: var(--type-caption);
   margin: var(--space-3) 0 0;
   max-width: var(--measure-prose);
-  line-height: 1.5;
+  line-height: var(--line-height-normal);
   color: var(--text-body);
 }
 
@@ -177,6 +177,6 @@
   font: var(--type-caption);
   margin: 0;
   max-width: var(--measure-prose);
-  line-height: 1.5;
+  line-height: var(--line-height-normal);
   color: var(--text-muted);
 }
