@@ -132,10 +132,9 @@ import { join } from 'node:path'
 import ts from 'typescript'
 
 import { appRoot, relRepo, REPO_ROOT, walkExt } from './lib/app-roots.mjs'
-import { RESOURCE_TYPES, WIRE_ONLY_RESOURCE_TYPES } from './lib/fhir-vocabulary.mjs'
 import { reportFloors } from './lib/floors.mjs'
 import { loadCore } from './lib/load-core.mjs'
-import { indexRepoIdentifiers, REPO_RULES, repoJargonIn } from './lib/reader-jargon.mjs'
+import { CLINICAL_RULES, indexRepoIdentifiers, REPO_RULES, repoJargonIn } from './lib/reader-jargon.mjs'
 
 let failures = 0
 function fail(msg) {
@@ -460,73 +459,30 @@ if (rendered.status !== 0) {
   fail(`${RENDERED_TEST} failed — a page renders repo vocabulary, or the test could not run; see above`)
 }
 
+/**
+ * The clinician's half of the same thing: every clinical page, mounted in panel
+ * chrome, scanned with `CLINICAL_RULES`. ⚠️ Added 2026-10-09 because the source
+ * scan below passed `/patient/pathway` while it showed a clinician five
+ * definition names, two profile names and three codes — all read from the
+ * published protocol at runtime, which no source string contains. The harness
+ * is the clinical budget test's, which already proves its page list is the
+ * whole route table; `-t` runs only the wire-format half of that file.
+ */
+const CLINICAL_RENDERED_TEST = 'apps/clinical/src/pages/pageLength.test.tsx'
+const clinicalRendered = spawnSync(
+  'npx',
+  ['vitest', 'run', CLINICAL_RENDERED_TEST, '-t', 'names no wire format'],
+  { cwd: REPO_ROOT, encoding: 'utf8' },
+)
+if (clinicalRendered.status !== 0 || !/Tests\s+\d+ passed/.test(`${clinicalRendered.stdout ?? ''}`)) {
+  process.stderr.write(`${clinicalRendered.stdout ?? ''}${clinicalRendered.stderr ?? ''}`)
+  fail(`${CLINICAL_RENDERED_TEST} failed — a clinical page renders the wire format, or the test could not run; see above`)
+}
+
 // ── Half three: the clinician's strings ────────────────────────────────────
 
-/**
- * What a clinician may not be shown, and where each rule came from.
- *
- * Clinical-app audit §1.9 measured the clinical surface and found the wire
- * format in the words rather than in the JSON: `QuestionnaireResponse · Sep 3`
- * on every artifact row, `Tier 0 · DocumentReference` under every writeback
- * rung, a canonical URL in monospace leading the protocol page, an issue number
- * as the explanation of an empty measure, `LOINC 93374-7` inside the
- * problem-list card's own sentence. `check:fhir-render` RULE 3 had already
- * settled the rule for the eleven recorders' ledes (`docs/internals/tool-views.md`
- * §4); this is that rule over the rest of the surface.
- *
- *   a FHIR resource type   `QuestionnaireResponse · …`   — every artifact row
- *   a FHIR element path    `Appointment.status`          — a recorder's field help
- *   a LOINC or SNOMED code `LOINC 93374-7`               — the problem-list card
- *   a canonical URL        `http://thespierproject.org/…` — the protocol page
- *   an issue number        `#52`, `(#350)`                — the walkthrough, measures
- *   a tier or rung number  `Tier 0`, `rung 2`             — Saved to the EHR
- *
- * ⚠️ **The rule set is the DIFFERENCE from the guide's, not a superset.** An
- * npm script or a `packages/…` path is just as wrong here, and it is caught by
- * the guide's six rules, which this scan also applies. What it does NOT apply
- * is the repo-identifier rule: `useInspect`, `evaluatePathway` and
- * `stageLeadTools` are this repo's names and they appear in these trees as
- * code, not as words, which is exactly the false-positive class the guide's
- * index was built to avoid — and the deny list below cannot separate them
- * reliably enough in an app tree of this size.
- *
- * ⚠️ **Four positions a reader never sees, beyond the guide scan's.** They are
- * code that happens to be spelled as a string, and every one of them would
- * otherwise fire on `resource.resourceType === 'Observation'`:
- *
- *   - a comparison operand (`=== 'Observation'`) — a discriminator, never prose
- *   - a `switch` case label (`case 'DocumentReference':`) — the same thing
- *   - a type position (`'all' | 'responses'`, `Record<'CarePlan', …>`)
- *   - an argument to a string or collection method (`.replace('CarePlan/', '')`,
- *     `.startsWith`, `.has`, `.get`) — a prefix or a key, never a sentence
- *
- * ⚠️ **What it cannot see.** A resource type not on `RESOURCE_TYPES` (the list
- * is 18 and states its own limit); a string assembled from parts, which is how
- * `${type} · ${status}` would read to it as two harmless halves; and prose that
- * is wrong for a clinician without naming any of these five things — "the
- * denominator excludes them" passes, and it is exactly what the recorder pass
- * had to fix by hand.
- */
-const CLINICAL_RULES = [
-  {
-    name: 'a FHIR resource type',
-    // `WIRE_ONLY_…`, not the whole list — see `lib/fhir-vocabulary.mjs` for the
-    // eight names that are ordinary English in this copy and why RULE 3 keeps
-    // them while this scan does not.
-    re: new RegExp(`\\b(?:${WIRE_ONLY_RESOURCE_TYPES.join('|')})\\b`),
-  },
-  // An element path names the wire format whichever half the type is in.
-  { name: 'a FHIR element path', re: new RegExp(`\\b(?:${RESOURCE_TYPES.join('|')})\\.[a-z]\\w*`) },
-  { name: 'a SPiER profile name', re: /\bSPiER[A-Z]\w+/ },
-  // A LOINC code is digits-dash-digit; SNOMED is 6–18 bare digits, so it is
-  // matched only where a word says what it is — a bare "1234567" in clinician
-  // copy is a phone number or a total far more often than it is a concept id.
-  { name: 'a LOINC code', re: /\b\d{2,6}-\d\b/ },
-  { name: 'a SNOMED or LOINC code', re: /\b(?:LOINC|SNOMED|SNOMED CT)\b[^.]{0,20}?\b\d{4,18}\b/i },
-  { name: 'a canonical URL', re: /https?:\/\/[^\s"']*\/fhir\/[A-Za-z]/ },
-  { name: 'an issue number', re: /(?:^|[\s(])#\d{2,4}\b/ },
-  { name: 'a tier or rung number', re: /\b(?:tier|rung)\s+\d\b/i },
-]
+// CLINICAL_RULES — the clinician-copy rules — live in lib/reader-jargon.mjs,
+// shared with the clinical rendered-copy test.
 
 /**
  * JSX attributes a clinician never meets.
@@ -831,7 +787,7 @@ if (failures === 0 && floorsHeld) {
     `✓ no wire vocabulary in clinician copy: ${clinicalStrings} string(s) across ` +
       `${clinicalFiles.length - clinicalDeferred} module(s) in apps/clinical, packages/tool-views and ` +
       `packages/app-shell, against ${CLINICAL_RULES.length + RULES.length} rules ` +
-      `(${clinicalDeferred} deferred with a reason)`,
+      `(${clinicalDeferred} deferred with a reason); every rendered clinical page passes the same rules`,
   )
   process.exit(0)
 }

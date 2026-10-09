@@ -159,12 +159,16 @@ Usage: #definition
   // recorded here as documentation rather than dressed up as `trigger`s that no
   // engine could fire.
   * documentation[+].type = #documentation
+  * documentation[=].label = "Entry points"
+  * documentation[=].display = "The pathway has three entry points: universal depression screening (this step); suicidal thoughts or behavior identified at ANY point in care; and initial contact with the patient. A clinician entering the pathway on either of the latter two proceeds directly to the assessment step."
+  * documentation[=].extension[ClinicianFacing].valueBoolean = true
+  * documentation[+].type = #documentation
   * documentation[=].label = "Entry events"
-  * documentation[=].display = "The source diagram depicts three parallel entry points into this pathway: universal depression screening (this step); suicidal thoughts or behavior identified at ANY point in care; and initial contact with the patient. The latter two are clinician-initiated and carry no structured triggering event, so they are recorded as protocol rather than encoded as triggers — a clinician entering the pathway on either of them proceeds directly to the assessment step."
+  * documentation[=].display = "The latter two entry points are clinician-initiated and carry no structured triggering event, so they are recorded as protocol rather than encoded as triggers."
   * action[+]
     * id = "administer-phq9"
     * title = "Administer PHQ-9 (demonstrated realization)"
-    * description = "Capture a PHQ-9 depression screen and derive its total-score and item-9 Observations. Item 9 is the suicidality item this pathway gates on."
+    * description = "Capture a PHQ-9 depression screen and derive its total score and its item-9 result. Item 9 is the suicidality item this pathway gates on."
     * definitionCanonical = "http://thespierproject.org/fhir/ActivityDefinition/AdministerPHQ9"
 
 
@@ -208,10 +212,12 @@ Usage: #definition
   * documentation[=].display = "The gate is on a POSITIVE SCREEN, not on the PHQ-9. A site screening with a different instrument satisfies this step when that instrument's result crosswalks to a SPiERSuicideRiskTier above no-risk; the PHQ-9 item-9 condition below is the demonstrated realization of that gate."
   * documentation[+].type = #documentation
   * documentation[=].label = "Negative screen"
-  * documentation[=].display = "A PHQ-9 item-9 score of 0 is a negative screen and the patient does not proceed. Clinical judgment always overrides a negative screen — the diagram's gate reads \"or with clinical judgement\", and either of the two unencoded entry events reaches this step without a screen at all."
+  * documentation[=].display = "A PHQ-9 item-9 score of 0 is a negative screen and the patient does not proceed. Clinical judgment always overrides a negative screen, and a patient entering on either of the other two entry points reaches this step without a screen at all."
+  * documentation[=].extension[ClinicianFacing].valueBoolean = true
   * documentation[+].type = #documentation
   * documentation[=].label = "Negative assessment exits the pathway"
   * documentation[=].display = "A C-SSRS Screener answered NO to every question is a negative assessment: the patient DOES NOT ENTER the suicide-safer care pathway, and none of the tier obligations below apply. No episode is opened."
+  * documentation[=].extension[ClinicianFacing].valueBoolean = true
   * action[+]
     * id = "administer-cssrs-screener"
     * title = "Administer the C-SSRS Screener with Triage Points (demonstrated realization)"
@@ -226,6 +232,7 @@ Usage: #definition
     * documentation[+].type = #documentation
     * documentation[=].label = "Instrument variant"
     * documentation[=].display = "C-SSRS Screener with Triage Points. The triage points are the published item-to-risk-level assignment; a C-SSRS variant without them does not by itself yield the tier this pathway branches on."
+    * documentation[=].extension[ClinicianFacing].valueBoolean = true
 
 
 // ─── Step 3 — The tier branch (Define the Risk Picture) ──────
@@ -283,7 +290,10 @@ Usage: #definition
       * documentation[+].type = #documentation
       * documentation[=].label = "Emotional Fire Safety Plan"
       * documentation[=].url = "https://www.nowmattersnow.org/wp-content/uploads/2018/10/0.-NowMattersNow.org-Safety-Plan-Website-Version.pdf"
-      * documentation[=].display = "The diagram names the NowMattersNow Emotional Fire Safety Plan at every tier, alongside the Stanley-Brown plan from the moderate tier upward. It is third-party patient-education material, not a SPiER instrument, so it is referenced here as documentation rather than modeled as an activity."
+      * documentation[=].display = "The NowMattersNow Emotional Fire Safety Plan is offered at every tier, alongside the Stanley-Brown plan from the moderate tier upward."
+      * documentation[=].extension[ClinicianFacing].valueBoolean = true
+      * documentation[+].type = #documentation
+      * documentation[=].display = "The source diagram names it at every tier. It is third-party patient-education material, not a SPiER instrument, so it is referenced here as documentation rather than modeled as an activity."
     * action[+]
       * id = "low-reassessment"
       * title = "Reassess on the published cadence for this tier"
@@ -292,7 +302,11 @@ Usage: #definition
       * definitionCanonical = "http://thespierproject.org/fhir/PlanDefinition/SPiERReassessmentSchedule"
       * documentation[+].type = #documentation
       * documentation[=].label = "One home for the cadence"
-      * documentation[=].display = "The per-tier interval is published once, in PlanDefinition/SPiERReassessmentSchedule, and this pathway references it rather than restating it, so the two can never disagree about when a reassessment is due. Reassess more frequently when clinical judgment dictates."
+      * documentation[=].display = "The per-tier interval is published once, in PlanDefinition/SPiERReassessmentSchedule, and this pathway references it rather than restating it, so the two can never disagree about when a reassessment is due."
+      * documentation[+].type = #documentation
+      * documentation[=].label = "Clinical judgment"
+      * documentation[=].display = "Reassess more frequently when clinical judgment dictates."
+      * documentation[=].extension[ClinicianFacing].valueBoolean = true
 
   // ── Moderate ──
   * action[+]
@@ -312,16 +326,22 @@ Usage: #definition
       * documentation[+].type = #documentation
       * documentation[=].label = "Emotional Fire Safety Plan"
       * documentation[=].url = "https://www.nowmattersnow.org/wp-content/uploads/2018/10/0.-NowMattersNow.org-Safety-Plan-Website-Version.pdf"
-      * documentation[=].display = "The diagram names the NowMattersNow Emotional Fire Safety Plan at every tier, alongside the Stanley-Brown plan from the moderate tier upward. It is third-party patient-education material, not a SPiER instrument, so it is referenced here as documentation rather than modeled as an activity."
+      * documentation[=].display = "The NowMattersNow Emotional Fire Safety Plan is offered at every tier, alongside the Stanley-Brown plan from the moderate tier upward."
+      * documentation[=].extension[ClinicianFacing].valueBoolean = true
+      * documentation[+].type = #documentation
+      * documentation[=].display = "The source diagram names it at every tier. It is third-party patient-education material, not a SPiER instrument, so it is referenced here as documentation rather than modeled as an activity."
     * action[+]
       * id = "moderate-safety-plan"
       * title = "Complete a collaborative safety plan"
-      * description = "Complete a Stanley-Brown Safety Plan with the patient; the completed response becomes the safety-plan CarePlan."
+      * description = "Complete a Stanley-Brown Safety Plan with the patient, and record it as their safety plan."
       * code[+] = SPiERPathwayStage#document-safety-actions "Document Safety Actions"
       * definitionCanonical = "http://thespierproject.org/fhir/ActivityDefinition/AdministerStanleyBrown"
       * documentation[+].type = #documentation
       * documentation[=].label = "Review at each contact"
-      * documentation[=].display = "The plan is not a one-time artifact: review it at EACH contact and modify as needed. The diagram attaches this instruction to the moderate and high tiers together."
+      * documentation[=].display = "The plan is not a one-time artifact: review it at EACH contact and modify as needed."
+      * documentation[=].extension[ClinicianFacing].valueBoolean = true
+      * documentation[+].type = #documentation
+      * documentation[=].display = "The source diagram attaches this instruction to the moderate and high tiers together."
     * action[+]
       * id = "moderate-reassessment"
       * title = "Reassess on the published cadence for this tier"
@@ -330,7 +350,11 @@ Usage: #definition
       * definitionCanonical = "http://thespierproject.org/fhir/PlanDefinition/SPiERReassessmentSchedule"
       * documentation[+].type = #documentation
       * documentation[=].label = "One home for the cadence"
-      * documentation[=].display = "The per-tier interval is published once, in PlanDefinition/SPiERReassessmentSchedule, and this pathway references it rather than restating it, so the two can never disagree about when a reassessment is due. Reassess more frequently when clinical judgment dictates."
+      * documentation[=].display = "The per-tier interval is published once, in PlanDefinition/SPiERReassessmentSchedule, and this pathway references it rather than restating it, so the two can never disagree about when a reassessment is due."
+      * documentation[+].type = #documentation
+      * documentation[=].label = "Clinical judgment"
+      * documentation[=].display = "Reassess more frequently when clinical judgment dictates."
+      * documentation[=].extension[ClinicianFacing].valueBoolean = true
 
   // ── High ──
   * action[+]
@@ -350,16 +374,22 @@ Usage: #definition
       * documentation[+].type = #documentation
       * documentation[=].label = "Emotional Fire Safety Plan"
       * documentation[=].url = "https://www.nowmattersnow.org/wp-content/uploads/2018/10/0.-NowMattersNow.org-Safety-Plan-Website-Version.pdf"
-      * documentation[=].display = "The diagram names the NowMattersNow Emotional Fire Safety Plan at every tier, alongside the Stanley-Brown plan from the moderate tier upward. It is third-party patient-education material, not a SPiER instrument, so it is referenced here as documentation rather than modeled as an activity."
+      * documentation[=].display = "The NowMattersNow Emotional Fire Safety Plan is offered at every tier, alongside the Stanley-Brown plan from the moderate tier upward."
+      * documentation[=].extension[ClinicianFacing].valueBoolean = true
+      * documentation[+].type = #documentation
+      * documentation[=].display = "The source diagram names it at every tier. It is third-party patient-education material, not a SPiER instrument, so it is referenced here as documentation rather than modeled as an activity."
     * action[+]
       * id = "high-safety-plan"
       * title = "Complete a collaborative safety plan"
-      * description = "Complete a Stanley-Brown Safety Plan with the patient; the completed response becomes the safety-plan CarePlan."
+      * description = "Complete a Stanley-Brown Safety Plan with the patient, and record it as their safety plan."
       * code[+] = SPiERPathwayStage#document-safety-actions "Document Safety Actions"
       * definitionCanonical = "http://thespierproject.org/fhir/ActivityDefinition/AdministerStanleyBrown"
       * documentation[+].type = #documentation
       * documentation[=].label = "Review at each contact"
-      * documentation[=].display = "The plan is not a one-time artifact: review it at EACH contact and modify as needed. The diagram attaches this instruction to the moderate and high tiers together."
+      * documentation[=].display = "The plan is not a one-time artifact: review it at EACH contact and modify as needed."
+      * documentation[=].extension[ClinicianFacing].valueBoolean = true
+      * documentation[+].type = #documentation
+      * documentation[=].display = "The source diagram attaches this instruction to the moderate and high tiers together."
     * action[+]
       * id = "high-reassessment"
       * title = "Reassess on the published cadence for this tier"
@@ -368,7 +398,11 @@ Usage: #definition
       * definitionCanonical = "http://thespierproject.org/fhir/PlanDefinition/SPiERReassessmentSchedule"
       * documentation[+].type = #documentation
       * documentation[=].label = "One home for the cadence"
-      * documentation[=].display = "The per-tier interval is published once, in PlanDefinition/SPiERReassessmentSchedule, and this pathway references it rather than restating it, so the two can never disagree about when a reassessment is due. Reassess more frequently when clinical judgment dictates."
+      * documentation[=].display = "The per-tier interval is published once, in PlanDefinition/SPiERReassessmentSchedule, and this pathway references it rather than restating it, so the two can never disagree about when a reassessment is due."
+      * documentation[+].type = #documentation
+      * documentation[=].label = "Clinical judgment"
+      * documentation[=].display = "Reassess more frequently when clinical judgment dictates."
+      * documentation[=].extension[ClinicianFacing].valueBoolean = true
     // ── High-risk-only protocol ──
     // Three items the diagram prints only in the High column. They are
     // documentation actions with no `definition[x]`: this is the FHIR shape for
@@ -382,7 +416,11 @@ Usage: #definition
       * code[+] = SPiERPathwayStage#track-follow-up "Track Follow-Up"
       * documentation[+].type = #documentation
       * documentation[=].label = "High risk only"
-      * documentation[=].display = "The source diagram prints this obligation in the high-risk column only. It is asked at every contact regardless of where the reassessment cadence currently sits."
+      * documentation[=].display = "The source diagram prints this obligation in the high-risk column only."
+      * documentation[+].type = #documentation
+      * documentation[=].label = "Every contact"
+      * documentation[=].display = "Ask it at every contact, regardless of where the reassessment cadence currently sits."
+      * documentation[=].extension[ClinicianFacing].valueBoolean = true
     * action[+]
       * id = "high-stat-safety-evaluation"
       * title = "STAT safety evaluation"
@@ -419,9 +457,16 @@ Usage: #definition
     * id = "problem-list-entry"
     * title = "Consider a suicide-related problem-list entry"
     * description = "Where clinically warranted, add a suicide-related finding to the patient's problem list. SPiER surfaces the verified coding; the assertion is the clinician's."
+    // The clinician's half names the entries; the codes behind them are the
+    // implementer's and the CDS card's (problemListCard renders every note on
+    // this step, marked or not, because the card exists to name the codes).
+    * documentation[+].type = #documentation
+    * documentation[=].label = "Usual entries"
+    * documentation[=].display = "For a patient on this pathway the usual problem-list entries are \"Suicidal thoughts\" or \"At increased risk for suicide\"."
+    * documentation[=].extension[ClinicianFacing].valueBoolean = true
     * documentation[+].type = #documentation
     * documentation[=].label = "SNOMED CT is primary"
-    * documentation[=].display = "US problem lists store SNOMED CT, so the primary coding comes from the SPiER Suicide-Related Problem value set — every member of which was verified against the publishing authority. For a patient on this pathway the usual entries are \"Suicidal thoughts\" (SNOMED CT 6471006) or \"At increased risk for suicide\" (SNOMED CT 225444004)."
+    * documentation[=].display = "US problem lists store SNOMED CT, so the primary coding comes from the SPiER Suicide-Related Problem value set — every member of which was verified against the publishing authority. \"Suicidal thoughts\" is SNOMED CT 6471006 and \"At increased risk for suicide\" is SNOMED CT 225444004."
     * documentation[=].resource = "http://thespierproject.org/fhir/ValueSet/spier-suicide-related-problem-vs"
     // ⚠️ ICD-10-CM literals. NO GATE CHECKS THESE — the nightly terminology
     // check covers LOINC, SNOMED and terminology.hl7.org only — so the
@@ -453,3 +498,30 @@ Usage: #definition
     * documentation[+].type = #documentation
     * documentation[=].label = "Not yet encoded as an interval"
     * documentation[=].display = "The source diagram states a per-tier contact frequency as a row of its own, distinct from the reassessment cadence, with values that coincide at the higher tiers and diverge at the lower ones. Whether that is one rule or two is an open clinical question, so this pathway publishes the obligation without an interval rather than settle that question by accident. The one cadence SPiER does publish is the reassessment schedule, PlanDefinition/SPiERReassessmentSchedule, which each tier group above references rather than restates."
+
+
+// ─── Which notes a clinician is shown ────────────────────────
+//
+// A note on a step is written for one of two readers. The clinician carrying
+// out the step needs what to do and what to know to do it; the implementer
+// needs why the artifact is shaped this way, how a site satisfies a step, and
+// the codes behind a guidance prompt. Until 2026-10-09 nothing on a note said
+// which, so the clinician's view of this protocol showed every note — modelling
+// rationale, LOINC and SNOMED codes, profile names — to a clinician mid-visit.
+//
+// The marker is opt-IN: a note is clinician-facing only when it says so, so a
+// note added later reaches the clinician's view only by a decision. A note that
+// mixed the two readers was split at a sentence boundary rather than marked
+// either way. FHIR R4's RelatedArtifact.type cannot carry this: `justification`
+// fits the rationale notes, but the problem-list codes are documentation for a
+// coder, not a justification, and are still not for the clinician's view.
+
+Extension: ClinicianFacing
+Id: clinician-facing
+Title: "Clinician-Facing"
+Description: "On a note a protocol attaches to a step: true when the note is written for the clinician carrying out the step — what to do, or what to know in order to do it. A note without it is written for the implementer: why the protocol is shaped as it is, how a site satisfies a step, or the codes behind a guidance prompt. A view of the protocol shown to a clinician shows only the notes marked true."
+* ^status = #draft
+* ^experimental = true
+* ^context[+].type = #element
+* ^context[=].expression = "RelatedArtifact"
+* value[x] only boolean

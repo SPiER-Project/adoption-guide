@@ -208,6 +208,15 @@
   color: var(--text-strong);
 }
 
+/* The protocol page's key to the stethoscope on clinician-facing notes. */
+.pathway-spine__legend {
+  font: var(--type-caption);
+  max-width: var(--measure-prose);
+  margin: 0 0 var(--space-3);
+  color: var(--text-muted);
+  line-height: var(--line-height-normal);
+}
+
 /* ── Shared chips and notes ─────────────────────────────────── */
 
 .pathway-stage-chip {
@@ -260,6 +269,19 @@
 
 /* A note can quote a reference ("ActivityDefinition/ProvideMeansSafetyCounseling")
    longer than a tier column is wide; wrap it rather than run past the cell. */
+/* On the guide's protocol page, the notes a clinician is also shown: a plum
+   rule and a stethoscope (the page's legend says what it means), so an implementer reading the whole artifact sees exactly
+   which notes reach the clinician's view (the rest are theirs alone). */
+.pathway-notes__item--clinician {
+  border-left-color: var(--brand-primary);
+}
+
+.pathway-notes__audience {
+  margin-left: var(--space-1);
+  color: var(--brand-primary);
+  vertical-align: text-bottom;
+}
+
 .pathway-notes__text {
   display: block;
   overflow-wrap: anywhere;
