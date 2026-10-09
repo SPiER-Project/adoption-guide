@@ -597,7 +597,9 @@ describe('every clinical page has a budget', () => {
  * job is to name the codes behind a coding decision (problemListCard.ts) — and
  * `PatientPathway.tsx` prints it verbatim on purpose rather than rewording a
  * standard payload for one renderer. It is the one place a clinician here meets
- * a code, and it is listed rather than silently passed.
+ * a code, and it is listed rather than silently passed. Decided 2026-10-09: the
+ * card stays as the service sends it — this exemption is the decision, not a
+ * gap waiting for one.
  *
  * What it cannot see: text a page renders only after an interaction, and a
  * patient other than the fullest chart the budgets are measured on.
