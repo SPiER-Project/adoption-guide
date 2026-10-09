@@ -57,6 +57,7 @@ import {
   type PathwayAction,
   type PathwayDocumentation,
   type PathwayModel,
+  type ProtocolModel,
 } from '@spier/core/lib/pathway'
 import { buildTierMatrix } from '@spier/core/lib/pathwayMatrix'
 import { useIsNarrow } from '../hooks/useIsNarrow'
@@ -136,10 +137,30 @@ function DocumentationNotes({ docs }: { docs: PathwayDocumentation[] }) {
   )
 }
 
-function Realization({ canonical, label }: { canonical?: string; label?: string }) {
+/**
+ * How a surface draws a realization it can link — today, the guide linking the
+ * emergency department's admission step to the inpatient setting pathway.
+ * Returns undefined for a canonical it has nothing for, which falls back to the
+ * plain label. A callback rather than a route map because this file is shared
+ * with the clinical app, which has no guide routes, and a route literal here
+ * would be right on one surface and wrong on the other.
+ */
+export type RenderRealization = (canonical: string, label: string) => ReactNode | undefined
+
+function Realization({
+  canonical,
+  label,
+  render,
+}: {
+  canonical?: string
+  label?: string
+  render?: RenderRealization
+}) {
   if (!canonical) {
     return <span className="pathway-obligation__protocol">Protocol only — no activity definition</span>
   }
+  const custom = render?.(canonical, label ?? canonical)
+  if (custom) return <>{custom}</>
   return (
     <span className="pathway-obligation__def" title={canonical}>
       {label}
@@ -147,14 +168,18 @@ function Realization({ canonical, label }: { canonical?: string; label?: string 
   )
 }
 
-function Obligation({ action }: { action: PathwayAction }) {
+function Obligation({ action, renderRealization }: { action: PathwayAction; renderRealization?: RenderRealization }) {
   return (
     <li className="pathway-obligation">
       <p className="pathway-obligation__title">{action.title}</p>
       {action.description && <p className="pathway-obligation__desc">{action.description}</p>}
       <p className="pathway-obligation__meta">
         {action.stage && <span className="pathway-stage-chip">{action.stage.display ?? action.stage.code}</span>}
-        <Realization canonical={action.definitionCanonical} label={action.definitionLabel} />
+        <Realization
+          canonical={action.definitionCanonical}
+          label={action.definitionLabel}
+          render={renderRealization}
+        />
       </p>
       <DocumentationNotes docs={action.documentation} />
     </li>
@@ -408,8 +433,40 @@ function TierList({ tiers, activeTierCode, density = 'full' }: PathwayTierTableP
 
 /* ─── The spine ──────────────────────────────────────────────── */
 
+// Every step but the last carries a connector arrow to the one below it —
+// real DOM, replacing what used to be a `::after { content: '\2193' }` on
+// every non-last `.pathway-step`, so it now shows up in a screen reader's
+// and a browser extension's DOM the same way any other icon does.
+function renderStep(step: PathwayAction, showConnector: boolean, renderRealization?: RenderRealization) {
+  return (
+    <Card as="li" key={step.id} id={`pathway-${step.id}`} className="pathway-step">
+      <div className="pathway-step__head">
+        {step.stage && <span className="pathway-stage-chip">{step.stage.display ?? step.stage.code}</span>}
+        <h4 className="pathway-step__title">{step.title}</h4>
+      </div>
+      {step.description && <p className="pathway-step__desc">{step.description}</p>}
+      <DocumentationNotes docs={step.documentation} />
+      {step.children.length > 0 && (
+        <ul className="pathway-obligations">
+          {step.children.map(child => (
+            <Obligation key={child.id} action={child} renderRealization={renderRealization} />
+          ))}
+        </ul>
+      )}
+      {showConnector && <ChevronDown className="pathway-step-connector" aria-hidden="true" size={20} />}
+    </Card>
+  )
+}
+
 export interface PathwaySpineProps {
-  model: PathwayModel
+  /**
+   * The core pathway, whose tier branch draws as the tier table in place, or a
+   * setting pathway, which has no branch — it applies the core protocol's tiers
+   * rather than restating them — and draws as the ordered steps alone.
+   */
+  model: ProtocolModel & { tierBranch?: PathwayModel['tierBranch'] }
+  /** See `RenderRealization`. */
+  renderRealization?: RenderRealization
   /** Passed through to the tier table — see `PathwayTierTableProps`. */
   activeTierCode?: string
   /** Rendered under the tier table when the active tier is the pathway's exit. */
@@ -424,39 +481,23 @@ export interface PathwaySpineProps {
  * hiding two-thirds of it behind tabs would hide the thing the page exists to
  * show; the table scrolls in its own container where it is wider than the page.
  */
-export function PathwaySpine({ model, activeTierCode, exitNote }: PathwaySpineProps) {
+export function PathwaySpine({ model, activeTierCode, exitNote, renderRealization }: PathwaySpineProps) {
+  if (!model.tierBranch) {
+    return (
+      <ol className="pathway-spine">
+        {model.steps.map((step, i) => renderStep(step, i < model.steps.length - 1, renderRealization))}
+      </ol>
+    )
+  }
   const { group: branch, tiers } = model.tierBranch
   const spine = model.steps.filter(step => step.id !== branch.id)
   const branchAt = model.steps.indexOf(branch)
   const before = spine.slice(0, branchAt)
   const after = spine.slice(branchAt)
 
-  // Every step but the last carries a connector arrow to the one below it —
-  // real DOM, replacing what used to be a `::after { content: '\2193' }` on
-  // every non-last `.pathway-step`, so it now shows up in a screen reader's
-  // and a browser extension's DOM the same way any other icon does.
-  const renderStep = (step: PathwayAction, showConnector: boolean) => (
-    <Card as="li" key={step.id} id={`pathway-${step.id}`} className="pathway-step">
-      <div className="pathway-step__head">
-        {step.stage && <span className="pathway-stage-chip">{step.stage.display ?? step.stage.code}</span>}
-        <h4 className="pathway-step__title">{step.title}</h4>
-      </div>
-      {step.description && <p className="pathway-step__desc">{step.description}</p>}
-      <DocumentationNotes docs={step.documentation} />
-      {step.children.length > 0 && (
-        <ul className="pathway-obligations">
-          {step.children.map(child => (
-            <Obligation key={child.id} action={child} />
-          ))}
-        </ul>
-      )}
-      {showConnector && <ChevronDown className="pathway-step-connector" aria-hidden="true" size={20} />}
-    </Card>
-  )
-
   return (
     <ol className="pathway-spine">
-      {before.map(step => renderStep(step, true))}
+      {before.map(step => renderStep(step, true, renderRealization))}
 
       <Card as="li" id={`pathway-${branch.id}`} className="pathway-step">
         <div className="pathway-step__head">
@@ -479,7 +520,7 @@ export function PathwaySpine({ model, activeTierCode, exitNote }: PathwaySpinePr
         )}
       </Card>
 
-      {after.map((step, i) => renderStep(step, i < after.length - 1))}
+      {after.map((step, i) => renderStep(step, i < after.length - 1, renderRealization))}
     </ol>
   )
 }
@@ -534,7 +575,7 @@ export function PathwayPending() {
 /* ─── Provenance ─────────────────────────────────────────────── */
 
 export interface PathwayProvenanceProps {
-  model: PathwayModel
+  model: ProtocolModel
   /**
    * `footer` — the guide's protocol page's closing section: "here is the
    * artifact this page was drawn from", after the thing it explains.
@@ -614,7 +655,7 @@ export function PathwayProvenance({ model, variant = 'footer', children }: Pathw
         </div>
       )}
 
-      <FhirJsonViewer title="PlanDefinition/SPiERSuicideSaferCarePathway" data={model.raw} />
+      <FhirJsonViewer title={`PlanDefinition/${model.name ?? model.url.split('/').pop()}`} data={model.raw} />
     </Card>
   )
 }

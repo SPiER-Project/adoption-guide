@@ -68,6 +68,7 @@ import { PathwayLoadError, PathwayTierTable } from '@spier/app-shell/components/
 import { usePathway } from '@spier/app-shell/hooks/usePathway'
 import { FhirJsonViewer } from '@spier/tool-views/components/FhirJsonViewer'
 import { guideHref } from '../data/guideSections'
+import { SETTING_PATHWAY_PAGES } from '../data/settingPathways'
 import '@spier/app-shell/css/CarePathway.css'
 import { Button } from '@spier/ui/Button'
 import { Card } from '@spier/ui/Card'
@@ -388,6 +389,33 @@ export function CarePathway() {
             table at full strength rather than faded, so it reads as the
             reference it is instead of as disabled. */}
         <PathwayTierTable tiers={tiers} activeTierCode={activeTier ? simulation.tierCode : undefined} framed density="summary" />
+      </section>
+
+      {/* ── The nested pathways: the same protocol in specific settings ──
+          The list is the ARTIFACT's — the core protocol's relatedArtifact
+          composed-of entries, in order, by label — and only the route is the
+          guide's. A setting with no page is a build error in
+          settingPathways.test.ts, not a silently missing row here.
+          ⚠️ Labels only. The artifact's one-line display for each setting
+          cost this page 55 words and its budget (pageLength.test.tsx); each
+          sub-page opens with what the setting adds, which is where a reader
+          who clicked wants it. */}
+      <section className="care-pathway__settings" aria-labelledby="pathway-settings-title">
+        <h3 id="pathway-settings-title" className="pathway-section-title">In specific settings</h3>
+        <p className="care-pathway__para">
+          The same pathway in each setting: the tiers above, and what the setting adds.
+        </p>
+        <ul className="care-pathway__setting-list">
+          {model.settingPathways.map(setting => {
+            const page = SETTING_PATHWAY_PAGES.find(p => p.canonical === setting.resource)
+            if (!page) return null
+            return (
+              <li key={page.href}>
+                <Link className="care-pathway__setting-link" to={page.href}>{setting.label}</Link>
+              </li>
+            )
+          })}
+        </ul>
       </section>
 
       {/* ── One link onward: the implementer's page ────────────── */}

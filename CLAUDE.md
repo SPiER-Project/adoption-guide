@@ -59,7 +59,7 @@ npm run check:surface-links     # every in-app link and <Navigate> target on EAC
 npm run check:origins           # every hosted origin comes from deploy-origins.json: no literal in TypeScript, every wrangler/workflow/html copy matches
 npm run check:deploy-jobs       # every services/*/wrangler.jsonc is deployed from main by deploy.yml
 npm run check:stages            # stage ids in population data vs the canonical FSH stage list
-npm run check:pathway           # the pathway PlanDefinition's codes and definitionCanonicals resolve
+npm run check:pathway           # the pathway PlanDefinition's codes and definitionCanonicals resolve; its setting pathways are linked both ways and branch on no tier
 npm run check:outputs           # from both ends: every PlanDefinition.action.output profile, and every published profile, is stamped by an EMITTED resource or exempted (after npm test)
 npm run check:readers           # every observation mapper's reads vs the Questionnaire's declared item types
 npm run check:careplan-readers  # the same rule for carePlanMappers

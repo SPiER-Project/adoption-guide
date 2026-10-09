@@ -444,7 +444,9 @@ groups:
       - PlanDefinition/SPiERCoordinateHandoffsStage
       - PlanDefinition/SPiERDefineRiskPictureStage
       - PlanDefinition/SPiERDocumentSafetyActionsStage
+      - PlanDefinition/SPiEREDSuicideCarePathway
       - PlanDefinition/SPiERIdentifyPossibleRiskStage
+      - PlanDefinition/SPiERInpatientSuicideCarePathway
       - PlanDefinition/SPiERMeasureAndShareStage
       - PlanDefinition/SPiERSuicideSaferCarePathway
       - PlanDefinition/SPiERTrackFollowUpStage
