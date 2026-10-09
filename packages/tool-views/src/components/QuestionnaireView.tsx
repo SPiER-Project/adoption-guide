@@ -233,8 +233,16 @@ export function QuestionnaireView({ title, questionnaireUrl, persistName, carePl
     // and the server all name the same lineage. The form renderer sets none of
     // them. With no patient selected — the guide's tool pages — the subject is
     // the one documented placeholder (core `patientReference.ts`).
+    //
+    // ⚠️ `status: 'completed'` is set here because the renderer does not set
+    // it: it hands back `in-progress` even from its submit handler, and until
+    // 2026-10-09 every response the app saved went to the EHR as in-progress —
+    // seen on a third-party server (#640), where a submitted PHQ-9 and safety
+    // plan were stored that way. A clinician pressing Submit has completed the
+    // form; an EHR that lists only completed responses would hide every one.
     responseToUse = {
       ...responseToUse,
+      status: 'completed',
       id: responseToUse.id ?? `response-${makeId()}`,
       authored: responseToUse.authored ?? new Date().toISOString(),
       subject: responseToUse.subject ?? patientReference(activePatientId),

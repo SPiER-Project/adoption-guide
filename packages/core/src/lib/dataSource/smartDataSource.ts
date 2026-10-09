@@ -249,6 +249,43 @@ const SLICE_READS: SliceRead[] = [
   { key: 'encounters', type: 'Encounter', params: '' },
 ]
 
+/**
+ * Add what this session wrote, where the search has not caught up with it yet.
+ *
+ * ⚠️ **Search is not read-your-writes on every server.** Run against the SMART
+ * Health IT R4 sandbox (Smile CDR) on 2026-10-09 (#640), a saved PHQ-9 was
+ * stored at once — a read by id returned it within seconds — but a
+ * `patient=` search did not find it for about a minute, because that server
+ * indexes after the write returns. The chart re-reads by search right after a
+ * save, so it showed the chart as it was BEFORE the save: "No suicide-risk
+ * screen on file" over a screen the clinician had just saved. SPiER's own mock
+ * indexes synchronously, so no test of it could see this.
+ *
+ * So the data source remembers every resource it created or updated this
+ * session (with the server's id) and adds any the search did not return. It
+ * adds only what the search WOULD have returned — the same patient, a type
+ * the slice reads, and for Observations the same category filter — and never
+ * replaces a resource the search did return, so once the index catches up the
+ * server's copy wins and nothing is counted twice.
+ */
+function mergeWritten(buckets: SliceBuckets, written: Iterable<FhirResource>, pid: string): void {
+  for (const resource of written) {
+    if (patientIdOf(resource) !== pid) continue
+    const read = SLICE_READS.find(r => r.type === resource.resourceType && matchesReadFilter(resource, r.params))
+    if (!read) continue
+    const bucket = buckets[read.key]
+    if (resource.id && !bucket.some(r => r.id === resource.id)) bucket.push(resource)
+  }
+}
+
+/** Whether a resource would be returned by a read's extra search params (only `category` is used). */
+function matchesReadFilter(resource: FhirResource, params: string): boolean {
+  const category = /[?&]category=([^&]+)/.exec(params)?.[1]
+  if (!category) return true
+  const categories = (resource as { category?: Array<{ coding?: Array<{ code?: string }> }> }).category ?? []
+  return categories.some(c => c.coding?.some(cd => cd.code === category))
+}
+
 function emptyBuckets(): SliceBuckets {
   return Object.fromEntries(SLICE_READS.map(r => [r.key, [] as FhirResource[]])) as SliceBuckets
 }
@@ -323,6 +360,18 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
    */
   private readonly serverIds = new Map<string, string>()
 
+  /**
+   * Every resource this session created or updated, by `<Type>/<server id>`,
+   * as the server returned it (or as sent, when it echoed nothing). Read by
+   * `mergeWritten` so the chart shows a save before a lagging search index
+   * does — see that function.
+   */
+  private readonly written = new Map<string, FhirResource>()
+
+  private remember(resource: FhirResource): void {
+    if (resource.id) this.written.set(`${resource.resourceType}/${resource.id}`, resource)
+  }
+
   constructor(client: SmartClient, writebackConfig: WritebackConfig = {}) {
     this.client = client
     this.writebackConfig = writebackConfig
@@ -372,6 +421,7 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
         buckets[read.key] = read.core ? await run : await run.catch(() => [] as FhirResource[])
       }),
     )
+    mergeWritten(buckets, this.written.values(), pid)
     return assembleSlice(buckets)
   }
 
@@ -432,7 +482,11 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
     }
     if (found === 0) return this.slicesOneByOne(ids)
 
-    for (const id of ids) slices.set(id, assembleSlice(buckets.get(id) ?? emptyBuckets()))
+    for (const id of ids) {
+      const b = buckets.get(id) ?? emptyBuckets()
+      mergeWritten(b, this.written.values(), id)
+      slices.set(id, assembleSlice(b))
+    }
     return slices
   }
 
@@ -508,9 +562,10 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
       },
       includeResponse: true,
     })
-    if (body?.id) return body.id
     const location = response.headers.get('location') ?? response.headers.get('content-location')
-    return location?.match(new RegExp(`${resource.resourceType}/([^/]+)`))?.[1]
+    const id = body?.id ?? location?.match(new RegExp(`${resource.resourceType}/([^/]+)`))?.[1]
+    if (id) this.remember(body?.id ? body : { ...resource, id })
+    return id
   }
 
   /**
@@ -584,6 +639,7 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
       body: JSON.stringify(resource),
       headers: { 'content-type': 'application/fhir+json' },
     })
+    this.remember(resource)
   }
 
   /**
