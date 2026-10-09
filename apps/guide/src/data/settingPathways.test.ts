@@ -39,6 +39,8 @@ describe('each page is wired', () => {
   it.each(SETTING_PATHWAY_PAGES.map(p => [p.path, p] as const))('%s', (_path, page) => {
     expect(page.href).toBe(`/guide/${page.path}`)
     // The sidebar's subsection carries the same label — it is the page's title.
-    expect(pathwaySection.subsections).toContainEqual({ path: page.path, label: page.label })
+    expect(pathwaySection.subsections).toContainEqual(expect.objectContaining({ path: page.path, label: page.label }))
+    // And it is in the sidebar, nested under Care Pathway.
+    expect(pathwaySection.subsections?.find(s => s.path === page.path)?.nav).toBeTruthy()
   })
 })

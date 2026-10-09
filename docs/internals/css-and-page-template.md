@@ -537,6 +537,31 @@ can hold that. Reach for one of the nine before writing a new class; if none
 fits, `docs/plans/maintainability-audit-2026-09-15.md` §2.4 says how a variant
 is added (a named prop, never a ninth look).
 
+### The sidebar's rows are one pill at every depth (2026-10-09)
+
+The outline's rows — the Overview lens, each guide section, and a section's
+own pages nested under it while it is open — are one box: `.sidebar-link`,
+padded from the `--nav-row-pad-block` / `--nav-row-pad-inline` tokens in
+`foundation.css`, at `--type-ui`, with the pill radius. Depth moves the LABEL
+inside that box and nothing else: a section row starts its label on
+`--nav-text-column` (past an icon, or where one would be), and each level
+deeper adds one `--nav-indent-step`. A depth modifier may set `padding-left`,
+`color` and `font-weight`; `tests/navRows.test.ts` fails one that sets any
+other property.
+
+⚠️ Written against the first nested rows (the setting pathways under Care
+Pathway): a 4px pill around 12px text under 8 × 12px pills around 14px text.
+Every value was a token, so stylelint and `check:tokens` both passed while the
+column read as two design systems. The shrinking was done to fit long labels,
+which is the trap: a depth-2 label has **147px** at the row's own type, so the
+fix for a label that does not fit is a shorter label (`GuideSubsection.nav`),
+never a smaller row. The test cannot see a label's rendered width; jsdom lays
+nothing out, so measure in the browser.
+
+Not yet on the system: `.sidebar-group-heading`'s `2.25rem` indent (set by eye,
+deliberately off the label column) and the two-line `.sidebar-outbound-link`
+rows, which are a different kind of row.
+
 ### Choosing a guide section's width
 
 A new guide section chooses `prose` when unsure: `wide` on a prose page is

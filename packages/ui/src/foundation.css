@@ -328,7 +328,22 @@
      the derived alignment was derived from a copy. A `calc()` on a spacing
      property now accepts tokens and unitless numbers only, so the term has to
      be the box's own token. */
-  --sidebar-icon-size: 1.25rem;  /* .sidebar-icon; .sidebar-link--child indents past it */
+  --sidebar-icon-size: 1.25rem;  /* .sidebar-icon; --nav-text-column indents past it */
+
+  /* Navigation rows: ONE geometry for every row of the sidebar's outline, at
+     every depth. The pill is the same box everywhere — same block and inline
+     padding, same radius, same type — and depth moves only the TEXT inside it,
+     by whole steps. A nested row that grew its own padding, size or pill was
+     the defect (2026-10-09: the setting pathways' rows were a 4px pill around
+     12px text under 8 × 12px pills around 14px text). tests/navRows.test.ts
+     fails a depth modifier that sets anything but the indent, colour or weight.
+     ⚠️ Consequence: a nested label has the column's width minus its depth —
+     147px at depth 2 — and must FIT it, at the row's own type. Shorten the
+     label; never shrink the row. */
+  --nav-row-pad-block:  var(--space-2);
+  --nav-row-pad-inline: var(--space-3);
+  --nav-text-column:    calc(var(--nav-row-pad-inline) + var(--sidebar-icon-size) + var(--space-2)); /* where a label starts: past an icon, or where one would be */
+  --nav-indent-step:    var(--space-4);  /* each level deeper than a section row */
   --stage-badge-size:  2rem;     /* .tools-index__stage-number; the stage's rows indent past it */
 
   /* ── Radius scale ───────────────────────────────────────── */

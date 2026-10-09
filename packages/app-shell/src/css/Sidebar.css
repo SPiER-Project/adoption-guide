@@ -57,13 +57,16 @@
 /* The active state is a pill, not a rail. `border-left` is gone with the dark
    column — a 3px bar reads on a dark ground and vanishes on a light one — and
    the row itself is the marker: peach-soft under plum, the website's nav state.
-   `.sidebar-link--child` derives its inset from this rule's `--space-3`. */
+   ⚠️ This rule IS the row geometry, from the --nav-* tokens, for every depth.
+   A depth modifier below may set padding-left (from --nav-text-column and
+   --nav-indent-step), colour and weight, and nothing else —
+   tests/navRows.test.ts holds that. */
 .sidebar-link {
   font: var(--type-ui);
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
+  padding: var(--nav-row-pad-block) var(--nav-row-pad-inline);
   border-radius: var(--radius-pill);
   font-weight: var(--font-weight-medium);
   color: var(--text-body);
@@ -102,16 +105,30 @@
 }
 
 .sidebar-link--child {
-  font: var(--type-ui);
-  /* Aligns the child label under its parent's: the link's own inset, plus
-     `.sidebar-icon` (`--sidebar-icon-size`), plus the gap between them. */
-  padding-left: calc(var(--space-3) + var(--sidebar-icon-size) + var(--space-2));
+  /* Depth 1: the label starts on the text column, under an icon row's label. */
+  padding-left: var(--nav-text-column);
   font-weight: var(--font-weight-regular);
   color: var(--text-muted);
 }
 
-.sidebar-link--child.active {
+/* Depth 2: a section's own pages, under it while it is open (the setting
+   pathways under Care Pathway). Same pill as every row; one step further in. */
+.sidebar-link--grandchild {
+  padding-left: calc(var(--nav-text-column) + var(--nav-indent-step));
+  font-weight: var(--font-weight-regular);
+  color: var(--text-muted);
+}
+
+.sidebar-link--child.active,
+.sidebar-link--grandchild.active {
   font-weight: var(--font-weight-semibold);
+}
+
+/* A section whose nested page is the one open: not lit (the nested row is),
+   but marked, so the reader can see which outline entry they are inside. */
+.sidebar-link--open {
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-strong);
 }
 
 /* ── The "Try it" zone ────────────────────────────────────────────────────────
