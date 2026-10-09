@@ -113,7 +113,7 @@ describe('the folding rules', () => {
   })
 
   it('compares documentation, not just the description', () => {
-    const note = { label: 'Note', display: 'said once' }
+    const note = { label: 'Note', display: 'said once', clinicianFacing: false }
     const rows = buildTierMatrix([
       tier('low', [obligation('a', 'Do X', { documentation: [note] })]),
       tier('high', [obligation('b', 'Do X', { documentation: [{ ...note, display: 'said differently' }] })]),

@@ -36,6 +36,7 @@ import {
   PathwayProvenance,
   PathwaySpine,
 } from '@spier/app-shell/components/PathwayView'
+import { Stethoscope } from 'lucide-react'
 import { usePathway } from '@spier/app-shell/hooks/usePathway'
 import '@spier/app-shell/css/CarePathway.css'
 
@@ -65,6 +66,13 @@ export function CarePathwayProtocol() {
       {/* ── The spine ─────────────────────────────────────────── */}
       <section aria-labelledby="pathway-spine-title">
         <h3 id="pathway-spine-title" className="pathway-section-title">The protocol</h3>
+        {/* The one key to the stethoscope on notes: the artifact marks which
+            notes are written for the clinician, and the clinician's own view
+            of this protocol shows only those. */}
+        <p className="pathway-spine__legend">
+          Notes marked <Stethoscope size={14} aria-label="with a stethoscope" role="img" className="pathway-notes__audience" /> are
+          also shown to the clinician.
+        </p>
         <PathwaySpine model={model} />
       </section>
 

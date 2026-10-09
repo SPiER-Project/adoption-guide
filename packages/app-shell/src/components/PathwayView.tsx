@@ -50,7 +50,7 @@
  * job, and the panel already has the patient's own rail on the chart behind it.
  */
 import { type ReactNode, useRef } from 'react'
-import { Check, ChevronDown } from 'lucide-react'
+import { Check, ChevronDown, Stethoscope } from 'lucide-react'
 import { FhirJsonViewer } from '@spier/tool-views/components/FhirJsonViewer'
 import { useInspect } from '@spier/tool-views/context/InspectContext'
 import {
@@ -116,15 +116,34 @@ export function PathwayLoadError({ error }: { error: string | null }) {
  * artifact — is not drawn here; it is listed in `PathwayCodeDrawer`. A note
  * that carries only a resource is therefore skipped, since it would render as
  * a label over nothing.
+ *
+ * ⚠️ **Without inspection — the clinician's view — only the notes the artifact
+ * marks clinician-facing render.** Every note used to: the clinician's
+ * `/patient/pathway` showed modelling rationale, LOINC and SNOMED codes and
+ * profile names to a clinician mid-visit, because nothing on a note said who it
+ * was for. The marker is in the artifact and opt-in (an unmarked note is the
+ * implementer's), so the published protocol decides, not this file. Under
+ * inspection — the guide's protocol page — every note renders, and the marked
+ * ones say so, so an implementer can see exactly what a clinician is shown.
  */
 function DocumentationNotes({ docs }: { docs: PathwayDocumentation[] }) {
-  const shown = docs.filter(doc => doc.display || doc.url)
+  const inspect = useInspect()
+  const shown = docs.filter(doc => (doc.display || doc.url) && (inspect || doc.clinicianFacing))
   if (shown.length === 0) return null
   return (
     <ul className="pathway-notes">
       {shown.map((doc, i) => (
-        <li key={i} className="pathway-notes__item">
-          {doc.label && <span className="pathway-notes__label">{doc.label}</span>}
+        <li key={i} className={cx('pathway-notes__item', inspect && doc.clinicianFacing && 'pathway-notes__item--clinician')}>
+          {(doc.label || (inspect && doc.clinicianFacing)) && (
+            <span className="pathway-notes__label">
+              {doc.label}
+              {/* An icon rather than a word: fourteen notes carry it, and the
+                  page's legend says what it means once (CarePathwayProtocol). */}
+              {inspect && doc.clinicianFacing && (
+                <Stethoscope className="pathway-notes__audience" size={14} role="img" aria-label="Clinician-facing" />
+              )}
+            </span>
+          )}
           {doc.display && <span className="pathway-notes__text">{doc.display}</span>}
           {doc.url && (
             <a className="pathway-notes__link" href={doc.url} target="_blank" rel="noopener noreferrer">
@@ -156,6 +175,12 @@ function Realization({
   label?: string
   render?: RenderRealization
 }) {
+  // The realization is the definition a step points at — `ActivityDefinition/
+  // AdministerPHQ9` — and naming it is the implementer's business. The
+  // clinician's view names the step and what to do; the tool itself is one tap
+  // away in the panel's own tool list.
+  const inspect = useInspect()
+  if (!inspect) return null
   if (!canonical) {
     return <span className="pathway-obligation__protocol">Protocol only — no activity definition</span>
   }
@@ -557,13 +582,13 @@ export function PathwayPending() {
           explicitly open-ended &mdash; hospitalization, medication change, incarceration, geographic move,
           recent homelessness, a new DCF/CPS/APS case, an impactful SDOH change, psychotic features,
           substance reuse, &ldquo;but not limited to&rdquo;. <em>Open question:</em> what closes the list?
-          A partial CodeSystem would read as complete.
+          A partial code list would read as complete.
         </dd>
         <dt>Historical risk</dt>
         <dd>
           The diagram carries a fourth tier for a lifetime history with no current ideation. The published
           C-SSRS scores that response pattern differently, and{' '}
-          SPiER&rsquo;s shared suicide-risk tier has no <code>historical</code> code. <em>Open question:</em> is
+          SPiER&rsquo;s shared suicide-risk tier has no historical value. <em>Open question:</em> is
           historical risk an orthogonal history flag rather than a fifth ordinal tier? The answer lands in
           the concept layer once, and this pathway&rsquo;s branch stays low / moderate / high until it does.
         </dd>

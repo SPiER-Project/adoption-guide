@@ -1088,6 +1088,24 @@ now rendered through `readerCopyright` — the IG text is unchanged); and, in
 app-shell, `npm run copy-fhir` in the pathway's load error and a profile name
 in the protocol page's clinician copy.
 
+⚠️ **The clinician's half had no rendered scan until 2026-10-09, and its
+worst leak was never in a source string.** `/patient/pathway` draws the
+published protocol, so every step's definition name
+(`ActivityDefinition/AdministerPHQ9`), every note ("a suicide-risk result on
+LOINC 93374-7 valued from SPiERSuicideRiskTier") and every code reached a
+clinician from the artifact at runtime, with the gate green. Two changes:
+`CLINICAL_RULES` moved into `scripts/lib/reader-jargon.mjs` and is applied to
+every RENDERED clinical page by `apps/clinical/src/pages/pageLength.test.tsx`
+("names no wire format", run from `check:jargon`), reusing that file's harness
+because it already proves its page list is the route table; and its type list
+grew from the 18 SPiER writes to every humped R4 name, plural included —
+"A partial CodeSystem would read as complete" and "item-9 Observations" both
+passed the old one. The fix on the page is in the artifact: a note says
+whether it is written for the clinician (the `clinician-facing` extension,
+opt-in), and without inspection only marked notes render. One element is
+exempt by name — a CDS card's detail, which is the card as the service sends
+it to every EHR, printed verbatim on purpose.
+
 ⚠️ **Three of the strings it was written from were in the ARTIFACT, not the
 app.** `documentation[=].display` on the pathway PlanDefinition said "which is
 what `npm run check:reassessment` exists to prevent", pointed at the header of a

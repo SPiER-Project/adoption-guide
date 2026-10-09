@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
+  CLINICIAN_FACING_URL,
   loadPathway,
   loadSettingPathway,
   parsePathway,
@@ -64,6 +65,36 @@ function minimalPlan() {
 
 describe('the published pathway artifact', () => {
   const model = loadPathway()
+
+  it('marks the notes a clinician is shown, and only those', () => {
+    // Every note on the protocol, by step and label, with its marker. The
+    // clinician's view of the protocol renders the `true` ones and nothing else
+    // (PathwayView); this is the list a change to the FSH has to agree with.
+    const marked: string[] = []
+    const walk = (actions: typeof model.steps) => {
+      for (const action of actions) {
+        for (const doc of action.documentation) if (doc.clinicianFacing) marked.push(`${action.id}: ${doc.label}`)
+        walk(action.children)
+      }
+    }
+    walk(model.steps)
+    expect(marked).toEqual([
+      'screen: Entry points',
+      'assess-risk: Negative screen',
+      'assess-risk: Negative assessment exits the pathway',
+      'administer-cssrs-screener: Instrument variant',
+      'low-share-crisis-resources: Emotional Fire Safety Plan',
+      'low-reassessment: Clinical judgment',
+      'moderate-share-crisis-resources: Emotional Fire Safety Plan',
+      'moderate-safety-plan: Review at each contact',
+      'moderate-reassessment: Clinical judgment',
+      'high-share-crisis-resources: Emotional Fire Safety Plan',
+      'high-safety-plan: Review at each contact',
+      'high-reassessment: Clinical judgment',
+      'high-every-contact-question: Every contact',
+      'problem-list-entry: Usual entries',
+    ])
+  })
 
   it('loads the generated PlanDefinition, with its provenance', () => {
     expect(model.url).toBe(PATHWAY_URL)
@@ -237,6 +268,33 @@ describe('the parser refuses what it cannot read', () => {
     const plan = minimalPlan()
     ;(plan.action[0] as Record<string, unknown>).documentation = [{ type: 'documentation', label: 'Empty' }]
     expect(() => parsePathway(plan)).toThrow(/carries no display, url or resource/)
+  })
+
+  it('reads the clinician-facing marker, and treats an unmarked note as the implementer\'s', () => {
+    const plan = minimalPlan()
+    ;(plan.action[0] as Record<string, unknown>).documentation = [
+      { type: 'documentation', label: 'Marked', display: 'Do this.', extension: [{ url: CLINICIAN_FACING_URL, valueBoolean: true }] },
+      { type: 'documentation', label: 'Marked false', display: 'Why.', extension: [{ url: CLINICIAN_FACING_URL, valueBoolean: false }] },
+      { type: 'documentation', label: 'Unmarked', display: 'Also why.' },
+    ]
+    const docs = parsePathway(plan).steps[0].documentation
+    expect(docs.map(d => [d.label, d.clinicianFacing])).toEqual([
+      ['Marked', true],
+      ['Marked false', false],
+      ['Unmarked', false],
+    ])
+  })
+
+  it('throws on a malformed clinician-facing marker rather than hiding the note', () => {
+    for (const extension of [
+      [{ url: CLINICIAN_FACING_URL, valueBoolean: 'true' }],
+      [{ url: CLINICIAN_FACING_URL }],
+      [{ url: CLINICIAN_FACING_URL, valueBoolean: true }, { url: CLINICIAN_FACING_URL, valueBoolean: true }],
+    ]) {
+      const plan = minimalPlan()
+      ;(plan.action[0] as Record<string, unknown>).documentation = [{ type: 'documentation', display: 'x', extension }]
+      expect(() => parsePathway(plan)).toThrow(/malformed clinician-facing marker/)
+    }
   })
 
   it('throws on a condition with no expression rather than showing an ungated step', () => {

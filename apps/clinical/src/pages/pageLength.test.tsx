@@ -70,6 +70,7 @@ import { CLINICAL_SURFACE_LINKS } from '../surfaceLinks'
 // the Node globals — which is the boundary `check:core-boundary` exists to keep
 // on the other side of the repo.
 import APP_SOURCE from '../App.tsx?raw'
+import { CLINICAL_RULES } from '../../../../scripts/lib/reader-jargon.mjs'
 
 /**
  * ⚠️ **The fullest chart in the demo population, on purpose.** A budget
@@ -238,14 +239,13 @@ const CAPS: Record<string, { cap: number; why: string }> = {
       'almost nothing of its own. Raise this one for a longer instrument; never raise it for a sentence.',
   },
   '/patient/pathway': {
-    cap: 1700,
+    cap: 1150,
     why:
-      'The published protocol, rendered from the artifact, and the ONE page here the audit does not ask ' +
-      'to shorten — §1.10’s finding is that a clinician was SENT to it from the panel’s own ' +
-      'navigation, which PR 4 fixed by removing those links. 1,667 words: every step, gate and tier ' +
-      'obligation, rendered from the published artifact rather than written. So this is today’s ' +
-      'measurement rounded up — it stops the page growing PROSE while the artifact stays the artifact, ' +
-      'and it is meant to be LOWERED by the PR that rewrites it, never raised.',
+      'The published protocol, rendered from the artifact. 1,667 words until 2026-10-09, when the artifact ' +
+      'began marking which of its notes are written for the clinician and this view stopped rendering the ' +
+      'rest — modelling rationale, codes and definition names now render only in the guide — and it measured ' +
+      '1,118. What remains is every step, the tier obligations and the clinician-facing notes, rendered from ' +
+      'the artifact rather than written here; lower this again if the artifact sheds a note, never raise it.',
   },
   '/population/caseload': {
     cap: 1100,
@@ -358,7 +358,8 @@ const MEASURED_RECORD = 'form-p001-phq9'
 /** Below this, the page did not render and a cap would pass on nothing. */
 const RENDER_FLOOR = 30
 
-function measure(path: string): number {
+/** Mounts one page at its measured entry, in the clinical app's surface links. */
+function renderPage(path: string): HTMLElement {
   const Page = PAGES[path]
   const entry = path.replace(':stageId', MEASURED_STAGE).replace(':recordKey', MEASURED_RECORD)
   const { container } = render(
@@ -370,7 +371,11 @@ function measure(path: string): number {
       </SurfaceLinksContext.Provider>
     </MemoryRouter>,
   )
-  return arrivalWords(container)
+  return container
+}
+
+function measure(path: string): number {
+  return arrivalWords(renderPage(path))
 }
 
 /**
@@ -567,5 +572,65 @@ describe('every clinical page has a budget', () => {
         '        on this surface the caveat’s drawer is often a different page (audit §2).\n' +
         '        Raising the number is the one fix that makes this file decorative.',
     ).toBeLessThanOrEqual(CAPS[path].cap)
+  })
+})
+
+/**
+ * What every clinical page RENDERS names no wire format — measured on the page,
+ * not on the source.
+ *
+ * ⚠️ **`check:jargon`'s clinician scan reads source strings, and this surface's
+ * worst leak was never in one.** `/patient/pathway` draws the published protocol:
+ * its step labels (`ActivityDefinition/AdministerPHQ9`), its notes ("a
+ * suicide-risk result on LOINC 93374-7 valued from SPiERSuicideRiskTier") and its
+ * codes arrive from the artifact at runtime, so on 2026-10-09 a clinician met
+ * five resource-type labels, two profile names and three codes on it with the
+ * gate green. This applies the SAME rule list (`CLINICAL_RULES`, from
+ * `scripts/lib/reader-jargon.mjs`) to every text run each page renders — closed
+ * drawers included, because a clinician can open one — on every page this file
+ * already proves is the whole route table. `check:jargon` runs this file.
+ *
+ * Excluded, as on the guide's copy of this test: `<pre>` (the wire format shown
+ * on purpose, and only under inspection) and form-control values. And ONE
+ * element by name: a CDS card's detail (`.cds-card-rationale`). That text is the
+ * CDS Hooks card as the service sends it to every EHR — the problem-list card's
+ * job is to name the codes behind a coding decision (problemListCard.ts) — and
+ * `PatientPathway.tsx` prints it verbatim on purpose rather than rewording a
+ * standard payload for one renderer. It is the one place a clinician here meets
+ * a code, and it is listed rather than silently passed. Decided 2026-10-09: the
+ * card stays as the service sends it — this exemption is the decision, not a
+ * gap waiting for one.
+ *
+ * What it cannot see: text a page renders only after an interaction, and a
+ * patient other than the fullest chart the budgets are measured on.
+ */
+function renderedRuns(root: Element): string[] {
+  const runs: string[] = []
+  const walk = (node: Node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const t = (node.nodeValue ?? '').replace(/\s+/g, ' ').trim()
+      if (t) runs.push(t)
+      return
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return
+    const el = node as Element
+    if (['SCRIPT', 'STYLE', 'PRE', 'INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName)) return
+    if (el.classList.contains('cds-card-rationale')) return
+    node.childNodes.forEach(walk)
+  }
+  walk(root)
+  return runs
+}
+
+describe('what every clinical page renders names no wire format', () => {
+  it.each(Object.keys(PAGES))('%s', path => {
+    const runs = renderedRuns(renderPage(path))
+    expect(runs.length, `${path} rendered nothing`).toBeGreaterThan(RENDER_FLOOR / 3)
+    const hits = runs.flatMap(run =>
+      CLINICAL_RULES.filter(rule => rule.re.test(run)).map(
+        rule => `${rule.name}: "${run.match(rule.re)?.[0]}" in "${run.slice(0, 140)}"`,
+      ),
+    )
+    expect(hits).toEqual([])
   })
 })
