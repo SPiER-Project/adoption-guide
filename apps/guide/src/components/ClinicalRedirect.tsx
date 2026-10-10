@@ -26,3 +26,21 @@ export function ClinicalRedirect({ clinicalPath }: { clinicalPath: string }) {
   }, [clinicalPath])
   return <RouteFallback />
 }
+
+/**
+ * A SMART EHR launch that reached the guide's origin, handed to the clinical
+ * app — query string intact, which is where `iss` and `launch` travel.
+ *
+ * The guide cannot run a launch itself: it mounts no SMART session and no
+ * server-backed data source (docs/internals/repo-layout.md), so a launch
+ * completed here would have nowhere to read or write. No EHR is configured to
+ * launch this origin; this is what a misconfigured one gets instead of the
+ * front door. The clinical app's bootstrap routes the same query into its own
+ * `/launch`.
+ */
+export function ClinicalLaunchHandoff() {
+  useEffect(() => {
+    window.location.replace(`${DEPLOY_ORIGINS.clinical}/${window.location.search}`)
+  }, [])
+  return <RouteFallback />
+}

@@ -23,7 +23,7 @@ import { MemoryRouter } from 'react-router-dom'
 // registry and URL-allowlist paths only exist when a caller supplies one.
 import { POPULATION_PATIENTS, POPULATION_SCENARIOS } from '@spier/demo-population'
 const DEMO_SEED = { patients: POPULATION_PATIENTS, scenarios: POPULATION_SCENARIOS }
-import { PatientProvider } from '@spier/app-shell/context/PatientProvider'
+import { SmartPatientProvider } from '@spier/app-shell/context/SmartPatientProvider'
 import { SmartContext } from '@spier/app-shell/context/SmartContext'
 import { LocalDataSource } from '@spier/app-shell/lib/dataSource/localDataSource'
 import { PopulationSummaryEmbed } from './PopulationSummaryEmbed'
@@ -46,12 +46,12 @@ function renderEmbed(smart: Partial<typeof SMART_STUB> = {}) {
   return render(
     <MemoryRouter initialEntries={['/population/summary']}>
       <SmartContext.Provider value={{ ...SMART_STUB, ...smart } as never}>
-        <PatientProvider
+        <SmartPatientProvider
           dataSource={new LocalDataSource(DEMO_SEED)}
           populationPatients={[...POPULATION_PATIENTS]}
         >
           <PopulationSummaryEmbed />
-        </PatientProvider>
+        </SmartPatientProvider>
       </SmartContext.Provider>
     </MemoryRouter>,
   )

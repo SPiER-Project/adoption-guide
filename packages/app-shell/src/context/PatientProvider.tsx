@@ -1,6 +1,5 @@
 import React, { useMemo, useCallback, useSyncExternalStore } from 'react'
 import { formatPatientDisplay } from '@spier/tool-views/data/demoPatient'
-import { useSmart } from './SmartContext'
 
 /**
  * ⚠️ A module-level constant, not a fresh `[]` — this goes into the context
@@ -18,7 +17,6 @@ import {
   type PopulationPatient,
 } from '@spier/tool-views/context/PatientContext'
 import { localDataSource } from '../lib/dataSource/localDataSource'
-import { SmartDataSource } from '@spier/core/lib/dataSource/smartDataSource'
 import { MRN_SYSTEM } from '@spier/core/lib/fhircast'
 import type { FhirDataSource } from '@spier/core/lib/dataSource/types'
 import type { RegistryPatient } from '@spier/core/lib/registry'
@@ -27,6 +25,32 @@ import { usePatientOpenBroadcast } from '../hooks/usePatientOpenBroadcast'
 import { usePatientSlice } from '../hooks/usePatientSlice'
 import { useCorrelatedSave } from '../hooks/useCorrelatedSave'
 import type { PatientResource, ScenarioEncounter } from '@spier/core/types/fhir'
+import type { SmartClient } from '@spier/core/types/smartClient'
+import type { WritebackReport } from '@spier/core/lib/writeback/types'
+import type { SmartPatientSummary } from '../lib/smartPatient'
+
+/**
+ * A live SMART session, handed in from outside — by `SmartPatientProvider`, the
+ * clinical app's wrapper, which is the one module that reads the SMART context
+ * and builds the server-backed source.
+ *
+ * ⚠️ **This module imports neither, on purpose.** The Adoption Guide mounts
+ * `PatientProvider` bare: its fillers write into the unseeded local store and
+ * nothing else. When this provider called `useSmart()` and constructed a
+ * `SmartDataSource` itself, every app that mounted it carried the server-backed
+ * source — so a SMART launch aimed at the guide's origin would have written a
+ * clinician's form to a real FHIR server from a page that "carries no data
+ * source". `check:guide-boundary` now fails the guide on either module.
+ */
+export interface SmartBinding {
+  client: SmartClient | null
+  patient: SmartPatientSummary | null
+  /** The server-backed source for this session; null without one. */
+  source: (FhirDataSource & { readonly writebackReport: WritebackReport | null }) | null
+}
+
+/** No SMART session: the guide always, and the clinical app before a launch. */
+const NO_SMART: SmartBinding = { client: null, patient: null, source: null }
 
 // PopulationPatient, PatientContextType, the context object and usePatient all
 // live in PatientContext.ts so this module stays component-only.
@@ -82,8 +106,11 @@ export function PatientProvider({
   children,
   dataSource = localDataSource,
   populationPatients = EMPTY_POPULATION,
+  smart = NO_SMART,
 }: {
   children: React.ReactNode
+  /** The SMART session, if any — see `SmartBinding`. Absent in the guide. */
+  smart?: SmartBinding
   /** Injectable for tests and the future SMART-backed source; defaults to the
    *  shared localStorage/scenario source. */
   dataSource?: FhirDataSource
@@ -99,7 +126,7 @@ export function PatientProvider({
    */
   populationPatients?: RegistryPatient[]
 }) {
-  const { patient: smartPatient, client: smartClient } = useSmart()
+  const { patient: smartPatient, client: smartClient, source: smartSource } = smart
 
   // The roster doubles as the URL allowlist: an id is servable locally exactly
   // when this deployment was given that patient. Empty by default, so a bare
@@ -141,10 +168,6 @@ export function PatientProvider({
   // still needs a patient — `SmartDataSource.getSlice(null)` throws, and the
   // chart surfaces that as its error state, which is the honest answer to
   // "show me a chart" in a session that has no chart.
-  const smartSource = useMemo(
-    () => (smartClient ? new SmartDataSource(smartClient) : null),
-    [smartClient],
-  )
   const activeSource: FhirDataSource = smartSource ?? dataSource
   const sliceKey = smartSource ? smartPatientId : activePatientId
 

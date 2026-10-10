@@ -31,7 +31,6 @@ import type { ReactElement } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { TOOLS } from '@spier/core/data/catalog'
 import { PatientProvider } from '@spier/app-shell/context/PatientProvider'
-import { SmartContext } from '@spier/app-shell/context/SmartContext'
 import { InspectContext } from '@spier/tool-views/context/InspectContext'
 import { PresentationProvider } from '@spier/tool-views/context/PresentationProvider'
 import { repoJargonIn } from '../../../../scripts/lib/reader-jargon.mjs'
@@ -50,14 +49,6 @@ beforeAll(() => {
 afterAll(() => {
   globalThis.fetch = realFetch
 })
-
-const SMART_STUB = {
-  client: null,
-  patient: null,
-  error: null,
-  setSmartData: () => {},
-  setError: () => {},
-}
 
 /** Every text node a reader can reach, as runs, minus the wire-format panels. */
 function readerRuns(root: Element): string[] {
@@ -92,13 +83,11 @@ function renderToolPage(ref: string) {
   return render(
     <MemoryRouter initialEntries={[`/guide/tools/${ref}`]}>
       <PresentationProvider initialMode="ehr">
-        <SmartContext.Provider value={SMART_STUB}>
-          <PatientProvider>
-            <Routes>
-              <Route path="/guide/tools/:toolRef" element={<ToolPage />} />
-            </Routes>
-          </PatientProvider>
-        </SmartContext.Provider>
+        <PatientProvider>
+          <Routes>
+            <Route path="/guide/tools/:toolRef" element={<ToolPage />} />
+          </Routes>
+        </PatientProvider>
       </PresentationProvider>
     </MemoryRouter>,
   )

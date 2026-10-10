@@ -16,25 +16,23 @@ import { Routes, Route, Navigate, useParams } from 'react-router-dom'
  * declare is not reachable here, full stop. `check:tool-view-routes` reads
  * every app's table and holds them to the ONE tool-view definition.
  *
- * ⚠️ **It carries no patient data and no data source of its own.** The fillers
- * below write into an unseeded local store — the blank "play with forms" state
- * — which is what lets an instrument be tried with nothing running. The chart
- * experience belongs to the mock EHR; see `data/surfaces.ts`.
+ * ⚠️ **It carries no patient data, and its one data source is local.** The
+ * fillers below write into an unseeded local store — the blank "play with
+ * forms" state — which is what lets an instrument be tried with nothing
+ * running. It holds no SMART session, so nothing here can reach a FHIR server.
+ * The chart experience belongs to the mock EHR; see `data/surfaces.ts`.
  */
 
 // Context Providers. Each context is split in two — the provider component in
 // *Provider.tsx, its context object and hook in *Context.ts — so the provider
 // module stays component-only and Fast Refresh preserves its state on edit.
 import { PresentationProvider } from '@spier/tool-views/context/PresentationProvider'
-import { SmartProvider } from '@spier/app-shell/context/SmartProvider'
+// ⚠️ The BASE provider, with no SMART binding — and no `SmartProvider` above it.
+// The guide's one data source is the unseeded local store its fillers write
+// into; it holds no SMART session, so it cannot reach a FHIR server. The
+// clinical app mounts `SmartPatientProvider` instead. `check:guide-boundary`
+// fails this app on any module that would bring SMART back.
 import { PatientProvider } from '@spier/app-shell/context/PatientProvider'
-
-// SMART on FHIR. ⚠️ Kept even though the guide never INITIATES a launch: these
-// two routes were unguarded before the split, so removing them here would be a
-// behaviour change inside what is otherwise a move. A launch aimed at this
-// origin still lands somewhere sane rather than at the catch-all.
-import { SmartLaunch } from '@spier/app-shell/components/SmartLaunch'
-import { SmartRedirect } from '@spier/app-shell/components/SmartRedirect'
 
 // ⚠️ AppShell directly, not the `Shell` chooser. That component picked between
 // three chromes by reading chrome mode AND the build surface; this app has one
@@ -46,10 +44,8 @@ import { AppShell } from './components/AppShell'
 // to be a <Navigate> to its new home; those homes are apps/clinical routes on
 // another origin since the apps split, so the hop is cross-origin. See the
 // component for the defect (every one landed on the Overview, silently).
-import { ClinicalRedirect } from './components/ClinicalRedirect'
-
-// Cross-tab patient-context sync (simulated FHIRcast).
-import { FhircastListener } from '@spier/app-shell/components/FhircastListener'
+// `ClinicalLaunchHandoff` is the same hop for a SMART launch.
+import { ClinicalLaunchHandoff, ClinicalRedirect } from './components/ClinicalRedirect'
 
 const Overview = lazy(() => import('./pages/Overview').then(m => ({ default: m.Overview })))
 const AdoptionGuide = lazy(() => import('./pages/AdoptionGuide').then(m => ({ default: m.AdoptionGuide })))
@@ -103,11 +99,11 @@ function LegacyAssessmentRedirect() {
 function AppRoutes() {
   return (
     <Suspense fallback={<RouteFallback />}>
-      <FhircastListener />
       <Routes>
-      {/* SMART on FHIR — outside the app shell */}
-      <Route path="/launch" element={<SmartLaunch />} />
-      <Route path="/redirect" element={<SmartRedirect />} />
+      {/* A SMART launch is the clinical app's — see ClinicalLaunchHandoff. There
+          is no /redirect: an OAuth return comes back to the origin that began
+          the launch, and that is never this one. */}
+      <Route path="/launch" element={<ClinicalLaunchHandoff />} />
 
       {/* The front door used to be a standalone portal outside the shell, with
           its own header, footer and nav. It said the same thing the guide's
@@ -265,11 +261,9 @@ function AppRoutes() {
 export default function App() {
   return (
     <PresentationProvider>
-      <SmartProvider>
-        <PatientProvider>
-          <AppRoutes />
-        </PatientProvider>
-      </SmartProvider>
+      <PatientProvider>
+        <AppRoutes />
+      </PatientProvider>
     </PresentationProvider>
   )
 }

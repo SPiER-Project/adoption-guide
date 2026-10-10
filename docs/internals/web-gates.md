@@ -193,17 +193,23 @@ npm run check:core-boundary # packages/core stays React-free and DOM-free — th
                          # scope. Removing `DOM` from core's tsconfig `lib` (3 errors to
                          # fix) is the stronger follow-up; @types/node still declares
                          # `localStorage` and `navigator`, so this gate stays for those.
-npm run check:guide-boundary # the Adoption Guide holds no patient data — it explains and
-                         # configures the pathway; the caseload lives on the EHR side
-                         # (#391). Walks the WHOLE guide app from main.tsx and fails on
-                         # any RESOLVED file under packages/demo-population, however the
-                         # import was spelled; its pages must reach no `*DataSource.ts`.
+npm run check:guide-boundary # the Adoption Guide holds no patient data and no SMART session —
+                         # it explains and configures the pathway; the caseload lives on
+                         # the EHR side (#391). Walks the WHOLE guide app from main.tsx
+                         # and fails on any RESOLVED file under packages/demo-population,
+                         # however the import was spelled; its pages must reach no
+                         # `*DataSource.ts`; and what it SHIPS (type-only imports dropped)
+                         # must reach no data source but localDataSource, no `Smart*`
+                         # app-shell module and no `fhirclient` — while still reaching
+                         # localDataSource, the one store the guide is documented to have.
                          # ⚠️ 2026-10-06: it walked the PAGES only and matched specifier
                          # TEXT, so the roster imported in App.tsx and a relative path to
-                         # patients.json both passed. ⚠️ The data-source half stays
-                         # page-scoped: App.tsx mounts PatientProvider, which builds the
-                         # unseeded localDataSource the guide's fillers write into, so the
-                         # app reaches both data sources by design
+                         # patients.json both passed. ⚠️ Same day: the data-source rule
+                         # was page-scoped because the app mounted SmartProvider and a
+                         # PatientProvider that built a SmartDataSource; the SMART binding
+                         # is a prop now, supplied only by the clinical app's
+                         # SmartPatientProvider. ⚠️ It cannot see a bare `fetch` to a FHIR
+                         # server — its subject is the SMART machinery this repo has
 npm run check:catalog    # tool-catalog wiring (stubs / UI metadata / ActivityDefinitions /
                          # questionnaire URLs BOTH ways / per-AD licensing metadata /
                          # per-AD tool-id identifiers).

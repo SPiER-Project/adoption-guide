@@ -34,6 +34,13 @@ crossings:
 | `guideSections`, `surfaces` | **only** `Sidebar.tsx` | NOT here — they become genuinely guide-only when the sidebar splits |
 | `ToolConfigContext`, `toolPresets` | `ToolConfigProvider` is mounted globally, but **every consumer** is clinical | NOT here — the guide simply will not mount that provider |
 
+⚠️ **Two patient providers, because only one app may hold a SMART session.**
+`PatientProvider` imports no SMART module: it takes the session as a `smart`
+prop and otherwise runs on the local store. The guide mounts it bare.
+`SmartPatientProvider` reads `useSmart()`, builds the `SmartDataSource` and hands
+both in, and only the clinical app mounts it. Merging the two back would let
+`check:guide-boundary` fail the guide, and that gate is the only thing watching.
+
 ## What is deliberately NOT here
 
 - **Pages.** Every page belongs to exactly one app.
