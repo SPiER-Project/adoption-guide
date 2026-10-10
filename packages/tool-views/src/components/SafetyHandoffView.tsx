@@ -106,10 +106,9 @@ export function SafetyHandoffView() {
           profile, with each checklist item as a repeating{' '}
           <code>handoff-content-item</code> extension — the same vocabulary the discharge
           packet uses, so the two tools&rsquo; answers are comparable. This profile and{' '}
-          <strong>SPiERDischargeSafetyPacket</strong> are the two resources{' '}
-          <code>transitionDates</code> counts, which makes it the index event for every
-          post-transition measure. Until 2026-09-17 the route rendered the generic recorder,
-          which stamped no profile, so the measure counted none of it. The receiving team is a{' '}
+          <strong>SPiERDischargeSafetyPacket</strong> are the two resources the measures count as a
+          care transition, which makes it the index event for every post-transition measure — and
+          why this is not the generic recorder, which stamps no profile. The receiving team is a{' '}
           <code>Reference.display</code> with no <code>reference</code>: the demo holds no
           Organization to point at, and asserting one would be a dangling reference rather than
           a missing optional.

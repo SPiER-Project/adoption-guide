@@ -116,12 +116,14 @@ npm run check:fhir-render # the clinician-facing app shows no raw FHIR. `Inspect
                        # ⚠️ A text scan cannot do it — `Appointment` is a resource type in
                        # `<strong>Appointment</strong>`, an identifier in `AppointmentResource`
                        # and a reference prefix in `Appointment/${id}`, one token and three
-                       # meanings. So it reads TypeScript's own JSXText nodes: what renders as
-                       # WORDS. Identifiers, imports, template literals and string attributes
-                       # are invisible by construction, which is why draftTitle="Live FHIR
-                       # Communication" needs no exemption, and the `fhirNote={…}` subtree —
-                       # the implementer's half, rendered inside the useInspect()-gated
-                       # CodeDrawer — is skipped whole.
+                       # meanings. So it reads what TypeScript's parser says renders as
+                       # WORDS: JSXText, and since 2026-10-07 every string attribute not on
+                       # NOT_WORDS_ATTRS (title, label, help, …) — a recorder title, a field
+                       # label and a list heading had named Appointment, Task and Consent past
+                       # it, and past check:jargon's ALSO_ENGLISH carve-out. The resource-type
+                       # match takes a plural (`s?`). The `fhirNote={…}` subtree and
+                       # draft/draftTitle — the implementer's half, rendered inside the
+                       # useInspect()-gated CodeDrawer — are skipped.
                        # ⚠️ **A word list could not have caught the field help**, so there the
                        # TAG is the rule: `caring-contact-opt-out` is a kebab-case slug and
                        # nothing tells it from "no-show follow-up" by spelling. What does is
@@ -130,7 +132,7 @@ npm run check:fhir-render # the clinician-facing app shows no raw FHIR. `Inspect
                        # recorder view renders no `<code>` outside `fhirNote`.
                        # Six plants, the first two being the ORIGINAL text restored verbatim
                        # rather than a synthetic defect. ⚠️ What RULE 3 still cannot see: a
-                       # resource type not on its 15-name list; a recorder built on some other
+                       # resource type not on its 18-name list; a recorder built on some other
                        # frame than <WorkflowForm> (the detection THROWS on matching nothing,
                        # which is the half that is covered); the Questionnaire fillers, which
                        # render no lede; and non-FHIR jargon — "denominator", "SHALL", a bare
@@ -190,9 +192,21 @@ npm run check:core-boundary # packages/core stays React-free and DOM-free — th
                          # in a file that guarded one elsewhere. It now parses: host-
                          # qualified globals count, every React package and a relative
                          # path into one is forbidden, the guard waives only its own
-                         # scope. Removing `DOM` from core's tsconfig `lib` (3 errors to
-                         # fix) is the stronger follow-up; @types/node still declares
-                         # `localStorage` and `navigator`, so this gate stays for those.
+                         # scope. 2026-10-07: core's tsconfig `lib` is `["ES2022"]` — a
+                         # DOM TYPE (`HTMLElement`), `window` and `document` are now compile
+                         # errors — and eslint has a core block (`no-restricted-globals` +
+                         # `no-restricted-properties` on `globalThis`/`self`/`window`).
+                         # ⚠️ @types/node still declares `localStorage` and `navigator`, so
+                         # they COMPILE; and `const g = globalThis; g.localStorage` passed
+                         # tsc, eslint AND this gate when planted. Closed the same day in
+                         # this gate: a host is any name bound to one (to a fixed point),
+                         # seen through casts, and destructuring a host is a use — seven
+                         # alias forms planted red. Then the four it still missed — a host
+                         # reached through a property, a call's return, `Reflect.get`, or a
+                         # computed key: a host may not ESCAPE (passed, returned, stored,
+                         # exported), a computed key on one fails, and so do `eval` and
+                         # `Function(…)`. Still unseen: a global object an app passes INTO
+                         # core as a parameter.
 npm run check:guide-boundary # the Adoption Guide holds no patient data and no SMART session —
                          # it explains and configures the pathway; the caseload lives on
                          # the EHR side (#391). Walks the WHOLE guide app from main.tsx
@@ -254,8 +268,23 @@ npm run check:pathway    # the Suicide Safer Care Pathway PlanDefinition is almo
                          # branch by `action.code`, so `tier-low`'s condition rewritten to
                          # `= 'moderate'` passed this gate AND all of `npm test`; an engine
                          # running the published expression would have applied it to the wrong
-                         # tier. And a definitionCanonical must resolve to an
+                         # tier. Since 2026-10-07 the FSH writes code and condition from one
+                         # parameter (`RuleSet: TierBranch`), so (f) now guards a branch that
+                         # bypasses the RuleSet. And a definitionCanonical must resolve to an
                          # ActivityDefinition / PlanDefinition / Questionnaire, not merely exist
+                         # Rule (g), 2026-10-09: the SETTING pathways (setting-pathways.fsh —
+                         # emergency department, inpatient). The core lists each as
+                         # relatedArtifact composed-of and each names the core as derived-from;
+                         # the guide draws its list from the first, so the two must agree both
+                         # ways. Each is held to (b)-(d) plus three of its own: a useContext
+                         # VENUE; NO useContext focus — tools.ts derives a tool's stage from PDs
+                         # with a stage focus, last reference winning, so a setting pathway with
+                         # one silently moves every tool it names; and NO tier coding, because
+                         # what each tier is owed is the core's branch alone. All six planted
+                         # (dropped link, focus, tier code, dangling canonical, timing, no venue)
+                         # went red. ⚠️ It cannot see whether a setting pathway's CONTENT is
+                         # settled — the inpatient one is a draft awaiting clinical review, and
+                         # that is page copy and an FSH comment, not anything a gate reads
 npm run check:readers    # every observation mapper's answer READS vs the Questionnaire's
                          # declared item `type` — see fhir-conformance.md.
                          # ⚠️ And every `.answer` / `.value<Type>` access in a mapper must be one
@@ -276,11 +305,13 @@ npm run check:careplan-readers # the SIBLING rule for carePlanMappers, and a dif
                          # A linkId is resolved against the form the mapper SERVES, from
                          # `CAREPLAN_MAPPER_BY_QUESTIONNAIRE_URL` in core (2026-10-06); resolved
                          # against all eighteen, Stanley-Brown reading CRP's `coping-list` passed
-npm run check:patients   # the 14 demo patients' demographics agree across all THREE
-                         # sites: demo-population/src/patients/*.json (canonical), patients.json
-                         # (display copies), and the MRN system populationToFhir stamps —
-                         # core's `MRN_SYSTEM`, LOADED, and PatientProvider.tsx must use that
-                         # import for every identifier system. ⚠️ It was regex-scraped until
+npm run check:patients   # the demo registry DERIVES from demo-population/src/patients/*.json
+                         # (loaded through Vite; its ids equal the files' both ways — the
+                         # derivation throws on a missing name/dob/gender/MRN or next step),
+                         # and PatientProvider.tsx stamps MRNs with core's `MRN_SYSTEM`
+                         # import, never a literal. 2026-10-07: the display copies in
+                         # patients.json were deleted, and the field-by-field comparison
+                         # with them. ⚠️ It was regex-scraped until
                          # 2026-10-06, and the regex fell through to BLANK_PATIENT's literal
                          # when the builder used a (mistyped) local constant
 npm run check:scenarios  # BOTH halves of the population-scenario gate:
@@ -341,7 +372,8 @@ npm run check:dates      # nothing that already happened is dated AFTER the STAR
                          # and so checked no QR date at all. Default is --check
                          # (writes nothing); `--apply` re-dates the FILES, now only
                          # to change a scenario's designed state
-npm run check:measures   # Stage-8 Measure criteria vs the measures.ts engine
+                         # (check:measures was here until 2026-10-07: its rules are
+                         # tests in tests/measures.test.ts now — see measures.md)
 npm run check:reassessment # the per-tier reassessment cadence agrees across all THREE
                          # places it is stated: the PlanDefinition (FHIRPath condition
                          # *and* action.code), the app, and the CQL's
@@ -355,11 +387,11 @@ npm run check:reassessment # the per-tier reassessment cadence agrees across all
                          # appearing for `imminent` would answer an open clinical
                          # question by accident
 npm test                 # vitest
-npm run check:outputs    # ⚠️ LAST, and after `npm test` on purpose — see below
-npm run check:published-profiles  # ⚠️ same, and the complement — see below
+npm run check:outputs    # ⚠️ LAST, and after `npm test` on purpose — see below. Both
+                         # ends: declared outputs (part A) and published profiles (part B)
 ```
 
-## `check:outputs` — the producing half of a tool's contract
+## `check:outputs` part A — the producing half of a tool's contract
 
 The only gate in `verify` that runs **after** the tests, because the tests are
 what produce its input.
@@ -454,9 +486,13 @@ to stamp.
   background job is out of scope, because scope is "has a `TOOL_VIEWS` slug".
 
 
-## `check:published-profiles` — the complement, from the other end
+## `check:outputs` part B — the complement, from the other end
 
-`check:outputs` starts from what a tool **declares** — a
+⚠️ Parts A and B were two gates, `check:outputs` and `check:published-profiles`,
+until 2026-10-07: they read the same corpus from opposite ends with two
+readers, and only A checked the corpus was fresh. One file now, one read.
+
+Part A starts from what a tool **declares** — a
 `PlanDefinition.action.output` — and asks whether the app emits a resource
 claiming it. That is the right question for a tool whose recorder drifted from
 its own IG page, and it is structurally blind to a profile **no tool declares**.
@@ -477,11 +513,10 @@ TL-009's shape one layer up. Its exemption expired on 2026-10-06, when
 resource against the profiles it CLAIMS, so a profile nothing claims is never
 the subject of a check. Publishing more profiles can never fail that gate.
 
-So this gate starts from the published set: every `kind: resource`,
+So part B starts from the published set: every `kind: resource`,
 `derivation: constraint` StructureDefinition is claimed by something in
-`.runtime-fhir`, or is named in `EXEMPT` with a reason. It runs after
-`npm test` for the same reason `check:outputs` does — the tests produce the
-corpus.
+`.runtime-fhir`, or is named in `EXEMPT` with a reason. Like part A, it
+reads what `npm test` produces.
 
 **`EXEMPT` expires.** An entry whose profile turns up in the corpus fails, so a
 fixed gap deletes its own exemption instead of leaving a stale claim that the
@@ -489,13 +524,14 @@ app does not write something it now does. An entry naming a profile the IG no
 longer publishes fails too.
 
 One entry today, and it is a **decision**, not a debt:
-`spier-suicide-related-condition` — writeback Tier 3, default off; SPiER
-proposes the problem-list entry through a CDS card and a clinician asserts it.
+`spier-suicide-related-condition` — SPiER prompts the problem-list entry through
+a CDS card and the clinician asserts it; the app writes none (the writeback's
+Tier-3 Condition proposal was retired by #639).
 (`spier-suicide-risk-concept` sat beside it as a debt until it expired, above.)
 
 ⚠️ **What it cannot see.** It checks a profile is claimed *at all*, not that
 every builder which ought to claim it does: three C-SSRS mappers sit behind one
-profile, and with one of them unstamped both this gate and `check:outputs` stay
+profile, and with one of them unstamped both parts stay
 green — and so does the validator, which never checks a profile nothing claims.
 That case is held by the EMITTER instead: `runtimeFhir.emit.test.ts` asserts,
 per response, that the results derived from it claim every Observation/Condition
@@ -503,10 +539,9 @@ profile its PlanDefinition action declares (joined per ActivityDefinition, read
 off the generated wiring). Planted 2026-10-06: `cssrsFull.ts` unstamped → both
 gates green, that test red.
 
-⚠️ **It does not re-check corpus freshness.** `check:outputs` already asserts
-`.runtime-fhir` is newer than the builders that produce it, runs in the same
-`verify`, and fails the run first. A second copy of that logic would drift from
-the first.
+**Corpus freshness is checked once, for both parts.** It used to live in part
+A alone, and B relied on running after it in `verify`; run on its own, B read a
+stale tree without complaint.
 
 ## The clinical surface (in the CI build job, not in `verify`)
 
@@ -957,8 +992,7 @@ neighbour's helpers. `scripts/check-duplicate-code.mjs` parses every top-level
 `packages/` and `services/` and holds four rules: the same NAME with the same
 normalized body in two files fails; the same body of five or more lines under
 DIFFERENT names fails; a deliberate same-name pair is listed in `ALLOWED` with
-its reason (the two `describeError`s, which differ on purpose; the per-app
-`Sidebar` and `AppRoutes`), and an entry whose pair has
+its reason (the per-app `Sidebar` and `AppRoutes`), and an entry whose pair has
 merged or vanished fails as stale; and a floor of functions, files and areas
 parsed, so a broken parser cannot report ✓.
 
@@ -971,9 +1005,8 @@ to its position before comparing, expression bodies count, and untracked
 non-ignored files are read. Its first run on the new parser found two live
 copies, both merged: `ms` in `measures.ts` (= `timeOf` in `recordQueries.ts`)
 and the mock EHR client's `message` in `home.ts` and `chart.ts` (now
-`errorText` in `client/config.ts`). `scripts/` is still out of scope — it holds
-live copies (`walkExt`/`relRepo`/`REPO_ROOT` in both root modules, `walkJson`
-in two gates) that are their own change.
+`errorText` in `client/config.ts`). `scripts/` was out of scope until
+2026-10-07 (next section but one).
 
 ⚠️ **Two parser defects were caught by the gate's own liveness rules before it
 was trusted.** The first version matched the body brace as "the first `{` after
@@ -993,10 +1026,37 @@ turned out to be a plain copy whose one stylesheet rule already lived in
 `Sidebar`s remain deliberately separate, and their bodies differ, which is what
 the `ALLOWED` liveness rule checks.
 
+⚠️ **Bringing `scripts/` in (2026-10-07) found two tokenizer holes that had
+been there since the rebuild, in every tree.** The token scanner has no parse
+context. (a) A regex literal was read as code, and the `\//` that ends
+`/\/\*…\*\//g` opened a LINE comment, hiding the rest of the line: two
+different comment strippers — one blanking, one deleting — compared equal. (b)
+After a template literal's first `${…}`, the closing backtick opened a NEW
+template that ran past the function into the rest of the file, so two
+IDENTICAL functions holding `` `✗ ${msg}` `` compared different — thirteen
+byte-identical `fail`s in the gates passed that way. Both planted against
+`main`'s gate and this one: (a) red → green, (b) green → red. Literals are now
+taken whole from the AST. A recursive call is normalised to `$self` too, so a
+renamed copy of a recursive walker (`walkJson` → `listJson`) is rule 2 — it
+passed before.
+
+The scan found 14 copied helpers in `scripts/`, now in `scripts/lib/repo.mjs`
+(`REPO_ROOT`, `relRepo`, `walkExt`, `walkJson`, `isTest` — `app-roots.mjs` and
+`style-roots.mjs` re-export the first three), `lib/text.mjs` (`stripComments`,
+`stripTsComments`, `stripVersion`, `shortCanonical`) and `lib/cli.mjs`
+(`argValue`, `die`). ⚠️ **And a fifth rule.** About forty gates define a `fail`
+that writes their own failure count — many byte-identical once (b) was fixed —
+and "define it once and import it" cannot apply to a closure over your own
+module. A function in a gate's ENTRY file (`scripts/*.mjs`, not `lib/`) that
+writes a top-level binding of that file is skipped and counted. Everywhere else
+a stateful copy (a memoised loader, a cache) is importable, so it is still
+compared — planted: a memoised loader copied across `scripts/lib` fails.
+
 What it cannot see: a copy edited after copying (a fork — only a reader can
 tell a fork from a variant), a duplicated fragment inside a larger function,
-and a method or an arrow assigned to an object property rather than a
-top-level binding.
+a method or an arrow assigned to an object property rather than a top-level
+binding, and — by rule 5 — a copied function in a gate's entry file that also
+writes that file's state.
 
 ## `check:jargon` and the page budgets — the guide's two copy rules (2026-09-20)
 
@@ -1034,6 +1094,27 @@ now rendered through `readerCopyright` — the IG text is unchanged); and, in
 app-shell, `npm run copy-fhir` in the pathway's load error and a profile name
 in the protocol page's clinician copy.
 
+⚠️ **The clinician's half had no rendered scan until 2026-10-09, and its
+worst leak was never in a source string.** `/patient/pathway` draws the
+published protocol, so every step's definition name
+(`ActivityDefinition/AdministerPHQ9`), every note ("a suicide-risk result on
+LOINC 93374-7 valued from SPiERSuicideRiskTier") and every code reached a
+clinician from the artifact at runtime, with the gate green. Two changes:
+`CLINICAL_RULES` moved into `scripts/lib/reader-jargon.mjs` and is applied to
+every RENDERED clinical page by `apps/clinical/src/pages/pageLength.test.tsx`
+("names no wire format", run from `check:jargon`), reusing that file's harness
+because it already proves its page list is the route table; and its type list
+grew from the 18 SPiER writes to every humped R4 name, plural included —
+"A partial CodeSystem would read as complete" and "item-9 Observations" both
+passed the old one. The fix on the page is in the artifact: a note says
+whether it is written for the clinician (the `clinician-facing` extension,
+opt-in), and without inspection only marked notes render. One element is
+exempt by name — a CDS card's detail, which is the card as the service sends
+it to every EHR, printed verbatim on purpose. ⚠️ **The exemption was lifted the
+same day**: the problem-list card now follows the same marker, so its `detail`
+carries only the clinician-facing notes and the codes travel in its extension
+(next section), and the page scan reads the card like everything else.
+
 ⚠️ **Three of the strings it was written from were in the ARTIFACT, not the
 app.** `documentation[=].display` on the pathway PlanDefinition said "which is
 what `npm run check:reassessment` exists to prevent", pointed at the header of a
@@ -1069,8 +1150,103 @@ wire fields, all legitimately shown to an implementer — while proving nothing
 about what it did catch. The index makes the rule mean what its name says and
 grows with the repo instead of with the gate.
 
+⚠️ **Until 2026-10-09 the index held camelCase names only, so every class,
+React component and exported type passed.** Planting "SmartDataSource" into the
+Provider App page's prose left the gate green while `buildWritePlan`,
+`guideSections.ts` and `#637` each failed it. The index now also holds
+PascalCase names — exported `class` / `function` / `const` / `type` /
+`interface` / `enum` bindings and file or directory basenames — where the shape
+is a lower-to-upper hump (`WritebackScorecard`, `CSSRSItemCoding`), so an
+ALL-CAPS constant (`TOOLS`, `HEX`) and a one-word name (`Patient`) stay out:
+those are acronyms and English to a reader. Two derived lists are subtracted
+from it, because a guide reader is supposed to meet those names:
+
+- **Every FHIR R4 resource and complex-datatype name** — 189, read from the R4
+  model `fhirpath` ships (`fhirpath/fhir-context/r4`, generated from the spec's
+  StructureDefinitions), by `fhirR4TypeNames()` in `scripts/lib/fhir-vocabulary.mjs`.
+  `QuestionnaireResponse` and `CapabilityStatement` are the standard's words,
+  and a repo type that shares one — `CodeableConcept` and `HumanName` today — is
+  the spec's word first. `fhirpath` is a dependency of `@formbox/renderer`, not
+  a direct one; a missing or reshaped model throws, and its count is floored.
+- **Every published artifact's `name`** in the generated IG — 217, the
+  `SPiERSuicideRiskConcept` and `AdministerPHQ9` a reader will find in the IG.
+  Profile names are ALLOWED in guide copy: an implementer reading the guide is
+  being pointed at the published artifact, which is its identity rather than
+  this repo's machinery. No TypeScript export shares one today, so this
+  subtraction removes nothing yet; it is written down so the first one that
+  does is not a reason to stop naming the profile. The clinician's scan still
+  bans SPiER profile names outright, for a different reader.
+
+The first run over the tree found one hit: a `console.warn` in app-shell's
+local data source naming `LocalDataSource`. A devtools message has the same
+reader as an `Error`, so `console.*(…)` arguments are now skipped like
+`throw new Error(…)` — and a plain string beside it naming the same class still
+fails. Proven 2026-10-09: four plain plants, a `+`-folded one and a
+template-folded one went red in guide JSX, as did one in a generated
+`documentation.display` and one in an app-shell string; FHIR type names, the two
+subtracted repo exports, a profile name, an ALL-CAPS constant and `FHIRcast`
+stayed green. The floors are per shape and per subtraction list (camelCase,
+PascalCase, R4 type names, artifact names), so an empty exclusion list cannot
+quietly turn into a ban on the standard's own words.
+
+⚠️ **The rendered half had no identifier rule at all until the index moved into
+`scripts/lib/reader-jargon.mjs`** (2026-10-09, the day after it learned
+PascalCase). Only the script built the index, so `readerCopy.test.tsx` applied
+the six regex rules and nothing else; a page rendering `SmartDataSource` from a
+value no source scan reads passed both halves. Now `indexRepoIdentifiers()` and
+`repoJargonIn(text, index)` are shared, the test floors the index it built, and
+a name the source spells only in pieces — `{['Smart', 'DataSource'].join('')}`,
+which the source scan reads as two harmless halves — fails the gate through the
+rendered half alone. The same plant spelling `QuestionnaireResponse` or
+`SPiERSuicideRiskConcept` stays green.
+
+⚠️ **The rendered half then mounted only the pages chosen because they render
+core's values** — the tool pages, the Data Dictionary, Adoption Readiness and
+the two pathway pages — so the same runtime-assembled name on any other guide
+page passed. Since 2026-10-09 it mounts the guide's real `App` (route table,
+`AdoptionGuide` layout, shell chrome) at every path in `GUIDE_SECTIONS`, at
+`/overview` and at every catalogued tool, with no page list of its own; a probe
+asserts each mount LANDED on its path, because a route that redirected to the
+front door would be read as the front door and pass. A page settles when its
+header is up AND no `.route-loading` fallback is left: the tool's form is a
+second lazy chunk, and the old test read the page before it arrived. A floor on
+the tool pages that rendered an instrument header (16, floored at 8) keeps that
+honest.
+
+That race had been hiding seven live leaks, all fixed in the same change: two
+published `Questionnaire.description`s (C-SSRS Pediatric cited
+`licensing/MEMO.md`, Since Last Contact `issue #220`) shown in the "About this
+instrument" drawer, and five recorders' `fhirNote` drawers on the guide's tool
+pages — four issue numbers, a 2026-09-17 rename date, and `applySharingConsent()`.
+`fhirNote` is skipped by the clinician's scan on purpose and `packages/tool-views`
+is outside the guide's source scan, so the rendered half was the only reader
+those strings had. Proven by planting a runtime-assembled `SmartDataSource`,
+`WritebackScorecard` and `issue #637` on Why SPiER (a page the old test never
+mounted), and by restoring one `(#263)` to a recorder's note: each fails the gate
+through the rendered half with zero source-scan hits.
+
+⚠️ **The problem-list card's `detail` was read by nothing, twice over.** It
+put "LOINC 93374-7", an ISO date, two SNOMED CT ids and a value-set canonical in
+front of a clinician with the gate green: the sentence is assembled in core,
+partly from the pathway artifact, so the source scan never held it, and the
+rendered scan above exempted `.cds-card-rationale` by name. The card now reads
+the pathway's `clinician-facing` marker like the protocol page does — marked
+notes make `detail`, unmarked ones travel verbatim in `spier-implementer-notes` —
+and the exemption is gone. `clinicalJargonIn` joined `CLINICAL_RULES` in
+`scripts/lib/reader-jargon.mjs`, and
+`apps/clinical/src/components/guidanceCardCopy.test.tsx` applies it to the rail
+rendered from the REAL builder over every demo patient (floored at three
+patients with the card), and to the `detail` a host receives. Proven by
+restoring the old first sentence, the SNOMED note to `detail`, and the
+value-set trailer — each fails it. The decision about `detail` itself is in
+[`surfaces-and-routing.md`](surfaces-and-routing.md).
+
 What it cannot see, stated so a green run is not read as more than it is:
 
+- **A clinician string core builds at runtime, other than the guidance cards**
+  — the test above reads those, `dataSourceError.test.tsx` the data-source
+  errors and the scorecard test the writeback outcome; any other core-built
+  sentence reaching the clinical surface is read by nothing.
 - **The 29 shared tool views' SOURCE, under the guide's rules.** They reach a
   guide reader as rendered on a tool page, and the rendered half reads every
   tool's page with drawers included; a string a page does not render on mount
@@ -1078,8 +1254,10 @@ What it cannot see, stated so a green run is not read as more than it is:
 - **The published FSH text itself.** `Description` and `copyright` cite the
   licensing memos and `issue #64` — provenance in the IG, where it belongs. The
   guide renders `readerCopyright(copyright)`, and that is what is checked.
-- **A computed string.** Folding sees what the source spells out; a value from
-  a prop or a call is read in its literal halves.
+- **Text a page renders only after an interaction** — a submitted form's
+  result, a simulator state other than the first, an error a reader triggers.
+  Every guide page is mounted, but only in its arrival state; anything else gets
+  the source scan, which reads a computed string in its literal halves.
 - **Prose that names no machinery and is still about the build.** "It was called
   the Patient App until 2026-09-17" fails on the date; the same sentence without
   one passes and is just as much about this repo.

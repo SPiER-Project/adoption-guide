@@ -15,8 +15,7 @@ import { highestRiskLevel } from '@spier/core/lib/observationMappers'
 import { evaluatePathway } from '@spier/core/lib/pathwayEvaluation'
 import { isRiskConcept } from '@spier/core/lib/riskConcept'
 import { riskLevelForTier, tierCodeForLevel } from '@spier/core/lib/reassessment'
-import { POPULATION_SCENARIOS } from '@spier/demo-population'
-import DEMO_PATIENTS from '@spier/demo-population/patients.json'
+import { POPULATION_PATIENTS as DEMO_PATIENTS, POPULATION_SCENARIOS } from '@spier/demo-population'
 
 describe('deriveRegistryRow', () => {
   const patient: RegistryPatient = {
@@ -413,7 +412,7 @@ describe('a row’s risk level is the harmonized tier, not the loudest alert', (
   const rowFor = (id: string) => {
     const slice = POPULATION_SCENARIOS[id]
     if (!slice) throw new Error(`no demo scenario ${id} — this test would check nothing`)
-    const demographics = (DEMO_PATIENTS as RegistryPatient[]).find(p => p.id === id)
+    const demographics = DEMO_PATIENTS.find(p => p.id === id)
     if (!demographics) throw new Error(`no demo patient ${id}`)
     return deriveRegistryRow(demographics, slice, NOW)
   }
@@ -459,7 +458,7 @@ describe('a row’s risk level is the harmonized tier, not the loudest alert', (
     // PHQ9Item9ToSuicideRiskConcept), so no demo patient is in this state.
     const sarah = POPULATION_SCENARIOS['patient-003']
     const foreign = { ...sarah, observations: sarah.observations.filter(o => !isRiskConcept(o)) }
-    const patient = (DEMO_PATIENTS as RegistryPatient[]).find(p => p.id === 'patient-003')!
+    const patient = DEMO_PATIENTS.find(p => p.id === 'patient-003')!
     const row = deriveRegistryRow(patient, foreign, NOW)
     expect(row.currentRiskLevel).toBe('moderate')
     expect(row.currentRiskLevel).toBe(highestRiskLevel(sarah.riskAlerts))
@@ -475,7 +474,7 @@ describe('a row’s risk level is the harmonized tier, not the loudest alert', (
   it('agrees with that patient’s own chart, for every demo patient', () => {
     // The property the whole change exists for. A row and the chart behind it
     // may not answer "how much risk" differently.
-    for (const p of DEMO_PATIENTS as RegistryPatient[]) {
+    for (const p of DEMO_PATIENTS) {
       const slice = POPULATION_SCENARIOS[p.id]
       if (!slice) continue
       const { tier } = evaluatePathway(
@@ -496,7 +495,7 @@ describe('a row’s risk level is the harmonized tier, not the loudest alert', (
   })
 
   it('has demo patients whose two answers DIFFER, or the checks above are vacuous', () => {
-    const changed = (DEMO_PATIENTS as RegistryPatient[]).filter(p => {
+    const changed = DEMO_PATIENTS.filter(p => {
       const slice = POPULATION_SCENARIOS[p.id]
       return slice && deriveRegistryRow(p, slice, NOW).currentRiskLevel !== highestRiskLevel(slice.riskAlerts)
     })
@@ -523,7 +522,7 @@ describe('"never screened" and "screened, nothing found" are different words', (
   }
   const rowFor = (id: string) => {
     const slice = POPULATION_SCENARIOS[id]
-    const demographics = (DEMO_PATIENTS as RegistryPatient[]).find(p => p.id === id)!
+    const demographics = DEMO_PATIENTS.find(p => p.id === id)!
     return deriveRegistryRow(demographics, slice, NOW)
   }
 
@@ -541,7 +540,7 @@ describe('"never screened" and "screened, nothing found" are different words', (
 
   it('does not reach for `unknown` once anything has been recorded', () => {
     // Every other demo chart carries a screen, an assessment or a tier.
-    const unknowns = (DEMO_PATIENTS as RegistryPatient[])
+    const unknowns = DEMO_PATIENTS
       .filter(p => POPULATION_SCENARIOS[p.id])
       .filter(p => rowFor(p.id).currentRiskLevel === 'unknown')
       .map(p => p.id)

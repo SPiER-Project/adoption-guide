@@ -45,6 +45,12 @@ interface FakeOpts {
   reject?: string[]
   /** Make the /metadata probe fail outright. */
   metadataFails?: boolean
+  /**
+   * How searches answer. `lagging` finds nothing written this session — a server
+   * that indexes after the write returns, which is what the SMART Health IT
+   * sandbox did (#640). `current` finds everything posted, like the mock EHR.
+   */
+  search?: 'lagging' | 'current'
 }
 
 /**
@@ -55,6 +61,7 @@ interface FakeOpts {
  */
 function fakeClient(opts: FakeOpts = {}) {
   const posted: FhirResource[] = []
+  const ids: string[] = []
   const counts: Record<string, number> = {}
   const client = {
     patient: { id: PATIENT },
@@ -62,6 +69,16 @@ function fakeClient(opts: FakeOpts = {}) {
       if (arg === 'metadata') {
         if (opts.metadataFails) throw new Error('HTTP 404 metadata not found')
         return capabilityStatement(opts.creatable ?? ALL_TYPES)
+      }
+      if (typeof arg === 'string') {
+        if (!opts.search) throw new Error(`unexpected search: ${arg}`)
+        if (opts.search === 'lagging') return []
+        const type = arg.split('?')[0]
+        const category = /[?&]category=([^&]+)/.exec(arg)?.[1]
+        return posted
+          .map((r, i) => ({ ...r, id: ids[i] }))
+          .filter(r => r.resourceType === type)
+          .filter(r => !category || JSON.stringify((r as { category?: unknown }).category ?? []).includes(`"${category}"`))
       }
       const req = arg as { url: string; method?: string; body?: string }
       if (req.method !== 'POST') throw new Error(`unexpected request: ${req.url}`)
@@ -72,6 +89,7 @@ function fakeClient(opts: FakeOpts = {}) {
       posted.push(resource)
       counts[resource.resourceType] = (counts[resource.resourceType] ?? 0) + 1
       const id = `srv-${resource.resourceType}-${counts[resource.resourceType]}`
+      ids.push(id)
       return { body: { ...resource, id }, response: { headers: new Headers() } }
     },
   }
@@ -95,7 +113,8 @@ const typesOf = (posted: FhirResource[]) => posted.map(r => r.resourceType)
 const step = (source: SmartDataSource, tier: number) =>
   source.writebackReport?.result.steps.find(s => s.tier === tier)
 
-// A guard on the fixture itself: every assertion below about Tier 2 and Tier 3
+// A guard on the fixture itself: every assertion below about Tier 2 and the
+// absent Condition
 // assumes this response derives Observations AND an elevated risk alert. If the
 // mapper or the Questionnaire changes so it does not, these tests must fail
 // here rather than silently testing an empty ladder.
@@ -218,8 +237,12 @@ describe('saveResponse — the Tier-0 floor', () => {
   })
 })
 
-describe('saveResponse — Tier 3 governance', () => {
-  it('never writes a Condition by default, even on an elevated screen', async () => {
+// A screen never becomes a Condition (#639). The ladder once had an opt-in
+// Tier-3 "Condition proposal"; it is gone, and this pins that nothing in the
+// save path writes one — on an elevated screen, against a server that can
+// create Conditions.
+describe('saveResponse — never a Condition from a screen', () => {
+  it('writes no Condition, even on an elevated screen', async () => {
     const { client, posted } = fakeClient()
     const source = new SmartDataSource(client as never)
     const { entry, derived } = submission({ q1: true, q5: true })
@@ -227,29 +250,7 @@ describe('saveResponse — Tier 3 governance', () => {
     await source.saveResponse(PATIENT, entry, derived)
 
     expect(typesOf(posted)).not.toContain('Condition')
-    // Absent from the plan entirely — the scorecard states this from the config.
-    expect(step(source, 3)).toBeUndefined()
-    expect(source.writebackReport?.config.enableConditionProposal).toBe(false)
-  })
-
-  it('proposes an unconfirmed Condition when explicitly opted in', async () => {
-    const { client, posted } = fakeClient()
-    const source = new SmartDataSource(client as never, { enableConditionProposal: true })
-    const { entry, derived } = submission({ q1: true, q5: true })
-
-    await source.saveResponse(PATIENT, entry, derived)
-
-    const condition = posted.find(r => r.resourceType === 'Condition') as {
-      verificationStatus?: { coding?: { code?: string }[] }
-      evidence?: { detail?: { reference?: string }[] }[]
-    }
-    expect(condition).toBeDefined()
-    expect(condition.verificationStatus?.coding?.[0]?.code).toBe('unconfirmed')
-    // Provenance points at the SERVER-assigned QR id, not the client one.
-    expect(condition.evidence?.[0]?.detail?.[0]?.reference).toBe(
-      'QuestionnaireResponse/srv-QuestionnaireResponse-1',
-    )
-    expect(step(source, 3)?.outcome).toBe('written')
+    expect(source.writebackReport?.result.steps.map(s => s.resourceType)).not.toContain('Condition')
   })
 })
 
@@ -293,7 +294,11 @@ describe('saveResponse — total failure', () => {
 })
 
 describe('saveResponse — an instrument with no Observations', () => {
-  it('omits Tier 2, and the clean QR write satisfies the ladder', async () => {
+  // Decided 2026-10-09 (#638): a form with no scores writes the readable copy
+  // even when the form itself saved. Many EHRs store a QuestionnaireResponse and
+  // display nothing from it; the live sandbox run (#640) left a Stanley-Brown
+  // plan in the chart as exactly that. This test pinned the opposite until then.
+  it('omits Tier 2, and writes the readable copy beside the clean form write', async () => {
     const { client, posted } = fakeClient()
     const source = new SmartDataSource(client as never)
     const { entry } = submission({ q1: true, q5: true })
@@ -304,23 +309,71 @@ describe('saveResponse — an instrument with no Observations', () => {
 
     expect(step(source, 2)).toBeUndefined()
     expect(step(source, 1)?.outcome).toBe('written')
-    // The floor is conditional, so a clean discrete write skips it — the
-    // DEFAULT policy (`alwaysWriteDocument: false`). Worth knowing: an EHR can
-    // store a QuestionnaireResponse and still have no viewer that renders one,
-    // and the Tier-0 narrative is the only human-readable artifact SPiER writes.
-    // A deployment that wants it regardless sets `alwaysWriteDocument`.
-    expect(typesOf(posted)).toEqual(['QuestionnaireResponse'])
-    expect(step(source, 0)?.outcome).toBe('skipped')
-  })
-
-  it('writes the readable narrative anyway when alwaysWriteDocument is set', async () => {
-    const { client, posted } = fakeClient()
-    const source = new SmartDataSource(client as never, { alwaysWriteDocument: true })
-    const { entry } = submission({ q1: true, q5: true })
-
-    await source.saveResponse(PATIENT, entry, null)
-
     expect(typesOf(posted)).toEqual(['QuestionnaireResponse', 'DocumentReference'])
     expect(step(source, 0)?.outcome).toBe('written')
+  })
+})
+
+describe('saveResponse — an instrument WITH scores', () => {
+  it('skips the readable copy when every part landed, by default', async () => {
+    const { client, posted } = fakeClient()
+    const source = new SmartDataSource(client as never)
+    const { entry, derived } = submission({ q1: true, q5: true })
+
+    await source.saveResponse(PATIENT, entry, derived)
+
+    expect(typesOf(posted)).not.toContain('DocumentReference')
+    expect(step(source, 0)?.skip).toBe('not-needed')
+  })
+
+  it('writes the readable copy anyway when alwaysWriteDocument is set', async () => {
+    const { client, posted } = fakeClient()
+    const source = new SmartDataSource(client as never, { alwaysWriteDocument: true })
+    const { entry, derived } = submission({ q1: true, q5: true })
+
+    await source.saveResponse(PATIENT, entry, derived)
+
+    expect(typesOf(posted)).toContain('DocumentReference')
+    expect(step(source, 0)?.outcome).toBe('written')
+  })
+})
+
+// Search is not read-your-writes on every server (#640): the SMART Health IT
+// sandbox stored a save at once but did not find it by `patient=` search for
+// about a minute, so the chart re-read straight after a save and showed the
+// chart as it was before it.
+describe('getSlice — a save shows on the chart before the search index catches up', () => {
+  it('includes what this session wrote when the search does not find it yet', async () => {
+    const { client } = fakeClient({ search: 'lagging' })
+    const source = new SmartDataSource(client as never)
+    const { entry, derived } = submission({ q1: true, q5: true })
+    await source.saveResponse(PATIENT, entry, derived)
+
+    const slice = await source.getSlice(null)
+    expect(slice.responses.map(r => r.id)).toEqual(['srv-QuestionnaireResponse-1'])
+    expect(slice.observations.length).toBe(derived?.observations.length)
+    expect(slice.observations.every(o => o.id?.startsWith('srv-Observation-'))).toBe(true)
+  })
+
+  it('counts nothing twice once the search has caught up', async () => {
+    const { client } = fakeClient({ search: 'current' })
+    const source = new SmartDataSource(client as never)
+    const { entry, derived } = submission({ q1: true, q5: true })
+    await source.saveResponse(PATIENT, entry, derived)
+
+    const slice = await source.getSlice(null)
+    expect(slice.responses).toHaveLength(1)
+    expect(slice.observations.length).toBe(derived?.observations.length)
+  })
+
+  it("adds nothing for another patient's chart", async () => {
+    const { client } = fakeClient({ search: 'lagging' })
+    const source = new SmartDataSource(client as never)
+    const { entry, derived } = submission({ q1: true, q5: true })
+    await source.saveResponse(PATIENT, entry, derived)
+
+    const other = await source.getSlice('someone-else')
+    expect(other.responses).toHaveLength(0)
+    expect(other.observations).toHaveLength(0)
   })
 })

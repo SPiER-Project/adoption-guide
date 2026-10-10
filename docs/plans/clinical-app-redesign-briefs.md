@@ -203,8 +203,8 @@ Build, React-free and DOM-free in packages/core (check:core-boundary):
    Plant each defect the audit found (a stale alert card, two primaries, a
    product default recommending) and watch it fail.
 
-Gates: root `npm run verify` (check:pathway, check:outputs,
-check:published-profiles and check:reassessment all read this area) and
+Gates: root `npm run verify` (check:pathway, check:outputs
+(which absorbed check:published-profiles) and check:reassessment all read this area) and
 `npm run verify` in services/cds, which imports the builder. The chart
 (apps/clinical/src/components/PatientPathway.tsx) must still render — it
 groups cards by spier-stage-id — but do not redesign it here; that is PR 4.

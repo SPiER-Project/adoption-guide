@@ -58,6 +58,8 @@ import { GUIDE_SECTIONS } from '../data/guideSections'
 import { AdoptionReadiness } from './AdoptionReadiness'
 import { CarePathway } from './CarePathway'
 import { CarePathwayProtocol } from './CarePathwayProtocol'
+import { EmergencyDepartmentPathway } from './EmergencyDepartmentPathway'
+import { InpatientPathway } from './InpatientPathway'
 import { CdsServiceGuide } from './CdsServiceGuide'
 import { DataDictionary } from './DataDictionary'
 import { EhrAdoptionRubric } from './EhrAdoptionRubric'
@@ -65,6 +67,7 @@ import { Overview } from './Overview'
 import { PatientJourney } from './PatientJourney'
 import { PopulationDashboardGuide } from './PopulationDashboardGuide'
 import { ProviderAppGuide } from './ProviderAppGuide'
+import { SavingToEhrGuide } from './SavingToEhrGuide'
 import { WhySpier } from './WhySpier'
 
 afterEach(cleanup)
@@ -127,15 +130,31 @@ const CAPS: Record<string, { cap: number; why: string }> = {
       'picks and the step cards — 416 today (423 when the audit measured it).',
   },
   pathway: {
-    cap: 1250,
-    why: 'PR 3 brought it from 2,445 to 1,203: about 460 of the page’s own prose, 180 of the simulator’s ' +
-      'questions and 580 of the artifact’s tier table. The table is rendered from the PlanDefinition, so most ' +
-      'of this budget is not writing anyone does here.',
+    cap: 875,
+    why: 'PR 3 brought it from 2,445 to 1,203; the 2026-10-09 layout pass to 840 by drawing the tier table as ' +
+      'obligation × tier and nothing else — the implementer’s notes on each cell are on the protocol page, ' +
+      'where they were always also published. Most of what remains is the page’s own prose, the simulator’s ' +
+      'questions and the table’s row descriptions.',
   },
   'pathway/protocol': {
     cap: 1950,
     why: 'The implementer’s page: the spine with its table, the pending-definition strip and provenance, ' +
       'nearly all of it rendered from the artifact. Long on purpose, and the reason the explainer is short.',
+  },
+  // ⚠️ Two setting pathways, two numbers — unlike the "see it running" pages
+  // they are not one pattern held to one length: each spine is the ARTIFACT's,
+  // and inpatient care has more steps than an emergency department visit.
+  // Both measured 2026-10-09 on first render, rounded up.
+  'pathway/emergency-department': {
+    cap: 700,
+    why: 'A setting pathway: a two-sentence lede, the spine rendered from its PlanDefinition, one pending ' +
+      'note and provenance. 652 on first render; the spine is the bulk and is the artifact’s words.',
+  },
+  'pathway/inpatient': {
+    cap: 975,
+    why: 'A setting pathway, longer than the emergency department’s because a stay has more steps and the ' +
+      'draft carries a review notice and four pending items. 924 on first render; the spine is the bulk ' +
+      'and is the artifact’s words, so shortening it is an FSH edit, not a page edit.',
   },
   tools: {
     cap: 1300,
@@ -156,6 +175,12 @@ const CAPS: Record<string, { cap: number; why: string }> = {
   'provider-app': { cap: SURFACE_GUIDE_CAP, why: SURFACE_GUIDE_WHY },
   dashboard: { cap: SURFACE_GUIDE_CAP, why: SURFACE_GUIDE_WHY },
   'cds-service': { cap: SURFACE_GUIDE_CAP, why: SURFACE_GUIDE_WHY },
+  'provider-app/saving-to-the-ehr': {
+    cap: 330,
+    why: 'Built to the "see it running" pattern its parent uses, so held to the same number: the intro, three ' +
+      'rungs, where a site starts and ends, then three closed drawers carrying what it never writes, how it ' +
+      'decides, and what is not yet proved.',
+  },
   'data-dictionary': {
     cap: 1200,
     why: '§4.5 asked for navigation rather than cuts, and got it on 2026-09-21: the eight stage tables are closed ' +
@@ -191,9 +216,12 @@ const PAGES: Record<string, () => ReactElement> = {
   '/overview': Overview,
   pathway: CarePathway,
   'pathway/protocol': CarePathwayProtocol,
+  'pathway/emergency-department': EmergencyDepartmentPathway,
+  'pathway/inpatient': InpatientPathway,
   tools: PatientJourney,
   'tools/readiness': AdoptionReadiness,
   'provider-app': ProviderAppGuide,
+  'provider-app/saving-to-the-ehr': SavingToEhrGuide,
   dashboard: PopulationDashboardGuide,
   'cds-service': CdsServiceGuide,
   'data-dictionary': DataDictionary,

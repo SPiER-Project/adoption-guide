@@ -8,13 +8,16 @@
  * EHR cannot yet accept, which is what an adoption conversation needs.
  *
  * So this component is built around explaining ABSENCES, and it cannot do that
- * from `WritebackResult.steps` alone:
- *  - `buildWritePlan` omits the Tier-3 step entirely when the Condition proposal
- *    is disabled (the default), so "off by design" has to come from the resolved
- *    config, not from a missing row;
- *  - it also omits Tier 2 when the instrument produced no Observations, which is
- *    a property of the instrument, not a failure of the server.
- * Both would otherwise render as unexplained gaps. See `WritebackReport`.
+ * from `WritebackResult.steps` alone: `buildWritePlan` omits Tier 2 when the
+ * instrument produced no Observations, which is a property of the instrument,
+ * not a failure of the server, and would otherwise render as an unexplained
+ * gap. See `WritebackReport`.
+ *
+ * There is no problem-list PROPOSAL rung. The ladder had a Tier-3 "Condition
+ * proposal" until #639 retired it — a screen never becomes a Condition — so the
+ * scorecard no longer offers one, even as "off by design". The one problem-list
+ * row it does show is the problems a clinician RECORDED (CAMS Section B), and
+ * only on a save that has them.
  */
 import type {
   WritebackReport,
@@ -54,8 +57,9 @@ interface Rung {
   tier: WriteTier
   /**
    * ⚠️ **A rung is a tier AND a type**, because Tier 2 has two steps: the scores,
-   * and the problems a form recorded (CAMS Section B's drivers). Keyed by tier
-   * alone, the second step overwrote the first in the lookup below.
+   * and the problems a form recorded (CAMS Section B's drivers). Looked up by
+   * tier alone, the second step overwrote the first and the scores row showed
+   * the problems' outcome.
    */
   resourceType: WritebackResourceType
   label: string
@@ -90,12 +94,6 @@ const RUNGS: Rung[] = [
     blurb: 'Each problem you recorded, as a problem-list entry the EHR tracks until it is resolved.',
     onlyWhenAttempted: true,
   },
-  {
-    tier: 3,
-    resourceType: 'Condition',
-    label: 'A problem-list proposal',
-    blurb: 'Opt-in only, and never added to the problem list without a clinician confirming it.',
-  },
 ]
 
 /** Display label + modifier class for a step outcome. */
@@ -104,17 +102,50 @@ function outcomeLabel(outcome: WriteStepResult['outcome']): string {
 }
 
 /**
+ * What happened to a rung that has a step, in a clinician's words.
+ *
+ * ⚠️ **It never prints the step's `reason` or `error`.** Those are core's
+ * diagnostics, in the wire's own vocabulary — "2 Observations written", "Failed
+ * to create Observation — HTTP 422: …", "Tier not enabled", "floor not needed" —
+ * and this component renders on the clinical surface only, where inspection is
+ * never on. They printed here verbatim until 2026-10-07, past both its test
+ * (`Observation\b` does not match a plural) and the jargon gate (which
+ * reads this app's string literals; these are built in core). The raw detail
+ * stays in `WritebackReport`, which the guide's tool pages show under
+ * `useInspect()`. The rung's label already names what it is, so a count is
+ * enough here.
+ */
+function stepDetail(step: WriteStepResult): string {
+  const { count } = step
+  if (step.outcome === 'written') {
+    return count && count.of > 1
+      ? `Saved to this patient’s chart — all ${count.of}.`
+      : 'Saved to this patient’s chart.'
+  }
+  if (step.outcome === 'failed') {
+    return count && count.written > 0
+      ? `${count.written} of ${count.of} saved — the EHR did not accept the rest.`
+      : 'The EHR did not accept it.'
+  }
+  switch (step.skip) {
+    case 'disabled':
+      return 'Turned off in this site’s settings.'
+    case 'unsupported':
+      return 'This EHR does not accept it yet.'
+    case 'not-needed':
+      return 'Not needed — the parts above saved everything in it.'
+    default:
+      return 'Not written.'
+  }
+}
+
+/**
  * Why a rung has no step at all. A missing row is never left unexplained: each
  * case here is a different statement about the site, the instrument, or SPiER's
  * own governance policy, and collapsing them would make the scorecard useless
  * for the adoption rubric it feeds.
  */
-function absenceReason(tier: WriteTier, report: WritebackReport): string {
-  if (tier === 3) {
-    return report.config.enableConditionProposal
-      ? 'Enabled, but no proposal was warranted — a negative screen does not propose a problem.'
-      : 'Off by design. Enabling it requires an explicit clinician confirmation step.'
-  }
+function absenceReason(tier: WriteTier): string {
   if (tier === 2) {
     return 'This form has no score of its own to save — some record a plan instead.'
   }
@@ -129,6 +160,10 @@ export function WritebackScorecard({ report }: { report: WritebackReport | null 
 
   const written = report.result.steps.filter(s => s.outcome === 'written')
   const failed = report.result.steps.filter(s => s.outcome === 'failed')
+  // The parts this save NEEDED. A readable copy skipped as not needed, or a part
+  // turned off in settings, is not a part that failed to save — counting it
+  // made a complete save read "2 of 3 parts saved" against a real EHR (#640).
+  const needed = report.result.steps.filter(s => s.skip !== 'not-needed' && s.skip !== 'disabled')
 
   return (
     <Card as="section" className="writeback-scorecard" aria-labelledby="writeback-scorecard-heading">
@@ -137,8 +172,8 @@ export function WritebackScorecard({ report }: { report: WritebackReport | null 
         title="Saved to the EHR"
         meta={
           <>
-            {written.length} of {report.result.steps.length}{' '}
-            {report.result.steps.length === 1 ? 'part' : 'parts'} saved
+            {written.length} of {needed.length}{' '}
+            {needed.length === 1 ? 'part' : 'parts'} saved
             {failed.length > 0 ? `, ${failed.length} failed` : ''}.
           </>
         }
@@ -146,9 +181,8 @@ export function WritebackScorecard({ report }: { report: WritebackReport | null 
 
       {!report.capabilitiesKnown && (
         <Notice tone="warning" role="status">
-          <strong>Could not read this server&rsquo;s CapabilityStatement.</strong> The tiers below
-          were attempted without knowing what the server accepts — a skipped tier here means
-          &ldquo;not advertised&rdquo;, not &ldquo;refused&rdquo;.
+          <strong>Could not ask this EHR what it accepts.</strong> The parts below were tried
+          anyway, so one it &ldquo;does not accept&rdquo; may simply not have said so.
         </Notice>
       )}
 
@@ -170,18 +204,9 @@ export function WritebackScorecard({ report }: { report: WritebackReport | null 
               </div>
               <p className="writeback-scorecard__blurb">{rung.blurb}</p>
               {step ? (
-                <p className="writeback-scorecard__detail">
-                  {step.outcome === 'written' ? (
-                    <>
-                      Saved to this patient&rsquo;s chart
-                      {step.reason ? ` — ${step.reason}` : ''}
-                    </>
-                  ) : (
-                    step.error ?? step.reason ?? '—'
-                  )}
-                </p>
+                <p className="writeback-scorecard__detail">{stepDetail(step)}</p>
               ) : (
-                <p className="writeback-scorecard__detail">{absenceReason(rung.tier, report)}</p>
+                <p className="writeback-scorecard__detail">{absenceReason(rung.tier)}</p>
               )}
             </li>
           )

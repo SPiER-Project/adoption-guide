@@ -1,6 +1,19 @@
 #!/usr/bin/env node
 /**
- * The declared output of a tool is the resource the app writes for it.
+ * The app writes what the IG says it writes — from BOTH ends.
+ *
+ *   A. Every DECLARED output (`PlanDefinition.action.output`) is claimed by a
+ *      resource the app emits, on the declared type.
+ *   B. Every PUBLISHED profile is claimed by a resource the app emits, or is
+ *      exempted with a reason.
+ *
+ * Until 2026-10-07 these were two gates, `check:outputs` and
+ * `check:published-profiles`, reading the same emitted corpus from opposite
+ * ends — each with its own corpus reader, and only one of them checking that
+ * the corpus was fresh. They are one file now: one read, one freshness check,
+ * both rule sets.
+ *
+ * ═══ PART A — the declared output of a tool is the resource the app writes ═══
  *
  * ─── Why this gate exists ───────────────────────────────────────────────────
  *
@@ -42,7 +55,7 @@
  * have the right slot — `ActivityDefinition.profile` — and it is unused on all
  * 43. `PlanDefinition.action.output` is where SPiER actually wrote it down.
  *
- * ─── The four rules ─────────────────────────────────────────────────────────
+ * ─── The four rules of part A ─────────────────────────────────────────────────────────
  *
  *  1. DECLARED — every tool the app can launch a recorder for declares at least
  *     one output profile. Its allowlist is EMPTY, which #500's lesson says is
@@ -82,6 +95,60 @@
  * missing from that tree is a declared output the HL7 validator never checks.
  * The failure message distinguishes the two by whether the canonical appears in
  * the source at all, so the reader is told which one they have.
+ *
+ * ═══ PART B — every profile the IG publishes is one the app actually writes ═══
+ *
+ * ─── Why part A is not enough ───────────────────────────────────────────────
+ *
+ * Part A asks: does every **declared** output — a
+ * `PlanDefinition.action.output` — get claimed by something the app emits? That
+ * catches a tool whose recorder writes something other than its IG page says.
+ *
+ * It cannot catch a profile that no tool declares. The IG can publish a profile,
+ * the app can never write one, and part A has nothing to compare, because its
+ * input is the set of declared outputs rather than the set of published
+ * profiles. Both parts read the same emitted corpus; they start from opposite
+ * ends of it.
+ *
+ * ⚠️ **That gap was not hypothetical — it is why this file exists.**
+ * `spier-suicide-risk-concept` was published, read by every Stage-8 measure the
+ * CQL defines over `Risk Concept Observations`, and claimed by **nothing the app
+ * emitted**: the only resources carrying it were two hand-authored entries in the
+ * demo scenarios, so the measure computed a number off seeded fixtures and would
+ * have reported zero in a real deployment. It was the TL-009 shape one layer up:
+ * published, measured, never written, and invisible to every gate that starts
+ * from what a tool declares. Its exemption here was recorded as "a gap, not a
+ * decision", and it EXPIRED (rule B2) the day `riskConcept.ts` began deriving the
+ * concept from every result a published map covers — 2026-10-06.
+ *
+ * ⚠️ It is also invisible to `validate-fhir.mjs`, for the reason
+ * `docs/internals/fhir-conformance.md` gives: a validator checks a resource
+ * against the profiles it CLAIMS, so a profile nothing claims is never the
+ * subject of a check. Publishing more profiles cannot fail that gate.
+ *
+ * ─── The rules of part B ────────────────────────────────────────────────────
+ *
+ *  1. Every published profile (`kind: resource`, `derivation: constraint`) is
+ *     claimed by at least one resource in the emitted corpus, or is named in
+ *     `EXEMPT` with a reason.
+ *  2. `EXEMPT` EXPIRES: an entry whose profile turns up in the corpus is a
+ *     failure, so a fixed gap deletes its own exemption rather than leaving a
+ *     stale claim that the app does not write something it now does. Same rule
+ *     as part A's rule 4, and for the same reason.
+ *  3. Floors on both inputs, so a scan that reads nothing fails instead of
+ *     reporting that all zero profiles are emitted.
+ *
+ * Corpus freshness is checked once, for both parts, before either runs: until
+ * the merge only part A checked it, and part B relied on running after it.
+ *
+ * ⚠️ **What this gate cannot see.** It checks that a profile is claimed *at
+ * all*, not that every resource which ought to claim it does. Two builders can
+ * emit the same shape while only one stamps it, and this passes — three C-SSRS
+ * mappers sit behind one profile, and it notices nothing when one stops
+ * stamping. Part A has the same blind spot from the other direction,
+ * and the validator never checks a profile nothing claims. That case is held per
+ * response by `tests/runtimeFhir.emit.test.ts` ("every instrument result claims
+ * each output profile its tool declares").
  */
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -89,6 +156,7 @@ import { dirname, resolve, join } from 'node:path'
 import { reportFloors } from './lib/floors.mjs'
 import { APP_ROOTS, appRootFloors } from './lib/app-roots.mjs'
 import { loadCore } from './lib/load-core.mjs'
+import { shortCanonical as short } from './lib/text.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
@@ -102,7 +170,6 @@ const fail = (msg) => {
   failures += 1
 }
 
-const short = (canonical) => String(canonical).split('/').pop()
 
 /**
  * Declared output profiles the app deliberately does not claim.
@@ -128,6 +195,24 @@ const short = (canonical) => String(canonical).split('/').pop()
  * moment it stops being true.
  */
 const UNCLAIMED = {}
+
+/**
+ * Published profiles the app deliberately does not write.
+ *
+ * ⚠️ An entry is a claim that SPiER publishes a conformance statement it never
+ * produces a resource for. That is occasionally correct and always worth
+ * writing down. Before adding one, check it is not simply a builder that has
+ * not been asked to stamp it — that was true of twelve profiles until
+ * 2026-09-17, and the fix was one parameter.
+ */
+const EXEMPT = {
+  'spier-suicide-related-condition':
+    'A problem-list entry is the clinician\'s assertion, never derived from a screen '
+    + '(docs/decisions/suicide-related-problem-set.md): SPiER PROMPTS one through a CDS card '
+    + '(cdsHooks/problemListCard.ts) and the clinician records it in the EHR. The app writes '
+    + 'none — the writeback ladder\'s Tier-3 Condition proposal was retired (#639). '
+    + 'Deliberate — the assertion is the clinician\'s, not the app\'s.',
+}
 
 // ─── Inputs ─────────────────────────────────────────────────────────────────
 
@@ -278,18 +363,47 @@ if (newestSource > emittedAt) {
   process.exit(1)
 }
 
-/** Profile canonical → the resourceTypes the app emits claiming it. */
+/**
+ * Profile canonical → the resourceTypes the app emits claiming it. Read ONCE
+ * for both parts; a file may hold one resource or an array of them.
+ */
 const claimed = new Map()
 let emittedCount = 0
 for (const entry of readdirSync(runtimeDir)) {
   if (!entry.endsWith('.json')) continue
-  const resource = JSON.parse(readFileSync(join(runtimeDir, entry), 'utf8'))
-  emittedCount++
-  for (const profile of resource.meta?.profile ?? []) {
-    const types = claimed.get(profile) ?? new Set()
-    types.add(resource.resourceType)
-    claimed.set(profile, types)
+  let parsed
+  try {
+    parsed = JSON.parse(readFileSync(join(runtimeDir, entry), 'utf8'))
+  } catch {
+    fail(`${entry}: not readable as JSON`)
+    continue
   }
+  for (const resource of Array.isArray(parsed) ? parsed : [parsed]) {
+    if (!resource?.resourceType) continue
+    emittedCount++
+    for (const profile of resource.meta?.profile ?? []) {
+      const types = claimed.get(profile) ?? new Set()
+      types.add(resource.resourceType)
+      claimed.set(profile, types)
+    }
+  }
+}
+
+/** Every profile the IG publishes: a constraint on a resource type (part B). */
+const published = []
+for (const entry of readdirSync(genDir)) {
+  if (!entry.startsWith('StructureDefinition-') || !entry.endsWith('.json')) continue
+  let sd
+  try {
+    sd = JSON.parse(readFileSync(join(genDir, entry), 'utf8'))
+  } catch {
+    fail(`${entry}: not readable as JSON`)
+    continue
+  }
+  // `kind: resource` excludes Extensions; `derivation: constraint` excludes the
+  // base spec's own definitions, should any ever be copied in.
+  if (sd.kind !== 'resource' || sd.derivation !== 'constraint' || !sd.url) continue
+  published.push({ url: sd.url, type: sd.type })
 }
 
 /**
@@ -314,7 +428,7 @@ const sourceText = (() => {
   return text
 })()
 
-// ─── RULE 1 — every launchable recorder declares an output ──────────────────
+// ─── A1 — every launchable recorder declares an output ──────────────────────
 
 // ⚠️ Failures counted for THIS section, so its summary cannot print a ✓ over a
 // ✗ it just emitted — the first run of this gate did exactly that, and a green
@@ -344,7 +458,7 @@ if (failures === rule1FailuresBefore) {
   )
 }
 
-// ─── RULES 2 + 3 — every declared profile is claimed, on the declared type ───
+// ─── A2 + A3 — every declared profile is claimed, on the declared type ───────
 
 const rule23FailuresBefore = failures
 let claimedOk = 0
@@ -358,10 +472,10 @@ for (const [profile, entry] of [...declared].sort()) {
     fail(
       `${tools}: declared output profile "${id}" is claimed by no resource the app emits. ` +
         (namedInSource
-          ? `The canonical DOES appear in packages/core/src or web/src, so either the builder names it ` +
+          ? `The canonical DOES appear in packages/core/src or the apps, so either the builder names it ` +
             `without stamping \`meta.profile\` (it may only be READ, which is how TL-009 stayed broken), ` +
             `or nothing runtimeFhir.emit.test.ts exercises produces one.`
-          : `The canonical appears nowhere in packages/core/src or web/src, so nothing writes it at all — ` +
+          : `The canonical appears nowhere in packages/core/src or the apps, so nothing writes it at all — ` +
             `this is the TL-009 shape exactly.`) +
         ` Declared by ${[...entry.actions].sort().join(', ')}. Fix the builder, or add "${id}" to ` +
         `UNCLAIMED in this file with the reason.`,
@@ -386,7 +500,7 @@ if (failures === rule23FailuresBefore) {
   )
 }
 
-// ─── RULE 4 — the allowlist expires ─────────────────────────────────────────
+// ─── A4 — the allowlist expires ─────────────────────────────────────────────
 
 const declaredIds = new Set([...declared.keys()].map(short))
 const claimedIds = new Set([...claimed.keys()].map(short))
@@ -408,9 +522,52 @@ for (const [id, reason] of Object.entries(UNCLAIMED)) {
   }
 }
 
+const partBFailuresBefore = failures
+// ─── B1 — a published profile is written, or exempted ───────────────────────
+
+for (const profile of published) {
+  const id = short(profile.url)
+  if (claimed.has(profile.url)) continue
+  if (Object.prototype.hasOwnProperty.call(EXEMPT, id)) continue
+  fail(
+    `published profile "${id}" (${profile.type}) is claimed by nothing the app emits. `
+    + 'The IG asserts constraints on a resource SPiER never writes, so no validator will '
+    + 'ever check them and any measure reading the profile counts only hand-authored '
+    + `fixtures. Stamp it on the builder that should produce it, or add "${id}" to EXEMPT `
+    + 'in this file with the reason it is deliberate.',
+  )
+}
+
+// ─── B2 — an exemption expires the moment it stops being true ───────────────
+
+for (const [id, reason] of Object.entries(EXEMPT)) {
+  const profile = published.find((p) => short(p.url) === id)
+  if (!profile) {
+    fail(
+      `EXEMPT names "${id}", which the IG no longer publishes. Delete the entry — an `
+      + 'exemption for a profile that does not exist hides nothing and outlives its reason.',
+    )
+    continue
+  }
+  if (claimed.has(profile.url)) {
+    fail(
+      `EXEMPT still names "${id}", but the app now emits ${[...claimed.get(profile.url)].join(', ')} `
+      + 'claiming it. Delete the entry: it asserts SPiER does not write something it does. '
+      + `(The reason recorded was: ${reason.slice(0, 80)}…)`,
+    )
+  }
+}
+
+if (failures === partBFailuresBefore) console.log(
+  `✓ published: ${published.length} profile(s), `
+  + `${published.length - Object.keys(EXEMPT).length} emitted by the app, `
+  + `${Object.keys(EXEMPT).length} exempt`,
+)
+for (const [id] of Object.entries(EXEMPT)) console.log(`    exempt: ${id}`)
+
 // ─── Liveness ───────────────────────────────────────────────────────────────
 //
-// Four independent sources, floored separately: each can collapse on its own,
+// Independent sources, floored separately: each can collapse on its own,
 // and a single total would let any one of them clear the bar alone.
 reportFloors(
   [
@@ -419,12 +576,14 @@ reportFloors(
     { source: 'fhir-artifacts/generated', dimension: 'declared output profile(s)', actual: declared.size, floor: 14 },
     { source: 'packages/tool-views/src/data/toolViews.tsx', dimension: 'recorder slug(s)', actual: slugs.size, floor: 14 },
     { source: '.runtime-fhir', dimension: 'emitted resource(s)', actual: emittedCount, floor: 100 },
+    { source: 'fhir-artifacts/generated', dimension: 'published profile(s)', actual: published.length, floor: 16 },
+    { source: '.runtime-fhir', dimension: 'distinct profile(s) claimed', actual: claimed.size, floor: 12 },
   ],
   fail,
 )
 
 if (failures) {
-  console.error(`\noutput-profile check FAILED (${failures} issue(s)).`)
+  console.error(`\noutput / published-profile check FAILED (${failures} issue(s)).`)
   process.exit(1)
 }
-console.log('\noutput-profile check passed.')
+console.log('\noutput / published-profile check passed.')

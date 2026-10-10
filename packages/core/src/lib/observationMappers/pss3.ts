@@ -1,4 +1,5 @@
 import { makeObservation, interpretationOf, walkItems, getCodingAnswer, getYesNoBoolean, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
+import { PSS3_RESULT_SYSTEM, type Pss3ResultCode } from '@spier/fhir-artifacts/generated/disposition-codes.generated'
 
 // The PSS-3 has NO published panel or per-item LOINC codes, so the three
 // screening items bind to the SPiER-local http://thespierproject.org/fhir/CodeSystem/pss3-item.
@@ -8,7 +9,6 @@ import { makeObservation, interpretationOf, walkItems, getCodingAnswer, getYesNo
 // Questionnaire item codes (ig/input/resources/questionnaires/PSS-3/pss3-questionnaire.json), which the
 // anti-drift check scripts/check-observation-extract.mjs holds this mapper to by running it.
 const PSS3_ITEM_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/pss3-item'
-const PSS3_RESULT_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/pss3-result'
 const PSS3_RECENCY_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/pss3-attempt-recency'
 
 // Item 3a recency codes that count as a RECENT attempt (within ~6 months) and
@@ -35,7 +35,7 @@ export function mapPSS3(response: QuestionnaireResponseResource): MapperResult {
   const recentAttempt = recencyCoding?.system === PSS3_RECENCY_SYSTEM && RECENT_ATTEMPT_CODES.has(recencyCoding.code ?? '')
 
   const positive = activeIdeation === true || recentAttempt
-  const resultCode = positive ? 'positive' : 'negative'
+  const resultCode: Pss3ResultCode = positive ? 'positive' : 'negative'
   const resultDisplay = positive ? 'Positive Screen (suicide risk)' : 'Negative Screen'
 
   observations.push(

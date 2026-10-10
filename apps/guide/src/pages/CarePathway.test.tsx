@@ -26,8 +26,8 @@
  * NOT asserted: how it looks. Layout and the dimming of the two non-selected
  * tier columns are computed styles, invisible to jsdom.
  */
-import { describe, it, expect, afterEach } from 'vitest'
-import { render, screen, cleanup, fireEvent, within } from '@testing-library/react'
+import { describe, it, expect, afterEach, vi } from 'vitest'
+import { render, screen, cleanup, fireEvent, within, act } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { CarePathway } from './CarePathway'
 import { InspectContext } from '@spier/tool-views/context/InspectContext'
@@ -54,11 +54,23 @@ function renderPage() {
   )
 }
 
-/** The simulator's live region: "Derived tier · <code> · <mapper detail>". */
+/**
+ * The tier code the simulator's live region carries. The panel SHOWS the tier's
+ * title from the artifact ("High risk"), and carries the mapper's code beside it
+ * so a case can assert what the mapper said rather than what the page words.
+ */
 function derivedTier(): string {
-  const region = document.querySelector('.pathway-sim__result-tier')
+  const region = document.querySelector('.pathway-sim__result')
   if (!region) throw new Error('the simulator rendered no derived tier')
-  return region.textContent ?? ''
+  return region.getAttribute('data-tier') ?? ''
+}
+
+/** What the result panel shows: the tier's title, and what that tier is owed. */
+function resultPanel() {
+  return {
+    title: document.querySelector('.pathway-sim__result-tier')?.textContent ?? '',
+    owed: [...document.querySelectorAll('.pathway-sim__owed-item')].map(li => li.textContent),
+  }
 }
 
 /** Toggle one C-SSRS item by its question number label ("Q5"). */
@@ -67,6 +79,13 @@ function toggle(label: string) {
   const checkbox = marker.closest('label')?.querySelector('input[type="checkbox"]')
   if (!checkbox) throw new Error(`no toggle found for ${label}`)
   fireEvent.click(checkbox)
+}
+
+/** Queries scoped to the tier table — the result panel repeats the obligation titles. */
+function matrix() {
+  const table = document.querySelector('.pathway-matrix')
+  if (!table) throw new Error('the page rendered no tier table')
+  return within(table as HTMLElement)
 }
 
 const words = (text: string) => text.trim().split(/\s+/).filter(Boolean).length
@@ -121,7 +140,7 @@ describe('CarePathway — the explainer', () => {
     expect(link.getAttribute('href')).toBe('/guide/pathway/protocol')
   })
 
-  it('draws the tier table from the artifact: three tiers, six obligations, spanning cells', () => {
+  it('draws the tier table from the artifact: three tiers, six obligations, spanning cells — and no notes', () => {
     renderPage()
     expect(screen.getByText('Low risk')).toBeDefined()
     expect(screen.getByText('Moderate risk')).toBeDefined()
@@ -129,8 +148,9 @@ describe('CarePathway — the explainer', () => {
     const rowHeaders = [...document.querySelectorAll('.pathway-matrix tbody th')].map(th =>
       th.querySelector('.pathway-obligation__title')?.textContent,
     )
+    // The summary table: no gate row (the column headers name the tier), and
+    // none of the implementer's notes — those stay on the protocol page.
     expect(rowHeaders).toEqual([
-      'Applies when',
       'Share patient-facing crisis resources',
       'Complete a collaborative safety plan',
       'Reassess on the published cadence for this tier',
@@ -139,10 +159,20 @@ describe('CarePathway — the explainer', () => {
       'Missed-appointment outreach protocol',
     ])
     // The diagram's spanning row: crisis resources is ONE cell across all three.
-    const crisis = screen.getByText('Share patient-facing crisis resources').closest('tr')!
+    const crisis = matrix().getByText('Share patient-facing crisis resources').closest('tr')!
     const owed = crisis.querySelectorAll('td.pathway-matrix__cell--owed')
     expect(owed).toHaveLength(1)
     expect(owed[0].getAttribute('colspan')).toBe('3')
+    // A span is a band, named by the tiers it covers; a single tier is a check
+    // whose word ("Owed at this tier") is for a screen reader only.
+    expect(owed[0].querySelector('.pathway-matrix__band')?.textContent).toBe('Owed: All tiers')
+    const plan = matrix().getByText('Complete a collaborative safety plan').closest('tr')!
+    expect(plan.querySelector('.pathway-matrix__band')?.textContent).toBe('Owed: Moderate and high risk')
+    const stat = matrix().getByText('STAT safety evaluation').closest('tr')!
+    expect(stat.querySelector('.pathway-matrix__band')).toBeNull()
+    expect(stat.querySelector('.pathway-matrix__mark')?.textContent).toBe('Owed at this tier')
+    expect(document.querySelector('.pathway-matrix .pathway-notes')).toBeNull()
+    expect(document.querySelector('.pathway-matrix .pathway-stage-chip')).toBeNull()
   })
 })
 
@@ -156,19 +186,35 @@ describe('CarePathway simulator', () => {
     ).toBeDefined()
   })
 
-  it('derives no-risk from an all-No screen, and every column stays unlit', () => {
+  it('derives no-risk from an all-No screen, and the table stays at full strength', () => {
     renderPage()
     expect(derivedTier()).toBe('no-risk')
-    // ...and says so under the table, matching the artifact's negative-assessment note.
-    expect(document.querySelector('.pathway-branch__exit')?.textContent).toMatch(/does not enter the pathway/)
+    // ...and says so beside the questions, matching the artifact's negative-assessment note.
+    expect(resultPanel().title).toBe('Does not enter the pathway')
+    expect(resultPanel().owed).toEqual([])
+    expect(document.querySelector('.pathway-sim__exit')?.textContent).toMatch(/does not enter the pathway/)
+    // No tier was chosen, so nothing is lit AND nothing is faded: the table
+    // stays at full strength until an answer derives a tier.
     expect(document.querySelector('.pathway-matrix__cell--active')).toBeNull()
-    expect(document.querySelectorAll('.pathway-matrix__cell--dimmed').length).toBeGreaterThan(0)
+    expect(document.querySelector('.pathway-matrix__cell--dimmed')).toBeNull()
+    expect(document.querySelector('th[aria-current="true"]')).toBeNull()
   })
 
   it('derives high from a single endorsed q5, through the shipped mapper, and lights that column', () => {
     renderPage()
     toggle('Q5')
     expect(derivedTier()).toBe('high')
+    // The panel beside the questions names the tier and lists what it owes —
+    // read off the same matrix the table draws, so all six rows apply at high.
+    expect(resultPanel().title).toBe('High risk')
+    expect(resultPanel().owed).toEqual([
+      'Share patient-facing crisis resources',
+      'Complete a collaborative safety plan',
+      'Reassess on the published cadence for this tier',
+      'Ask the direct question at every contact',
+      'STAT safety evaluation',
+      'Missed-appointment outreach protocol',
+    ])
     // The high column header is the one flagged as the simulated result...
     const flagged = document.querySelector('th[aria-current="true"]')
     expect(flagged).not.toBeNull()
@@ -176,13 +222,24 @@ describe('CarePathway simulator', () => {
     expect(within(flagged as HTMLElement).getByText('simulated result')).toBeDefined()
     // ...the high-only protocol lights up, and the spanning crisis row does too,
     // because it covers the lit tier.
-    const stat = screen.getByText('STAT safety evaluation').closest('tr')!
+    const stat = matrix().getByText('STAT safety evaluation').closest('tr')!
     expect(stat.querySelector('td.pathway-matrix__cell--owed')?.classList.contains('pathway-matrix__cell--active')).toBe(true)
-    const crisis = screen.getByText('Share patient-facing crisis resources').closest('tr')!
+    const crisis = matrix().getByText('Share patient-facing crisis resources').closest('tr')!
     expect(crisis.querySelector('td.pathway-matrix__cell--owed')?.classList.contains('pathway-matrix__cell--active')).toBe(true)
     // The low tier's dash is dimmed on the safety-plan row: not owed, not selected.
-    const plan = screen.getByText('Complete a collaborative safety plan').closest('tr')!
+    const plan = matrix().getByText('Complete a collaborative safety plan').closest('tr')!
     expect(plan.querySelector('td.pathway-matrix__cell--none')?.classList.contains('pathway-matrix__cell--dimmed')).toBe(true)
+  })
+
+  it('lists only what the lit tier owes: a wish to be dead is low, with no safety plan', () => {
+    renderPage()
+    toggle('Q1')
+    expect(derivedTier()).toBe('low')
+    expect(resultPanel().title).toBe('Low risk')
+    expect(resultPanel().owed).toEqual([
+      'Share patient-facing crisis resources',
+      'Reassess on the published cadence for this tier',
+    ])
   })
 
   it('builds a native-shaped response: the q6 follow-up appears only when q6 is Yes', () => {
@@ -211,5 +268,81 @@ describe('CarePathway simulator', () => {
     expect(json).toContain('valueCoding')
     expect(json).toContain('373066001')
     expect(json).not.toContain('valueBoolean')
+  })
+})
+
+/**
+ * The phone's sticky result bar.
+ *
+ * What it shows, what tapping it does, and when it steps aside. Its stickiness
+ * and its absence at desktop widths are CSS (`position: sticky`, a 1024px media
+ * query), which jsdom does not lay out — those were checked in a browser.
+ */
+describe('CarePathway simulator — the sticky result bar', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  const bar = () => {
+    const el = document.querySelector('.pathway-sim__bar')
+    if (!el) throw new Error('the simulator rendered no result bar')
+    return el as HTMLButtonElement
+  }
+
+  it('says what the panel says, and updates with it', () => {
+    renderPage()
+    expect(bar().querySelector('.pathway-sim__bar-tier')?.textContent).toBe('Does not enter the pathway')
+    expect(bar().querySelector('.pathway-sim__bar-count')).toBeNull()
+    toggle('Q1')
+    expect(bar().querySelector('.pathway-sim__bar-tier')?.textContent).toBe(resultPanel().title)
+    expect(bar().querySelector('.pathway-sim__bar-count')?.textContent).toBe(`${resultPanel().owed.length} owed`)
+    toggle('Q5')
+    expect(bar().querySelector('.pathway-sim__bar-tier')?.textContent).toBe('High risk')
+    expect(bar().querySelector('.pathway-sim__bar-count')?.textContent).toBe('6 owed')
+  })
+
+  it('is not a second live region — the panel announces, once', () => {
+    renderPage()
+    expect(document.querySelectorAll('[aria-live]')).toHaveLength(1)
+    expect(bar().getAttribute('aria-live')).toBeNull()
+  })
+
+  it('scrolls the full panel into view when tapped', () => {
+    const scrolled: Element[] = []
+    const original = Element.prototype.scrollIntoView
+    Element.prototype.scrollIntoView = function scrollIntoView(this: Element) { scrolled.push(this) }
+    try {
+      renderPage()
+      fireEvent.click(bar())
+      expect(scrolled).toEqual([document.querySelector('.pathway-sim__result')])
+    } finally {
+      Element.prototype.scrollIntoView = original
+    }
+  })
+
+  it('steps aside while the panel is on screen, and comes back when it leaves', () => {
+    let report: (visible: boolean) => void = () => {
+      throw new Error('nothing observed the result panel')
+    }
+    const observed: Element[] = []
+    vi.stubGlobal('IntersectionObserver', class {
+      constructor(callback: (entries: Array<{ isIntersecting: boolean }>) => void) {
+        report = visible => callback([{ isIntersecting: visible }])
+      }
+      observe(el: Element) { observed.push(el) }
+      disconnect() {}
+    })
+    renderPage()
+    expect(observed).toEqual([document.querySelector('.pathway-sim__result')])
+    expect(bar().classList.contains('pathway-sim__bar--hidden')).toBe(false)
+
+    act(() => report(true))
+    expect(bar().classList.contains('pathway-sim__bar--hidden')).toBe(true)
+    expect(bar().getAttribute('aria-hidden')).toBe('true')
+    expect(bar().tabIndex).toBe(-1)
+
+    act(() => report(false))
+    expect(bar().classList.contains('pathway-sim__bar--hidden')).toBe(false)
+    expect(bar().getAttribute('aria-hidden')).toBeNull()
   })
 })

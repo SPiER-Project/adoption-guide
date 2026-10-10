@@ -86,17 +86,21 @@ Usage: #definition
 * action[+]
   * id = "trigger-suicide-risk-workflow"
   * title = "Positive Screen Flag / Suicide-Risk Workflow Trigger"
-  * description = "Create a suicide-risk flag or start the suicide-risk workflow after a positive screen. Placeholder — trigger logic not yet FHIR-modelled here (see the Clarify Risk stage triggers for the encoded ASQ/PHQ-9 cases)."
+  * description = "Start the suicide-risk workflow after a positive screen. The trigger itself is modelled on the Clarify Risk stage (any positive screen, read off the harmonized risk concept); a chart flag or work-queue entry written for it is not yet modelled."
   * definitionCanonical = "http://thespierproject.org/fhir/ActivityDefinition/TriggerSuicideRiskWorkflow"
 
 
 // ─── Stage 2: Clarify Risk ───────────────────────────────────
-// Triggered by a positive ASQ result or a non-zero PHQ-9 Item 9.
+// Triggered by ANY positive screen, read off the harmonized risk concept every
+// screen's result translates into (`on-positive-screen`, TL-026). The three
+// per-instrument triggers after it stay as worked examples of the same gate in
+// each instrument's own vocabulary; they are not the rule, and an engine that
+// fires both for one ASQ result does the same thing twice.
 
 Instance: SPiERClarifyRiskStage
 InstanceOf: PlanDefinition
 Title: "SPiER Pathway — Clarify Risk Stage"
-Description: "Stage 2 of 8: after a suicide-risk signal is identified, capture what is going on clinically — suicidal thoughts, plan, intent, behavior history, access to means, risk and protective factors — and whether further action is needed. Triggered by a positive ASQ result or a positive PHQ-9 Item 9."
+Description: "Stage 2 of 8: after a suicide-risk signal is identified, capture what is going on clinically — suicidal thoughts, plan, intent, behavior history, access to means, risk and protective factors — and whether further action is needed. Triggered by any positive screen: a harmonized suicide-risk concept with a positive interpretation, derived from an Identify Possible Risk screen."
 Usage: #definition
 * purpose = "The fully modelled clarify-risk activities are the C-SSRS Screener with Triage Points — the Suicide Safer Care Pathway's demonstrated realization of this step — the C-SSRS Full, and the CAMS SSF-5 (Sections A and B, interim re-ratings and the outcome/disposition)."
 * url = "http://thespierproject.org/fhir/PlanDefinition/SPiERClarifyRiskStage"
@@ -108,6 +112,37 @@ Usage: #definition
 * type = http://terminology.hl7.org/CodeSystem/plan-definition-type#workflow-definition
 * useContext[+].code = http://terminology.hl7.org/CodeSystem/usage-context-type#focus
 * useContext[=].valueCodeableConcept = SPiERPathwayStage#clarify-risk
+// The general gate. Three code filters and no FHIRPath, deliberately: every
+// screen's result is translated into SPiERSuicideRiskConcept, which carries a
+// POS/NEG interpretation and the pathway stage of the screen it came from, so
+// "a positive screen" is a statement about three coded elements. The tier
+// itself is NOT filtered: whether ASQ acute-positive is imminent or high is
+// pending clinical sign-off, but that it is positive is not, so this gate does
+// not depend on the unratified rows. The app's own gate reads these filters
+// from the compiled PlanDefinition rather than restating them.
+* action[+]
+  * id = "on-positive-screen"
+  * title = "Evaluate Clarify Risk activities after any positive screen"
+  * description = "Fires when a harmonized suicide-risk concept is recorded with a positive interpretation and derived from an Identify Possible Risk screen. Every screen whose result translates into the concept layer is covered by this one trigger, including screens with no trigger of their own. A positive concept from a Clarify Risk assessment does not fire it: that is this stage's own output, not a reason to start it. Clinical judgment always overrides a negative screen and reaches this stage without one."
+  // ⚠️ No definitionCanonical to TriggerSuicideRiskWorkflow, though this IS
+  // that tool's trigger: the catalog derives a tool's stage from which stage
+  // PlanDefinition references its ActivityDefinition, last reference winning,
+  // so naming it here would silently move TL-026 out of Identify Possible Risk.
+  * trigger[+]
+    * type = #data-added
+    * name = "positiveScreenConcept"
+    * data[+]
+      * type = #Observation
+      * profile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-concept"
+      * codeFilter[+]
+        * path = "code"
+        * code = http://loinc.org#93374-7
+      * codeFilter[+]
+        * path = "interpretation"
+        * code = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#POS
+      * codeFilter[+]
+        * path = "meta.tag"
+        * code = SPiERPathwayStage#identify-possible-risk
 * action[+]
   * id = "on-asq-positive"
   * title = "Evaluate Clarify Risk activities after a positive ASQ"

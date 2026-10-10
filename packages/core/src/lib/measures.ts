@@ -12,7 +12,9 @@
  * the IG Publisher translates it to ELM on every run and fails the build on a
  * translation error (#212 / #239). This comment used to say it sat in
  * ig/drafts/ and that nothing compiled it, which stopped being true two
- * releases ago. Change a criterion and you change both files.
+ * releases ago. Change a criterion and you change both files —
+ * tests/measuresCqlParity.test.ts executes the CQL against this engine and
+ * fails where their answers differ.
  *
  * Two structural decisions:
  *
@@ -21,7 +23,7 @@
  *     which criterion each population names all come from
  *     `packages/fhir-artifacts/generated/Measure-*.json` (the glob below). So
  *     adding a group in FSH automatically requires a criterion here, and
- *     `npm run check:measures` fails if one is missing. The only hand-written
+ *     tests/measures.test.ts fails if one is missing. The only hand-written
  *     part is CRITERIA below — the actual logic.
  *
  *  2. WINDOW LOGIC IS REUSED, NOT REIMPLEMENTED. The 7-/30-day follow-up
@@ -210,7 +212,7 @@ export const MEASURE_SPECS: MeasureSpec[] = MEASURES.map(m => ({
   }),
 }))
 
-/** Every criterion expression any Measure references. Used by tests/measures.test.ts (check:measures reads the Measures itself). */
+/** Every criterion expression any Measure references. Used by tests/measures.test.ts (which also reads the raw Measure JSON). */
 export function referencedCriteria(): string[] {
   const names = new Set<string>()
   for (const m of MEASURE_SPECS) {
@@ -434,7 +436,7 @@ function sentWithin(messages: CommunicationResource[], from: number, windowMs: n
 // The criteria — one per named definition in the Measures
 // ─────────────────────────────────────────────────────────────
 // Names match `Measure.group.population.criteria.expression` exactly, and
-// check:measures enforces that correspondence in both directions.
+// tests/measures.test.ts enforces that correspondence in both directions.
 
 const CRITERIA: Record<string, (ctx: Ctx) => boolean> = {
   // ── Measure 1: positive screen → assessment ──
@@ -478,11 +480,14 @@ const CRITERIA: Record<string, (ctx: Ctx) => boolean> = {
   'Safety Plan In Place Before Transition': ctx => {
     const index = ctx.indexTransition
     if (index === undefined) return false
+    // A plan is in place from `period.start` — the element the CQL reads, and
+    // the one the CarePlan mappers write from the response's `authored`. This
+    // used to fall back to `created`, then to `date` (which CarePlan does not
+    // have), so a plan with no period passed here and failed the CQL: the
+    // dashboard and the published measure disagreed on every demo safety plan.
+    // `created` is when the record was written, not when the plan took effect.
     return ctx.safetyPlans.some(p => {
-      const start = timeOf((p as { period?: { start?: string } }).period?.start)
-      // Fall back to created/date where a plan carries no period.
-      const created = timeOf((p as { created?: string; date?: string }).created ?? (p as { date?: string }).date)
-      const at = Number.isFinite(start) ? start : created
+      const at = timeOf((p as { period?: { start?: string } }).period?.start)
       return Number.isFinite(at) && at <= index
     })
   },
@@ -635,7 +640,7 @@ function applicableIntervalDays(pair: {
   return pair.precedingTier ? REASSESSMENT_INTERVAL_DAYS[pair.precedingTier] : undefined
 }
 
-/** Criterion names this engine implements. Used by check:measures. */
+/** Criterion names this engine implements. Used by tests/measures.test.ts. */
 export function implementedCriteria(): string[] {
   return Object.keys(CRITERIA).sort()
 }
@@ -690,7 +695,7 @@ export function evaluateMeasure(
       for (const [code, expr] of Object.entries(g.criteria)) {
         const fn = CRITERIA[expr]
         // A missing criterion is a programming error, not a false result —
-        // check:measures exists so this cannot reach a build.
+        // tests/measures.test.ts exists so this cannot reach a build.
         if (!fn) throw new Error(`No implementation for measure criterion "${expr}"`)
         populations[code] = fn(ctx)
       }

@@ -11,10 +11,9 @@ const qr: QuestionnaireResponseResource = {
 }
 const obs: ObservationResource[] = [{ resourceType: 'Observation', id: 'o1', status: 'final' } as ObservationResource]
 const documentReference: FhirResource = { resourceType: 'DocumentReference' }
-const condition: FhirResource = { resourceType: 'Condition' }
 
 function artifacts(overrides: Partial<WritebackArtifacts> = {}): WritebackArtifacts {
-  return { qr, observations: obs, conditions: [], documentReference, condition, ...overrides }
+  return { qr, observations: obs, conditions: [], documentReference, ...overrides }
 }
 
 const ALL: ServerCapabilities = {
@@ -28,12 +27,11 @@ const ALL: ServerCapabilities = {
 const shape = (plan: WriteStep[]) => plan.map(s => [s.tier, s.resourceType, s.disposition] as const)
 
 describe('resolveConfig', () => {
-  it('defaults: QR + Observation on, Condition off, floor conditional', () => {
+  it('defaults: QR + Observation on, floor conditional', () => {
     expect(resolveConfig()).toEqual({
       enableQuestionnaireResponse: true,
       enableObservation: true,
       enableRecordedConditions: true,
-      enableConditionProposal: false,
       alwaysWriteDocument: false,
     })
   })
@@ -83,21 +81,33 @@ describe('buildWritePlan — artifact presence', () => {
   })
 })
 
+// A screen never becomes a Condition (#639). Even a server that can create
+// Conditions, handed every config the ladder accepts, gets no Condition step.
+describe('buildWritePlan — never an inferred Condition', () => {
+  // A screen's save: the ladder never turns a result into a problem (#639).
+  // Only a form that RECORDED problems has a Condition step — see below.
+  it('plans no Condition write for a form that recorded none, under any config', () => {
+    for (const config of [{}, { alwaysWriteDocument: true }, { enableObservation: false }]) {
+      const plan = buildWritePlan(ALL, config, artifacts())
+      expect(plan.map(s => s.resourceType)).not.toContain('Condition')
+    }
+  })
+})
+
 describe('buildWritePlan — Tier 2 recorded Conditions (CAMS drivers)', () => {
   const driver = { resourceType: 'Condition', id: 'd1' } as const
 
-  it('is its own Tier-2 step, after the Observations and before Tier 3', () => {
-    const plan = buildWritePlan(ALL, { enableConditionProposal: true }, artifacts({ conditions: [driver] }))
+  it('is its own Tier-2 step, after the Observations and before the floor', () => {
+    const plan = buildWritePlan(ALL, {}, artifacts({ conditions: [driver] }))
     expect(shape(plan)).toEqual([
       [1, 'QuestionnaireResponse', 'attempt'],
       [2, 'Observation', 'attempt'],
       [2, 'Condition', 'attempt'],
-      [3, 'Condition', 'attempt'],
       [0, 'DocumentReference', 'attempt'],
     ])
   })
 
-  it('is ON by default — unlike Tier 3, it is not the app inferring a problem', () => {
+  it('stands alone when the form recorded problems and no scores', () => {
     const plan = buildWritePlan(ALL, {}, artifacts({ observations: [], conditions: [driver] }))
     expect(shape(plan)).toEqual([
       [1, 'QuestionnaireResponse', 'attempt'],
@@ -111,46 +121,13 @@ describe('buildWritePlan — Tier 2 recorded Conditions (CAMS drivers)', () => {
   it('is gated on the CONDITION capability, never the Observation one', () => {
     const caps: ServerCapabilities = { ...ALL, Condition: { create: false } }
     const plan = buildWritePlan(caps, {}, artifacts({ conditions: [driver] }))
-    expect(plan.find(s => s.tier === 2 && s.resourceType === 'Observation')?.disposition).toBe('attempt')
-    expect(plan.find(s => s.tier === 2 && s.resourceType === 'Condition')?.disposition).toBe('unsupported')
-  })
-
-  it('is omitted when the instrument recorded none', () => {
-    const plan = buildWritePlan(ALL, {}, artifacts())
-    expect(plan.some(s => s.tier === 2 && s.resourceType === 'Condition')).toBe(false)
+    expect(plan.find(s => s.resourceType === 'Observation')?.disposition).toBe('attempt')
+    expect(plan.find(s => s.resourceType === 'Condition')?.disposition).toBe('unsupported')
   })
 
   it('can be turned off by config', () => {
     const plan = buildWritePlan(ALL, { enableRecordedConditions: false }, artifacts({ conditions: [driver] }))
-    expect(plan.find(s => s.tier === 2 && s.resourceType === 'Condition')?.disposition).toBe('disabled')
-  })
-})
-
-describe('buildWritePlan — Tier 3 (opt-in Condition)', () => {
-  it('is absent by default even when a proposal exists', () => {
-    const plan = buildWritePlan(ALL, {}, artifacts())
-    expect(plan.some(s => s.tier === 3)).toBe(false)
-  })
-
-  it('appears (before the floor) when enabled and a proposal exists', () => {
-    const plan = buildWritePlan(ALL, { enableConditionProposal: true }, artifacts())
-    expect(shape(plan)).toEqual([
-      [1, 'QuestionnaireResponse', 'attempt'],
-      [2, 'Observation', 'attempt'],
-      [3, 'Condition', 'attempt'],
-      [0, 'DocumentReference', 'attempt'],
-    ])
-  })
-
-  it('is omitted when enabled but no proposal was built', () => {
-    const plan = buildWritePlan(ALL, { enableConditionProposal: true }, artifacts({ condition: undefined }))
-    expect(plan.some(s => s.tier === 3)).toBe(false)
-  })
-
-  it('is unsupported when enabled + proposed but the server cannot create Condition', () => {
-    const caps: ServerCapabilities = { ...ALL, Condition: { create: false } }
-    const plan = buildWritePlan(caps, { enableConditionProposal: true }, artifacts())
-    expect(plan.find(s => s.tier === 3)?.disposition).toBe('unsupported')
+    expect(plan.find(s => s.resourceType === 'Condition')?.disposition).toBe('disabled')
   })
 })
 

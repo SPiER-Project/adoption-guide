@@ -30,7 +30,7 @@
 
 .disclosure--rule > .disclosure__summary > .disclosure__label {
   font: var(--type-ui);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--text-strong);
 }
 
@@ -81,14 +81,14 @@
 
 .disclosure--quiet > .disclosure__summary > .disclosure__label {
   font: var(--type-caption);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--text-muted);
 }
 
 .disclosure--quiet > .disclosure__summary > .disclosure__hint {
   font: var(--type-caption);
   margin-left: var(--space-2);
-  font-weight: 400;
+  font-weight: var(--font-weight-regular);
   color: var(--text-muted);
 }
 

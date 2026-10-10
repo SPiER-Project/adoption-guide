@@ -68,7 +68,75 @@
 .care-pathway__story {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-5);
+}
+
+/* The five things as a numbered stepper: a plum disc per step, joined by a
+   rule, the lead phrase as the step's title. They were five bold-led
+   paragraphs of identical weight, which read as one wall of text — the
+   numbering is the protocol's order, and the order is the point. */
+.care-pathway__steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: care-pathway-step;
+}
+
+.care-pathway__step {
+  position: relative;
+  padding-left: calc(var(--space-7) + var(--space-3));
+  counter-increment: care-pathway-step;
+}
+
+.care-pathway__step::before {
+  font: var(--type-ui);
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  width: var(--space-7);
+  height: var(--space-7);
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  background-color: var(--brand-primary);
+  color: var(--text-on-brand);
+  content: counter(care-pathway-step);
+  font-weight: var(--font-weight-bold);
+}
+
+/* The rule from one disc down to the next, through the gap between steps. */
+.care-pathway__step:not(:last-child)::after {
+  position: absolute;
+  top: calc(var(--space-7) + var(--space-1));
+  bottom: calc(var(--space-5) * -1 + var(--space-1));
+  left: calc(var(--space-7) / 2 - var(--space-0-5) / 2);
+  width: var(--space-0-5);
+  border-radius: var(--radius-pill);
+  background-color: var(--border-default);
+  content: '';
+}
+
+.care-pathway__step strong {
+  display: block;
+  margin-bottom: var(--space-1);
+  color: var(--text-strong);
+  font-family: var(--font-display);
+}
+
+/* The one caveat after the five: quieter than them, and set apart. */
+.care-pathway__aside {
+  font: var(--type-caption);
+  max-width: var(--measure-prose);
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-muted);
+  color: var(--text-body);
+  line-height: var(--line-height-normal);
 }
 
 .care-pathway__para {
@@ -77,6 +145,49 @@
   max-width: var(--measure-prose);
   color: var(--text-body);
   line-height: var(--line-height-normal);
+}
+
+/* The nested pathways: one row per setting, hung off a rule so they read as
+   branches of the pathway above rather than as a second list of steps. */
+.care-pathway__settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.care-pathway__settings .pathway-section-title {
+  margin: 0;
+}
+
+.care-pathway__setting-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0 0 0 var(--space-4);
+  border-left: var(--space-0-5) solid var(--border-default);
+  list-style: none;
+}
+
+.care-pathway__setting-link {
+  font: var(--type-running);
+  color: var(--brand-link);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* A step whose realization is another setting pathway: the nesting a reader
+   follows, so it reads as a link rather than as an artifact name. */
+.pathway-obligation__handover {
+  font: var(--type-caption);
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+  color: var(--brand-link);
+  font-weight: var(--font-weight-semibold);
+}
+
+.pathway-obligation__handover:hover {
+  text-decoration: underline;
 }
 
 /* The one link onward to the protocol page: a title, a sentence, a button. */
@@ -92,11 +203,18 @@
 }
 
 .pathway-section-title {
-  font: var(--type-running);
-  font-family: var(--font-display);
+  font: var(--type-heading);
   margin: 0 0 var(--space-3);
   color: var(--text-strong);
-  font-weight: 600;
+}
+
+/* The protocol page's key to the stethoscope on clinician-facing notes. */
+.pathway-spine__legend {
+  font: var(--type-caption);
+  max-width: var(--measure-prose);
+  margin: 0 0 var(--space-3);
+  color: var(--text-muted);
+  line-height: var(--line-height-normal);
 }
 
 /* ── Shared chips and notes ─────────────────────────────────── */
@@ -109,16 +227,19 @@
   border-radius: var(--radius-pill);
   background-color: var(--tint-sky-soft);
   color: var(--brand-primary);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   letter-spacing: normal;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
+/* A grid, so a step's notes use the card's width instead of stacking down its
+   left half and leaving the right half empty. `min(…, 100%)` lets the same
+   grid collapse to one column in a table cell or the ~470px panel. */
 .pathway-notes {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(20rem, 100%), 1fr));
+  gap: var(--space-3);
   margin: var(--space-3) 0 0;
   padding: 0;
   list-style: none;
@@ -132,21 +253,41 @@
   max-width: var(--measure-prose);
   padding-left: var(--space-3);
   border-left: 2px solid var(--border-strong);
-  color: var(--text-muted);
+  color: var(--text-body);
   line-height: var(--line-height-normal);
 }
 
 .pathway-notes__label {
   font: var(--type-label);
   display: block;
+  margin-bottom: var(--space-1);
   color: var(--text-strong);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
 }
 
+/* A note can quote a reference ("ActivityDefinition/ProvideMeansSafetyCounseling")
+   longer than a tier column is wide; wrap it rather than run past the cell. */
+/* On the guide's protocol page, the notes a clinician is also shown: a plum
+   rule and a stethoscope (the page's legend says what it means), so an implementer reading the whole artifact sees exactly
+   which notes reach the clinician's view (the rest are theirs alone). */
+.pathway-notes__item--clinician {
+  border-left-color: var(--brand-primary);
+}
+
+/* Inline, beside the label or inside the legend's sentence — the reset sets
+   every svg to `display: block`, which dropped it onto a line of its own. */
+.pathway-notes__audience {
+  display: inline-block;
+  margin-left: var(--space-1);
+  color: var(--brand-primary);
+  vertical-align: text-bottom;
+}
+
 .pathway-notes__text {
   display: block;
+  overflow-wrap: anywhere;
 }
 
 .pathway-notes__link,
@@ -193,26 +334,42 @@
   flex-wrap: wrap;
   gap: var(--space-2);
   align-items: baseline;
+  margin-bottom: var(--space-1);
 }
 
+/* The step's number as a disc ahead of its title, the same mark the
+   explainer's stepper uses — it was a faint "1." that read as part of the
+   heading text, so the spine had no visible order at a glance. */
 .pathway-step__title {
-  font: var(--type-running);
-  font-family: var(--font-display);
+  font: var(--type-heading);
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  width: 100%;
   margin: 0;
   color: var(--text-strong);
-  font-weight: 600;
 }
 
 .pathway-step__title::before {
-  color: var(--text-faint);
-  content: counter(pathway-step) '. ';
+  font: var(--type-ui);
+  display: inline-flex;
+  flex: none;
+  width: var(--space-6);
+  height: var(--space-6);
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  background-color: var(--brand-primary);
+  color: var(--text-on-brand);
+  content: counter(pathway-step);
+  font-weight: var(--font-weight-bold);
 }
 
 /* The step card stays full width — it carries chips, gates and a definition
    canonical — while its description is one sentence and gets a measure. It was
    the worst run on the page at 187 characters a line. */
 .pathway-step__desc {
-  font: var(--type-caption);
+  font: var(--type-running);
   margin: var(--space-2) 0 0;
   max-width: var(--measure-prose);
   color: var(--text-body);
@@ -241,7 +398,7 @@
   font: var(--type-caption);
   margin: 0;
   color: var(--text-strong);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 /* The smallest type on the page, and so the longest measure for a given width:
@@ -292,8 +449,12 @@
 
 /* Four columns at a floor of ~11rem each. Below that the notes in a cell wrap
    to one word a line; above it the table takes the page width it is given. */
+/* `fixed` so the three tier columns share what the obligation column leaves
+   equally; sized by content, Low risk was squeezed to a third of High's width
+   because its gate sentence happened to be the shortest. */
 .pathway-matrix {
   min-width: 44rem;
+  table-layout: fixed;
 }
 
 .pathway-matrix__corner {
@@ -330,7 +491,7 @@
   border-radius: var(--radius-pill);
   background-color: var(--brand-primary);
   color: var(--text-on-brand);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   letter-spacing: normal;
   text-transform: uppercase;
 }
@@ -338,7 +499,7 @@
 /* A row header is the obligation itself — title, sentence, chip, realization —
    set the way `.pathway-obligation` sets them, minus that class's box. */
 .pathway-matrix__obligation {
-  font-weight: 400;
+  font-weight: var(--font-weight-regular);
 }
 
 .pathway-matrix__cell {
@@ -358,20 +519,47 @@
   margin-top: var(--space-2);
 }
 
+/* One tier owes it: a check in a disc. The column header names the tier and
+   the section title says "owed", so the mark needs no word of its own — the
+   word is in the visually-hidden span for a screen reader. */
 .pathway-matrix__mark {
-  font: var(--type-label);
-  display: inline-block;
-  padding: var(--space-0-5) var(--space-2);
+  display: inline-flex;
+  width: var(--space-6);
+  height: var(--space-6);
+  align-items: center;
+  justify-content: center;
   border: 1px solid var(--status-success-border);
   border-radius: var(--radius-pill);
   background-color: var(--status-success-bg);
   color: var(--status-success-text);
-  font-weight: 700;
+}
+
+/* Several adjacent tiers owe it identically: one band the width of the cell,
+   so the span is visible rather than stated. Its label names the tiers. */
+.pathway-matrix__band {
+  font: var(--type-label);
+  display: flex;
+  gap: var(--space-1);
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--status-success-border);
+  border-radius: var(--radius-pill);
+  background-color: var(--status-success-bg);
+  color: var(--status-success-text);
+  font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
 }
 
+/* `position: relative` is the containing block for the visually-hidden span
+   below. Without one, that absolutely-positioned span resolved against the
+   initial containing block — outside the scrolling `.app-shell__content` — and
+   stretched the DOCUMENT to where the cell sat, so /guide/pathway grew a second
+   scrollbar over ~2,000px of blank page under its footer. The protocol page
+   hid the bug only because its step Card happens to be positioned. */
 .pathway-matrix__cell--none {
+  position: relative;
   color: var(--text-faint);
   text-align: center;
 }
@@ -407,24 +595,130 @@
   opacity: 1;
 }
 
-.pathway-branch__exit {
+/* The explainer's matrix: obligation × tier, a mark per cell and no notes, so
+   the obligation column can take the room the notes used to. */
+.pathway-matrix--summary .pathway-matrix__corner {
+  width: 46%;
+}
+
+/* Every mark centred under its tier — the dash too, which DataTable's own
+   cell alignment otherwise left-aligned beside the centred checks. */
+.pathway-matrix--summary .pathway-matrix__cell,
+.pathway-matrix--summary .pathway-matrix__tier {
+  text-align: center;
+}
+
+/* ── The tier table, narrow: one card per obligation ────────────
+   What PathwayTierTable renders when its own box is under 640px — the panel,
+   a phone. Same rows and notes as the grid; the tiers that owe each
+   obligation become labelled checks under it. */
+.pathway-tier-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.pathway-tier-list__gates {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.pathway-tier-list__gate {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.pathway-tier-list__gate dd {
   font: var(--type-caption);
   max-width: var(--measure-prose);
-  margin: var(--space-4) 0 0;
-  padding: var(--space-3);
-  border: 1px dashed var(--border-strong);
-  border-radius: var(--radius-md);
+  margin: 0;
   color: var(--text-muted);
+  line-height: var(--line-height-normal);
+}
+
+/* A tier's name with its risk colour as a dot — the grid header's swatch. */
+.pathway-tier-chip {
+  font: var(--type-label);
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  color: var(--text-strong);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+
+.pathway-tier-chip::before {
+  width: var(--space-3);
+  height: var(--space-3);
+  border-radius: var(--radius-pill);
+  background-color: var(--border-strong);
+  content: '';
+}
+
+.pathway-tier-chip--low::before { background-color: var(--risk-low-edge); }
+.pathway-tier-chip--moderate::before { background-color: var(--risk-moderate-edge); }
+.pathway-tier-chip--high::before { background-color: var(--risk-high-edge); }
+
+.pathway-tier-list__items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pathway-tier-list__item {
+  padding: var(--space-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-card);
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+/* The simulator's lit tier, as in the grid: an obligation that tier owes on
+   the selected tint, the rest faded. */
+.pathway-tier-list__item--active {
+  background-color: var(--tint-peach-soft);
+}
+
+.pathway-tier-list__item--dimmed {
+  opacity: 0.5;
+}
+
+.pathway-tier-list__owed {
+  margin-top: var(--space-3);
+}
+
+.pathway-tier-list__label {
+  font: var(--type-label);
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--status-success-border);
+  border-radius: var(--radius-pill);
+  background-color: var(--status-success-bg);
+  color: var(--status-success-text);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+
+.pathway-tier-list__owed .pathway-notes {
+  margin-top: var(--space-2);
 }
 
 /* ── The simulator ──────────────────────────────────────────── */
 
 .pathway-sim__title {
-  font: var(--type-running);
-  font-family: var(--font-display);
+  font: var(--type-heading);
   margin: 0;
   color: var(--text-strong);
-  font-weight: 600;
 }
 
 .pathway-sim__lede {
@@ -433,6 +727,90 @@
   max-width: var(--measure-prose);
   color: var(--text-muted);
   line-height: var(--line-height-normal);
+}
+
+/* Questions on the left, what they decide on the right — the result used to
+   sit under the questions and the obligations it lit sat past two code
+   drawers, a screen further down. At desktop widths the panel stays beside the
+   questions as the reader scrolls them. */
+.pathway-sim__layout {
+  display: grid;
+  gap: var(--space-5);
+}
+
+@media (min-width: 1024px) {
+  .pathway-sim__layout {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    align-items: start;
+  }
+
+  .pathway-sim__result {
+    position: sticky;
+    top: var(--space-4);
+  }
+}
+
+/* The phone's one-line result: sticky to the bottom of the screen while the
+   questions are in view (its dock's containing block is the questions column,
+   so it comes to rest over Q6), faded out while the full panel is on screen,
+   and gone at 1024px and up, where the panel sits beside the questions. The
+   dock is zero-height and the bar hangs off it, so stepping aside leaves no
+   gap where the bar was. */
+.pathway-sim__dock {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  height: 0;
+}
+
+.pathway-sim__bar {
+  font: var(--type-ui);
+  position: absolute;
+  right: 0;
+  bottom: var(--space-3);
+  left: 0;
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-card);
+  box-shadow: var(--shadow-lg);
+  color: var(--text-strong);
+  text-align: left;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.pathway-sim__bar--low { border-color: var(--risk-low-edge); background-color: var(--risk-low-soft); }
+.pathway-sim__bar--moderate { border-color: var(--risk-moderate-edge); background-color: var(--risk-moderate-soft); }
+.pathway-sim__bar--high { border-color: var(--risk-high-edge); background-color: var(--risk-high-soft); }
+
+.pathway-sim__bar--hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pathway-sim__bar-tier {
+  flex: 1;
+  font-weight: var(--font-weight-semibold);
+}
+
+.pathway-sim__bar-count {
+  font: var(--type-caption);
+  color: var(--text-muted);
+}
+
+.pathway-sim__bar-go {
+  flex: none;
+  color: var(--text-muted);
+}
+
+@media (min-width: 1024px) {
+  .pathway-sim__dock {
+    display: none;
+  }
 }
 
 .pathway-sim__questions {
@@ -470,7 +848,7 @@
   flex: none;
   min-width: var(--space-7);
   color: var(--text-strong);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 
 .pathway-sim__text {
@@ -482,11 +860,9 @@
 
 .pathway-sim__result {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: var(--space-2);
-  align-items: baseline;
-  margin-top: var(--space-4);
-  padding: var(--space-3);
+  padding: var(--space-4);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   background-color: var(--surface-card);
@@ -500,15 +876,50 @@
 .pathway-sim__result-label {
   font: var(--type-label);
   color: var(--text-faint);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
 }
 
 .pathway-sim__result-tier {
-  font: var(--type-running);
+  font: var(--type-heading);
   color: var(--text-strong);
-  font-weight: 700;
+}
+
+/* The second label in the panel opens a new group, so it gets air above it. */
+.pathway-sim__result-detail + .pathway-sim__result-label {
+  margin-top: var(--space-2);
+}
+
+.pathway-sim__owed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pathway-sim__owed-item {
+  font: var(--type-ui);
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  color: var(--text-strong);
+}
+
+.pathway-sim__owed-mark {
+  flex: none;
+  margin-top: var(--space-0-5);
+  color: var(--status-success-text);
+}
+
+.pathway-sim__exit {
+  font: var(--type-caption);
+  max-width: var(--measure-prose);
+  margin: var(--space-1) 0 0;
+  color: var(--text-body);
+  line-height: var(--line-height-normal);
 }
 
 .pathway-sim__result-detail {
@@ -546,7 +957,7 @@
 .pathway-code__label {
   font: var(--type-running);
   color: var(--text-strong);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .pathway-code__hint {
@@ -576,14 +987,14 @@
   gap: var(--space-2);
   align-items: baseline;
   color: var(--text-strong);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .pathway-code__id {
   font: var(--type-caption);
   color: var(--text-faint);
   font-family: var(--font-mono);
-  font-weight: 400;
+  font-weight: var(--font-weight-regular);
 }
 
 .pathway-code__facts {
@@ -602,7 +1013,7 @@
 .pathway-code__kind {
   font: var(--type-label);
   color: var(--text-faint);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
 }
@@ -647,7 +1058,7 @@
   font: var(--type-caption);
   margin-top: var(--space-3);
   color: var(--text-strong);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 
 .pathway-pending__list dd {
@@ -680,7 +1091,7 @@
 .pathway-provenance__fact dt {
   font: var(--type-label);
   color: var(--text-faint);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
 }
@@ -697,7 +1108,7 @@
   font-family: var(--font-display);
   margin: 0;
   color: var(--text-strong);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .pathway-provenance__related {
@@ -721,7 +1132,7 @@
   overflow-wrap: anywhere;
   margin: 0 0 var(--space-4);
   color: var(--brand-primary);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   line-height: var(--line-height-normal);
 }
 
@@ -731,7 +1142,7 @@
    Scoped to `.panel-shell` rather than to a width, because the constraint is
    the chrome the host gave us and not the viewport — the same reasoning
    PageHeader.css's panel variant is built on. The tier table needs nothing
-   here: `DataTable` scrolls it inside its own box at any width. */
+   here: it measures its own box and becomes the card list below 640px. */
 .panel-shell .pathway-step,
 .panel-shell .pathway-provenance,
 .panel-shell .pathway-pending {

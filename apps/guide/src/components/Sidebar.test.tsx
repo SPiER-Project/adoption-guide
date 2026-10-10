@@ -249,19 +249,52 @@ describe('the sidebar groups the guide by the reader’s question', () => {
     // A subsection borrows its section's row, and a deep link its section's too.
     ['/guide/pathway/protocol', 'Care Pathway'],
     ['/guide/tools/TL-003', 'Tools'],
+    // …unless it has a row of its own, nested under its section.
+    ['/guide/pathway/emergency-department', 'Emergency'],
+    ['/guide/pathway/inpatient', 'Inpatient'],
   ])('lights exactly one row on %s, and it is %s', (path, label) => {
     renderAt(path)
     const guideNav = screen.getByRole('navigation', { name: 'Adoption Guide' })
-    const lit = [...guideNav.querySelectorAll('.sidebar-link--child.active')].map(a => a.textContent)
+    // `.sidebar-link.active`, not `--child.active`: a nested row is a
+    // `--grandchild`, and counting only children would pass two lit rows.
+    const lit = [...guideNav.querySelectorAll('.sidebar-link.active')].map(a => a.textContent)
     expect(lit).toEqual([label])
     // aria-current follows the class, or a screen reader is told something else.
     const current = [...guideNav.querySelectorAll('[aria-current="page"]')].map(a => a.textContent)
     expect(current).toEqual([label])
   })
 
+  // The section's own pages show under it only while it is open, so the column
+  // stays the guide's outline. Which pages: every subsection with a `nav` label,
+  // derived — not a list of two typed again here.
+  it('nests Care Pathway’s setting pages under it while it is open, and only then', async () => {
+    const { GUIDE_SECTIONS } = await import('../data/guideSections')
+    const expected = GUIDE_SECTIONS.find(s => s.path === 'pathway')!.subsections!.filter(s => s.nav).map(s => s.nav)
+    expect(expected.length).toBeGreaterThan(0)
+
+    for (const path of ['/guide/pathway', '/guide/pathway/protocol', '/guide/pathway/inpatient']) {
+      renderAt(path)
+      const group = screen.getByRole('group', { name: 'Care Pathway pages' })
+      expect(within(group).getAllByRole('link').map(a => a.textContent)).toEqual(expected)
+      cleanup()
+    }
+
+    renderAt('/guide/tools')
+    expect(screen.queryByRole('group', { name: 'Care Pathway pages' })).toBeNull()
+  })
+
+  it('marks Care Pathway open, not current, when a nested page is the one shown', () => {
+    renderAt('/guide/pathway/emergency-department')
+    const row = within(screen.getByRole('navigation', { name: 'Adoption Guide' })).getByRole('link', { name: 'Care Pathway' })
+    expect(row.classList.contains('sidebar-link--open')).toBe(true)
+    expect(row.getAttribute('aria-current')).toBeNull()
+  })
+
   it('lights no guide row outside the guide', () => {
     renderAt('/overview')
     const guideNav = screen.getByRole('navigation', { name: 'Adoption Guide' })
-    expect(guideNav.querySelectorAll('.sidebar-link--child.active')).toHaveLength(0)
+    // Guide rows only: on /overview the Overview lens row above them is lit.
+    expect(guideNav.querySelectorAll('.sidebar-link--child.active, .sidebar-link--grandchild.active')).toHaveLength(0)
+    expect(screen.queryByRole('group', { name: 'Care Pathway pages' })).toBeNull()
   })
 })

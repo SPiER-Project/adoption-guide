@@ -31,7 +31,6 @@ import { stageForArtifact, PATHWAY_STAGE_SYSTEM, type FhirResourceLike } from '.
 import type { RiskAlert } from '../observationMappers'
 import { CAMS_DRIVER_CATEGORY } from '../observationMappers/camsSectionB'
 import { parseCapabilityStatement } from '../writeback/capability'
-import { buildConditionProposal } from '../writeback/conditionProposal'
 import { buildDocumentReference } from '../writeback/documentReference'
 import { executeWritePlan } from '../writeback/execute'
 import { buildWritePlan, resolveConfig } from '../writeback/ladder'
@@ -45,6 +44,7 @@ import type {
 import type { RegistryPatient } from '../registry'
 import { toRegistryPatient } from './registryPatient'
 import type { DerivedArtifacts, FhirDataSource } from './types'
+import { DataSourceError, httpStatusOf, isAuthorizationStatus } from './failure'
 import { LIFECYCLE_RESOURCE_TYPES } from './lifecycleTypes'
 import type {
   AppointmentResource,
@@ -85,9 +85,8 @@ function questionnaireNameFor(qr: QuestionnaireResponseResource): string {
  * present rather than a bare "request failed".
  */
 function describeCreateError(resourceType: string, err: unknown): string {
-  const e = err as { status?: number; statusCode?: number; message?: string; response?: { status?: number } }
-  const status = e?.statusCode ?? e?.status ?? e?.response?.status
-  const detail = e?.message ?? (typeof err === 'string' ? err : String(err))
+  const status = httpStatusOf(err)
+  const detail = (err as { message?: string } | null)?.message ?? (typeof err === 'string' ? err : String(err))
   return status
     ? `Failed to create ${resourceType} — HTTP ${status}: ${detail}`
     : `Failed to create ${resourceType}: ${detail}`
@@ -250,8 +249,7 @@ const SLICE_READS: SliceRead[] = [
   { key: 'procedures', type: 'Procedure', params: '' },
   // The problems an instrument recorded (CAMS Section B's drivers), narrowed by
   // their marker category: an unfiltered read would pull the EHR's whole problem
-  // list — and the writeback's Tier-3 proposal — into a bucket that means
-  // "recorded by a SPiER instrument".
+  // list into a bucket that means "recorded by a SPiER instrument".
   {
     key: 'conditions',
     type: 'Condition',
@@ -261,6 +259,43 @@ const SLICE_READS: SliceRead[] = [
   // group artifacts by contact.
   { key: 'encounters', type: 'Encounter', params: '' },
 ]
+
+/**
+ * Add what this session wrote, where the search has not caught up with it yet.
+ *
+ * ⚠️ **Search is not read-your-writes on every server.** Run against the SMART
+ * Health IT R4 sandbox (Smile CDR) on 2026-10-09 (#640), a saved PHQ-9 was
+ * stored at once — a read by id returned it within seconds — but a
+ * `patient=` search did not find it for about a minute, because that server
+ * indexes after the write returns. The chart re-reads by search right after a
+ * save, so it showed the chart as it was BEFORE the save: "No suicide-risk
+ * screen on file" over a screen the clinician had just saved. SPiER's own mock
+ * indexes synchronously, so no test of it could see this.
+ *
+ * So the data source remembers every resource it created or updated this
+ * session (with the server's id) and adds any the search did not return. It
+ * adds only what the search WOULD have returned — the same patient, a type
+ * the slice reads, and for Observations the same category filter — and never
+ * replaces a resource the search did return, so once the index catches up the
+ * server's copy wins and nothing is counted twice.
+ */
+function mergeWritten(buckets: SliceBuckets, written: Iterable<FhirResource>, pid: string): void {
+  for (const resource of written) {
+    if (patientIdOf(resource) !== pid) continue
+    const read = SLICE_READS.find(r => r.type === resource.resourceType && matchesReadFilter(resource, r.params))
+    if (!read) continue
+    const bucket = buckets[read.key]
+    if (resource.id && !bucket.some(r => r.id === resource.id)) bucket.push(resource)
+  }
+}
+
+/** Whether a resource would be returned by a read's extra search params (only `category` is used). */
+function matchesReadFilter(resource: FhirResource, params: string): boolean {
+  const category = /[?&]category=([^&]+)/.exec(params)?.[1]
+  if (!category) return true
+  const categories = (resource as { category?: Array<{ coding?: Array<{ code?: string }> }> }).category ?? []
+  return categories.some(c => c.coding?.some(cd => cd.code === category))
+}
 
 function emptyBuckets(): SliceBuckets {
   return Object.fromEntries(SLICE_READS.map(r => [r.key, [] as FhirResource[]])) as SliceBuckets
@@ -308,7 +343,7 @@ function assembleSlice(buckets: SliceBuckets): PatientSlice {
 export class SmartDataSource implements FhirDataSource, WritebackTarget {
   private readonly listeners = new Set<() => void>()
   private readonly client: SmartClient
-  /** Writeback policy. Injected so the Tier-3 confirm flow can opt in per-write. */
+  /** Writeback policy. Injected so a caller (or a test) can turn a tier off. */
   private readonly writebackConfig: WritebackConfig
   /**
    * The most recent writeback run, for the scorecard. Held here rather than
@@ -337,6 +372,18 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
    */
   private readonly serverIds = new Map<string, string>()
 
+  /**
+   * Every resource this session created or updated, by `<Type>/<server id>`,
+   * as the server returned it (or as sent, when it echoed nothing). Read by
+   * `mergeWritten` so the chart shows a save before a lagging search index
+   * does — see that function.
+   */
+  private readonly written = new Map<string, FhirResource>()
+
+  private remember(resource: FhirResource): void {
+    if (resource.id) this.written.set(`${resource.resourceType}/${resource.id}`, resource)
+  }
+
   constructor(client: SmartClient, writebackConfig: WritebackConfig = {}) {
     this.client = client
     this.writebackConfig = writebackConfig
@@ -349,7 +396,7 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
 
   private resolvePatientId(patientId: string | null): string {
     const pid = patientId ?? this.client.patient.id
-    if (!pid) throw new Error('The SMART launch did not include a patient context.')
+    if (!pid) throw new DataSourceError('no-patient', 'The SMART launch did not include a patient context.')
     return pid
   }
 
@@ -386,6 +433,7 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
         buckets[read.key] = read.core ? await run : await run.catch(() => [] as FhirResource[])
       }),
     )
+    mergeWritten(buckets, this.written.values(), pid)
     return assembleSlice(buckets)
   }
 
@@ -446,7 +494,11 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
     }
     if (found === 0) return this.slicesOneByOne(ids)
 
-    for (const id of ids) slices.set(id, assembleSlice(buckets.get(id) ?? emptyBuckets()))
+    for (const id of ids) {
+      const b = buckets.get(id) ?? emptyBuckets()
+      mergeWritten(b, this.written.values(), id)
+      slices.set(id, assembleSlice(b))
+    }
     return slices
   }
 
@@ -522,9 +574,10 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
       },
       includeResponse: true,
     })
-    if (body?.id) return body.id
     const location = response.headers.get('location') ?? response.headers.get('content-location')
-    return location?.match(new RegExp(`${resource.resourceType}/([^/]+)`))?.[1]
+    const id = body?.id ?? location?.match(new RegExp(`${resource.resourceType}/([^/]+)`))?.[1]
+    if (id) this.remember(body?.id ? body : { ...resource, id })
+    return id
   }
 
   /**
@@ -598,6 +651,7 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
       body: JSON.stringify(resource),
       headers: { 'content-type': 'application/fhir+json' },
     })
+    this.remember(resource)
   }
 
   /**
@@ -629,12 +683,16 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
    * here: `saveResponse` receives the slice key and must scope its writes to
    * that patient even if it differs from `client.patient.id`.
    */
-  private targetFor(pid: string): WritebackTarget {
+  private targetFor(pid: string, refusals: (number | undefined)[] = []): WritebackTarget {
     return {
       createResource: async (resource: FhirResource) => {
         try {
           return { id: await this.create(this.toCreatePayload(resource, pid)) }
         } catch (err) {
+          // The ladder flattens a failure to a string for the scorecard, so the
+          // status is kept here — `saveResponse` needs it to tell "refused this
+          // session" from "refused the write".
+          refusals.push(httpStatusOf(err))
           throw new Error(describeCreateError(resource.resourceType, err))
         }
       },
@@ -688,34 +746,21 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
       riskAlert: derived?.riskAlert ?? null,
     })
 
-    // Tier 3 is built only when enabled — `WritebackArtifacts.condition` present
-    // means "a proposal was warranted", and buildWritePlan reads it that way.
-    // buildConditionProposal returns null for a negative screen.
-    const condition =
-      cfg.enableConditionProposal && derived?.riskAlert
-        ? buildConditionProposal({
-            riskAlert: derived.riskAlert,
-            patientId: pid,
-            derivedFromRefs: [`QuestionnaireResponse/${entry.id}`],
-            recordedDate: entry.completedAt,
-          })
-        : null
-
     const artifacts: WritebackArtifacts = {
       // Keeps the client id: `executeWritePlan` needs it to remap the
-      // `QuestionnaireResponse/<id>` references inside the Observations and the
-      // Condition proposal to the server-assigned id. `toCreatePayload` strips
+      // `QuestionnaireResponse/<id>` references inside the Observations to the
+      // server-assigned id. `toCreatePayload` strips
       // it before the POST.
       qr,
       observations: derived?.observations ?? [],
       conditions: derived?.conditions ?? [],
       documentReference,
-      ...(condition ? { condition } : {}),
     }
 
     const { caps, ok } = await this.probeCapabilities()
     const plan = buildWritePlan(caps, this.writebackConfig, artifacts)
-    const result = await executeWritePlan(plan, this.targetFor(pid), artifacts, this.writebackConfig)
+    const refusals: (number | undefined)[] = []
+    const result = await executeWritePlan(plan, this.targetFor(pid, refusals), artifacts, this.writebackConfig)
 
     this.lastWriteback = {
       at: new Date().toISOString(),
@@ -731,11 +776,20 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
     // Nothing landed at all — not even the universal floor. That is a failed
     // save, not a degraded one, so it must reach the caller's error surface
     // instead of being reported only in the scorecard.
+    //
+    // ⚠️ **Thrown as a coded `DataSourceError`, and the message is not copy.**
+    // It names every resource type and HTTP status, which is the point of it as
+    // a diagnostic and exactly what the clinician must not read; the chart words
+    // the `kind` itself (see `failure.ts`). Every refusal being a 401/403 makes
+    // it an access problem rather than a rejected write, which is a different
+    // thing for the clinician to do about it.
     if (!result.steps.some(step => step.outcome === 'written')) {
       const detail = result.steps
         .map(step => `${step.resourceType}: ${step.error ?? step.reason ?? step.outcome}`)
         .join('; ')
-      throw new Error(`Writeback failed — no resource was created. ${detail}`)
+      const kind =
+        refusals.length > 0 && refusals.every(isAuthorizationStatus) ? 'not-authorized' : 'nothing-saved'
+      throw new DataSourceError(kind, `Writeback failed — no resource was created. ${detail}`)
     }
   }
 

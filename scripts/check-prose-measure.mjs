@@ -91,6 +91,7 @@ import { readFileSync } from 'node:fs'
 
 import { allStyleFiles, relRepo, styleRootFloors } from './lib/style-roots.mjs'
 import { reportFloors } from './lib/floors.mjs'
+import { stripComments } from './lib/text.mjs'
 
 
 /**
@@ -186,8 +187,6 @@ let failures = 0
 const fail = (msg) => { console.error(`✗ ${msg}`); failures++ }
 const rel = (p) => relRepo(p).split('\\').join('/')
 
-const stripComments = (css) =>
-  css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
 
 
 /**

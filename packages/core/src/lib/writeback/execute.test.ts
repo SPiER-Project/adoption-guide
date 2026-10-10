@@ -24,15 +24,10 @@ const observations: ObservationResource[] = [
   { resourceType: 'Observation', id: 'o2', status: 'final', derivedFrom: [{ reference: 'QuestionnaireResponse/client-qr' }] } as ObservationResource,
 ]
 
-const condition: FhirResource = {
-  resourceType: 'Condition',
-  evidence: [{ detail: [{ reference: 'QuestionnaireResponse/client-qr' }] }],
-}
-
 const documentReference: FhirResource = { resourceType: 'DocumentReference' }
 
 function artifacts(overrides: Partial<WritebackArtifacts> = {}): WritebackArtifacts {
-  return { qr, observations, conditions: [], documentReference, condition, ...overrides }
+  return { qr, observations, conditions: [], documentReference, ...overrides }
 }
 
 /** Fake target: records created resources, assigns predictable server ids. */
@@ -62,9 +57,11 @@ describe('executeWritePlan — happy path (full capability)', () => {
     expect(byTier(steps, 1).id).toBe('srv-QuestionnaireResponse-1')
     expect(byTier(steps, 2).outcome).toBe('written')
     expect(byTier(steps, 2).reason).toBe('2 Observations written')
+    expect(byTier(steps, 2).count).toEqual({ written: 2, of: 2 })
 
     // Floor skipped because every discrete tier landed.
     expect(byTier(steps, 0).outcome).toBe('skipped')
+    expect(byTier(steps, 0).skip).toBe('not-needed')
     expect(target.created.some(r => r.resourceType === 'DocumentReference')).toBe(false)
 
     // The two Observations that reached the server point at the SERVER QR id.
@@ -74,18 +71,6 @@ describe('executeWritePlan — happy path (full capability)', () => {
       expect(o.derivedFrom).toEqual([{ reference: 'QuestionnaireResponse/srv-QuestionnaireResponse-1' }])
     }
   })
-
-  it('remaps a Tier-3 Condition proposal evidence ref to the server QR id when enabled', async () => {
-    const target = fakeTarget()
-    const plan = buildWritePlan(ALL, { enableConditionProposal: true }, artifacts())
-    const { steps } = await executeWritePlan(plan, target, artifacts(), { enableConditionProposal: true })
-
-    expect(byTier(steps, 3).outcome).toBe('written')
-    const writtenCondition = target.created.find(r => r.resourceType === 'Condition') as FhirResource
-    expect((writtenCondition.evidence as Array<{ detail: { reference: string }[] }>)[0].detail[0].reference).toBe(
-      'QuestionnaireResponse/srv-QuestionnaireResponse-1',
-    )
-  })
 })
 
 describe('executeWritePlan — Tier-2 recorded Conditions', () => {
@@ -93,15 +78,14 @@ describe('executeWritePlan — Tier-2 recorded Conditions', () => {
     { resourceType: 'Condition', id: 'd1' },
     { resourceType: 'Condition', id: 'd2' },
   ]
-  const step = (steps: WriteStepResult[], tier: number, type: string) =>
-    steps.find(s => s.tier === tier && s.resourceType === type)!
+  const step = (steps: WriteStepResult[], type: string) => steps.find(s => s.resourceType === type)!
 
-  it('writes them in their own step and counts them as Conditions, not Observations', async () => {
+  it('writes them in their own step and counts them apart from the Observations', async () => {
     const target = fakeTarget()
     const a = artifacts({ conditions: drivers })
     const { steps } = await executeWritePlan(buildWritePlan(ALL, {}, a), target, a)
-    expect(step(steps, 2, 'Observation').reason).toBe('2 Observations written')
-    expect(step(steps, 2, 'Condition')).toMatchObject({ outcome: 'written', reason: '2 Conditions written' })
+    expect(step(steps, 'Observation').count).toEqual({ written: 2, of: 2 })
+    expect(step(steps, 'Condition')).toMatchObject({ tier: 2, outcome: 'written', count: { written: 2, of: 2 } })
     expect(target.created.filter(r => r.resourceType === 'Condition')).toHaveLength(2)
     expect(byTier(steps, 0).outcome).toBe('skipped')
   })
@@ -111,9 +95,17 @@ describe('executeWritePlan — Tier-2 recorded Conditions', () => {
     const a = artifacts({ conditions: drivers })
     const caps = { ...ALL, Condition: { create: false } }
     const { steps } = await executeWritePlan(buildWritePlan(caps, {}, a), target, a)
-    expect(step(steps, 2, 'Observation').outcome).toBe('written')
-    expect(step(steps, 2, 'Condition').outcome).toBe('skipped')
+    expect(step(steps, 'Observation').outcome).toBe('written')
+    expect(step(steps, 'Condition')).toMatchObject({ outcome: 'skipped', skip: 'unsupported' })
     expect(target.created.some(r => r.resourceType === 'Condition')).toBe(false)
+    expect(byTier(steps, 0).outcome).toBe('written')
+  })
+
+  it('problems and no scores still get the readable copy (#638)', async () => {
+    const target = fakeTarget()
+    const a = artifacts({ observations: [], conditions: drivers })
+    const { steps } = await executeWritePlan(buildWritePlan(ALL, {}, a), target, a)
+    expect(step(steps, 'Condition').outcome).toBe('written')
     expect(byTier(steps, 0).outcome).toBe('written')
   })
 
@@ -121,7 +113,7 @@ describe('executeWritePlan — Tier-2 recorded Conditions', () => {
     const target = fakeTarget(r => r.id === 'd2')
     const a = artifacts({ conditions: drivers })
     const { steps } = await executeWritePlan(buildWritePlan(ALL, {}, a), target, a)
-    expect(step(steps, 2, 'Condition')).toMatchObject({ outcome: 'failed', reason: '1/2 Conditions written' })
+    expect(step(steps, 'Condition')).toMatchObject({ outcome: 'failed', count: { written: 1, of: 2 } })
     expect(byTier(steps, 0).outcome).toBe('written')
   })
 })
@@ -137,6 +129,7 @@ describe('executeWritePlan — degradation', () => {
     expect(byTier(steps, 2).outcome).toBe('failed')
     expect(byTier(steps, 2).error).toContain('HTTP 422')
     expect(byTier(steps, 2).reason).toBe('0/2 Observations written')
+    expect(byTier(steps, 2).count).toEqual({ written: 0, of: 2 })
     // Floor fires as the backstop.
     expect(byTier(steps, 0).outcome).toBe('written')
     expect(target.created.some(r => r.resourceType === 'DocumentReference')).toBe(true)
@@ -150,6 +143,7 @@ describe('executeWritePlan — degradation', () => {
 
     expect(byTier(steps, 1).outcome).toBe('skipped')
     expect(byTier(steps, 2).outcome).toBe('skipped')
+    expect(byTier(steps, 2).skip).toBe('unsupported')
     expect(byTier(steps, 0).outcome).toBe('written')
   })
 
@@ -177,6 +171,8 @@ describe('executeWritePlan — config', () => {
     const { steps } = await executeWritePlan(plan, target, artifacts(), { enableObservation: false })
     expect(byTier(steps, 2).outcome).toBe('skipped')
     expect(byTier(steps, 2).reason).toBe('Tier not enabled')
+    expect(byTier(steps, 2).skip).toBe('disabled')
     expect(byTier(steps, 0).outcome).toBe('skipped')
+    expect(byTier(steps, 0).skip).toBe('not-needed')
   })
 })

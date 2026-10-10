@@ -12,6 +12,7 @@ import {
   unreachedStreak,
   OUTREACH_CHANNELS,
   OUTREACH_OUTCOMES,
+  isOutreachOutcomeCode,
   OUTREACH_PROMPTS,
 } from '@spier/core/lib/followUp'
 import { displayFor } from '@spier/core/lib/codedOption'
@@ -194,7 +195,7 @@ export function OutreachAttemptView() {
           <select
             className="workflow-input"
             value={outcome}
-            onChange={e => setOutcome(e.target.value)}
+            onChange={e => { if (isOutreachOutcomeCode(e.target.value)) setOutcome(e.target.value) }}
           >
             {OUTREACH_OUTCOMES.map(o => (
               <option key={o.code} value={o.code}>{o.display}</option>

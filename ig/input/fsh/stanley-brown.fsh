@@ -39,6 +39,12 @@ Description: "A CarePlan derived from a completed Stanley-Brown Safety Plan Ques
 * category.coding 1..*
 * subject 1..1
 * subject only Reference(Patient)
+// When the plan took effect. The safety-plan-before-discharge measure dates a
+// plan by period.start and nothing else, so a plan without it can never count.
+// `created` is when the record was written — the same instant for a plan
+// derived from a completed response, but not the element the measure reads.
+* period 1..1
+* period.start 1..1
 // Every activity IS a named step, so the section code is the discriminator.
 // Slicing is left open, but with a required binding plus 1..1 on all seven
 // slices the steps are already exhaustive.
@@ -68,6 +74,9 @@ Description: "A CarePlan derived from a completed Stanley-Brown Safety Plan Ques
 // Must-Support — a producer SHALL populate these; a consumer SHALL process them.
 * status MS
 * subject MS
+* period MS
+* period.start MS
+* created MS
 * category MS
 // SNOMED treatment-escalation-plan artifact type, the LOINC suicide-prevention
 // note type, and the Gravity-pattern domain tag, so this resource is retrievable
@@ -119,6 +128,8 @@ Usage: #example
 * intent = #plan
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * subject = Reference(Patient/example)
+* created = "2026-08-08T14:30:00Z"
+* period.start = "2026-08-08T14:30:00Z"
 * addresses[+].display = "Risk for suicide"
 * activity[+].detail
   * code = SafetyPlanSectionCodes#warning-signs

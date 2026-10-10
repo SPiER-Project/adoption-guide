@@ -72,14 +72,21 @@
  * `<strong>Appointment</strong>`, an identifier in `AppointmentResource`, and a
  * reference prefix in `` `Appointment/${a.id}` `` — one token, three meanings,
  * and only the first is prose. So RULE 3 parses the file with TypeScript's own
- * parser and reads **JSXText nodes only**: what is actually rendered as words.
- * Identifiers, imports, template literals and string attributes are invisible
- * to it by construction, which is why `draftTitle="Live FHIR Communication"`
- * needs no exemption.
+ * parser and reads **what is rendered as words**: JSXText nodes, and the string
+ * value of every JSX attribute not in `NOT_WORDS_ATTRS` (`title`, `label`,
+ * `optional`, `help`, `placeholder`, …). Identifiers, imports and code-valued
+ * attributes stay invisible by construction.
  *
- * The one carve-out is the `fhirNote={…}` attribute, whose entire subtree is
- * skipped — that is the implementer's half, it renders inside `CodeDrawer`, and
- * `CodeDrawer` is gated by `useInspect()`.
+ * ⚠️ **Until 2026-10-07 it read JSXText alone**, and the attribute half was
+ * where the leak was: a recorder's title, a field label and a list heading all
+ * named a resource type and passed. And a Title Case title is where the word
+ * list is bluntest — "Appointment" capitalised mid-sentence is the resource,
+ * but in a title every word is capitalised. Inside a recorder the answer is
+ * the same either way: name the act ("Book and Track the Follow-Up Visit").
+ *
+ * The carve-outs are `fhirNote={…}`, whose entire subtree is skipped, and
+ * `draft` / `draftTitle` — the implementer's half, rendered inside
+ * `CodeDrawer`, which is gated by `useInspect()`.
  */
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -110,8 +117,6 @@ const fail = (msg) => { console.error(`✗ ${msg}`); failures++ }
 const NOT_A_RESOURCE_VIEW = {
   'apps/clinical/src/context/ToolConfigProvider.tsx':
     'serializes the tool-enablement preset INTO localStorage. Nothing is rendered, and the value is a settings object rather than a resource.',
-  'packages/app-shell/src/components/PathwayView.tsx':
-    'the <pre> holds a CQL/pathway ERROR STRING, not a resource. The resources this view does show go through FhirJsonViewer, which gates itself.',
   'apps/guide/src/pages/CdsServiceGuide.tsx':
     'a guide page: the <pre> blocks are the curl invocations and the hook payload an implementer copies. Inspection is on for this whole surface by definition, so asking it again would be noise.',
 }
@@ -210,14 +215,34 @@ for (const rel of files) {
  * resource type banned from a recorder's lede and allowed on the chart row
  * beside it.
  *
- * ⚠️ Matched against JSXText ONLY, so `AppointmentResource` and
- * `` `Appointment/${id}` `` never reach this list. See the header.
+ * ⚠️ Matched against rendered words ONLY — JSXText and the string value of a
+ * prose attribute — so `AppointmentResource` and `` `Appointment/${id}` ``
+ * never reach this list. See the header.
+ *
+ * ⚠️ **`s?` because a plural is the same word.** `\bAppointment\b` passed
+ * `title="Appointments on this chart"` and `title="Safety Tasks — …"`, the
+ * sibling of the miss `check:jargon` had over "2 Observations written".
  */
 const PROSE_PATTERNS = [
-  { name: 'a FHIR resource type', re: new RegExp(`\\b(${RESOURCE_TYPES.join('|')})\\b`, 'g') },
+  { name: 'a FHIR resource type', re: new RegExp(`\\b(${RESOURCE_TYPES.join('|')})s?\\b`, 'g') },
   { name: 'a SPiER profile name', re: /\bSPiER[A-Z]\w+/g },
   { name: 'a FHIR element path', re: new RegExp(`\\b(?:${RESOURCE_TYPES.join('|')})\\.[a-z]\\w*`, 'g') },
 ]
+
+/**
+ * Attributes whose string value is a class, a route, a key or a code — never
+ * words a clinician reads.
+ *
+ * ⚠️ `draft` and `draftTitle` are here for the reason `fhirNote` is skipped:
+ * they render inside `CodeDrawer`, which `useInspect()` gates, so
+ * "Live FHIR Communication" is addressed to the implementer.
+ */
+const NOT_WORDS_ATTRS = new Set([
+  'className', 'key', 'id', 'to', 'href', 'htmlFor', 'type', 'role', 'rel',
+  'target', 'name', 'src', 'value', 'pattern', 'style', 'slug', 'size', 'min',
+  'max', 'step', 'tone', 'variant', 'autoComplete', 'inputMode', 'data-testid',
+  'aria-controls', 'draft', 'draftTitle',
+])
 
 /**
  * JSX text rendered by `file`, and every `<code>` it renders, both excluding
@@ -230,6 +255,14 @@ const PROSE_PATTERNS = [
  * spelling. What DOES distinguish them is the element: a recorder reaching for
  * `<code>` is quoting an identifier at the reader, and a clinician filling in a
  * form has no identifier to be shown. So the rule is the tag, not the text.
+ *
+ * ⚠️ **String attributes are read too, since 2026-10-07**, except the ones in
+ * `NOT_WORDS_ATTRS`. RULE 3 read JSXText alone, so a recorder's `title`, a
+ * field's `label` and a list heading — the first words on the page, rendered
+ * by `PageHeader` and `WorkflowField` with no inspection gate — were invisible:
+ * *Next Appointment & Follow-Up Tracking*, *Task type* and *Consent history*
+ * shipped past it. It is a deny list on purpose: an attribute added tomorrow is
+ * read until someone writes down that it is a code.
  */
 function renderedText(file, src) {
   const sf = ts.createSourceFile(file, src, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
@@ -238,11 +271,33 @@ function renderedText(file, src) {
   /** @type {number[]} */
   const codeTags = []
   let sawJsx = false
+  let attrRuns = 0
+  const lineOf = (node) => sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1
+  // The string literals an attribute's value can render: `"…"`, `{'…'}`,
+  // either branch of `{a ? '…' : '…'}`, the fallback of `{a ?? '…'}` and a
+  // template's literal parts. JSX inside the value is left to the walk.
+  const attrStrings = (expr) => {
+    if (!expr) return []
+    if (ts.isStringLiteral(expr) || ts.isNoSubstitutionTemplateLiteral(expr)) return [expr.text]
+    if (ts.isJsxExpression(expr) || ts.isParenthesizedExpression(expr)) return attrStrings(expr.expression)
+    if (ts.isConditionalExpression(expr)) return [...attrStrings(expr.whenTrue), ...attrStrings(expr.whenFalse)]
+    if (ts.isBinaryExpression(expr)) return attrStrings(expr.right)
+    if (ts.isTemplateExpression(expr)) return [expr.head.text, ...expr.templateSpans.map((s) => s.literal.text)]
+    return []
+  }
   const walk = (node) => {
     if (ts.isJsxElement(node) || ts.isJsxSelfClosingElement(node)) sawJsx = true
-    // The implementer's half. Skipped whole: its subtree renders inside
-    // CodeDrawer, which returns null unless useInspect() says otherwise.
-    if (ts.isJsxAttribute(node) && node.name.getText(sf) === 'fhirNote') return
+    if (ts.isJsxAttribute(node)) {
+      const name = node.name.getText(sf)
+      // The implementer's half. Skipped whole: its subtree renders inside
+      // CodeDrawer, which returns null unless useInspect() says otherwise.
+      if (name === 'fhirNote' || NOT_WORDS_ATTRS.has(name)) return
+      for (const text of attrStrings(node.initializer)) {
+        if (!text.trim()) continue
+        attrRuns++
+        out.push({ text, line: lineOf(node) })
+      }
+    }
     if (ts.isJsxElement(node) && node.openingElement.tagName.getText(sf) === 'code') {
       codeTags.push(sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1)
     }
@@ -256,7 +311,7 @@ function renderedText(file, src) {
     ts.forEachChild(node, walk)
   }
   walk(sf)
-  return { runs: out, codeTags, sawJsx }
+  return { runs: out, attrRuns, codeTags, sawJsx }
 }
 
 /** Files that render <WorkflowForm> — the recorder views, derived not listed. */
@@ -271,14 +326,16 @@ if (recorders.length === 0) {
 }
 
 let proseRuns = 0
+let attrProseRuns = 0
 for (const rel of recorders) {
   const src = stripComments(readFileSync(join(root, rel), 'utf8'))
-  const { runs, codeTags, sawJsx } = renderedText(rel, src)
+  const { runs, attrRuns, codeTags, sawJsx } = renderedText(rel, src)
   if (!sawJsx) {
     fail(`${rel} renders <WorkflowForm> but the parser found no JSX in it — RULE 3 has stopped reading this file`)
     continue
   }
-  proseRuns += runs.length
+  proseRuns += runs.length - attrRuns
+  attrProseRuns += attrRuns
   for (const line of codeTags) {
     fail(
       `${rel}:${line}: the clinician reads a <code> — an extension id, a\n` +
@@ -327,6 +384,7 @@ const floorsHeld = reportFloors(
     { source: 'component trees', dimension: '<pre> site(s)', actual: counts['<pre>'], floor: 4 },
     { source: 'recorder views', dimension: 'view(s) rendering <WorkflowForm>', actual: recorders.length, floor: 5 },
     { source: 'recorder views', dimension: 'JSX text run(s) read', actual: proseRuns, floor: 90 },
+    { source: 'recorder views', dimension: 'prose attribute value(s) read', actual: attrProseRuns, floor: 57 },
   ],
   fail,
 )
@@ -338,6 +396,6 @@ if (failures) {
 console.log(
   `✓ raw-FHIR rendering: ${files.length} component(s) scanned, ` +
     `${guarded} that serialize or dump ask useInspect(), ${exempted} exempt with a reason; ` +
-    `${recorders.length} recorder view(s), ${proseRuns} JSX text run(s) free of the wire format` +
+    `${recorders.length} recorder view(s), ${proseRuns} JSX text run(s) and ${attrProseRuns} prose attribute value(s) free of the wire format` +
     (floorsHeld ? '' : ' (floors short)'),
 )

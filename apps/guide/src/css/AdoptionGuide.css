@@ -68,13 +68,13 @@
 
 .guide-pager__dir {
   font: var(--type-caption);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   letter-spacing: normal;
   color: var(--text-muted);
 }
 
 .guide-pager__label {
   font: var(--type-running);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--brand-link);
 }

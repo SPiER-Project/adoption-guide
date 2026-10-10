@@ -152,7 +152,7 @@ export function RiskEpisodeView() {
           so a banner cannot outlive the episode it announces. A patient may have several episodes
           over time but only one open at once, which is why this view is modal rather than
           validated. A <code>positive-screen</code> entry carries a profile invariant requiring the
-          episode to name the artifact that evidenced it (#263) — hence the required{' '}
+          episode to name the artifact that evidenced it — hence the required{' '}
           <code>episode-trigger</code> reference.
         </>
       }

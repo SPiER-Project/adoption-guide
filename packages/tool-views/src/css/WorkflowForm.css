@@ -22,7 +22,7 @@
   font: var(--type-lead);
   margin: 0 0 var(--space-4) 0;
   max-width: var(--measure-prose);
-  line-height: 1.6;
+  line-height: var(--line-height-relaxed);
   color: var(--text-body);
 }
 
@@ -40,12 +40,12 @@
 
 .workflow-field-label {
   font: var(--type-ui);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--text-strong);
 }
 
 .workflow-field-optional {
-  font-weight: 400;
+  font-weight: var(--font-weight-regular);
   color: var(--text-muted);
 }
 
@@ -55,7 +55,7 @@
 .workflow-field-help {
   font: var(--type-caption);
   max-width: var(--measure-prose);
-  font-weight: 400;
+  font-weight: var(--font-weight-regular);
   color: var(--text-muted);
 }
 
@@ -124,14 +124,14 @@
 .consent-gate__title {
   font: var(--type-ui);
   margin: 0 0 var(--space-1) 0;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .consent-gate__detail {
   font: var(--type-caption);
   max-width: var(--measure-prose);
   margin: 0;
-  line-height: 1.5;
+  line-height: var(--line-height-normal);
 }
 
 .consent-gate__list {

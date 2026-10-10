@@ -46,7 +46,7 @@
    resolves against. */
 .dd-concept-body > .dd-cell-desc {
   font: var(--type-caption);
-  line-height: 1.6;
+  line-height: var(--line-height-relaxed);
   color: var(--text-body);
 }
 
@@ -80,7 +80,7 @@
   background: none;
   color: var(--text-strong);
   font-family: inherit;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   text-align: left;
   cursor: pointer;
 }
@@ -95,7 +95,7 @@
 }
 
 .dd-concept-name {
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 
 .dd-concept-code {
@@ -107,7 +107,7 @@
   font: var(--type-caption);
   flex: none;
   color: var(--text-faint);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .dd-concept-body {

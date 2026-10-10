@@ -6,7 +6,7 @@
  * behavioral-health care manager and psychiatric consultant all need the
  * care-team role model SPiER has no `CareTeam` or `PractitionerRole` for, and
  * diagnosis and insurance need `Condition` queries and `Coverage`. Age is the
- * one addition derivable from data `patients.json` already carries.
+ * one addition derivable from data every registry row already carries (`dob`).
  */
 
 /**

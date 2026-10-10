@@ -63,9 +63,9 @@ const NO_SMART: SmartBinding = { client: null, patient: null, source: null }
 
 /**
  * ⚠️ The MRN system is core's `MRN_SYSTEM`, IMPORTED — never a literal here.
- * `npm run check:patients` loads that constant and compares it with the canonical
- * Patient JSON in packages/demo-population/src/patients/ (`patients.json` holds
- * the display copies), and it fails if an identifier `system` in this file is
+ * The demo registry reads each patient's MRN out of the Patient JSON in
+ * packages/demo-population/src/patients/ under that same constant, and
+ * `npm run check:patients` fails if an identifier `system` in this file is
  * anything but that import. Until 2026-10-06 the gate regex-scraped the first
  * `identifier: [{ system: '…' }]` literal in this file instead — which, once the
  * builder used a local constant, was BLANK_PATIENT's literal below, so a typo in

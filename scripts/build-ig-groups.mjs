@@ -71,16 +71,16 @@
  */
 
 import { readFileSync, writeFileSync, readdirSync, existsSync, statSync } from 'node:fs'
-import { resolve, join, basename, relative } from 'node:path'
+import { resolve, join, basename } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { CONFIG, FSH_GENERATED, makeBail, readConfig, parsePathResource } from './lib/ig-config.mjs'
+import { relRepo as rel } from './lib/repo.mjs'
 
 const here = fileURLToPath(new URL('.', import.meta.url))
 const ROOT = resolve(here, '..')
 const IG = resolve(ROOT, 'ig')
 const FSH_DIR = resolve(IG, 'input/fsh')
-const rel = (p) => relative(ROOT, p)
 
 const bail = makeBail('build-ig-groups')
 const check = process.argv.includes('--check')
@@ -206,6 +206,7 @@ const RULES = {
   // pathway
   'pathway-stages.fsh': 'pathway',
   'suicide-safer-care-pathway.fsh': 'pathway',
+  'setting-pathways.fsh': 'pathway',
   'pathway-tool-placeholders.fsh': 'pathway',
   'tool-id-identifier.fsh': 'pathway',
   'instrument-licensing.fsh': 'pathway',

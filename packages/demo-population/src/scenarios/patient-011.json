@@ -1264,6 +1264,9 @@
         }
       ],
       "created": "2026-08-02T15:10:00.000Z",
+      "period": {
+        "start": "2026-08-02T15:10:00.000Z"
+      },
       "title": "Stanley-Brown Safety Plan",
       "activity": [
         {

@@ -87,11 +87,11 @@ export async function executeWritePlan(
 
   for (const step of discreteSteps) {
     if (step.disposition === 'disabled') {
-      steps.push({ ...base(step), outcome: 'skipped', reason: 'Tier not enabled' })
+      steps.push({ ...base(step), outcome: 'skipped', skip: 'disabled', reason: 'Tier not enabled' })
       continue
     }
     if (step.disposition === 'unsupported') {
-      steps.push({ ...base(step), outcome: 'skipped', reason: 'Server does not support create for this type' })
+      steps.push({ ...base(step), outcome: 'skipped', skip: 'unsupported', reason: 'Server does not support create for this type' })
       inScopeDiscreteOutcomes.push('skipped')
       continue
     }
@@ -107,22 +107,33 @@ export async function executeWritePlan(
       const stepResult = await writeEach(target, step, artifacts.observations, serverRefs)
       steps.push(stepResult)
       inScopeDiscreteOutcomes.push(stepResult.outcome)
-    } else if (step.resourceType === 'Condition' && step.tier === 2) {
+    } else if (step.resourceType === 'Condition') {
       const stepResult = await writeEach(target, step, artifacts.conditions, serverRefs)
-      steps.push(stepResult)
-      inScopeDiscreteOutcomes.push(stepResult.outcome)
-    } else if (step.resourceType === 'Condition' && artifacts.condition) {
-      const payload = remapReferences(artifacts.condition, serverRefs)
-      const stepResult = toStepResult(step, await tryCreate(target, payload))
       steps.push(stepResult)
       inScopeDiscreteOutcomes.push(stepResult.outcome)
     }
   }
 
-  // Tier-0 floor: run when nothing discrete landed cleanly, or on demand.
+  // Tier-0 floor: run when nothing discrete landed cleanly, when the form
+  // produced no scores, or on demand.
+  //
+  // ⚠️ **"No scores" is a reason on its own (#638, decided 2026-10-09).** Many
+  // EHRs store a QuestionnaireResponse and display nothing from it. A form
+  // with scores still reaches the chart as results the EHR shows; a form with
+  // none — a safety plan, a recorder's form — reached it as a stored response
+  // and nothing a clinician could read, which is what the live sandbox run
+  // showed for a Stanley-Brown plan (#640). So a save that derives no
+  // Observation writes the readable copy too. Derived from the save, not from
+  // a list of instruments, so a new form of either kind needs no entry.
+  // `alwaysWriteDocument` still forces it for every save.
+  // `observations` holds Observations only since 2026-10-06 — CAMS Section B's
+  // recorded problems travel in `conditions` — so a form that recorded problems
+  // and no scores gets its readable copy too.
+  const noScores = artifacts.observations.length === 0
   if (floorStep) {
     const runFloor =
       cfg.alwaysWriteDocument ||
+      noScores ||
       inScopeDiscreteOutcomes.length === 0 ||
       inScopeDiscreteOutcomes.some(o => o !== 'written')
     if (runFloor) {
@@ -131,6 +142,7 @@ export async function executeWritePlan(
       steps.push({
         ...base(floorStep),
         outcome: 'skipped',
+        skip: 'not-needed',
         reason: 'Discrete tiers captured the data; floor not needed',
       })
     }
@@ -162,11 +174,11 @@ function toStepResult(step: WriteStep, result: CreateResult): WriteStepResult {
 
 /**
  * Write every resource of one Tier-2 step — the derived Observations, or the
- * instrument's recorded Conditions — in order, remapping its references to what
- * has already landed and adding each one's server id as it does. One aggregate
- * step result: `written` only if all succeeded; otherwise `failed`, with a
- * `reason` recording how many of how many landed so a partial write is visible
- * in the scorecard.
+ * problems the form recorded — in order, remapping its references to what has
+ * already landed and adding each one's server id as it does. One aggregate step
+ * result: `written` only if all succeeded; otherwise `failed`, with a `count`
+ * (and a wire-vocabulary `reason`) recording how many of how many landed so a
+ * partial write is visible in the scorecard.
  */
 async function writeEach(
   target: WritebackTarget,
@@ -188,18 +200,21 @@ async function writeEach(
     }
   }
   const total = resources.length
+  const count = { written: total - errors.length, of: total }
   if (errors.length === 0) {
     return {
       ...base(step),
       outcome: 'written',
       id: ids[0],
-      ...(total > 1 ? { reason: `${ids.length} ${noun} written` } : {}),
+      count,
+      ...(total > 1 ? { reason: `${count.written} ${noun} written` } : {}),
     }
   }
   return {
     ...base(step),
     outcome: 'failed',
+    count,
     error: errors.join('; '),
-    reason: `${ids.length}/${total} ${noun} written`,
+    reason: `${count.written}/${total} ${noun} written`,
   }
 }

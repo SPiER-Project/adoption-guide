@@ -214,6 +214,72 @@ inventory, which was built by listing `FhirJsonViewer`'s call sites.
 than a thing to remember: serialize a resource or render a `<pre>` and you must
 have asked `useInspect()`. It covers the prose too ([`tool-views.md`](tool-views.md) §4).
 
+⚠️ **No gate reads a string core builds at runtime, and the chart's error
+banner printed one for its whole life.** `dataSourceError` was the thrown
+message — "Writeback failed — no resource was created. QuestionnaireResponse:
+Failed to create QuestionnaireResponse — HTTP 422: …", or fhirclient's status
+line with the server's OperationOutcome appended — rendered verbatim on the
+care pathway and *What's on file* until 2026-10-07. `check:jargon` reads this
+app's literals; the message was assembled in `SmartDataSource`. It is now a
+`DataSourceFailure` (`packages/core/src/lib/dataSource/failure.ts`): a `kind`
+the clinical app words in `DataSourceErrorNotice`, and the original as
+`detail`, which nothing on the clinical surface renders — not even behind
+`useInspect()`, which is never on there (the scorecard's first fix of the same
+leak was that dead branch). The rule for the class: **an error or outcome that
+reaches the clinician from core carries a code, and the app words the code.**
+`apps/clinical/src/pages/dataSourceError.test.tsx` mounts the real provider
+over fhirclient's real `HttpError` and drives every kind; a new path into
+`dataSourceError` needs a case there, or nothing sees it.
+
+⚠️ **The launch printed one too, on the first screen a launched clinician
+sees, and so did the pathway.** The same day, `SmartLaunch` and `SmartRedirect`
+still rendered `err.message` from fhirclient — "403 Forbidden\nURL: …" with the
+server's `error_description` or OperationOutcome appended, "access_denied: …",
+"No 'state' parameter found. Please (re)launch the app." It is now a
+`SmartLaunchFailure` (`packages/core/src/lib/smartLaunchFailure.ts`) with five
+kinds — refused, not launched, unreachable, the patient's record unread, and a
+`failed` fallback — worded in `SmartLaunchErrorNotice`, exported from `SmartLaunch.tsx` in
+`packages/app-shell` because both apps mount `/launch` and `/redirect` from
+there (and in that file because `check:template` exempts a bare page's `<h2>`
+only in a route element outside the shell). The raw error goes to the console
+only. Most of what fhirclient throws is a plain `Error`, so the
+classifier reads fhirclient's own message text; that is fragile and still safe,
+because an unrecognised message falls to `failed` and is worded like the rest.
+`apps/clinical/src/pages/smartLaunchError.test.tsx` mounts both pages over the
+real `authorize()` and `ready()` — a fresh `BrowserAdapter` per case, because the
+library caches the page URL in the one it builds at import — and pins each
+message the classifier depends on. `PathwayLoadError` printed `loadPathway`'s
+error ("no PlanDefinition with url http://… Run `npm run copy-fhir …`") in a
+`<pre>` on the clinician's `/patient/pathway`, under a `check:fhir-render`
+exemption that argued it was "an error string, not a resource" — the right
+answer to the wrong question. It has one kind, so no code: the clinician gets a
+sentence, and the `<pre>` renders under `useInspect()`, which here is a LIVE
+branch because the guide's pathway pages render it too.
+
+⚠️ **A CDS card's `detail` is clinician copy for EVERY consumer, and the
+problem-list card's said "harmonized concept, LOINC 93374-7, recorded
+2026-10-09" in it until 2026-10-09** — built in core
+(`packages/core/src/lib/cdsHooks/problemListCard.ts`), followed by every note on
+the pathway step, two SNOMED CT ids and an appended value-set canonical among
+them. Seen on a live SMART sandbox run and on the mock EHR alike. **Decided:
+change `detail` for everyone, not only in the app's rendering** — CDS Hooks
+defines it as text the host displays to its user, the host's user is a
+clinician, and an in-app rewrite would leave every host showing the wire words.
+The same day the published pathway had gained a `clinician-facing` marker on its
+notes, and the card follows it rather than a rule of its own: the marked notes
+(the usual entries, and the ICD-10-CM billing pair — split from its verification
+sentence at the boundary, as any two-reader note is) make `detail`; the unmarked
+ones travel verbatim in the extension (`spier-implementer-notes`: the SNOMED CT
+ids and their value set), beside `spier-risk-concept` (the LOINC code, the tier
+coding, the timestamp). A host's code reads both; the guide's card-JSON viewer
+shows them; nothing is lost from the wire. This replaced a by-name exemption for
+`.cds-card-rationale` in the clinical page scan, which had recorded the opposite
+decision — the card names codes — earlier the same day.
+`apps/clinical/src/components/guidanceCardCopy.test.tsx` renders the rail with
+the real builder's guidance cards for every demo patient and applies
+`check:jargon`'s clinical rules, loaded from `scripts/lib/reader-jargon.mjs`,
+to what renders and to the `detail` a host receives.
+
 ⚠️ **The 18 fillers and 11 recorders are ONE element definition**
 (`packages/tool-views/src/data/toolViews.tsx` — a package since 2026-09-19, so
 the rule is a boundary rather than a convention), rendered by two route

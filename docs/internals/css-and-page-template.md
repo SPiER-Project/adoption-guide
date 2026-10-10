@@ -9,14 +9,28 @@ here for the reasoning. Every ⚠️ below is a defect that shipped: the paragra
 exists because something passed while checking nothing, or read correct-looking
 and was false. See [`docs/internals/README.md`](README.md).
 
-- **Design tokens only.** Vanilla CSS with custom properties. stylelint (`.stylelintrc.json`, run by `scripts/lint-css.mjs` over every root in `scripts/lib/style-roots.mjs`) rejects raw hex (`color-no-hex`) and enforces `var(--…)` for every `*-color` property (`border-top-color`, `outline-color` …), the colour inside the `border` / `background` / `outline` shorthands, `fill`, `stroke`, `font-size`, `box-shadow`, `font-family`, `letter-spacing`, every `*-radius`, and every padding, margin and gap property in either spelling (`padding-inline`, `margin-block-start` …). Raw values are allowed only in `packages/ui/src/foundation.css` (token definitions). Class selectors must be kebab-case BEM.
+- **Design tokens only.** Vanilla CSS with custom properties. stylelint (`.stylelintrc.json`, run by `scripts/lint-css.mjs` over every root in `scripts/lib/style-roots.mjs`) rejects raw hex (`color-no-hex`) and enforces `var(--…)` for every `*-color` property (`border-top-color`, `outline-color` …), the colour inside the `border` / `background` / `outline` shorthands, `fill`, `stroke`, `font-size`, `font-weight`, `line-height`, `box-shadow`, `font-family`, `letter-spacing`, every `*-radius`, and every padding, margin and gap property in either spelling (`padding-inline`, `margin-block-start` …). Raw values are allowed only in `packages/ui/src/foundation.css` (token definitions). Class selectors must be kebab-case BEM.
+  ⚠️ **`font-weight` and `line-height` joined the list on 2026-10-09, and
+  were the two type properties with no owner.** The type roles set both, but
+  the longhand a rule writes *after* its role was a bare number: 151 weights
+  across six values and 58 line-heights across eleven (1 to 1.65), while
+  `--line-height-tight` and `--line-height-normal` sat in the token sheet and
+  31 rules used them. There are now four weight tokens
+  (`--font-weight-regular` … `-bold`) and five leading steps (`-none`,
+  `-tight`, `-snug`, `-normal`, `-relaxed`). **Four weights, because four
+  are loaded**: the Google Fonts request is `400;500;600;700` and the root sets
+  `font-synthesis: none`, so the one `300` and two `800`s were rendering as
+  400 and 700 already — the mapping changed nothing on screen, and a fifth
+  weight token is a font request before it is a token. The leading sweep
+  moved values by at most 0.1em (1.3 → 1.4) and mostly by 0.05em, the same
+  trade the spacing scale made below. `normal` and `inherit` stay legal.
   ⚠️ **Until the 2026-10 gate audit a FUNCTION passed as a token.** The plugin
   accepts any function value by default, so `color: rgb(200 0 0)`,
   `padding: max(13px, 1vw)` and `font-size: clamp(11px, 2vw, 19px)` all linted
   clean — and `padding-inline`, `border: 1px solid rgb(…)` and
   `border-radius: 7px` were outside the property list entirely. Functions are
-  now values like any other: `calc(…)` is still accepted (a derived alignment,
-  below), and a gradient or `color-mix()` is accepted only when everything in it
+  now values like any other: a `calc(…)` over tokens is still accepted (a derived
+  alignment, below), and a gradient or `color-mix()` is accepted only when everything in it
   is a token, a keyword or a number. Range-notation media queries
   (`(width < 600px)`) are forbidden, because the breakpoint allow-list is keyed
   on `max-width` / `min-width` and could not see them. And a disable is
@@ -85,9 +99,18 @@ and was false. See [`docs/internals/README.md`](README.md).
   keeps its raw value behind a `stylelint-disable` naming why.
   ⚠️ The plugin validates **per value**, so a half-token/half-raw shorthand does
   fail (that was the hole in the sweep script that wrote these, not in the
-  gate). But `ignoreValues` permits any `calc(…)`, so a raw length inside one is
-  unchecked — that is the intended home for a derived value, and the limit of
-  the rule.
+  gate).
+  ⚠️ **Until 2026-10-09 `ignoreValues` permitted any `calc(…)`**, so
+  `padding: calc(13px)` linted clean and the rule above was a sentence. Two
+  derived alignments had in fact typed the box they derived from:
+  `.sidebar-link--child` summed `1.25rem` for `.sidebar-icon` and
+  `.tools-index__list` summed `2rem` for the stage badge, each beside a
+  separately typed `width`. A `calc()` on a checked property now accepts
+  tokens, unitless numbers and operators only, so the box's size is a token
+  both rules read (`--sidebar-icon-size`, `--stage-badge-size`, beside
+  `--code-drawer-bar-height`, which is the same kind of value). The rule
+  checks only the properties on the strict-value list: `max-height:
+  calc(100vh - 2rem)` is still legal, because sizes are not on it.
 - **One page template.** Every route under the app shell renders into
   `.app-shell__body`, which is the **sole owner of the page inset** — a page
   that pads its own root indents its content relative to every other page, for a
@@ -513,6 +536,31 @@ value is on the token scale, not which value a role gets, so only a component
 can hold that. Reach for one of the nine before writing a new class; if none
 fits, `docs/plans/maintainability-audit-2026-09-15.md` §2.4 says how a variant
 is added (a named prop, never a ninth look).
+
+### The sidebar's rows are one pill at every depth (2026-10-09)
+
+The outline's rows — the Overview lens, each guide section, and a section's
+own pages nested under it while it is open — are one box: `.sidebar-link`,
+padded from the `--nav-row-pad-block` / `--nav-row-pad-inline` tokens in
+`foundation.css`, at `--type-ui`, with the pill radius. Depth moves the LABEL
+inside that box and nothing else: a section row starts its label on
+`--nav-text-column` (past an icon, or where one would be), and each level
+deeper adds one `--nav-indent-step`. A depth modifier may set `padding-left`,
+`color` and `font-weight`; `tests/navRows.test.ts` fails one that sets any
+other property.
+
+⚠️ Written against the first nested rows (the setting pathways under Care
+Pathway): a 4px pill around 12px text under 8 × 12px pills around 14px text.
+Every value was a token, so stylelint and `check:tokens` both passed while the
+column read as two design systems. The shrinking was done to fit long labels,
+which is the trap: a depth-2 label has **147px** at the row's own type, so the
+fix for a label that does not fit is a shorter label (`GuideSubsection.nav`),
+never a smaller row. The test cannot see a label's rendered width; jsdom lays
+nothing out, so measure in the browser.
+
+Not yet on the system: `.sidebar-group-heading`'s `2.25rem` indent (set by eye,
+deliberately off the label column) and the two-line `.sidebar-outbound-link`
+rows, which are a different kind of row.
 
 ### Choosing a guide section's width
 

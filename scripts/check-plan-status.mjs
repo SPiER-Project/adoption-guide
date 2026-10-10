@@ -45,7 +45,8 @@
 // "condone" and "completely" cannot match DONE / COMPLETE as substrings.
 
 import { readFileSync, readdirSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { join } from 'node:path'
+import { relRepo as rel } from './lib/repo.mjs'
 
 const ROOT = process.cwd()
 const PLANS_DIR = join(ROOT, 'docs/plans')
@@ -145,7 +146,6 @@ function statusClaims(text) {
 
 const planFiles = mdFiles(PLANS_DIR, ARCHIVE_DIR)
 const archiveFiles = mdFiles(ARCHIVE_DIR)
-const rel = (p) => relative(ROOT, p)
 
 const failures = []
 let claimsRead = 0

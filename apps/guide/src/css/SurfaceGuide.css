@@ -31,7 +31,7 @@
 
 .surface-guide__intro p {
   font: var(--type-lead);
-  line-height: 1.6;
+  line-height: var(--line-height-relaxed);
   color: var(--text-body);
   margin: 0;
   max-width: var(--measure-prose);
@@ -45,7 +45,7 @@
 
 .surface-guide__section p {
   font: var(--type-running);
-  line-height: 1.65;
+  line-height: var(--line-height-relaxed);
   color: var(--text-body);
   margin: 0;
   max-width: var(--measure-prose);
@@ -72,7 +72,7 @@
 .surface-guide__list li,
 .surface-guide__steps li {
   font: var(--type-running);
-  line-height: 1.65;
+  line-height: var(--line-height-relaxed);
   color: var(--text-body);
   max-width: var(--measure-prose);
 }
@@ -129,7 +129,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  line-height: 1.4;
+  line-height: var(--line-height-snug);
   color: var(--text-body);
 }
 
@@ -144,9 +144,9 @@
   border-radius: var(--radius-pill);
   background: var(--brand-primary);
   color: var(--text-on-brand);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 
 .surface-guide__pathway-title {
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }

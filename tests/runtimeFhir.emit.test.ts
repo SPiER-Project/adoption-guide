@@ -18,7 +18,7 @@
  * normal test — asserting the builders produce what we expect — and *also* writes
  * the resources to a gitignored directory (`.runtime-fhir`) for
  * `node scripts/validate-fhir.mjs --also .runtime-fhir` to validate, and for
- * `check:outputs` / `check:published-profiles` to read. The side effect is
+ * `check:outputs` (both its parts) to read. The side effect is
  * deliberate and the directory is disposable.
  *
  * ── Inputs ───────────────────────────────────────────────────────────────────
@@ -532,10 +532,10 @@ describe('runtime FHIR emission', () => {
   })
 
   /**
-   * ⚠️ **Per response, not per corpus.** `check:outputs` and
-   * `check:published-profiles` both ask whether a profile is claimed ANYWHERE in
-   * the emitted tree, so when three C-SSRS mappers share one declared profile and
-   * one of them stops stamping it, the other two keep both gates green — and the
+   * ⚠️ **Per response, not per corpus.** Both parts of `check:outputs` ask
+   * whether a profile is claimed ANYWHERE in the emitted tree, so when three
+   * C-SSRS mappers share one declared profile and one of them stops stamping it,
+   * the other two keep both parts green — and the
    * validator never checks a profile nothing claims. Asked of each response, the
    * question has no such cover: every result derived from a response claims every
    * Observation/Condition profile its tool's PlanDefinition action declares.

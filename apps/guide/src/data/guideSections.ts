@@ -148,7 +148,28 @@ export interface GuideSection {
    * guide layout owns the width for every page under it and a sub-page root
    * may not declare one (`check:template` RULE 5a).
    */
-  subsections?: { path: string; label: string }[]
+  subsections?: GuideSubsection[]
+}
+
+/**
+ * A page of a section that is not a section of its own.
+ *
+ * `nav` puts it in the SIDEBAR, nested under its section while that section is
+ * open, with `nav` as the row's (shorter) label — `label` stays the page's
+ * title. ⚠️ A nested row is the same pill as every other row (foundation.css,
+ * the --nav-* tokens), so its label has 147px at the row's 14px type: "Emergency
+ * department" (170) and "Inpatient psychiatric care" (184) did not fit, and the
+ * fix is a shorter label, never a smaller row. Opt-in, and most subsections stay out on purpose: `pathway/protocol`
+ * is a second VIEW of Care Pathway reached by one link from the explainer, not
+ * a place of its own (adoption-guide UX audit §4.2), and `tools/:toolRef` is
+ * one page per tool. The setting pathways are the case for it: each is a
+ * different protocol, and a reader looking for "the inpatient pathway" looks
+ * in the menu (Brad, 2026-10-09).
+ */
+export interface GuideSubsection {
+  path: string
+  label: string
+  nav?: string
 }
 
 /**
@@ -202,7 +223,13 @@ export const GUIDE_SECTIONS: GuideSection[] = [
     label: 'Care Pathway',
     group: 'understand',
     width: 'wide',
-    subsections: [{ path: 'pathway/protocol', label: 'The published protocol' }],
+    // The setting pathways' labels repeat data/settingPathways.ts, which owns
+    // them; settingPathways.test.ts fails the two apart.
+    subsections: [
+      { path: 'pathway/protocol', label: 'The published protocol' },
+      { path: 'pathway/emergency-department', label: 'In the emergency department', nav: 'Emergency' },
+      { path: 'pathway/inpatient', label: 'In inpatient psychiatric care', nav: 'Inpatient' },
+    ],
   },
   // `wide`: two catalogue tables.
   //
@@ -264,7 +291,18 @@ export const GUIDE_SECTIONS: GuideSection[] = [
   // at. ⚠️ The "patient app" in repo-and-package-boundaries.md and
   // licensing-verification-backlog.md means that FUTURE patient-facing app and
   // is deliberately not renamed.
-  { path: 'provider-app', label: 'Provider App', group: 'running', width: 'prose' },
+  //
+  // Its subsection is the writeback ladder as an ADOPTION choice — which rung a
+  // site starts on and which it is aiming for (#637). A second view of the same
+  // app, reached from the page's "What was saved back" bullet, so a subsection
+  // rather than an eighth sidebar row.
+  {
+    path: 'provider-app',
+    label: 'Provider App',
+    group: 'running',
+    width: 'prose',
+    subsections: [{ path: 'provider-app/saving-to-the-ehr', label: 'Saving to the EHR' }],
+  },
   { path: 'dashboard', label: 'Population Dashboard', group: 'running', width: 'prose' },
   // The THIRD thing that runs the pathway. It was filed under "Configure"
   // until 2026-09-15, which misread it — the page configures nothing, it is
@@ -354,7 +392,7 @@ export function guideGroupLabel(id: GuideGroupId): string {
  */
 export function resolveGuidePath(
   path: string,
-): { section: GuideSection; subsection?: { path: string; label: string } } | undefined {
+): { section: GuideSection; subsection?: GuideSubsection } | undefined {
   // Everything under /guide, with the leading and trailing slashes gone.
   const rest = path.replace(/^\/guide\/?/, '').replace(/\/$/, '')
   if (!rest) return undefined

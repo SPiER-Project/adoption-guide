@@ -97,6 +97,13 @@
  * catch. The index makes the rule mean what its name says, and it grows with
  * the repo rather than with this file.
  *
+ * ⚠️ **PascalCase joined the index on 2026-10-09** — classes, components and
+ * exported types (`SmartDataSource`, `WritebackScorecard`), which a planted
+ * sentence quoted at a reader and passed. Minus every FHIR R4 resource and
+ * datatype name (derived from `fhirpath`'s R4 model) and every published
+ * artifact `name` in the generated IG: those are the reader's vocabulary, not
+ * this repo's machinery. See `PASCAL` and `readerVocabulary` below.
+ *
  * ── What it cannot see ────────────────────────────────────────────────────
  *
  * ⚠️ **The 29 shared tool views are out of the GUIDE's SOURCE scan, and in the
@@ -121,14 +128,14 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
 import { join } from 'node:path'
+import { stripVTControlCharacters } from 'node:util'
 
 import ts from 'typescript'
 
 import { appRoot, relRepo, REPO_ROOT, walkExt } from './lib/app-roots.mjs'
-import { RESOURCE_TYPES, WIRE_ONLY_RESOURCE_TYPES } from './lib/fhir-vocabulary.mjs'
 import { reportFloors } from './lib/floors.mjs'
 import { loadCore } from './lib/load-core.mjs'
-import { REPO_RULES } from './lib/reader-jargon.mjs'
+import { CLINICAL_RULES, clinicalJargonIn, indexRepoIdentifiers, REPO_RULES, repoJargonIn } from './lib/reader-jargon.mjs'
 
 let failures = 0
 function fail(msg) {
@@ -136,72 +143,25 @@ function fail(msg) {
   failures++
 }
 
-// ── The repo's own camelCase identifiers ───────────────────────────────────
+// ── The repo's own identifiers ─────────────────────────────────────────────
 
-/**
- * Trees whose names are "this repo's machinery". `docs/` is absent because a
- * doc's file name is caught by the source-file rule, and `ig/` because a FHIR
- * artifact's file name is too.
- */
-const SYMBOL_ROOTS = ['apps', 'packages', 'scripts', 'services', 'shims', 'tests']
-
-/**
- * ⚠️ **Installed and generated trees, which are not "this repo's machinery".**
- * Each Worker under `services/` has its own `node_modules`, so on a machine
- * where they are installed the index went from 454 names to 976 — every
- * camelCase export of every dependency, which would ban `createRoot` or
- * `useSyncExternalStore` from reader copy and mean nothing when it fired.
- * Caught because the gate prints the count on every run and the floor called it
- * out as slack; it would otherwise have depended on whether someone had run
- * `npm install` in a service.
- */
-const NOT_OURS = /(?:^|\/)(?:node_modules|dist|dist-[^/]+|fsh-generated|generated|\.wrangler)(?:\/|$)/
-
-/** camelCase with at least one interior capital — `buildCdsCards`, not `tools`. */
-const CAMEL = /^[a-z][a-z0-9]*(?:[A-Z][A-Za-z0-9]*)+$/
-const CAMEL_TOKEN = /\b[a-z][a-z0-9]*(?:[A-Z][A-Za-z0-9]*)+\b/g
-
-/**
- * Every camelCase name this repo defines: exported bindings, plus file and
- * directory names (`observationMappers` is a directory, and was quoted at a
- * reader as one).
- */
-function indexRepoIdentifiers() {
-  const names = new Set()
-  for (const root of SYMBOL_ROOTS) {
-    for (const file of walkExt(join(REPO_ROOT, root), ['.ts', '.tsx', '.mjs'])) {
-      const rel = relRepo(file)
-      if (NOT_OURS.test(rel)) continue
-      for (const segment of rel.split('/')) {
-        const base = segment.replace(/\.(tsx?|mjs)$/, '')
-        if (CAMEL.test(base)) names.add(base)
-      }
-      const src = readFileSync(file, 'utf8')
-      const decl = /\bexport\s+(?:async\s+)?(?:const|let|function|class|type|interface)\s+([A-Za-z_$][\w$]*)/g
-      for (const m of src.matchAll(decl)) if (CAMEL.test(m[1])) names.add(m[1])
-    }
-  }
-  return names
-}
-
-const repoIdentifiers = indexRepoIdentifiers()
+// Built in lib/reader-jargon.mjs, shared with the guide's rendered-copy test.
+const {
+  camel: camelIdentifiers,
+  pascal: pascalIdentifiers,
+  subtracted: subtractedIdentifiers,
+  fhirTypeNames,
+  artifactNames,
+  all: repoIdentifiers,
+} = indexRepoIdentifiers()
 
 // ── The rules ──────────────────────────────────────────────────────────────
 
 // Shared with the guide's rendered-copy test — see lib/reader-jargon.mjs.
 const RULES = REPO_RULES
 
-/** The first rule `text` breaks, or null. The identifier rule is last: it needs the index. */
-function jargonIn(text) {
-  for (const rule of RULES) {
-    const m = rule.re.exec(text)
-    if (m) return { rule: rule.name, match: m[0].trim() }
-  }
-  for (const m of text.matchAll(CAMEL_TOKEN)) {
-    if (repoIdentifiers.has(m[0])) return { rule: 'a repo identifier', match: m[0] }
-  }
-  return null
-}
+/** The first rule `text` breaks, or null — the shared rules, then the identifier index. */
+const jargonIn = (text) => repoJargonIn(text, repoIdentifiers)
 
 // ── Half one: the guide's reader strings ───────────────────────────────────
 
@@ -303,6 +263,10 @@ function readerStrings(rel, src) {
     // Never rendered: the module graph, and a message only a developer reads.
     if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) return
     if (ts.isNewExpression(node) && /Error$/.test(node.expression.getText(sf))) return
+    // ⚠️ A devtools message, read by whoever has the console open — the same
+    // reader as an Error's. Skipped once the index learned PascalCase, because
+    // `[LocalDataSource] saveArtifact: …` was its only hit and is not on a page.
+    if (ts.isCallExpression(node) && /^console\.\w+$/.test(node.expression.getText(sf))) return
     if (ts.isJsxText(node)) return push(node, node.getText(sf))
     if (ts.isJsxAttribute(node)) {
       if (CODE_ATTRS.has(node.name.getText(sf))) return
@@ -482,9 +446,9 @@ for (const [name, value] of Object.entries(catalog)) {
 /**
  * The rendered half, run from here so that THIS gate goes red when a page
  * renders a raw value. `apps/guide/src/pages/readerCopy.test.tsx` mounts the
- * guide pages that render core's prose — every tool's page, the Data
- * Dictionary, the pathway pages — and applies the same rule list
- * (lib/reader-jargon.mjs) to their text. A value scan cannot see `ToolPage`
+ * guide's real app at every page `GUIDE_SECTIONS` declares, `/overview` and
+ * every tool's page, waits for each lazy form to settle, and applies the same rule list AND the same
+ * repo-identifier index (lib/reader-jargon.mjs) to their text. A value scan cannot see `ToolPage`
  * printing `tool.copyright` instead of `readerCopyright(tool.copyright)`; a
  * render can. (`npm test` runs it too; it is a few seconds, and the gate is
  * not complete without it.)
@@ -496,73 +460,36 @@ if (rendered.status !== 0) {
   fail(`${RENDERED_TEST} failed — a page renders repo vocabulary, or the test could not run; see above`)
 }
 
+/**
+ * The clinician's half of the same thing: every clinical page, mounted in panel
+ * chrome, scanned with `CLINICAL_RULES`. ⚠️ Added 2026-10-09 because the source
+ * scan below passed `/patient/pathway` while it showed a clinician five
+ * definition names, two profile names and three codes — all read from the
+ * published protocol at runtime, which no source string contains. The harness
+ * is the clinical budget test's, which already proves its page list is the
+ * whole route table; `-t` runs only the wire-format half of that file.
+ */
+const CLINICAL_RENDERED_TEST = 'apps/clinical/src/pages/pageLength.test.tsx'
+const clinicalRendered = spawnSync(
+  'npx',
+  ['vitest', 'run', CLINICAL_RENDERED_TEST, '-t', 'names no wire format'],
+  { cwd: REPO_ROOT, encoding: 'utf8' },
+)
+// ⚠️ The "passed" check reads vitest's summary with its colour codes stripped:
+// CI colours it (`Tests \x1b[22m \x1b[1m\x1b[32m11 passed`), so a bare regex
+// failed the gate on a green run there and passed it locally, where it is plain.
+// The check exists because `-t` matching nothing exits 0 with every test skipped.
+const clinicalSummary = stripVTControlCharacters(`${clinicalRendered.stdout ?? ''}`)
+if (clinicalRendered.status !== 0 || !/Tests\s+\d+ passed/.test(clinicalSummary)) {
+  process.stderr.write(`${clinicalRendered.stdout ?? ''}${clinicalRendered.stderr ?? ''}`)
+  fail(`${CLINICAL_RENDERED_TEST} failed — a clinical page renders the wire format, or the test could not run; see above`)
+}
+
 // ── Half three: the clinician's strings ────────────────────────────────────
 
-/**
- * What a clinician may not be shown, and where each rule came from.
- *
- * Clinical-app audit §1.9 measured the clinical surface and found the wire
- * format in the words rather than in the JSON: `QuestionnaireResponse · Sep 3`
- * on every artifact row, `Tier 0 · DocumentReference` under every writeback
- * rung, a canonical URL in monospace leading the protocol page, an issue number
- * as the explanation of an empty measure, `LOINC 93374-7` inside the
- * problem-list card's own sentence. `check:fhir-render` RULE 3 had already
- * settled the rule for the eleven recorders' ledes (`docs/internals/tool-views.md`
- * §4); this is that rule over the rest of the surface.
- *
- *   a FHIR resource type   `QuestionnaireResponse · …`   — every artifact row
- *   a FHIR element path    `Appointment.status`          — a recorder's field help
- *   a LOINC or SNOMED code `LOINC 93374-7`               — the problem-list card
- *   a canonical URL        `http://thespierproject.org/…` — the protocol page
- *   an issue number        `#52`, `(#350)`                — the walkthrough, measures
- *   a tier or rung number  `Tier 0`, `rung 2`             — Saved to the EHR
- *
- * ⚠️ **The rule set is the DIFFERENCE from the guide's, not a superset.** An
- * npm script or a `packages/…` path is just as wrong here, and it is caught by
- * the guide's six rules, which this scan also applies. What it does NOT apply
- * is the repo-identifier rule: `useInspect`, `evaluatePathway` and
- * `stageLeadTools` are this repo's names and they appear in these trees as
- * code, not as words, which is exactly the false-positive class the guide's
- * index was built to avoid — and the deny list below cannot separate them
- * reliably enough in an app tree of this size.
- *
- * ⚠️ **Four positions a reader never sees, beyond the guide scan's.** They are
- * code that happens to be spelled as a string, and every one of them would
- * otherwise fire on `resource.resourceType === 'Observation'`:
- *
- *   - a comparison operand (`=== 'Observation'`) — a discriminator, never prose
- *   - a `switch` case label (`case 'DocumentReference':`) — the same thing
- *   - a type position (`'all' | 'responses'`, `Record<'CarePlan', …>`)
- *   - an argument to a string or collection method (`.replace('CarePlan/', '')`,
- *     `.startsWith`, `.has`, `.get`) — a prefix or a key, never a sentence
- *
- * ⚠️ **What it cannot see.** A resource type not on `RESOURCE_TYPES` (the list
- * is 18 and states its own limit); a string assembled from parts, which is how
- * `${type} · ${status}` would read to it as two harmless halves; and prose that
- * is wrong for a clinician without naming any of these five things — "the
- * denominator excludes them" passes, and it is exactly what the recorder pass
- * had to fix by hand.
- */
-const CLINICAL_RULES = [
-  {
-    name: 'a FHIR resource type',
-    // `WIRE_ONLY_…`, not the whole list — see `lib/fhir-vocabulary.mjs` for the
-    // eight names that are ordinary English in this copy and why RULE 3 keeps
-    // them while this scan does not.
-    re: new RegExp(`\\b(?:${WIRE_ONLY_RESOURCE_TYPES.join('|')})\\b`),
-  },
-  // An element path names the wire format whichever half the type is in.
-  { name: 'a FHIR element path', re: new RegExp(`\\b(?:${RESOURCE_TYPES.join('|')})\\.[a-z]\\w*`) },
-  { name: 'a SPiER profile name', re: /\bSPiER[A-Z]\w+/ },
-  // A LOINC code is digits-dash-digit; SNOMED is 6–18 bare digits, so it is
-  // matched only where a word says what it is — a bare "1234567" in clinician
-  // copy is a phone number or a total far more often than it is a concept id.
-  { name: 'a LOINC code', re: /\b\d{2,6}-\d\b/ },
-  { name: 'a SNOMED or LOINC code', re: /\b(?:LOINC|SNOMED|SNOMED CT)\b[^.]{0,20}?\b\d{4,18}\b/i },
-  { name: 'a canonical URL', re: /https?:\/\/[^\s"']*\/fhir\/[A-Za-z]/ },
-  { name: 'an issue number', re: /(?:^|[\s(])#\d{2,4}\b/ },
-  { name: 'a tier or rung number', re: /\b(?:tier|rung)\s+\d\b/i },
-]
+// The rules themselves — and the function applying them — live in
+// `lib/reader-jargon.mjs` (`CLINICAL_RULES`, `clinicalJargonIn`), so a test
+// that renders a clinician's card applies the SAME list rather than a copy.
 
 /**
  * JSX attributes a clinician never meets.
@@ -598,18 +525,6 @@ const INSPECTION_ONLY_ELEMENTS = new Set(['CodeDrawer', 'FhirJsonViewer', 'Pathw
  * must keep reaching the rules.
  */
 const COMPOSITE_ID = /^\S*\/\S*$/
-
-/**
- * Phrases in which a resource type is an instrument's own published name.
- *
- * ⚠️ **Empty, and that is the answer rather than an omission.** The one case
- * — *SBQ-R — Suicide Behaviors Questionnaire* — is handled by `ALSO_ENGLISH` in
- * `lib/fhir-vocabulary.mjs`, which is a rule about a word rather than a list of
- * the sentences it appears in. Kept as the escape hatch for the case that is
- * genuinely a phrase and not a word; adding a second entry should feel like
- * evidence that the word belongs in `ALSO_ENGLISH` instead.
- */
-const PUBLISHED_INSTRUMENT_NAMES = []
 
 /**
  * Modules whose clinician copy is a LATER PR's, with the reason.
@@ -764,17 +679,6 @@ function clinicianStrings(rel, src) {
   return { runs: out, sawJsx }
 }
 
-/** The first rule `text` breaks, over the clinical seven plus the guide's six. */
-function clinicalJargonIn(text) {
-  let subject = text
-  for (const name of PUBLISHED_INSTRUMENT_NAMES) subject = subject.split(name).join('')
-  for (const rule of [...CLINICAL_RULES, ...RULES]) {
-    const m = rule.re.exec(subject)
-    if (m) return { rule: rule.name, match: m[0].trim() }
-  }
-  return null
-}
-
 // ⚠️ `packages/tool-views` is not an APP root — `lib/app-roots.mjs` declares
 // the two apps and throws on anything else, which is the guarantee that keeps
 // both halves of that file honest. It is joined from the repo root instead, and
@@ -834,7 +738,14 @@ const floorsHeld = reportFloors(
     // The generated tree replaced the FSH line scan with the same 48 strings,
     // so the floor carried over unchanged.
     { source: 'packages/fhir-artifacts/generated', dimension: 'documentation string(s)', actual: fshStrings, floor: 24 },
-    { source: 'the repo', dimension: 'camelCase identifier(s) indexed', actual: repoIdentifiers.size, floor: 200 },
+    // The identifier index, per shape and per subtraction (2026-10-09: 541
+    // camelCase, 370 PascalCase, 189 R4 type names, 217 published artifact
+    // names). The two subtraction lists are floored too: an empty one would
+    // read as "nothing to excuse" and silently ban the standard's own words.
+    { source: 'the repo', dimension: 'camelCase identifier(s) indexed', actual: camelIdentifiers.size, floor: 270 },
+    { source: 'the repo', dimension: 'PascalCase identifier(s) indexed', actual: pascalIdentifiers.size, floor: 185 },
+    { source: 'fhirpath/fhir-context/r4', dimension: 'FHIR R4 type name(s) subtracted', actual: fhirTypeNames.size, floor: 94 },
+    { source: 'packages/fhir-artifacts/generated', dimension: 'published artifact name(s) subtracted', actual: artifactNames.size, floor: 108 },
     // Halved and rounded down from the live counts on the day the clinical scan
     // landed: 76 modules walked (74 read, 2 deferred) / 1,118 clinician strings.
     { source: 'apps/clinical + packages/tool-views', dimension: 'module(s) parsed', actual: clinicalFiles.filter((f) => !f.startsWith(APP_SHELL_SRC + '/')).length, floor: 38 },
@@ -852,13 +763,15 @@ if (failures === 0 && floorsHeld) {
     `✓ no repo vocabulary in reader copy: ${guideStrings} reader string(s) across ` +
       `${guideFiles.length} Adoption Guide + app-shell module(s), ${fshStrings} documentation string(s) in ` +
       `${generatedFiles.length} generated resource(s) and ${coreStrings} catalogue value(s), against ${RULES.length + 1} rules ` +
-      `(${repoIdentifiers.size} repo identifiers indexed); the rendered guide pages pass the same rules`,
+      `(${camelIdentifiers.size} camelCase + ${pascalIdentifiers.size} PascalCase repo identifiers indexed; ` +
+      `${subtractedIdentifiers.size} repo name(s) shared with FHIR R4 or a published artifact left out: ` +
+      `${[...subtractedIdentifiers].sort().join(', ') || 'none'}); the rendered guide pages pass the same rules`,
   )
   console.log(
     `✓ no wire vocabulary in clinician copy: ${clinicalStrings} string(s) across ` +
       `${clinicalFiles.length - clinicalDeferred} module(s) in apps/clinical, packages/tool-views and ` +
       `packages/app-shell, against ${CLINICAL_RULES.length + RULES.length} rules ` +
-      `(${clinicalDeferred} deferred with a reason)`,
+      `(${clinicalDeferred} deferred with a reason); every rendered clinical page passes the same rules`,
   )
   process.exit(0)
 }

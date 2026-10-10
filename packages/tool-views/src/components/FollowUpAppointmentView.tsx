@@ -108,7 +108,7 @@ export function FollowUpAppointmentView() {
 
   return (
     <WorkflowForm
-      title="Next Appointment & Follow-Up Tracking"
+      title="Book and Track the Follow-Up Visit"
       lede={
         <>
           Books the next visit under <strong>Coordinate Handoffs</strong>, and tracks it. Marking
@@ -132,7 +132,7 @@ export function FollowUpAppointmentView() {
       recorded={
         <>
           {sorted.length > 0 && (
-            <RecordedList title="Appointments on this chart">
+            <RecordedList title="Visits booked on this chart">
               {sorted.map((appointment, idx) => {
                 const status = appointmentStatus(appointment)
                 const when = appointmentStart(appointment)

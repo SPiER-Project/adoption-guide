@@ -50,7 +50,7 @@ npm run check:fhir-r5           # the R5-model shim is still safe: every fhirVer
 npm run check:crosswalk         # concept-crosswalk validation
 npm run check:extract           # the SDC observationExtract contract, checked against what each mapper actually emits
 npm run check:core-boundary     # packages/core stays React-free and DOM-free
-npm run check:dupes             # no function is defined twice: same name + same body across files fails, and so does a renamed copy of 5+ lines
+npm run check:dupes             # no function is defined twice — apps, packages, services AND scripts: same name + same body across files fails, and so does a renamed copy of 5+ lines
 npm run check:guide-boundary    # the Adoption Guide holds no patient data and no SMART session (walks the whole guide app from main.tsx, by resolved path)
 npm run check:catalog           # tool-catalog wiring; every launch path and landing route resolves
 npm run check:tool-view-routes  # the 29 tool views are ONE definition and EVERY app's route table agrees, both ways
@@ -59,15 +59,13 @@ npm run check:surface-links     # every in-app link and <Navigate> target on EAC
 npm run check:origins           # every hosted origin comes from deploy-origins.json: no literal in TypeScript, every wrangler/workflow/html copy matches
 npm run check:deploy-jobs       # every services/*/wrangler.jsonc is deployed from main by deploy.yml
 npm run check:stages            # stage ids in population data vs the canonical FSH stage list
-npm run check:pathway           # the pathway PlanDefinition's codes and definitionCanonicals resolve
-npm run check:outputs           # every PlanDefinition.action.output profile is stamped by an EMITTED resource (after npm test)
-npm run check:published-profiles # every published profile is claimed by something the app emits, or exempted (after npm test)
+npm run check:pathway           # the pathway PlanDefinition's codes and definitionCanonicals resolve; its setting pathways are linked both ways and branch on no tier
+npm run check:outputs           # from both ends: every PlanDefinition.action.output profile, and every published profile, is stamped by an EMITTED resource or exempted (after npm test)
 npm run check:readers           # every observation mapper's reads vs the Questionnaire's declared item types
 npm run check:careplan-readers  # the same rule for carePlanMappers
-npm run check:patients          # the 14 demo patients' demographics agree across all three sites
+npm run check:patients          # the demo registry derives from the 14 Patient JSON files, and the app stamps MRNs with core's MRN_SYSTEM
 npm run check:scenarios         # scenario QRs vs their Questionnaire, plus every other resource bucket
 npm run check:dates             # scenario dates coherent to their anchor, none in prose; the Workers serve them shifted to today (--apply re-dates the files)
-npm run check:measures          # Stage-8 Measure criteria vs the measures.ts engine
 npm run check:reassessment      # the per-tier reassessment cadence agrees across PlanDefinition, app and CQL
 npm test                        # vitest
 ```
@@ -155,9 +153,11 @@ The rules, each with its history in [`docs/internals/workers.md`](docs/internals
 
 ### Measures
 
-A measure criterion lives in **four** places and `check:measures` ties only two
-of them together; nothing asserts the CQL and the TypeScript compute the same
-answer. `denominator-exclusion` and `denominator-exception` are **not**
+A measure criterion lives in **four** places. `tests/measures.test.ts` ties the FSH
+names to the TypeScript (it absorbed `check:measures` on 2026-10-07); `tests/measuresCqlParity.test.ts` runs the CQL and the
+TypeScript over the demo patients and synthetic window-edge patients and fails
+on any disagreement not written into its `KNOWN_DIVERGENCES` ledger — **a new
+window needs a boundary patient**, or the test cannot see it. `denominator-exclusion` and `denominator-exception` are **not**
 interchangeable. Before changing a criterion, a population, or the scoring, read
 [`docs/internals/measures.md`](docs/internals/measures.md).
 
@@ -165,7 +165,7 @@ interchangeable. Before changing a criterion, a population, or the scoring, read
 
 Each is a rule; its history and the limits of its gate are in the file linked.
 
-- **Design tokens only** ([`css-and-page-template.md`](docs/internals/css-and-page-template.md)). Vanilla CSS with custom properties; stylelint rejects raw hex and enforces `var(--…)` for colour, type, shadow and **every spacing property**. Raw values live only in `packages/ui/src/foundation.css`, whose own `stylelint-disable` banner is the exemption. Class selectors are kebab-case BEM. Type has three families (`--font-display`, `--font-body`, `--font-mono`); brand colour is role-named and there is no `--brand-accent`; spacing is the 10-step `--space-0-5` … `--space-8` scale (a derived alignment is a `calc()` over tokens); tracking has two tokens; breakpoints are the three literals 640 / 768 / 1024 with `max-width` as the complement. stylelint checks that a token is *used*, never that it *exists* — `check:tokens` closes that half.
+- **Design tokens only** ([`css-and-page-template.md`](docs/internals/css-and-page-template.md)). Vanilla CSS with custom properties; stylelint rejects raw hex and enforces `var(--…)` for colour, type (weight and line-height included), shadow and **every spacing property**; a `calc()` on those properties holds tokens and unitless numbers only. Raw values live only in `packages/ui/src/foundation.css`, whose own `stylelint-disable` banner is the exemption. Class selectors are kebab-case BEM. Type has three families (`--font-display`, `--font-body`, `--font-mono`); brand colour is role-named and there is no `--brand-accent`; spacing is the 10-step `--space-0-5` … `--space-8` scale (a derived alignment is a `calc()` over tokens); tracking has two tokens, weight four (only 400–700 are loaded), leading five; breakpoints are the three literals 640 / 768 / 1024 with `max-width` as the complement. stylelint checks that a token is *used*, never that it *exists* — `check:tokens` closes that half.
 - **One page template.** Every route renders into `.app-shell__body`, the sole owner of the page inset; `PageHeader` is the only page-title typography, so section headings start at `<h3>`. **Nine components own the surfaces** below it (eight in `packages/ui`, `WorkflowForm` in `packages/tool-views`); a page passes `className` for layout or a domain colour only, never a radius, padding, border or background. **Width has one owner per route** — whoever owns the header — and the vocabulary is `--page-width-prose` or `--page-width-wide`; a guide section picks its width on `GuideSection`, `prose` when unsure. **`--measure-prose` is not a third width**: it caps a text run, in `em`, and prose has three sizes and no others. `check:prose` cannot see a run with no cap — measure a wide page's prose by hand.
 - **A reader of the guide has no checkout, and every page has a word budget** ([`web-gates.md`](docs/internals/web-gates.md)). No script name, gate name, function name, package path, file name, issue number or rename date in reader copy — `check:jargon` reads the guide's strings from the AST and the FSH's `documentation` displays, which are published. Length is a budget per page in `apps/guide/src/pages/pageLength.test.tsx`, measured as the words a reader meets ON ARRIVAL: a closed `<details>` costs its summary only, so demoting a caveat into a drawer is the cheap fix and deleting it is not required. Raising a cap to go green is the one edit that makes that file decorative.
 - **A recorder is bespoke because of what it writes, and it describes the ACT** ([`tool-views.md`](docs/internals/tool-views.md)). "It is only a Communication" is not grounds to merge one. A recorder's `lede`, labels and help name no resource type, profile, extension or element path and hold no `<code>`; the wire format goes in `WorkflowForm`'s `fhirNote`. A view cannot be derived from its ActivityDefinition.
@@ -185,7 +185,7 @@ One line each; the mechanism and the incident behind it are in
 - **`copy-fhir` is incremental on a CONTENT fingerprint**, not mtimes; `verify` alone passes `--force`. CI's cache key comes from the same fingerprint (`--print-input-fingerprint`) — never restate the input set as `hashFiles(...)`. The SUSHI compile is retried 3× for the Cloudflare deploy's sake (`COPY_FHIR_SUSHI_ATTEMPTS=1` turns it off); `check-sushi-output.mjs` is not retried.
 - **Generated files must exist before `tsc -b`** — run `npm run copy-fhir` first on a clean checkout.
 - **One canonical URL, one definition**, across the FSH tree and the JSON tree; **no CodeSystems live in the JSON tree**. `check-canonical-uniqueness.mjs` is the gate; SUSHI catches only half of this.
-- **Hand-duplicated values drift**: stage ids, LOINC codes and ASQ disposition codes are typed in `ig/input/fsh/`, the mappers and the demo population — grep the whole repo when you change one. Stage-id **constants** in TypeScript are typed against the generated `StageId` union (`satisfies StageId`), so a renamed stage is a compile error there; the JSON side stays gated by `check:stages`.
+- **Hand-duplicated values drift**: stage ids, LOINC codes and ASQ disposition codes are typed in `ig/input/fsh/`, the mappers and the demo population — grep the whole repo when you change one. Stage-id **constants** in TypeScript are typed against the generated `StageId` union (`satisfies StageId`), so a renamed stage is a compile error there; the JSON side stays gated by `check:stages`. The five result/disposition CodeSystems the mappers and the outreach recorder EMIT (ASQ, PSS-3, BSSA, CAMS, outreach outcome) are the same: `disposition-codes.generated.ts` gives each a system constant and a union, and the emitting code is typed against it.
 - **The Workers serve the demo population as of today** — `populationScenariosAsOf()`, and `heldResourcesAsOf()` in the mock EHR; `POPULATION_SCENARIOS` and `HELD_RESOURCES` are the anchor-dated files and are never served. Why: `packages/demo-population/src/scenarioDates.ts`.
 - **Hand-duplicated helpers drift too, and `check:dupes` fails the copy.** A recorder's stage tag is `stageTag(STAGE_ID)` from `packages/core/src/lib/stageTag.ts`, its option lookup is `displayFor` from `codedOption.ts`, an Observation's date is `observationEffective`. Every FHIR builder — `lethalMeans.ts` included since 2026-09-20 — lives in `packages/core/src/lib`; `packages/tool-views` holds views and their contexts, never a resource builder.
 - **The Stanley-Brown CarePlan transformation exists twice on purpose** (`.fml` + `carePlanMappers/stanleyBrown.ts`), compared against one golden file; change both.

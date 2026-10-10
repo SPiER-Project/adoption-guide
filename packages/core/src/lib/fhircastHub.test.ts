@@ -64,7 +64,7 @@ class FakeSocket {
 /** A fetch that answers the subscription and records notification POSTs. */
 function hubFetch(overrides: { endpoint?: string | null; ok?: boolean } = {}) {
   const calls: Array<{ url: string; body: string; method: string }> = []
-  const impl = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+  const impl = vi.fn(async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
     // ⚠️ `String(input)` was wrong for two of the three `RequestInfo` arms: a
     // `Request` stringifies to "[object Request]", so a test that passed one
     // would record a URL matching nothing and the assertion would fail for a

@@ -53,6 +53,7 @@
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, relative, resolve } from 'node:path'
+import { isTest } from './lib/repo.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const SHARED = 'packages/worker-http/src/spaAssets.ts'
@@ -82,7 +83,6 @@ function* walk(dir) {
 
 const FORBIDDEN = /content-security-policy|frame-ancestors/i
 const SOURCE = /\.(?:[cm]?js|tsx?)$/
-const isTest = (f) => /\.test\.[cm]?[jt]sx?$/.test(f)
 const STRING = /`(?:\\[\s\S]|[^`\\])*`|'(?:\\[\s\S]|[^'\\\n])*'|"(?:\\[\s\S]|[^"\\\n])*"/g
 
 /** Rule 2 over one file: no string literal carrying the header. */

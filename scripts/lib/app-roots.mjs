@@ -41,11 +41,12 @@
  * written, which is exactly when it is cheap to act on.
  */
 import { existsSync, readdirSync, statSync } from 'node:fs'
-import { dirname, join, relative, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { join } from 'node:path'
+import { REPO_ROOT, relRepo, walkExt, isTest } from './repo.mjs'
 
-const here = dirname(fileURLToPath(import.meta.url))
-export const REPO_ROOT = resolve(here, '../..')
+// Re-exported: every gate that reads app roots imports these from here.
+export { REPO_ROOT, relRepo, walkExt }
+
 
 /**
  * Every tree holding application source.
@@ -59,21 +60,8 @@ export const APP_ROOTS = [
   { source: 'apps/clinical/src', dir: join(REPO_ROOT, 'apps/clinical/src'), floorSrc: 18 },
 ]
 
-/** Repo-relative, so a message names a file the same way whichever tree it is in. */
-export const relRepo = (p) => relative(REPO_ROOT, p)
 
-export function walkExt(dir, exts) {
-  const out = []
-  if (!existsSync(dir)) return out
-  for (const entry of readdirSync(dir).sort()) {
-    const full = join(dir, entry)
-    if (statSync(full).isDirectory()) out.push(...walkExt(full, exts))
-    else if (exts.some((e) => full.endsWith(e))) out.push(full)
-  }
-  return out
-}
 
-const isTest = (f) => /\.test\.[cm]?[jt]sx?$/.test(f)
 
 /** The single root a gate should read when it only knows how to read one. */
 export function appRoot(source) {

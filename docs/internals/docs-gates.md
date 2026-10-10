@@ -90,11 +90,22 @@ resolves to a route in `App.tsx` — because GitHub's `status:` labels are the
 real authority but live outside the repo. Only that direction is an error; a
 built tool the document never mentions is not.
 
+⚠️ **A gating entry declares its tool; the gate does not infer it.** Each
+`gatingIssues` entry carries `tool` (a TL id, or `null` for work that is no one
+tool's). An entry on a launchable tool must say what the tool still lacks, in
+`remaining`; without that it fails as a promotion that already happened. The
+first version inferred the tool from a `[TL-0NN](…/issues/N)` link in the step's
+binding, so an entry whose binding mentioned the tool without linking the issue
+was never checked: #26 (TL-010, launchable) gated step 11.7-2A that way until
+#633. A declared tool that contradicts such a link also fails. **What no offline
+check can see is that the gating issue itself has closed**, so re-read the
+list against GitHub when an issue in it is closed.
+
 Both parsers **fail when they read nothing** rather than passing over an unread
 file, which is the #232 / #261 failure mode and was planted-and-verified before
 this shipped. When a gap genuinely closes, promote the binding (name the profile
 and link its FSH), delete the `profileGaps` entries, drop the gating entry, and
-rebuild — the consolidated gap list and the gating-promotions list are derived,
+rebuild — the consolidated gap list and the gating-issues list are derived,
 so neither is edited by hand. Where a profile covers only *part* of a claim,
 narrow the text to what is still missing instead of promoting it whole; eight of
 the sixteen #341 corrections were that shape.

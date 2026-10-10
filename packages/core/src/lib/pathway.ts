@@ -52,7 +52,15 @@ interface RawDocumentation {
   display?: string
   url?: string
   resource?: string
+  extension?: Array<{ url?: string; valueBoolean?: unknown }>
 }
+
+/**
+ * The marker on a note written for the clinician carrying out the step, as
+ * opposed to the implementer (suicide-safer-care-pathway.fsh, "Which notes a
+ * clinician is shown"). Opt-in: an unmarked note is the implementer's.
+ */
+export const CLINICIAN_FACING_URL = 'http://thespierproject.org/fhir/StructureDefinition/clinician-facing'
 
 interface RawCondition {
   kind?: string
@@ -98,6 +106,7 @@ interface RawPlanDefinition {
   purpose?: string
   type?: { coding?: RawCoding[]; text?: string }
   relatedArtifact?: Array<{ type?: string; label?: string; display?: string; resource?: string }>
+  useContext?: Array<{ code?: RawCoding; valueCodeableConcept?: { coding?: RawCoding[]; text?: string } }>
   action?: RawAction[]
 }
 
@@ -117,6 +126,12 @@ export interface PathwayDocumentation {
   url?: string
   /** A canonical of another SPiER artifact. */
   resource?: string
+  /**
+   * Written for the clinician carrying out the step — what to do, or what to
+   * know to do it — rather than for the implementer. A view shown to a
+   * clinician renders only these; see `CLINICIAN_FACING_URL`.
+   */
+  clinicianFacing: boolean
 }
 
 export interface PathwayCondition {
@@ -157,7 +172,14 @@ export interface PathwayRelatedArtifact {
   resource?: string
 }
 
-export interface PathwayModel {
+/**
+ * A clinical protocol, read from a PlanDefinition: the core pathway and every
+ * setting pathway share this shape. Only the core pathway has a tier branch —
+ * a setting pathway applies the core protocol's tiers rather than restating
+ * them (ig/input/fsh/setting-pathways.fsh) — so the branch is `PathwayModel`'s
+ * alone.
+ */
+export interface ProtocolModel {
   url: string
   name?: string
   title: string
@@ -168,9 +190,26 @@ export interface PathwayModel {
   description?: string
   purpose?: string
   typeDisplay?: string
+  /**
+   * What the protocol depends on — today, the Measures that answer its KPIs.
+   * ⚠️ The two structural link types are NOT in here: a reader of this list
+   * (the provenance panel's "Measured by") would otherwise show a setting
+   * pathway as a measure.
+   */
   relatedArtifacts: PathwayRelatedArtifact[]
+  /** `relatedArtifact #composed-of`: the setting pathways that apply this protocol. */
+  settingPathways: PathwayRelatedArtifact[]
+  /** `relatedArtifact #derived-from`: the protocol this one applies, for a setting pathway. */
+  derivedFrom: PathwayRelatedArtifact[]
+  /** The care settings `useContext` venue declares, by display. Empty for the core protocol. */
+  venues: string[]
   /** The top-level groups, in the order the protocol states them. */
   steps: PathwayAction[]
+  /** The artifact itself, for the provenance strip's JSON viewer. */
+  raw: unknown
+}
+
+export interface PathwayModel extends ProtocolModel {
   /**
    * The one group whose children are tier-gated, and those children.
    *
@@ -179,8 +218,6 @@ export interface PathwayModel {
    * must fail loudly here rather than silently flatten the branch into a list.
    */
   tierBranch: { group: PathwayAction; tiers: PathwayAction[] }
-  /** The artifact itself, for the provenance strip's JSON viewer. */
-  raw: unknown
 }
 
 /* ─── Loading ───────────────────────────────────────────────── */
@@ -206,12 +243,29 @@ const bail = (message: string): never => {
 
 /* ─── Parsing ───────────────────────────────────────────────── */
 
+/**
+ * Whether a note is marked clinician-facing.
+ *
+ * ⚠️ Strict about the value, not lenient: a marker present with anything but a
+ * boolean is a broken artifact, and reading it as `false` would quietly hide a
+ * note its author meant a clinician to see.
+ */
+function clinicianFacing(raw: RawDocumentation, path: string, i: number): boolean {
+  const marker = (raw.extension ?? []).filter(e => e.url === CLINICIAN_FACING_URL)
+  if (marker.length === 0) return false
+  if (marker.length > 1 || typeof marker[0].valueBoolean !== 'boolean') {
+    bail(`${path}.documentation[${i}] carries a malformed clinician-facing marker — one valueBoolean, or none`)
+  }
+  return marker[0].valueBoolean === true
+}
+
 function parseDocumentation(raw: RawDocumentation, path: string, i: number): PathwayDocumentation {
   const doc: PathwayDocumentation = {
     label: raw.label,
     display: raw.display,
     url: raw.url,
     resource: raw.resource,
+    clinicianFacing: clinicianFacing(raw, path, i),
   }
   if (!doc.display && !doc.url && !doc.resource) {
     bail(
@@ -369,21 +423,49 @@ function findTierBranch(steps: PathwayAction[]): { group: PathwayAction; tiers: 
   return { group, tiers: group.children }
 }
 
-/** Parse an already-loaded PlanDefinition. Exported for tests. */
-export function parsePathway(doc: unknown): PathwayModel {
+/** The link types `ProtocolModel` lifts out of `relatedArtifacts` into fields of their own. */
+const COMPOSED_OF = 'composed-of'
+const DERIVED_FROM = 'derived-from'
+
+/**
+ * Parse any SPiER clinical-protocol PlanDefinition — the core pathway or a
+ * setting pathway. Exported for tests and for `loadSettingPathway`.
+ */
+export function parseProtocol(doc: unknown): ProtocolModel {
   const plan = doc as RawPlanDefinition | null | undefined
   if (!plan || plan.resourceType !== 'PlanDefinition') {
     return bail('the loaded artifact is not a PlanDefinition')
   }
   if (typeof plan.url !== 'string') return bail('the PlanDefinition has no url — nothing to cite as provenance')
   if (typeof plan.version !== 'string') {
-    return bail('the PlanDefinition has no version — the provenance strip states one, so it must exist')
+    return bail(`${plan.url} has no version — the provenance strip states one, so it must exist`)
   }
   if (!Array.isArray(plan.action) || plan.action.length === 0) {
-    return bail('the PlanDefinition has no actions — there is no protocol to render')
+    return bail(`${plan.url} has no actions — there is no protocol to render`)
   }
 
   const steps = plan.action.map((a, i) => parseAction(a, `action[${i}]`))
+  const related = (plan.relatedArtifact ?? []).map(r => ({
+    type: r.type,
+    label: r.label,
+    display: r.display,
+    resource: r.resource,
+  }))
+  const ofType = (type: string) => related.filter(r => r.type === type)
+
+  for (const link of [...ofType(COMPOSED_OF), ...ofType(DERIVED_FROM)]) {
+    if (!link.resource) {
+      bail(`${plan.url}: a ${link.type} relatedArtifact names no resource — a link to nothing cannot be drawn`)
+    }
+  }
+
+  const venues = (plan.useContext ?? [])
+    .filter(c => c.code?.code === 'venue')
+    .map(c => {
+      const coding = c.valueCodeableConcept?.coding?.[0]
+      const label = coding?.display ?? c.valueCodeableConcept?.text ?? coding?.code
+      return label ?? bail(`${plan.url}: a venue useContext carries no code, display or text`)
+    })
 
   return {
     url: plan.url,
@@ -396,17 +478,25 @@ export function parsePathway(doc: unknown): PathwayModel {
     description: plan.description,
     purpose: plan.purpose,
     typeDisplay: plan.type?.coding?.[0]?.display ?? plan.type?.coding?.[0]?.code ?? plan.type?.text,
-    relatedArtifacts: (plan.relatedArtifact ?? []).map(r => ({
-      type: r.type,
-      label: r.label,
-      display: r.display,
-      resource: r.resource,
-    })),
+    relatedArtifacts: related.filter(r => r.type !== COMPOSED_OF && r.type !== DERIVED_FROM),
+    settingPathways: ofType(COMPOSED_OF),
+    derivedFrom: ofType(DERIVED_FROM),
+    venues,
     steps,
-    tierBranch: findTierBranch(steps),
     raw: plan,
   }
 }
+
+/** Parse the core pathway, which must carry exactly one tier branch. Exported for tests. */
+export function parsePathway(doc: unknown): PathwayModel {
+  const protocol = parseProtocol(doc)
+  return { ...protocol, tierBranch: findTierBranch(protocol.steps) }
+}
+
+const findPlan = (url: string): RawPlanDefinition | undefined =>
+  Object.values(planModules)
+    .map(m => m.default)
+    .find(d => d?.url === url)
 
 let cached: PathwayModel | null = null
 
@@ -418,9 +508,7 @@ let cached: PathwayModel | null = null
  */
 export function loadPathway(): PathwayModel {
   if (cached) return cached
-  const doc = Object.values(planModules)
-    .map(m => m.default)
-    .find(d => d?.url === PATHWAY_URL)
+  const doc = findPlan(PATHWAY_URL)
   if (!doc) {
     return bail(
       `no PlanDefinition with url ${PATHWAY_URL} in packages/fhir-artifacts/generated/. ` +
@@ -429,4 +517,41 @@ export function loadPathway(): PathwayModel {
   }
   cached = parsePathway(doc)
   return cached
+}
+
+const settingCache = new Map<string, ProtocolModel>()
+
+/**
+ * One setting pathway, by canonical — one the core pathway names as
+ * `#composed-of`, and which names the core pathway back as `#derived-from`.
+ *
+ * Throws, for the module header's reason, when the core pathway does not list
+ * it, when no generated PlanDefinition carries the url, or when the setting
+ * pathway does not name the core pathway as its source: a page titled "the
+ * pathway in the emergency department" must be drawing a protocol that says it
+ * is one.
+ */
+export function loadSettingPathway(url: string): ProtocolModel {
+  const hit = settingCache.get(url)
+  if (hit) return hit
+  const core = loadPathway()
+  if (!core.settingPathways.some(s => s.resource === url)) {
+    return bail(
+      `${url} is not one of the core pathway's setting pathways (relatedArtifact composed-of: ` +
+        `${core.settingPathways.map(s => s.resource).join(', ') || 'none'})`,
+    )
+  }
+  const doc = findPlan(url)
+  if (!doc) {
+    return bail(
+      `no PlanDefinition with url ${url} in packages/fhir-artifacts/generated/. ` +
+        'Run `npm run copy-fhir -- --force` (SUSHI must have compiled setting-pathways.fsh).',
+    )
+  }
+  const model = parseProtocol(doc)
+  if (!model.derivedFrom.some(d => d.resource === PATHWAY_URL)) {
+    return bail(`${url} does not name ${PATHWAY_URL} as derived-from — it does not say it applies the core protocol`)
+  }
+  settingCache.set(url, model)
+  return model
 }

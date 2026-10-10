@@ -68,6 +68,7 @@ import { basename, dirname, join, relative, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
 import { FHIR_VERSION, VALIDATOR_VERSION, resolveValidatorJar } from './lib/validator-jar.mjs'
 import { normalizeCarePlan, PARITY_EXCLUSIONS } from './lib/careplan-parity.mjs'
+import { argValue, die as fail } from './lib/cli.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
@@ -105,18 +106,10 @@ const PARITY_MAP = 'http://thespierproject.org/fhir/StructureMap/StanleyBrownQRT
 
 // --- CLI args --------------------------------------------------------------
 const argv = process.argv.slice(2)
-const argValue = (flag) => {
-  const i = argv.indexOf(flag)
-  return i === -1 ? undefined : argv[i + 1]
-}
 const tx = argValue('--tx') ?? process.env.SPIER_FHIR_TX ?? 'n/a'
 const writeGolden = argv.includes('--write-golden')
 
 const problems = []
-const fail = (msg) => {
-  console.error(`\n✗ ${msg}`)
-  process.exit(1)
-}
 
 // --- Prerequisites ---------------------------------------------------------
 if (spawnSync('java', ['-version'], { stdio: 'ignore' }).status !== 0) {

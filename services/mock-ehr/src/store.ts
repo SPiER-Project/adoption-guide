@@ -38,7 +38,7 @@
  * **deletes** the client's `id` before POSTing (servers reject or ignore one on
  * create), so this server never receives an id it could echo — it has to mint
  * one. `executeWritePlan` then remaps `QuestionnaireResponse/<client id>` to the
- * server's id inside `Observation.derivedFrom` and `Condition.evidence`.
+ * server's id inside `Observation.derivedFrom`.
  *
  * ⚠️ An earlier version of this comment said a server that echoed the client's
  * id back "would make that remap a no-op and the provenance bug untestable

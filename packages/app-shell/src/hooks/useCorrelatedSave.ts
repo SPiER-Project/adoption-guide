@@ -23,7 +23,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { makeId } from '@spier/core/lib/id'
-import { describeError } from '../lib/describeError'
+import { toDataSourceFailure, type DataSourceFailure } from '@spier/core/lib/dataSource/failure'
 import { deriveFromResponse } from '@spier/core/lib/deriveFromResponse'
 import {
   buildEpisode,
@@ -53,8 +53,8 @@ export interface CorrelatedSave {
   addCarePlan: (carePlan: CarePlanResource) => void
   addResponse: (questionnaireName: string, resource: QuestionnaireResponseResource) => void
   addArtifact: (resource: FhirResource) => void
-  /** Null unless the most recent write failed. */
-  saveError: string | null
+  /** Null unless the most recent write failed. Coded — see `failure.ts`. */
+  saveError: DataSourceFailure | null
 }
 
 export function useCorrelatedSave({
@@ -69,11 +69,11 @@ export function useCorrelatedSave({
   // Write failures surface to the UI (the SMART server may reject a POST —
   // scope issues, validation); there is deliberately no silent fallback to
   // local storage. Cleared by the next successful write.
-  const [saveError, setSaveError] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<DataSourceFailure | null>(null)
   const trackSave = useCallback((op: Promise<void>) => {
     op.then(
       () => setSaveError(null),
-      (err: unknown) => setSaveError(describeError(err)),
+      (err: unknown) => setSaveError(toDataSourceFailure(err, 'save')),
     )
   }, [])
 

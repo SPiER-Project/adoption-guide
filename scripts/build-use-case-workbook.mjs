@@ -100,6 +100,17 @@
  *               strongest offline evidence available — and it is the direction
  *               that actually goes wrong. The reverse (a built tool the doc
  *               never mentions) is not an error.
+ *
+ *               A gating entry DECLARES its tool: `tool` is a TL id, or null
+ *               for work that is no one tool's. ⚠️ The first version guessed
+ *               the tool from a `[TL-0NN](…/issues/N)` link in the step's
+ *               binding, so an entry whose binding named the tool without
+ *               linking the issue was never checked. #26 (TL-010, launchable)
+ *               gated step 11.7-2A in exactly that way until #633. A gating
+ *               entry on a built tool is legitimate only when it says what
+ *               the tool still lacks (`remaining`), e.g. a schedule; without
+ *               that it is a promotion that already happened. What no offline
+ *               check can see is that the gating ISSUE has closed.
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
@@ -122,6 +133,12 @@ const SCENARIOS = [
     xlsx: join(USE_CASES, 'dist', 'HL7_BH_USE_CASES-ED-Scenario-11.xlsx'),
     csv: join(USE_CASES, 'dist', 'HL7_BH_USE_CASES-ED-Scenario-11.csv'),
     md: join(USE_CASES, 'ed-scenario-11.md'),
+  },
+  {
+    source: join(USE_CASES, 'inpatient-scenario-12.json'),
+    xlsx: join(USE_CASES, 'dist', 'HL7_BH_USE_CASES-Inpatient-Scenario-12.xlsx'),
+    csv: join(USE_CASES, 'dist', 'HL7_BH_USE_CASES-Inpatient-Scenario-12.csv'),
+    md: join(USE_CASES, 'inpatient-scenario-12.md'),
   },
 ]
 
@@ -150,6 +167,9 @@ const KNOWN_RESOURCES = new Set([
   'EpisodeOfCare',
   'Flag',
   'List',
+  'Measure',
+  'MeasureReport',
+  'MedicationRequest',
   'Observation',
   'PlanDefinition',
   'Procedure',
@@ -381,7 +401,7 @@ function wgCsv(doc) {
  *
  * Two lists at the foot are derived rather than restated: the consolidated
  * profile gaps come from each step's `profileGaps` in step order, and the
- * gating-tool promotions from each step's `gatingIssues`, de-duplicated. They
+ * gating issues from each step's `gatingIssues`, de-duplicated. They
  * used to be hand-maintained tallies of the tables above them, which is the
  * classic place for a count to go quietly stale.
  */
@@ -453,13 +473,14 @@ function renderMarkdown(doc) {
   }
   out.push('', m.gapsFooter, '')
 
-  out.push('## Gating tool promotions', '', m.gatingIntro, '')
+  out.push('## Gating issues', '', m.gatingIntro, '')
   const seen = new Set()
   for (const { step } of allSteps(doc)) {
     for (const issue of step.gatingIssues ?? []) {
       if (seen.has(issue.number)) continue
       seen.add(issue.number)
-      out.push(`- [#${issue.number} ${issue.label}](${issueUrl(issue.number)})`)
+      const still = issue.remaining ? ` — ${issue.tool} is built; still missing: ${issue.remaining}` : ''
+      out.push(`- [#${issue.number} ${issue.label}](${issueUrl(issue.number)})${still}`)
     }
   }
 
@@ -676,19 +697,21 @@ const APP_ROUTES = [
   join(ROOT, 'apps', 'clinical', 'src', 'App.tsx'),
 ]
 
-/** TL id → launch paths declared in tool-ui-metadata.ts. */
+/** TL id → launch paths declared in tool-ui-metadata.ts, plus every TL id it declares at all. */
 function launchPathsByTool() {
   const src = readFileSync(UI_METADATA, 'utf8')
   const byTool = new Map()
+  const known = new Set()
   // `'TL-008': { … launchActions: [{ label: '…', path: '/patient/workflow/lethal-means' }] … }`
   for (const entry of src.matchAll(/'(TL-\d+)':\s*\{/g)) {
     const start = entry.index
     const next = src.slice(start + 1).search(/'TL-\d+':\s*\{/)
     const block = src.slice(start, next === -1 ? undefined : start + 1 + next)
     const paths = [...block.matchAll(/path:\s*'([^']+)'/g)].map(m => m[1])
+    known.add(entry[1])
     if (paths.length) byTool.set(entry[1], paths)
   }
-  return byTool
+  return { byTool, known }
 }
 
 /** Route paths declared in App.tsx, nested segments included. */
@@ -710,7 +733,7 @@ function pathResolves(path, routes) {
 
 function checkToolStatusClaims(doc, label) {
   const problems = []
-  const byTool = launchPathsByTool()
+  const { byTool, known } = launchPathsByTool()
   const routes = declaredRoutes()
 
   if (byTool.size === 0) problems.push(`${label}: read no TL launch actions from ${relative(ROOT, UI_METADATA)}`)
@@ -759,12 +782,29 @@ function checkToolStatusClaims(doc, label) {
 
     for (const gating of step.gatingIssues ?? []) {
       claims++
-      const tool = toolForIssue.get(gating.number)
-      if (tool && built.has(tool)) {
+      const g = `${at}: gates on ${gating.label} (#${gating.number})`
+      if (!Object.hasOwn(gating, 'tool')) {
+        problems.push(`${g} but declares no \`tool\` — name the TL id it concerns, or null if it is no one tool's`)
+        continue
+      }
+      const { tool } = gating
+      if (tool !== null && !(typeof tool === 'string' && known.has(tool))) {
+        problems.push(`${g}: tool ${JSON.stringify(tool)} is not a TL id in ${relative(ROOT, UI_METADATA)}`)
+        continue
+      }
+      const linked = toolForIssue.get(gating.number)
+      if (linked && linked !== tool) {
+        problems.push(`${g}: declares tool ${tool}, but the binding links #${gating.number} as ${linked}`)
+      }
+      const remaining = typeof gating.remaining === 'string' ? gating.remaining.trim() : ''
+      if (tool && built.has(tool) && !remaining) {
         problems.push(
-          `${at}: gates on ${gating.label} (#${gating.number} = ${tool}), which launches at ` +
-            `${byTool.get(tool).join(', ')} — it no longer gates anything`,
+          `${g}: ${tool} launches at ${byTool.get(tool).join(', ')}, and the entry says nothing ` +
+            `\`remaining\` — it no longer gates anything; drop it, or name what ${tool} still lacks`,
         )
+      }
+      if (remaining && !(tool && built.has(tool))) {
+        problems.push(`${g}: says \`remaining\` but ${tool ?? 'no tool'} is not launchable — the whole tool is the gap; drop \`remaining\``)
       }
     }
   }

@@ -1,4 +1,5 @@
 import { makeObservation, interpretationOf, walkItems, getCodingAnswer, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource } from './shared'
+import { BSSA_DISPOSITION_SYSTEM, isBssaDispositionCode, type BssaDispositionCode } from '@spier/fhir-artifacts/generated/disposition-codes.generated'
 
 // The BSSA has NO published panel or per-item LOINC codes, so the discrete
 // interview findings bind to the SPiER-local http://thespierproject.org/fhir/CodeSystem/bssa-item.
@@ -8,11 +9,12 @@ import { makeObservation, interpretationOf, walkItems, getCodingAnswer, type Map
 // Questionnaire item codes (ig/input/resources/questionnaires/BSSA/bssa-questionnaire.json), which the
 // anti-drift check scripts/check-observation-extract.mjs holds this mapper to by running it.
 const BSSA_ITEM_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/bssa-item'
-const BSSA_DISPOSITION_SYSTEM = 'http://thespierproject.org/fhir/CodeSystem/bssa-disposition'
 
 // Disposition → risk-alert level. Mirrors the crosswalk-bssa.fsh tier mapping
 // (imminent/high/moderate/no-risk) collapsed onto the RiskAlert level scale.
-const DISPOSITION_ALERT: Record<string, { level: RiskAlert['level']; summary: string; detail: string; interpretation: 'A' | 'N' }> = {
+// Keyed by the generated union, so a disposition the CodeSystem gains is a
+// missing key here and a renamed one a stale key — both compile errors.
+const DISPOSITION_ALERT: Record<BssaDispositionCode, { level: RiskAlert['level']; summary: string; detail: string; interpretation: 'A' | 'N' }> = {
   'emergency-psychiatric-evaluation': {
     level: 'acute',
     summary: 'BSSA: Emergency psychiatric evaluation',
@@ -55,7 +57,7 @@ export function mapBSSA(response: QuestionnaireResponseResource): MapperResult {
   // ── Primary output: the clinician-selected disposition ──
   const dispositionCoding = getCodingAnswer(walkItems(items, 'disposition'))
   const dispositionCode = dispositionCoding?.code ?? 'no-intervention'
-  const alert = DISPOSITION_ALERT[dispositionCode] ?? DISPOSITION_ALERT['no-intervention']
+  const alert = DISPOSITION_ALERT[isBssaDispositionCode(dispositionCode) ? dispositionCode : 'no-intervention']
   const dispositionDisplay = dispositionCoding?.display ?? dispositionCode
 
   observations.push(

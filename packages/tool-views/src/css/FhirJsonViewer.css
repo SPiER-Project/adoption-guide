@@ -13,7 +13,7 @@
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
   cursor: pointer;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--border-emphasis);
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
@@ -60,7 +60,7 @@
   margin: 0;
   color: var(--border-default);
   font-family: var(--font-mono);
-  line-height: 1.5;
+  line-height: var(--line-height-normal);
   white-space: pre-wrap;
   word-break: break-all;
 }

@@ -363,3 +363,22 @@ Usage: #example
 * derivedFrom[+] = Reference(ExampleSBQRTotalScore9)
 * valueCodeableConcept = SPiERSuicideRiskTier#high "High risk"
 * interpretation[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#POS "Positive"
+
+// ─── A tier branch: its code and its condition from ONE parameter ───
+// A pathway action that applies to one suicide-risk tier names that tier
+// twice: as `action.code`, which SPiER's runtime and any consumer reading the
+// schedule as data select on, and as the `condition[applicability]` FHIRPath a
+// CPG engine EXECUTES. Typed by hand, the two could disagree with every test
+// green (proved 2026-10-06: tier-low's condition rewritten to `= 'moderate'`
+// passed check:pathway and the whole suite). Both are now written from `tier`,
+// so they cannot. check:pathway rule (f) still reads the compiled JSON, so a
+// branch written WITHOUT this RuleSet is still caught. Used by the pathway's
+// tier groups and the reassessment schedule's per-tier actions.
+//
+// `display` is the CodeSystem display, quoted: TierBranch(low, "Low risk").
+RuleSet: TierBranch(tier, display)
+* code[+] = SPiERSuicideRiskTier#{tier} {display}
+* condition[+]
+  * kind = #applicability
+  * expression.language = #text/fhirpath
+  * expression.expression = "%episode.extension('http://thespierproject.org/fhir/StructureDefinition/episode-current-risk-tier').value.coding.where(system = 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier').code = '{tier}'"

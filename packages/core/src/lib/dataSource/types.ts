@@ -99,7 +99,7 @@ export interface FhirDataSource {
    *
    * ⚠️ `recommendedNextStep` is `null` from any server-backed source, and that
    * is not a gap to paper over. It is the one registry field no FHIR resource
-   * carries — hand-curated in `patients.json` for the demo — so a cohort read
+   * carries — hand-curated in demo-population's `next-steps.json` — so a cohort read
    * over real Patients cannot produce it, and callers derive the next step from
    * the pathway instead. See `RegistryPatient`.
    */

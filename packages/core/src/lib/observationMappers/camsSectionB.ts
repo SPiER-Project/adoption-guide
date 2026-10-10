@@ -6,8 +6,7 @@ import { suicideRiskCategory } from '../conceptDomain'
  * The marker category every CAMS driver Condition carries (the profile's
  * `driverCategory` slice, 1..1). Exported because it is also how the driver is
  * read BACK: `SmartDataSource` searches Condition by this token, so a server's
- * wider problem list — and the writeback's Tier-3 proposal — stay out of the
- * slice's `conditions` bucket.
+ * wider problem list stays out of the slice's `conditions` bucket.
  */
 export const CAMS_DRIVER_CATEGORY = {
   system: 'http://thespierproject.org/fhir/CodeSystem/cams-driver-category',

@@ -187,9 +187,9 @@ export type ConsentResource = FhirResource & { resourceType: 'Consent' }
 export type ProcedureResource = FhirResource & { resourceType: 'Procedure' }
 
 // The Conditions an instrument itself records — today only CAMS SSF-5 Section
-// B's suicide drivers (SPiERCAMSSuicideDriver, ig/input/fsh/cams.fsh). NOT the
-// writeback's Tier-3 risk-tier proposal, which is the app's own inference and
-// is never stored in a slice; see packages/core/src/lib/writeback/types.ts.
+// B's suicide drivers (SPiERCAMSSuicideDriver, ig/input/fsh/cams.fsh): what a
+// clinician recorded, never a problem the app inferred from a screen (#639);
+// see packages/core/src/lib/writeback/types.ts.
 export type ConditionResource = FhirResource & { resourceType: 'Condition' }
 
 // ─── Stage 7 (Track Risk Over Time) ──────────────────────────
