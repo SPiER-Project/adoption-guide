@@ -74,7 +74,7 @@ import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 /** The IG Publisher release both workflows download. Bump deliberately — see the header. */
-export const IG_PUBLISHER_VERSION = '2.3.4'
+export const IG_PUBLISHER_VERSION = '3.0.0'
 
 const API = 'https://api.github.com/repos/HL7/fhir-ig-publisher/releases/latest'
 const ATTEMPTS = 3
