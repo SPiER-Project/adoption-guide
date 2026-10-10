@@ -41,7 +41,14 @@
 // #1386 no longer blocks: the QA gate (scripts/lib/ig-qa-counts.mjs) now reads
 // the HTML check's own counts instead of the summary's "Broken Links", so those
 // warnings are reported and not gated. With it, 2.3.5's probe run fails ONLY on
-// #1384's 5 typeMode errors. Bump when a release fixes #1384.
+// #1384's 5 typeMode errors.
+//
+// ─── 3.0.0 (released 2026-10-08; probed 2026-10-10, PR #663) ─────────────────
+//
+// Skips the 2.3.x line and does not reproduce #1384: QA errors 0, broken links
+// 0, invalid XHTML 0, warnings 185 (2.3.4: 216 on the same day's main), and the
+// CQL translation completes. Pinned at 3.0.0 on that result. #1384 is still
+// open upstream; it matters again only if this pin is ever moved back to 2.3.x.
 //
 // One definition, for the same reason sushi-version.mjs and validator-jar.mjs
 // are one definition: this is consumed by TWO workflows on two different paths
@@ -74,7 +81,7 @@ import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 /** The IG Publisher release both workflows download. Bump deliberately — see the header. */
-export const IG_PUBLISHER_VERSION = '2.3.4'
+export const IG_PUBLISHER_VERSION = '3.0.0'
 
 const API = 'https://api.github.com/repos/HL7/fhir-ig-publisher/releases/latest'
 const ATTEMPTS = 3
