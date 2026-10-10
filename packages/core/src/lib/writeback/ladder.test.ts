@@ -14,7 +14,7 @@ const documentReference: FhirResource = { resourceType: 'DocumentReference' }
 const condition: FhirResource = { resourceType: 'Condition' }
 
 function artifacts(overrides: Partial<WritebackArtifacts> = {}): WritebackArtifacts {
-  return { qr, observations: obs, documentReference, condition, ...overrides }
+  return { qr, observations: obs, conditions: [], documentReference, condition, ...overrides }
 }
 
 const ALL: ServerCapabilities = {
@@ -32,6 +32,7 @@ describe('resolveConfig', () => {
     expect(resolveConfig()).toEqual({
       enableQuestionnaireResponse: true,
       enableObservation: true,
+      enableRecordedConditions: true,
       enableConditionProposal: false,
       alwaysWriteDocument: false,
     })
@@ -79,6 +80,49 @@ describe('buildWritePlan — artifact presence', () => {
       [1, 'QuestionnaireResponse', 'attempt'],
       [0, 'DocumentReference', 'attempt'],
     ])
+  })
+})
+
+describe('buildWritePlan — Tier 2 recorded Conditions (CAMS drivers)', () => {
+  const driver = { resourceType: 'Condition', id: 'd1' } as const
+
+  it('is its own Tier-2 step, after the Observations and before Tier 3', () => {
+    const plan = buildWritePlan(ALL, { enableConditionProposal: true }, artifacts({ conditions: [driver] }))
+    expect(shape(plan)).toEqual([
+      [1, 'QuestionnaireResponse', 'attempt'],
+      [2, 'Observation', 'attempt'],
+      [2, 'Condition', 'attempt'],
+      [3, 'Condition', 'attempt'],
+      [0, 'DocumentReference', 'attempt'],
+    ])
+  })
+
+  it('is ON by default — unlike Tier 3, it is not the app inferring a problem', () => {
+    const plan = buildWritePlan(ALL, {}, artifacts({ observations: [], conditions: [driver] }))
+    expect(shape(plan)).toEqual([
+      [1, 'QuestionnaireResponse', 'attempt'],
+      [2, 'Condition', 'attempt'],
+      [0, 'DocumentReference', 'attempt'],
+    ])
+  })
+
+  // The defect this step exists to fix: the drivers rode in the Observation
+  // step, so a server's Observation capability was what licensed a Condition POST.
+  it('is gated on the CONDITION capability, never the Observation one', () => {
+    const caps: ServerCapabilities = { ...ALL, Condition: { create: false } }
+    const plan = buildWritePlan(caps, {}, artifacts({ conditions: [driver] }))
+    expect(plan.find(s => s.tier === 2 && s.resourceType === 'Observation')?.disposition).toBe('attempt')
+    expect(plan.find(s => s.tier === 2 && s.resourceType === 'Condition')?.disposition).toBe('unsupported')
+  })
+
+  it('is omitted when the instrument recorded none', () => {
+    const plan = buildWritePlan(ALL, {}, artifacts())
+    expect(plan.some(s => s.tier === 2 && s.resourceType === 'Condition')).toBe(false)
+  })
+
+  it('can be turned off by config', () => {
+    const plan = buildWritePlan(ALL, { enableRecordedConditions: false }, artifacts({ conditions: [driver] }))
+    expect(plan.find(s => s.tier === 2 && s.resourceType === 'Condition')?.disposition).toBe('disabled')
   })
 })
 

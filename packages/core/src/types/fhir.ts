@@ -186,6 +186,12 @@ export type ConsentResource = FhirResource & { resourceType: 'Consent' }
 // (packages/tool-views LethalMeansCounselingView.tsx → lib/lethalMeans.ts here).
 export type ProcedureResource = FhirResource & { resourceType: 'Procedure' }
 
+// The Conditions an instrument itself records — today only CAMS SSF-5 Section
+// B's suicide drivers (SPiERCAMSSuicideDriver, ig/input/fsh/cams.fsh). NOT the
+// writeback's Tier-3 risk-tier proposal, which is the app's own inference and
+// is never stored in a slice; see packages/core/src/lib/writeback/types.ts.
+export type ConditionResource = FhirResource & { resourceType: 'Condition' }
+
 // ─── Stage 7 (Track Risk Over Time) ──────────────────────────
 // The episode pattern from ig/input/fsh/risk-episode.fsh. Typed loosely like
 // the other workflow resources above; the profiles are the real contract.
@@ -287,6 +293,18 @@ export interface PatientSlice {
    * means measure; nothing writes them yet (TL-008 has no recorder).
    */
   procedures?: ProcedureResource[]
+  /**
+   * Problem-list Conditions an instrument recorded — CAMS Section B's suicide
+   * drivers. Optional for the same back-compat reason as the buckets above;
+   * always read with `?? []`.
+   *
+   * ⚠️ They used to ride in `observations`, cast, "stored together for the
+   * demo" — so the writeback POSTed them in the Observation step on the strength
+   * of the server's Observation capability, the scorecard counted them as
+   * Observations, and every reader of `observations` had to remember that the
+   * array was not purely Observations.
+   */
+  conditions?: ConditionResource[]
   /**
    * Real FHIR `Encounter`s — the correlation hinge for #263. Optional for the
    * same back-compat reason as the buckets above; always read with `?? []`.

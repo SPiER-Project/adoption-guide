@@ -60,7 +60,7 @@ describe('read', () => {
 })
 
 describe('search', () => {
-  // The 13 searched types from SmartDataSource.getSlice, in its order.
+  // The 15 searches SmartDataSource.getSlice issues, in its order.
   const SEARCHES = [
     'QuestionnaireResponse?patient=patient-011',
     'Observation?patient=patient-011&category=survey',
@@ -75,10 +75,11 @@ describe('search', () => {
     'Appointment?patient=patient-011',
     'Consent?patient=patient-011',
     'Procedure?patient=patient-011',
+    `Condition?patient=patient-011&category=${encodeURIComponent('http://thespierproject.org/fhir/CodeSystem/cams-driver-category|suicide-driver')}`,
     'Encounter?patient=patient-011',
   ]
 
-  it('answers all 14 searches with a searchset Bundle', async () => {
+  it('answers all 15 searches with a searchset Bundle', async () => {
     for (const search of SEARCHES) {
       const { res, body } = await get(`/fhir/${search}`)
       expect(res.status, search).toBe(200)

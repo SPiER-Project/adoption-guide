@@ -1,10 +1,21 @@
 import { derivedId } from '../fromResponse'
-import { walkItems, getCodingAnswer, getYesNoBoolean, type MapperResult, type RiskAlert, type ObservationResource, type QuestionnaireResponseResource, type FhirResource } from './shared'
+import { walkItems, getCodingAnswer, getYesNoBoolean, type MapperResult, type RiskAlert, type ConditionResource, type QuestionnaireResponseResource } from './shared'
 import { suicideRiskCategory } from '../conceptDomain'
+
+/**
+ * The marker category every CAMS driver Condition carries (the profile's
+ * `driverCategory` slice, 1..1). Exported because it is also how the driver is
+ * read BACK: `SmartDataSource` searches Condition by this token, so a server's
+ * wider problem list — and the writeback's Tier-3 proposal — stay out of the
+ * slice's `conditions` bucket.
+ */
+export const CAMS_DRIVER_CATEGORY = {
+  system: 'http://thespierproject.org/fhir/CodeSystem/cams-driver-category',
+  code: 'suicide-driver',
+} as const
 
 export function mapCAMSSectionB(response: QuestionnaireResponseResource): MapperResult {
   const items = response?.item || []
-  const observations: ObservationResource[] = []
 
   // Extract identified drivers (Problem #1-3)
   // `slug` exists because `label` cannot be one. The id used to be built as
@@ -18,7 +29,7 @@ export function mapCAMSSectionB(response: QuestionnaireResponseResource): Mapper
     { descLinkId: 'driver-3-desc', typeLinkId: 'driver-3-type', label: 'Driver #3', slug: 'driver-3' },
   ]
 
-  const conditions: FhirResource[] = []
+  const conditions: ConditionResource[] = []
 
   for (const driver of driverLinkIds) {
     const descItem = walkItems(items, driver.descLinkId)
@@ -48,11 +59,7 @@ export function mapCAMSSectionB(response: QuestionnaireResponseResource): Mapper
         category: [
           {
             coding: [
-              {
-                system: 'http://thespierproject.org/fhir/CodeSystem/cams-driver-category',
-                code: 'suicide-driver',
-                display: 'Suicide Driver',
-              },
+              { ...CAMS_DRIVER_CATEGORY, display: 'Suicide Driver' },
             ],
           },
           ...(driverType ? [{
@@ -79,9 +86,6 @@ export function mapCAMSSectionB(response: QuestionnaireResponseResource): Mapper
       })
     }
   }
-
-  // Store conditions as observations (they're really Conditions but we store them together for the demo)
-  observations.push(...(conditions as ObservationResource[]))
 
   // Check for ideation, plan, preparation
   const ideationPresent = getYesNoBoolean(walkItems(items, 'ideation-present'))
@@ -112,5 +116,7 @@ export function mapCAMSSectionB(response: QuestionnaireResponseResource): Mapper
         detail: `No active suicidal ideation or plan reported. ${driverCount} driver(s) identified for monitoring.`,
       }
 
-  return { observations, riskAlert }
+  // No Observations: Section B's ideation and plan answers stay in the
+  // QuestionnaireResponse (see AdministerCAMSSectionB's description).
+  return { observations: [], conditions, riskAlert }
 }

@@ -25,10 +25,23 @@
  *   Tier 2 — Observation        scored + harmonized risk-tier Observations
  *                               (SDC "extract"): the more advanced, more
  *                               immediately-consumable rung.
+ *            + Condition        the problems an instrument RECORDS (CAMS
+ *                               Section B's suicide drivers): a second Tier-2
+ *                               step, gated on the server's own Condition
+ *                               capability, never on its Observation one.
  *   Tier 3 — Condition          opt-in only, default OFF. Proposes a
  *                               problem-list entry from the harmonized risk
  *                               tier; a human must confirm before it is
  *                               written (governance — see conditionProposal.ts).
+ *
+ * ⚠️ **Two Condition steps, and they are not the same act.** Tier 3 is the app's
+ * own INFERENCE — a screen turned into a problem — which is why it is off by
+ * default. A Tier-2 Condition is what the clinician wrote down in a
+ * clinician-completed form, persisted when they press Save; the published
+ * AdministerCAMSSectionB says each driver is materialized as a Condition. Until
+ * 2026-10-06 the drivers rode in the Observation step: POSTed to `/Condition`
+ * on the strength of the server's Observation capability, and counted on the
+ * scorecard as Observations.
  *
  * NOTE the Tier 1/2 ordering: QuestionnaireResponse is the LOWER discrete rung
  * (raw capture, easiest, SDC-canonical) and Observation is the HIGHER rung
@@ -36,6 +49,7 @@
  * from an earlier draft that had them reversed — see the plan doc.
  */
 import type {
+  ConditionResource,
   FhirResource,
   ObservationResource,
   QuestionnaireResponseResource,
@@ -61,12 +75,15 @@ export type ServerCapabilities = Record<string, { create: boolean }>
 /**
  * The resources a completed instrument produces, handed to the ladder. `qr` and
  * `documentReference` are always present; `observations` may be empty (some
- * instruments produce CarePlans, not Observations); `condition` is present only
+ * instruments produce CarePlans, not Observations), and `conditions` almost
+ * always is (only CAMS Section B records any); `condition` is present only
  * when the Tier-3 proposal is enabled and the screen warrants one.
  */
 export interface WritebackArtifacts {
   qr: QuestionnaireResponseResource
   observations: ObservationResource[]
+  /** The instrument's recorded problems (Tier 2); usually empty. */
+  conditions: ConditionResource[]
   documentReference: FhirResource
   condition?: FhirResource
 }
@@ -82,6 +99,8 @@ export interface WritebackConfig {
   enableQuestionnaireResponse?: boolean
   /** default true */
   enableObservation?: boolean
+  /** default true — the instrument's recorded problems, a Tier-2 step */
+  enableRecordedConditions?: boolean
   /** default false — opt-in, needs explicit in-UI confirmation upstream */
   enableConditionProposal?: boolean
   /** default false */
@@ -92,6 +111,7 @@ export interface WritebackConfig {
 export interface ResolvedWritebackConfig {
   enableQuestionnaireResponse: boolean
   enableObservation: boolean
+  enableRecordedConditions: boolean
   enableConditionProposal: boolean
   alwaysWriteDocument: boolean
 }

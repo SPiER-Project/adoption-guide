@@ -29,6 +29,7 @@ function report(
     config: {
       enableQuestionnaireResponse: true,
       enableObservation: true,
+      enableRecordedConditions: true,
       enableConditionProposal: false,
       alwaysWriteDocument: false,
     },
@@ -79,6 +80,7 @@ describe('WritebackScorecard', () => {
       config: {
         enableQuestionnaireResponse: true,
         enableObservation: true,
+        enableRecordedConditions: true,
         enableConditionProposal: true,
         alwaysWriteDocument: false,
       },
@@ -121,6 +123,23 @@ describe('WritebackScorecard', () => {
       reason: 'Server does not support create for this type',
     }
     expect(textOf(report([qrWritten, unsupported]))).toMatch(/Server does not support create/i)
+  })
+
+  // CAMS Section B: no scores, two recorded problems. Keyed by tier alone, the
+  // problems' row would have overwritten the scores' row (or been dropped).
+  it('shows the recorded-problems row only for a form that recorded problems', () => {
+    expect(textOf(report([qrWritten]))).not.toMatch(/problems it identified/i)
+    const drivers: WriteStepResult = {
+      tier: 2,
+      resourceType: 'Condition',
+      role: 'discrete',
+      outcome: 'written',
+      reason: '2 Conditions written',
+    }
+    const text = textOf(report([qrWritten, drivers]))
+    expect(text).toMatch(/problems it identified/i)
+    expect(text).toMatch(/no score of its own to save/i)
+    expect(text).toMatch(/2 of 2 parts saved/i)
   })
 
   it('explains a missing Tier 2 as an instrument property, not a server failure', () => {

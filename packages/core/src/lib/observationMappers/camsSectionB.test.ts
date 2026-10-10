@@ -54,10 +54,15 @@ describe('mapCAMSSectionB', () => {
     expect(r.riskAlert.level).toBe('none')
   })
 
-  // The mapper stashes Conditions in the observations array (cast to
-  // ObservationResource), so read resourceType through a widened view.
-  const conditionsOf = (r: ReturnType<typeof mapCAMSSectionB>) =>
-    r.observations.filter(o => (o as { resourceType: string }).resourceType === 'Condition')
+  const conditionsOf = (r: ReturnType<typeof mapCAMSSectionB>) => r.conditions ?? []
+
+  // The drivers used to be stashed in `observations`, cast — so every reader of
+  // that array, the writeback's Observation step included, met a Condition.
+  it('returns its drivers as conditions, and no Observation at all', () => {
+    const r = mapCAMSSectionB(camsBResponse({ drivers: [{ desc: 'Isolation' }, { desc: 'Chronic pain' }] }))
+    expect(r.observations).toEqual([])
+    expect(conditionsOf(r).map(c => c.resourceType)).toEqual(['Condition', 'Condition'])
+  })
 
   it('emits a Condition per described driver with type category', () => {
     const r = mapCAMSSectionB(camsBResponse({

@@ -8,15 +8,16 @@
  *                    Condition off, floor conditional).
  *   2. capabilities — whether the server advertises `create` for the type.
  *   3. artifacts   — whether there is anything to write (no Observations →
- *                    no Tier-2 step; no proposed Condition → no Tier-3 step).
+ *                    no Tier-2 Observation step; no recorded Condition → no
+ *                    Tier-2 Condition step; no proposal → no Tier-3 step).
  *
  * Runtime success/failure and the conditional firing of the Tier-0 floor are
  * NOT decided here — that is `execute`'s job. The plan is the honest statement
  * of intent that the scorecard (Phase 2) renders.
  *
  * Order of the returned steps is the execution order:
- *   Tier 1 QuestionnaireResponse → Tier 2 Observation → Tier 3 Condition →
- *   Tier 0 DocumentReference (floor last).
+ *   Tier 1 QuestionnaireResponse → Tier 2 Observation → Tier 2 Condition →
+ *   Tier 3 Condition → Tier 0 DocumentReference (floor last).
  * QR precedes Observation/Condition because those reference the server-assigned
  * QR id; the floor is last because whether it runs depends on the discrete
  * outcomes.
@@ -36,6 +37,7 @@ export function resolveConfig(config: WritebackConfig = {}): ResolvedWritebackCo
   return {
     enableQuestionnaireResponse: config.enableQuestionnaireResponse ?? true,
     enableObservation: config.enableObservation ?? true,
+    enableRecordedConditions: config.enableRecordedConditions ?? true,
     enableConditionProposal: config.enableConditionProposal ?? false,
     alwaysWriteDocument: config.alwaysWriteDocument ?? false,
   }
@@ -74,6 +76,19 @@ export function buildWritePlan(
       resourceType: 'Observation',
       role: 'discrete',
       disposition: discreteDisposition(cfg.enableObservation, capabilities, 'Observation'),
+    })
+  }
+
+  // Tier 2 — Condition: the problems the instrument recorded. Gated on the
+  // server's CONDITION capability; a server that takes Observations and refuses
+  // Conditions reports this step `unsupported`, and the floor carries the
+  // drivers' text inside the embedded QuestionnaireResponse.
+  if (artifacts.conditions.length > 0) {
+    steps.push({
+      tier: 2,
+      resourceType: 'Condition',
+      role: 'discrete',
+      disposition: discreteDisposition(cfg.enableRecordedConditions, capabilities, 'Condition'),
     })
   }
 

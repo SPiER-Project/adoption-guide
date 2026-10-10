@@ -208,6 +208,16 @@ function declaredMapperProfiles(): Map<string, Set<string>> {
   return byQuestionnaire
 }
 
+/**
+ * Everything an instrument mapper produced for one response: its Observations
+ * AND its recorded Conditions. CAMS Section B returns no Observation at all, so
+ * reading `observations` alone would drop it from coverage silently.
+ */
+function resultsOf(qr: QuestionnaireResponseResource): FhirResource[] {
+  const derived = deriveFromResponse(qr)
+  return [...(derived?.observations ?? []), ...(derived?.conditions ?? [])]
+}
+
 /** Run every production builder. Returns resources tagged with their origin. */
 function emitRuntimeResources(): { origin: string; resource: FhirResource }[] {
   const out: { origin: string; resource: FhirResource }[] = []
@@ -222,7 +232,9 @@ function emitRuntimeResources(): { origin: string; resource: FhirResource }[] {
   // BUILDERS are exercised, not where their input came from.
   for (const { name, qr } of [...scenarioResponses(), ...igExampleResponses()]) {
     const derived = deriveFromResponse(qr)
-    for (const o of derived?.observations ?? []) add(`deriveFromResponse:${name}`, o)
+    for (const o of [...(derived?.observations ?? []), ...(derived?.conditions ?? [])]) {
+      add(`deriveFromResponse:${name}`, o)
+    }
   }
 
   // ── CarePlan mappers. Each is fed the scenario QR for its own instrument, so
@@ -498,7 +510,7 @@ describe('runtime FHIR emission', () => {
     const responses = [...scenarioResponses(), ...igExampleResponses()]
     const exercised = new Set(
       responses
-        .filter(r => (deriveFromResponse(r.qr)?.observations ?? []).length > 0)
+        .filter(r => resultsOf(r.qr).length > 0)
         .map(r => String(r.qr.questionnaire ?? '').split('|')[0]),
     )
     const missing = MAPPED_QUESTIONNAIRE_URLS.filter(
@@ -535,7 +547,7 @@ describe('runtime FHIR emission', () => {
     for (const { name, qr } of [...scenarioResponses(), ...igExampleResponses()]) {
       const canonical = stripCanonicalVersion(String(qr.questionnaire ?? ''))
       const wanted = declared.get(canonical)
-      const derived = deriveFromResponse(qr)?.observations ?? []
+      const derived = resultsOf(qr)
       if (!wanted?.size || derived.length === 0) continue
       checked++
       const claimed = new Set(

@@ -39,14 +39,30 @@ way, it is wrong.
 ## The ladder
 
 Climbing = a more capable EHR. Ordered here by tier; **execution** order is
-1 → 2 → 3 → 0, because the floor's necessity depends on the discrete outcomes.
+1 → 2 (Observations, then Conditions) → 3 → 0, because the floor's necessity depends on the discrete outcomes.
 
 | Tier | Resource | Role | Default |
 |---|---|---|---|
 | 0 | `DocumentReference` | The universal floor: a readable HTML rendering **plus** the raw QR as base64 FHIR JSON, so discrete data is recoverable even where no discrete tier landed. | Conditional — fires when the discrete tiers did not all land cleanly, or on `alwaysWriteDocument` |
 | 1 | `QuestionnaireResponse` | The discrete capture; SDC-canonical, most broadly supported, and the resource every higher rung references. | On, gated by capability |
 | 2 | `Observation` | Scored + harmonized risk-tier Observations — the computable rung. | On, gated by capability |
+| 2 | `Condition` | The problems a form **records** — CAMS Section B's suicide drivers, which the published `AdministerCAMSSectionB` says are materialized as Conditions. A second Tier-2 step, only when there are any. | On (`enableRecordedConditions`), gated by the server's **Condition** capability |
 | 3 | `Condition` | *Proposes* a problem-list entry, stamped `verificationStatus = unconfirmed`. | **OFF.** Opt-in, requires explicit human confirmation |
+
+### Two Condition steps, and they are not the same act
+
+**Decided 2026-10-06.** Tier 3 is the app's own *inference*: a screen turned into
+a problem-list entry, which is why it is off by default and stamped
+`unconfirmed`. A Tier-2 Condition is what the clinician wrote down in a
+clinician-completed form, and it is written only when they press *Save to the
+chart*. Until that date the CAMS drivers travelled in the mapper's
+`observations` array. The Observation step POSTed them to `/Condition` on the
+strength of the server's *Observation* capability, the scorecard counted them as
+Observations, and nothing read them back. They now have their own slice bucket
+(`conditions`). `SmartDataSource` reads them back, searched by the drivers'
+marker category so the EHR's wider problem list stays out. A server without
+Condition create reports the step `unsupported`, and the floor carries the
+drivers' text inside the embedded QuestionnaireResponse.
 
 ### Two decisions that are not implementation details
 
@@ -153,6 +169,9 @@ It is built around explaining **absences**, which it cannot do from
   from the resolved config. This is why `WritebackReport` carries `config`.
 - **Tier 2 with no Observations** — a property of the instrument (some tools
   produce a CarePlan), not a failure of the server, and it must not read as one.
+- **Tier 2 Conditions** — the reverse case: the row is shown *only* when the form
+  recorded a problem, because only CAMS Section B ever does. Rows are keyed by
+  tier **and** resource type; keyed by tier alone, the two Tier-2 steps collided.
 
 ## Review status
 

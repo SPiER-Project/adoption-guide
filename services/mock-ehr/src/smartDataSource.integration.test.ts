@@ -24,7 +24,8 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { SmartDataSource } from '@spier/core/lib/dataSource/smartDataSource'
 import { deriveFromResponse } from '@spier/core/lib/deriveFromResponse'
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
-import type { StoredResponse } from '@spier/core/types/fhir'
+import type { QuestionnaireResponseResource, StoredResponse } from '@spier/core/types/fhir'
+import CAMS_SECTION_B_EXAMPLE from '@spier/fhir-artifacts/generated/QuestionnaireResponse-ExampleCAMSSectionBResponse.json'
 import type { DerivedArtifacts } from '@spier/core/lib/dataSource/types'
 import app, { resetProfile } from './app'
 import { launchFor } from './__fixtures__/launch'
@@ -299,9 +300,9 @@ describe('the cohort read against the mock EHR', () => {
     fhirRequests = []
     const slices = await source.getSlices(COHORT)
 
-    // Three patients × fourteen searches would be 42. It is fourteen.
+    // Three patients × fifteen searches would be 45. It is fifteen.
     const searches = fhirRequests.filter(u => /\/fhir\/\w+\?/.test(u))
-    expect(searches.length).toBe(14)
+    expect(searches.length).toBe(15)
     expect(searches.every(u => u.includes('%2C') || u.includes(','))).toBe(true)
 
     // …and the answers are the same ones `getSlice` gives for each patient.
@@ -355,8 +356,8 @@ describe('the cohort read against the mock EHR', () => {
       const slices = await source.getSlices(COHORT)
       // Nothing came back — every patient's core search 500s in both paths —
       // but the FALLBACK ran, which the request count is what shows: the
-      // batched read is 14 searches and the loop is 42.
-      expect(fhirRequests.filter(u => /\/fhir\/\w+\?/.test(u)).length).toBeGreaterThan(14)
+      // batched read is 15 searches and the loop is 45.
+      expect(fhirRequests.filter(u => /\/fhir\/\w+\?/.test(u)).length).toBeGreaterThan(15)
       expect(slices.size).toBe(0)
     } finally {
       failTypes = []
@@ -512,6 +513,65 @@ describe('the writeback ladder against the mock EHR (step 4)', () => {
  * the only thing that can show the two halves still fit — a unit test of either
  * one asserts its own side of a contract it also defines.
  */
+describe('CAMS Section B drivers against the mock EHR', () => {
+  /**
+   * The one form that RECORDS problems. Its drivers used to ride in the
+   * Observation step — POSTed to /Condition because the server could create
+   * Observations — and nothing read them back. Here they land in their own
+   * Tier-2 step, gated on Condition create, and come back in the slice's
+   * `conditions` bucket rather than in `observations`.
+   */
+  async function submitCamsB(profile: 'full' | 'no-observation') {
+    resetProfile()
+    const store = fakeStore()
+    await store.state.setProfile(profile)
+    requestEnv = store as unknown as Record<string, unknown>
+    const source = new SmartDataSource(await clientFor('patient-011'))
+    const resource = { ...CAMS_SECTION_B_EXAMPLE, id: 'cams-b-client' } as QuestionnaireResponseResource
+    const derived = deriveFromResponse(resource)
+    if (!derived) throw new Error('the CAMS Section B example derived nothing')
+    const entry: StoredResponse = {
+      id: 'cams-b-client',
+      questionnaireName: 'CAMS Section B',
+      completedAt: '2026-10-06T09:00:00Z',
+      resource,
+    }
+    await source.saveResponse('patient-011', entry, derived)
+    return { store: store as FakeStoreBinding, source, derived }
+  }
+
+  afterEach(() => {
+    requestEnv = {}
+    resetProfile()
+  })
+
+  it('full: writes each driver as a Condition in its own step, and reads them back', async () => {
+    const { store, source, derived } = await submitCamsB('full')
+    expect(derived.conditions.length).toBeGreaterThan(0)
+    expect(derived.observations).toEqual([])
+
+    const steps = source.writebackReport?.result.steps ?? []
+    expect(steps.find(s => s.tier === 2 && s.resourceType === 'Condition')).toMatchObject({ outcome: 'written' })
+    expect(steps.some(s => s.resourceType === 'Observation')).toBe(false)
+
+    const written = (await store.state.list()).filter(w => w.resource.resourceType === 'Condition')
+    expect(written).toHaveLength(derived.conditions.length)
+
+    const slice = await source.getSlice('patient-011')
+    expect(slice.conditions?.map(c => c.resourceType)).toEqual(derived.conditions.map(() => 'Condition'))
+    expect(slice.observations.some(o => (o.resourceType as string) === 'Condition')).toBe(false)
+  })
+
+  it('no-observation: a server without Condition create skips them, and the floor carries the form', async () => {
+    const { store, source } = await submitCamsB('no-observation')
+    const steps = source.writebackReport?.result.steps ?? []
+    expect(steps.find(s => s.tier === 2 && s.resourceType === 'Condition')).toMatchObject({ outcome: 'skipped' })
+    expect(steps.find(s => s.tier === 0)).toMatchObject({ outcome: 'written', role: 'floor' })
+    const types = (await store.state.list()).map(w => String(w.resource.resourceType))
+    expect(types).not.toContain('Condition')
+  })
+})
+
 describe('saveArtifact — lifecycle writes against the strict mock', () => {
   /** A lifecycle resource the app really writes, with its client-minted id. */
   function episodeFor(patientId: string): Record<string, unknown> {

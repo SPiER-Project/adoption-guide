@@ -107,7 +107,7 @@ describe('stageForArtifact — shared questionnaire is disambiguated by meta.tag
   })
 })
 
-describe('deriveFromResponse — derived Observations carry the source QR stage', () => {
+describe('deriveFromResponse — derived results carry the source QR stage', () => {
   // Load whatever example QuestionnaireResponses ship in the generated IG data.
   // ⚠️ The type parameter, not a trailing `as Record<…>`. Both produce the same
   // type, but the assertion form made `no-unnecessary-type-assertion` and `tsc`
@@ -124,7 +124,7 @@ describe('deriveFromResponse — derived Observations carry the source QR stage'
   })
 
   it.each(exampleQrs.map((qr) => [qr.questionnaire ?? qr.id ?? 'unknown', qr] as const))(
-    'every Observation derived from %s resolves to the QR stage',
+    'every result derived from %s resolves to the QR stage',
     (_label, qr) => {
       const expectedStage = stageForResponse(qr)
       const derived = deriveFromResponse(qr)
@@ -133,10 +133,13 @@ describe('deriveFromResponse — derived Observations carry the source QR stage'
       // nothing to stage-check here.
       if (!derived) return
 
+      // Observations AND recorded Conditions: CAMS Section B derives no
+      // Observation at all, only its drivers, and they are staged the same way.
+      const results = [...derived.observations, ...derived.conditions]
       expect(expectedStage).toBeDefined()
-      expect(derived.observations.length).toBeGreaterThan(0)
-      for (const obs of derived.observations) {
-        expect(stageForArtifact(obs as FhirResourceLike)).toBe(expectedStage)
+      expect(results.length).toBeGreaterThan(0)
+      for (const result of results) {
+        expect(stageForArtifact(result as FhirResourceLike)).toBe(expectedStage)
       }
     },
   )
