@@ -19,6 +19,7 @@
 import type { RiskAlert } from '../observationMappers'
 import type { RegistryPatient } from '../registry'
 import type {
+  ConditionResource,
   FhirResource,
   ObservationResource,
   PatientSlice,
@@ -28,12 +29,14 @@ import type {
 /**
  * The artifacts derived from a QuestionnaireResponse by `deriveFromResponse`.
  * Mirrors `MapperResult` but is the currency the data source persists: the
- * source appends `observations` and upserts `riskAlert` (replacing any prior
- * alert for the same tool). `null` when the QR has no mapper — the source then
+ * source appends `observations` and `conditions` and upserts `riskAlert`
+ * (replacing any prior alert for the same tool). `null` when the QR has no mapper — the source then
  * stores only the response.
  */
 export interface DerivedArtifacts {
   observations: ObservationResource[]
+  /** Always present, usually empty — see `MapperResult.conditions`. */
+  conditions: ConditionResource[]
   riskAlert: RiskAlert
 }
 

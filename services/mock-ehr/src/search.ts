@@ -2,8 +2,8 @@
  * search — the patient-scoped search semantics this server implements, and
  * nothing more.
  *
- * `SmartDataSource.getSlice` issues exactly 14 searches, all of the form
- * `GET Type?patient=<id>`, two of them adding `&category=`. This module answers
+ * `SmartDataSource.getSlice` issues exactly 15 searches, all of the form
+ * `GET Type?patient=<id>`, three of them adding `&category=`. This module answers
  * those and rejects anything else loudly. That refusal is deliberate: a mock
  * that ignores a parameter it does not understand returns a plausible Bundle
  * for a query it did not actually run, and the caller cannot tell.
@@ -32,6 +32,11 @@ const PATIENT_LINK: Record<string, PatientLink> = {
   DocumentReference: 'subject',
   ServiceRequest: 'subject',
   Procedure: 'subject',
+  // CAMS Section B's recorded drivers, searched by their marker category. Until
+  // 2026-10-06 the app never read a Condition back, so this table did not have
+  // one — and the app's read is best-effort, so the refusal would have landed
+  // as an empty `conditions` bucket, "this patient has none".
+  Condition: 'subject',
   EpisodeOfCare: 'patient',
   Consent: 'patient',
   Task: 'for',

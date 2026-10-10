@@ -12,10 +12,11 @@ import { mapResponseToObservations, type DispatchOptions } from './observationMa
 import type { RiskAlert } from './observationMappers'
 import { stageForArtifact, PATHWAY_STAGE_SYSTEM, type FhirResourceLike } from './patientPathway'
 import type { DerivedArtifacts } from './dataSource/types'
-import type { ObservationResource, QuestionnaireResponseResource } from '../types/fhir'
+import type { ConditionResource, ObservationResource, QuestionnaireResponseResource } from '../types/fhir'
 
 /**
- * Derive Observations + a risk alert from a stored QuestionnaireResponse.
+ * Derive Observations, any recorded Conditions, and a risk alert from a stored
+ * QuestionnaireResponse.
  *
  * Dispatch is by `resource.questionnaire` (canonical URL) — see
  * observationMappers/index.ts. Returns `null` when the QR has no mapper (e.g.
@@ -60,30 +61,26 @@ export function deriveFromResponse(
   // stageForArtifact reads meta.tag first (tier 1) and falls back to canonical
   // resolution (tier 3).
   const stageId = stageForArtifact(storedResource as FhirResourceLike)
+  const stageTag = stageId ? [{ system: PATHWAY_STAGE_SYSTEM, code: stageId }] : []
   const observations: ObservationResource[] = result.observations.map(obs => ({
     ...obs,
-    // ⚠️ `derivedFrom` is an OBSERVATION element, and this array is not purely
-    // Observations: `camsSectionB` returns its suicide-driver Conditions through
-    // it ("stored together for the demo", in its own words). Stamping one
-    // produced `Condition.derivedFrom`, which R4 does not define — an error the
-    // HL7 validator raised the first time that Condition was ever emitted and
-    // claimed a profile, on 2026-09-17. Nothing had validated it before, because
-    // a resource claiming no profile validates against nothing.
-    //
-    // The provenance link a Condition WOULD use is `evidence.detail`, which is a
-    // different assertion ("this is the evidence for the diagnosis") and is not
-    // built here rather than guessed at.
-    ...(obs.resourceType === 'Observation'
-      ? { derivedFrom: [...(obs.derivedFrom ?? []), { reference: `QuestionnaireResponse/${id}` }] }
-      : {}),
+    derivedFrom: [...(obs.derivedFrom ?? []), { reference: `QuestionnaireResponse/${id}` }],
     ...(provenanceNote ? { note: [...(obs.note ?? []), { text: provenanceNote }] } : {}),
-    meta: {
-      ...(obs.meta ?? {}),
-      tag: [
-        ...(obs.meta?.tag ?? []),
-        ...(stageId ? [{ system: PATHWAY_STAGE_SYSTEM, code: stageId }] : []),
-      ],
-    },
+    meta: { ...(obs.meta ?? {}), tag: [...(obs.meta?.tag ?? []), ...stageTag] },
+  }))
+
+  // ⚠️ **No `derivedFrom` on a Condition** — it is an Observation element, and
+  // stamping one produced `Condition.derivedFrom`, which R4 does not define (the
+  // validator's first sight of this resource, 2026-09-17, when the Conditions
+  // still travelled inside `observations`). The provenance link a Condition
+  // WOULD use is `evidence.detail`, which asserts something different ("this is
+  // the evidence for the diagnosis") and is not built here rather than guessed at.
+  const conditions: ConditionResource[] = (result.conditions ?? []).map(c => ({
+    ...c,
+    ...(provenanceNote
+      ? { note: [...((c.note as { text: string }[] | undefined) ?? []), { text: provenanceNote }] }
+      : {}),
+    meta: { ...(c.meta ?? {}), tag: [...(c.meta?.tag ?? []), ...stageTag] },
   }))
 
   const riskAlert: RiskAlert = inferred
@@ -93,5 +90,5 @@ export function deriveFromResponse(
       }
     : result.riskAlert
 
-  return { observations, riskAlert }
+  return { observations, conditions, riskAlert }
 }

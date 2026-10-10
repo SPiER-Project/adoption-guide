@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * The Adoption Guide holds no patient data.
+ * The Adoption Guide holds no patient data and no SMART session.
  *
  * Step D (#391) moved the measure dashboard out of `/guide/*` to the EHR side,
  * on the reasoning that the guide explains and configures the pathway while the
@@ -14,11 +14,19 @@
  *      `packages/demo-population/` or the registry-wide `useRegistrySlices`.
  *   2. Nothing the guide's PAGES reach (the layout plus every section's
  *      component, derived from `guideSections.ts` and the route table) is a
- *      concrete data source (`*DataSource.ts`). See "the data-source half".
- *   3. Every `@spier/…` or relative import on the way resolves; an import the
+ *      concrete data source (`*DataSource.ts`), the local one included: a page
+ *      reads the chart through `usePatient()`, never a store.
+ *   3. Nothing the guide app SHIPS — the same walk, minus type-only imports,
+ *      which put nothing in a bundle — holds a SMART session or a server-backed
+ *      data source: no `*DataSource.ts` but `localDataSource.ts`, no `Smart*`
+ *      module of `packages/app-shell`, no import of `fhirclient`. And
+ *      `localDataSource.ts` IS reached: it is the one data source the guide is
+ *      documented to mount (docs/internals/repo-layout.md), so a guide that no
+ *      longer reaches it has a doc that is wrong, and this says so.
+ *   4. Every `@spier/…` or relative import on the way resolves; an import the
  *      walk cannot follow is a module it never read, and fails.
  *
- * ⚠️ **Both rules match the RESOLVED file, not the specifier text.** The first
+ * ⚠️ **Rules 1–3 match the RESOLVED file, not the specifier text.** The first
  * version tested `/@spier\/demo-population/` against what was written, so a
  * relative `../../../../packages/demo-population/src/patients.json` walked
  * straight into the fixtures and passed; and it started from the guide's
@@ -26,12 +34,19 @@
  * green on 2026-10-06 — as was a whole patient's scenario shipped in the guide
  * bundle, which `check:surface` did not see either.
  *
- * ⚠️ **The data-source half stays page-scoped, and that is a known limit rather
- * than a loosening.** The guide app mounts `PatientProvider` (App.tsx), which
- * constructs the UNSEEDED `localDataSource` its fillers write into
- * (docs/internals/repo-layout.md) — so "the app reaches no data source" is false
- * by design today, while "no guide PAGE reaches one" is the rule this gate has
- * always held. Rule 1 is what keeps that local store empty.
+ * ⚠️ **Rule 3 is the decision of 2026-10-06, and before it this gate held the
+ * data-source rule over the PAGES only — by its own admission, because the app
+ * as a whole could not pass it.** The guide mounted `SmartProvider` and a
+ * `PatientProvider` that built a `SmartDataSource` whenever a SMART client
+ * existed, plus `/launch` and `/redirect`: a launch aimed at the guide's origin
+ * would have written a clinician's form to a real FHIR server. The decision was
+ * that the guide keeps its one LOCAL store — the blank "play with forms" state —
+ * and holds no SMART session at all. `PatientProvider` takes the session as a
+ * prop now, and only the clinical app's `SmartPatientProvider` supplies one.
+ *
+ * ⚠️ **Rule 3 cannot see a server reached without `fhirclient`** — a bare
+ * `fetch` to a FHIR base URL in a guide module passes it. Its subject is the
+ * SMART machinery this repo has, not every way to make a request.
  *
  * What counts as patient DATA rather than patient CONTEXT is the line that
  * matters: `usePatient()` for `activePatientId` is fine and is used by Tool
@@ -41,7 +56,7 @@ import { readFileSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { basename, dirname, join, relative, resolve } from 'node:path'
 import { appRoot, appRootFloors } from './lib/app-roots.mjs'
-import { chainTo, createResolver, walkGraph } from './lib/module-graph.mjs'
+import { chainTo, createResolver, importsOf, walkGraph } from './lib/module-graph.mjs'
 import { reportFloors } from './lib/floors.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -60,6 +75,19 @@ const PATIENT_DATA = [
 ]
 /** Rule 2, over the guide's pages. */
 const DATA_SOURCE = { test: (f) => /DataSource\.tsx?$/.test(basename(f)), why: 'a concrete data source' }
+/** Rule 3, over what the guide app ships. */
+const APP_SHELL = join(root, 'packages/app-shell/src') + '/'
+const LOCAL_DATA_SOURCE = join(root, 'packages/app-shell/src/lib/dataSource/localDataSource.ts')
+const SERVER_REACH = [
+  {
+    test: (f) => /DataSource\.tsx?$/.test(basename(f)) && f !== LOCAL_DATA_SOURCE,
+    why: 'a data source other than the local store',
+  },
+  {
+    test: (f) => f.startsWith(APP_SHELL) && /^smart/i.test(basename(f)),
+    why: 'the SMART session machinery',
+  },
+]
 
 /** The guide's own pages: the layout plus every section's component. */
 function guideEntryPoints() {
@@ -119,6 +147,34 @@ if (!existsSync(MAIN)) fail(`${relative(root, MAIN)} does not exist — this gat
 const app = existsSync(MAIN) ? walkGraph([MAIN], resolveImport) : { reached: new Map(), unresolved: [] }
 report(app.reached, app.unresolved, PATIENT_DATA)
 
+// ── RULE 3: what the guide app ships ────────────────────────────────────────
+//
+// Type-only imports are dropped here and only here: `PatientProvider` names the
+// SMART client's TYPE so it can accept a session, and a type puts nothing in a
+// bundle. Rule 1 still follows them — fixture JSON reached by a type import is
+// a design smell even when it is erased.
+const shipped = existsSync(MAIN)
+  ? walkGraph([MAIN], resolveImport, { follow: new Set(['static', 'dynamic']) })
+  : { reached: new Map(), unresolved: [] }
+report(shipped.reached, [], SERVER_REACH)
+for (const file of shipped.reached.keys()) {
+  const hit = importsOf(file).find((i) => i.kind !== 'type' && /^fhirclient(\/|$)/.test(i.spec))
+  if (hit) {
+    fail(
+      `the Adoption Guide imports "${hit.spec}" in ${relative(root, file)}\n` +
+        `    via ${trail(shipped.reached, file)}\n` +
+        '    The guide holds no SMART session; a launch is the clinical app\'s.',
+    )
+  }
+}
+if (existsSync(MAIN) && !shipped.reached.has(LOCAL_DATA_SOURCE)) {
+  fail(
+    `the Adoption Guide no longer reaches ${relative(root, LOCAL_DATA_SOURCE)} — ` +
+      'its fillers are documented to write into that unseeded local store (docs/internals/repo-layout.md); ' +
+      'if that changed on purpose, change the doc and this rule together',
+  )
+}
+
 // ── RULE 2: the guide's pages ───────────────────────────────────────────────
 const entries = guideEntryPoints()
 const pageFiles = []
@@ -146,6 +202,7 @@ reportFloors(
     { source: 'guide entry points', dimension: 'guide page(s)', actual: entries.length, floor: 4 },
     { source: 'guide page graph', dimension: 'module(s) reached', actual: pages.reached.size, floor: 75 },
     { source: 'guide app graph', dimension: 'module(s) reached from main.tsx', actual: app.reached.size, floor: 120 },
+    { source: 'guide shipped graph', dimension: 'module(s) shipped from main.tsx', actual: shipped.reached.size, floor: 110 },
   ],
   fail,
 )
@@ -156,5 +213,6 @@ if (failures) {
 }
 console.log(
   `✓ guide boundary: ${app.reached.size} module(s) reachable from the guide app, none reading patient fixtures; ` +
+    `${shipped.reached.size} shipped, none holding a SMART session or a data source but the local store; ` +
     `${entries.length} guide page(s) reaching ${pages.reached.size} module(s), none reading a data source`,
 )

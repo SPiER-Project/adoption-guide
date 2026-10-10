@@ -34,5 +34,6 @@ export const PATIENT_SLICE_FHIR_BUCKETS: {
   appointments: 'Appointment',
   consents: 'Consent',
   procedures: 'Procedure',
+  conditions: 'Condition',
   encounters: 'Encounter',
 }

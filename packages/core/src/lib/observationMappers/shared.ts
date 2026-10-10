@@ -11,6 +11,7 @@
 import type {
   CodeableConcept,
   Coding,
+  ConditionResource,
   ObservationResource,
   QuestionnaireResponseItem,
   QuestionnaireResponseResource,
@@ -52,7 +53,7 @@ export function cssrsRiskLevelDisplay(code: string): string {
 
 // Re-export the FHIR resource shapes the per-tool mappers need, so they can
 // import everything from './shared'.
-export type { FhirResource, ObservationResource, QuestionnaireResponseResource } from '../../types/fhir'
+export type { ConditionResource, FhirResource, ObservationResource, QuestionnaireResponseResource } from '../../types/fhir'
 
 export interface RiskAlert {
   tool: string
@@ -85,6 +86,13 @@ export interface DispatchProvenance {
 
 export interface MapperResult {
   observations: ObservationResource[]
+  /**
+   * Problem-list Conditions the instrument itself records. Only CAMS Section B
+   * returns any (its suicide drivers); absent everywhere else. Kept OUT of
+   * `observations` so that array holds Observations and nothing else — see
+   * `PatientSlice.conditions`.
+   */
+  conditions?: ConditionResource[]
   riskAlert: RiskAlert
   /**
    * Present only on results returned via the fallback dispatcher. When `via`

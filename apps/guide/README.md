@@ -11,7 +11,10 @@ Built with `npm run build` from the repo root; the output is `dist`.
 No module here imports `@spier/demo-population`, and `npm run check:surface`
 asserts the 14 synthetic patients are in **neither** bundle. The instrument
 fillers write into an **unseeded** `LocalDataSource` — the blank "play with
-forms" state — which is what lets a tool be tried with nothing running.
+forms" state — which is what lets a tool be tried with nothing running. That is
+the guide's ONE data source: it mounts the base `PatientProvider` with no SMART
+binding and no `SmartProvider`, so nothing here can reach a FHIR server, and a
+launch aimed at this origin is forwarded to the clinical app's `/launch`.
 
 ⚠️ **The chart experience is the mock EHR's**, not a demo screen here. The
 sidebar's "Try it" zone has always made that the primary call to action; since

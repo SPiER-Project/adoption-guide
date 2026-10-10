@@ -28,7 +28,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { PatientProvider } from '@spier/app-shell/context/PatientProvider'
+import { SmartPatientProvider } from '@spier/app-shell/context/SmartPatientProvider'
 // ⚠️ Injected explicitly: neither app ships a roster any more, so the offline
 // registry path only has one if a caller supplies it. This suite is that path.
 import { POPULATION_PATIENTS, POPULATION_SCENARIOS } from '@spier/demo-population'
@@ -69,9 +69,9 @@ function renderProbe(source: FhirDataSource, smart: Partial<typeof SMART_STUB> =
   return render(
     <MemoryRouter initialEntries={['/population']}>
       <SmartContext.Provider value={{ ...SMART_STUB, ...smart } as never}>
-        <PatientProvider dataSource={source} populationPatients={[...POPULATION_PATIENTS]}>
+        <SmartPatientProvider dataSource={source} populationPatients={[...POPULATION_PATIENTS]}>
           <Probe />
-        </PatientProvider>
+        </SmartPatientProvider>
       </SmartContext.Provider>
     </MemoryRouter>,
   )
@@ -147,9 +147,9 @@ describe('useRegistrySlices — the population read goes through the seam', () =
     render(
       <MemoryRouter initialEntries={['/population']}>
         <SmartContext.Provider value={SMART_STUB as never}>
-          <PatientProvider dataSource={new LocalDataSource(DEMO_SEED)}>
+          <SmartPatientProvider dataSource={new LocalDataSource(DEMO_SEED)}>
             <Probe />
-          </PatientProvider>
+          </SmartPatientProvider>
         </SmartContext.Provider>
       </MemoryRouter>,
     )
@@ -187,7 +187,7 @@ describe('useRegistrySlices — listCohort decides the cohort', () => {
 
   /**
    * ⚠️ These drive the REAL `SmartDataSource`, not an injected fake, and they
-   * have to: `PatientProvider` builds a `SmartDataSource` whenever a SMART
+   * have to: `SmartPatientProvider` builds a `SmartDataSource` whenever a SMART
    * client exists, so a client stub deliberately wins over the `dataSource`
    * prop. The stub is therefore a fake *client* — which is the better test
    * anyway, since it exercises the roster request and the FHIR→registry mapping

@@ -13,11 +13,18 @@
  * not a failure of the server, and would otherwise render as an unexplained
  * gap. See `WritebackReport`.
  *
- * There is no problem-list rung. The ladder had a Tier-3 "Condition proposal"
- * until #639 retired it — a screen never becomes a Condition — so the scorecard
- * no longer offers one, even as "off by design".
+ * There is no problem-list PROPOSAL rung. The ladder had a Tier-3 "Condition
+ * proposal" until #639 retired it — a screen never becomes a Condition — so the
+ * scorecard no longer offers one, even as "off by design". The one problem-list
+ * row it does show is the problems a clinician RECORDED (CAMS Section B), and
+ * only on a save that has them.
  */
-import type { WritebackReport, WriteStepResult, WriteTier } from '@spier/core/lib/writeback/types'
+import type {
+  WritebackReport,
+  WritebackResourceType,
+  WriteStepResult,
+  WriteTier,
+} from '@spier/core/lib/writeback/types'
 import '../css/WritebackScorecard.css'
 import { SectionHeader } from '@spier/ui/SectionHeader'
 import { Notice } from '@spier/ui/Notice'
@@ -46,21 +53,46 @@ import { Card } from '@spier/ui/Card'
  * have failed it. Deleted instead. The tier lives in `WritebackReport`, which
  * is what the rubric reads.
  */
-const RUNGS: Array<{ tier: WriteTier; label: string; blurb: string }> = [
+interface Rung {
+  tier: WriteTier
+  /**
+   * ⚠️ **A rung is a tier AND a type**, because Tier 2 has two steps: the scores,
+   * and the problems a form recorded (CAMS Section B's drivers). Looked up by
+   * tier alone, the second step overwrote the first and the scores row showed
+   * the problems' outcome.
+   */
+  resourceType: WritebackResourceType
+  label: string
+  blurb: string
+  /** Shown only when the plan has this step — no other form records problems. */
+  onlyWhenAttempted?: true
+}
+
+const RUNGS: Rung[] = [
   {
     tier: 0,
+    resourceType: 'DocumentReference',
     label: 'A readable copy of the completed form',
     blurb: 'Every EHR can hold this one: the form as it was filled in, readable in the chart.',
   },
   {
     tier: 1,
+    resourceType: 'QuestionnaireResponse',
     label: 'The completed form itself',
     blurb: 'Each answer as its own field, so the EHR can search and report on them.',
   },
   {
     tier: 2,
+    resourceType: 'Observation',
     label: 'Its scores and risk level',
     blurb: 'The total, the item scores and the risk level, as numbers the EHR can act on.',
+  },
+  {
+    tier: 2,
+    resourceType: 'Condition',
+    label: 'The problems it identified',
+    blurb: 'Each problem you recorded, as a problem-list entry the EHR tracks until it is resolved.',
+    onlyWhenAttempted: true,
   },
 ]
 
@@ -123,8 +155,8 @@ function absenceReason(tier: WriteTier): string {
 export function WritebackScorecard({ report }: { report: WritebackReport | null }) {
   if (!report) return null
 
-  const byTier = new Map<WriteTier, WriteStepResult>()
-  for (const step of report.result.steps) byTier.set(step.tier, step)
+  const stepFor = (rung: Rung) =>
+    report.result.steps.find(s => s.tier === rung.tier && s.resourceType === rung.resourceType)
 
   const written = report.result.steps.filter(s => s.outcome === 'written')
   const failed = report.result.steps.filter(s => s.outcome === 'failed')
@@ -156,12 +188,13 @@ export function WritebackScorecard({ report }: { report: WritebackReport | null 
 
       <ol className="writeback-scorecard__rungs">
         {RUNGS.map(rung => {
-          const step = byTier.get(rung.tier)
+          const step = stepFor(rung)
+          if (!step && rung.onlyWhenAttempted) return null
           const state = step ? step.outcome : 'absent'
           return (
             <li
               className={`writeback-scorecard__rung writeback-scorecard__rung--${state}`}
-              key={rung.tier}
+              key={`${rung.tier}-${rung.resourceType}`}
             >
               <div className="writeback-scorecard__rung-head">
                 <span className="writeback-scorecard__rung-label">{rung.label}</span>

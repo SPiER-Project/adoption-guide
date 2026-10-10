@@ -23,6 +23,7 @@ import type {
   AppointmentResource,
   CarePlanResource,
   CommunicationResource,
+  ConditionResource,
   ConsentResource,
   EncounterResource,
   DocumentReferenceResource,
@@ -419,6 +420,9 @@ export class LocalDataSource implements FhirDataSource {
       observations: derived
         ? [...prev.observations, ...derived.observations]
         : prev.observations,
+      conditions: derived?.conditions.length
+        ? [...(prev.conditions ?? []), ...derived.conditions]
+        : prev.conditions,
       riskAlerts: derived
         ? [...prev.riskAlerts.filter(a => a.tool !== derived.riskAlert.tool), derived.riskAlert]
         : prev.riskAlerts,
@@ -441,6 +445,10 @@ export class LocalDataSource implements FhirDataSource {
           return { ...prev, observations: [...prev.observations, stamped as ObservationResource] }
         case 'CarePlan':
           return { ...prev, carePlans: [...prev.carePlans, stamped as CarePlanResource] }
+        // A recorded problem is tracked past its creation — resolved at CAMS
+        // disposition — so it is upserted by id like the Stage-5/7 types below.
+        case 'Condition':
+          return { ...prev, conditions: upsertById(prev.conditions, stamped as ConditionResource) }
         // Stage 4 (Document Safety Actions). Appended, not upserted: the
         // lethal-means counseling Procedure is a completed point-in-time act
         // with no later lifecycle, like the Observation above it. A second

@@ -192,7 +192,8 @@ export function smartConfiguration(origin: string): Record<string, unknown> {
       'patient/Observation.read', 'patient/Observation.write',
       'patient/CarePlan.read', 'patient/CarePlan.write',
       'patient/Communication.read', 'patient/Communication.write',
-      'patient/DocumentReference.write', 'patient/Condition.write',
+      'patient/DocumentReference.write',
+      'patient/Condition.read', 'patient/Condition.write',
       // The worklist grant (#401). One scope, not a grammar: `mayCrossPatients`
       // does not interpret the resource half, so advertising
       // `user/Observation.read` would claim a precision this server does not

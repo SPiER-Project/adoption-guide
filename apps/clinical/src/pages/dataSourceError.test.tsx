@@ -11,7 +11,7 @@
  * HTTP 422: …", and fhirclient's own `HttpError` appends the server's
  * OperationOutcome to its status line. A test that typed those strings would
  * certify the banner against copy nobody produces. So this mounts the REAL
- * `PatientProvider`, which builds the REAL `SmartDataSource` over a client whose
+ * `SmartPatientProvider`, which builds the REAL `SmartDataSource` over a client whose
  * requests fail with fhirclient's REAL `HttpError`, and drives the two
  * entry points that reach `dataSourceError` — the slice load and the save — to
  * every failure kind. Both pages that render the banner are mounted.
@@ -29,7 +29,7 @@ import { useEffect } from 'react'
 import { render, cleanup, waitFor, act } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import HttpError from 'fhirclient/HttpError'
-import { PatientProvider } from '@spier/app-shell/context/PatientProvider'
+import { SmartPatientProvider } from '@spier/app-shell/context/SmartPatientProvider'
 import { SmartContext, type SmartContextType } from '@spier/app-shell/context/SmartContext'
 import { usePatient } from '@spier/tool-views/context/PatientContext'
 import { SurfaceLinksContext } from '@spier/tool-views/context/SurfaceLinksContext'
@@ -153,7 +153,7 @@ function mount(faults: Faults) {
   const { container } = render(
     <MemoryRouter initialEntries={['/patient/record']}>
       <SmartContext.Provider value={smart}>
-        <PatientProvider>
+        <SmartPatientProvider>
           <SurfaceLinksContext.Provider value={CLINICAL_SURFACE_LINKS}>
             <div data-page="chart">
               <PatientChart />
@@ -163,7 +163,7 @@ function mount(faults: Faults) {
             </div>
             <Harness onProbe={p => (probe.current = p)} />
           </SurfaceLinksContext.Provider>
-        </PatientProvider>
+        </SmartPatientProvider>
       </SmartContext.Provider>
     </MemoryRouter>,
   )

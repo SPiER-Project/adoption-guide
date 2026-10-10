@@ -102,10 +102,22 @@ The 14 demo patients + scenario slices (#388), and SUSHI's output
 The Adoption Guide, served by `services/guide`, and the two SMART apps, served
 by `services/clinical` and framed by the mock EHR.
 
-⚠️ **The guide carries no patient data and no data source** — its fillers write
-into an unseeded local store, which is the blank "play with forms" state. The
-chart experience belongs to the mock EHR. `check:guide-boundary` walks the
-whole guide app from `main.tsx` to hold that, by resolved path.
+⚠️ **The guide carries no patient data and no SMART session; its one data source
+is local.** Its fillers write into an unseeded local store, which is the blank
+"play with forms" state, and nothing in the guide can reach a FHIR server. It
+mounts the base `PatientProvider` with no SMART binding and no `SmartProvider`,
+and a launch aimed at its origin is handed to the clinical app's. The clinical
+app mounts `SmartPatientProvider`, the one module that turns a SMART client into
+a data source. The chart experience belongs to the mock EHR.
+`check:guide-boundary` walks the whole guide app from `main.tsx` to hold all of
+that, by resolved path.
+
+⚠️ This read "no data source" until 2026-10-06, which was false twice over: the
+fillers have always written to the local store, and the guide also mounted
+`SmartProvider` plus a `PatientProvider` that built a `SmartDataSource` for any
+SMART client. A launch at the guide's origin would have written a clinician's
+form to a real server. The gate held its data-source rule over the guide's
+*pages* only, because the app as a whole could not pass it.
 
 ⚠️ **Two route tables, and `IS_DEMO` is GONE.** One `App.tsx` used to serve
 both surfaces with `IS_DEMO ?` folding the other's pages out at build time;

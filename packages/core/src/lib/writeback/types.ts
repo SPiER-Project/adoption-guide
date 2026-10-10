@@ -26,15 +26,22 @@
  *                               (SDC "extract"): the more advanced, more
  *                               immediately-consumable rung.
  *
- * ⚠️ There is no Tier 3, and the ladder never writes a problem-list Condition.
+ * ⚠️ There is no Tier 3, and the ladder never INFERS a problem-list Condition.
  * It had one — an opt-in "Condition proposal" coded with the risk tier and
  * stamped `unconfirmed` — until #639 retired it: it derived a Condition from a
  * SCREEN, which the published rule forbids ("a screen never becomes a
  * Condition", docs/decisions/suicide-related-problem-set.md). A problem-list
  * entry is the clinician's assertion, from the SNOMED suicide-related problem
- * set; SPiER's part is the CDS problem-list card that prompts it. (CAMS Section
- * B's driver Conditions are not this: they are clinician-recorded content of
- * the instrument, and ride the Tier-2 step with the Observations.)
+ * set; SPiER's part is the CDS problem-list card that prompts it.
+ *
+ * ⚠️ **CAMS Section B's driver Conditions are not that, and they have their own
+ * Tier-2 step.** They are what the clinician recorded in a clinician-completed
+ * form, written only when they press Save; the published AdministerCAMSSectionB
+ * says each driver is materialized as a Condition. Until 2026-10-06 they rode
+ * INSIDE the Observation step — POSTed to `/Condition` on the strength of the
+ * server's Observation capability, and counted as Observations. They now travel
+ * as `WritebackArtifacts.conditions`, in a second Tier-2 step gated on the
+ * server's own Condition capability.
  *
  * NOTE the Tier 1/2 ordering: QuestionnaireResponse is the LOWER discrete rung
  * (raw capture, easiest, SDC-canonical) and Observation is the HIGHER rung
@@ -42,6 +49,7 @@
  * from an earlier draft that had them reversed — see the plan doc.
  */
 import type {
+  ConditionResource,
   FhirResource,
   ObservationResource,
   QuestionnaireResponseResource,
@@ -50,14 +58,20 @@ import type {
 /** Numeric tier rank. Higher = more capable EHR / more integrated data. */
 export type WriteTier = 0 | 1 | 2
 
-/** The three resource types the ladder writes, one per tier. */
+/**
+ * The resource types the ladder writes. One per tier, plus `Condition` — the
+ * second Tier-2 step, for the problems a form records (see the header).
+ */
 export type WritebackResourceType =
   | 'DocumentReference'
   | 'QuestionnaireResponse'
   | 'Observation'
+  | 'Condition'
 
 /**
- * The resource each tier writes — the ladder's rungs, stated once.
+ * The resource each tier writes — the ladder's rungs, stated once. Tier 2's
+ * recorded-Condition step is not a rung of its own: it is the same rung, for
+ * the one form that records problems rather than scores.
  * `buildWritePlan` builds its steps from this, and the guide's page on saving
  * to the EHR keys its copy by `WriteTier`, so a rung added or removed here is a
  * compile error in both rather than a page that quietly describes a ladder the
@@ -84,6 +98,8 @@ export type ServerCapabilities = Record<string, { create: boolean }>
 export interface WritebackArtifacts {
   qr: QuestionnaireResponseResource
   observations: ObservationResource[]
+  /** The problems the form recorded (CAMS Section B's drivers); usually empty. */
+  conditions: ConditionResource[]
   documentReference: FhirResource
 }
 
@@ -99,6 +115,8 @@ export interface WritebackConfig {
   enableQuestionnaireResponse?: boolean
   /** default true */
   enableObservation?: boolean
+  /** default true — the problems a form records, the second Tier-2 step */
+  enableRecordedConditions?: boolean
   /** default false */
   alwaysWriteDocument?: boolean
 }
@@ -107,6 +125,7 @@ export interface WritebackConfig {
 export interface ResolvedWritebackConfig {
   enableQuestionnaireResponse: boolean
   enableObservation: boolean
+  enableRecordedConditions: boolean
   alwaysWriteDocument: boolean
 }
 

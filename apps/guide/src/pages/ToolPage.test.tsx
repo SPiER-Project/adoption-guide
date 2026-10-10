@@ -37,22 +37,12 @@ vi.mock('@formbox/hs-theme', () => ({ theme: {} }))
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { stageById, toolById } from '@spier/core/data/catalog'
 import { PatientProvider } from '@spier/app-shell/context/PatientProvider'
-import { SmartContext } from '@spier/app-shell/context/SmartContext'
 import { PresentationProvider } from '@spier/tool-views/context/PresentationProvider'
 import { ToolPage } from './ToolPage'
 import { MOCK_EHR_URL } from '../data/surfaces'
 import { toolsSharingForm } from '../data/toolForms'
 
 afterEach(cleanup)
-
-/** No SMART session, which is the guide's state: the provider reads it, nothing here launches one. */
-const SMART_STUB = {
-  client: null,
-  patient: null,
-  error: null,
-  setSmartData: () => {},
-  setError: () => {},
-}
 
 /** Where the router is now, for the redirect cases. */
 function LocationProbe() {
@@ -61,8 +51,8 @@ function LocationProbe() {
 }
 
 /**
- * The page under the providers the app gives it. `PatientProvider` unseeded,
- * as the guide's is, over a stub SMART context (no launch); `PresentationProvider`
+ * The page under the providers the app gives it. `PatientProvider` unseeded
+ * and with no SMART binding, as the guide's is; `PresentationProvider`
  * in EHR chrome, so the code drawer is the aside beside the form. The page
  * provides inspection, the surface links and header ownership itself — that
  * is the thing under test.
@@ -71,15 +61,13 @@ function renderAt(path: string) {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <PresentationProvider initialMode="ehr">
-        <SmartContext.Provider value={SMART_STUB}>
-          <PatientProvider>
-            <Routes>
-              <Route path="/guide/tools/:toolRef" element={<ToolPage />} />
-              <Route path="/guide/tools" element={<p>the Tools list</p>} />
-            </Routes>
-            <LocationProbe />
-          </PatientProvider>
-        </SmartContext.Provider>
+        <PatientProvider>
+          <Routes>
+            <Route path="/guide/tools/:toolRef" element={<ToolPage />} />
+            <Route path="/guide/tools" element={<p>the Tools list</p>} />
+          </Routes>
+          <LocationProbe />
+        </PatientProvider>
       </PresentationProvider>
     </MemoryRouter>,
   )

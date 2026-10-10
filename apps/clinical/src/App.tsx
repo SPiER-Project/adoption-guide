@@ -26,7 +26,7 @@ import { Routes, Route, Navigate, useParams } from 'react-router-dom'
 // module stays component-only and Fast Refresh preserves its state on edit.
 import { PresentationProvider } from '@spier/tool-views/context/PresentationProvider'
 import { SmartProvider } from '@spier/app-shell/context/SmartProvider'
-import { PatientProvider } from '@spier/app-shell/context/PatientProvider'
+import { SmartPatientProvider } from '@spier/app-shell/context/SmartPatientProvider'
 import { ToolConfigProvider } from './context/ToolConfigProvider'
 // Where the shared form views link on THIS surface — the chart, the caseload,
 // a tool's catalog launch path. The views hold no route literal of their own
@@ -256,13 +256,13 @@ export default function App() {
   return (
     <PresentationProvider>
       <SmartProvider>
-        <PatientProvider>
+        <SmartPatientProvider>
           <ToolConfigProvider>
             <SurfaceLinksContext.Provider value={CLINICAL_SURFACE_LINKS}>
               <AppRoutes />
             </SurfaceLinksContext.Provider>
           </ToolConfigProvider>
-        </PatientProvider>
+        </SmartPatientProvider>
       </SmartProvider>
     </PresentationProvider>
   )

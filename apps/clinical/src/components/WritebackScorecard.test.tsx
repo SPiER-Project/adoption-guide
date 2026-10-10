@@ -34,6 +34,7 @@ function report(
     config: {
       enableQuestionnaireResponse: true,
       enableObservation: true,
+      enableRecordedConditions: true,
       alwaysWriteDocument: false,
     },
     capabilities: { QuestionnaireResponse: { create: true } },
@@ -81,6 +82,7 @@ const ladderObservations = ['o1', 'o2', 'o3'].map(
 const ladderArtifacts: WritebackArtifacts = {
   qr: ladderQr,
   observations: ladderObservations,
+  conditions: [],
   documentReference: { resourceType: 'DocumentReference' },
 }
 
@@ -195,6 +197,23 @@ describe('WritebackScorecard', () => {
     const text = textOf(report([qrWritten, unsupported]))
     expect(text).toMatch(/This EHR does not accept it yet/i)
     expect(text).not.toMatch(/Server does not support create/i)
+  })
+
+  // CAMS Section B: no scores, two recorded problems. Looked up by tier alone,
+  // the problems' outcome would have shown in the scores row.
+  it('shows the recorded-problems row only for a form that recorded problems', () => {
+    expect(textOf(report([qrWritten]))).not.toMatch(/problems it identified/i)
+    const drivers: WriteStepResult = {
+      tier: 2,
+      resourceType: 'Condition',
+      role: 'discrete',
+      outcome: 'written',
+      count: { written: 2, of: 2 },
+    }
+    const text = textOf(report([qrWritten, drivers]))
+    expect(text).toMatch(/problems it identified/i)
+    expect(text).toMatch(/all 2/)
+    expect(text).toMatch(/no score of its own to save/i)
   })
 
   it('explains a missing Tier 2 as an instrument property, not a server failure', () => {

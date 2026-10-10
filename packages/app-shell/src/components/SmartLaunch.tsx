@@ -79,11 +79,13 @@ export function SmartLaunch() {
                     'patient/Encounter.read',
                     'patient/Encounter.write',
 
-                    // CAMS Section B's suicide-driver Conditions, which the
-                    // writeback sends with the Observations (Tier 2). Nothing
-                    // else writes a Condition: the ladder's Tier-3 "Condition
-                    // proposal" was retired (#639) — a screen never becomes a
-                    // Condition. Write-only on purpose: nothing reads one back.
+                    // CAMS Section B's suicide-driver Conditions: written by
+                    // their own Tier-2 step and read back into the chart,
+                    // narrowed by their category so the read never sweeps in
+                    // the EHR's problem list. Nothing else writes a Condition:
+                    // the ladder's Tier-3 "Condition proposal" was retired
+                    // (#639) — a screen never becomes a Condition.
+                    'patient/Condition.read',
                     'patient/Condition.write',
                     // ⚠️ **The worklist scope, requested on EVERY launch, and
                     // that is deliberate.** SMART hands the app an opaque

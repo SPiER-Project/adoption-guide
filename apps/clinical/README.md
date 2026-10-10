@@ -33,7 +33,8 @@ because the adoption guide shipped from the same route table. That third branch
 
 ## Data comes from the server
 
-`PatientProvider` builds a `SmartDataSource` whenever a SMART session exists, and
+`SmartPatientProvider` builds a `SmartDataSource` whenever a SMART session exists
+and hands it to the base `PatientProvider` (which the guide mounts bare), and
 `useRegistrySlices` takes the served cohort inside one. ⚠️ **No fixtures are
 compiled in** — `check:surface` asserts the 14 demo patients are in neither
 bundle. Outside a SMART session the local store is unseeded, the same as the

@@ -29,6 +29,7 @@ import { toolForQuestionnaireUrl, stripCanonicalVersion } from '../../data/catal
 import { deriveFromResponse } from '../deriveFromResponse'
 import { stageForArtifact, PATHWAY_STAGE_SYSTEM, type FhirResourceLike } from '../patientPathway'
 import type { RiskAlert } from '../observationMappers'
+import { CAMS_DRIVER_CATEGORY } from '../observationMappers/camsSectionB'
 import { parseCapabilityStatement } from '../writeback/capability'
 import { buildDocumentReference } from '../writeback/documentReference'
 import { executeWritePlan } from '../writeback/execute'
@@ -49,6 +50,7 @@ import type {
   AppointmentResource,
   CarePlanResource,
   CommunicationResource,
+  ConditionResource,
   ConsentResource,
   DocumentReferenceResource,
   EncounterResource,
@@ -198,6 +200,7 @@ type SliceKey =
   | 'appointments'
   | 'consents'
   | 'procedures'
+  | 'conditions'
   | 'encounters'
 
 type SliceBuckets = Record<SliceKey, FhirResource[]>
@@ -215,11 +218,11 @@ interface SliceRead {
 }
 
 /**
- * The fourteen searches a chart slice is made of.
+ * The fifteen searches a chart slice is made of.
  *
- * ⚠️ **A table rather than fourteen lines of `Promise.all`, because there are
+ * ⚠️ **A table rather than fifteen lines of `Promise.all`, because there are
  * now TWO readers of it** — `getSlice` for one patient and `getSlices` for a
- * whole cohort — and fourteen searches written out twice is exactly the
+ * whole cohort — and fifteen searches written out twice is exactly the
  * hand-duplicated list this repo has `check:dupes` for. Adding a type here
  * adds it to both reads and to the slice.
  */
@@ -244,6 +247,14 @@ const SLICE_READS: SliceRead[] = [
   // Stage 4 (Document Safety Actions) — the lethal-means counseling Procedure
   // the Stage-8 measure counts.
   { key: 'procedures', type: 'Procedure', params: '' },
+  // The problems an instrument recorded (CAMS Section B's drivers), narrowed by
+  // their marker category: an unfiltered read would pull the EHR's whole problem
+  // list into a bucket that means "recorded by a SPiER instrument".
+  {
+    key: 'conditions',
+    type: 'Condition',
+    params: `&category=${encodeURIComponent(`${CAMS_DRIVER_CATEGORY.system}|${CAMS_DRIVER_CATEGORY.code}`)}`,
+  },
   // #263 correlation hinge: without it the chart still renders, it just cannot
   // group artifacts by contact.
   { key: 'encounters', type: 'Encounter', params: '' },
@@ -323,6 +334,7 @@ function assembleSlice(buckets: SliceBuckets): PatientSlice {
     appointments: buckets.appointments as AppointmentResource[],
     consents: buckets.consents as ConsentResource[],
     procedures: buckets.procedures as ProcedureResource[],
+    conditions: buckets.conditions as ConditionResource[],
     encounters: buckets.encounters as EncounterResource[],
     riskAlerts,
   }
@@ -741,6 +753,7 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
       // it before the POST.
       qr,
       observations: derived?.observations ?? [],
+      conditions: derived?.conditions ?? [],
       documentReference,
     }
 

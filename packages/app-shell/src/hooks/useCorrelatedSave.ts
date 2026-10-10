@@ -202,6 +202,7 @@ export function useCorrelatedSave({
                 observations: derived.observations.map(o =>
                   stampEncounter(o, encounterId),
                 ),
+                conditions: derived.conditions.map(c => stampEncounter(c, encounterId)),
               }
             : null
           await activeSource.saveResponse(sliceKey, stampedEntry, stampedDerived)

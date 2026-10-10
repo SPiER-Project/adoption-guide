@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { executeWritePlan } from '@spier/core/lib/writeback/execute'
 import { buildWritePlan } from '@spier/core/lib/writeback/ladder'
 import type { WritebackArtifacts, WritebackTarget, WriteStepResult } from '@spier/core/lib/writeback/types'
-import type { FhirResource, ObservationResource, QuestionnaireResponseResource } from '@spier/core/types/fhir'
+import type { ConditionResource, FhirResource, ObservationResource, QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 const ALL = {
   QuestionnaireResponse: { create: true },
@@ -27,7 +27,7 @@ const observations: ObservationResource[] = [
 const documentReference: FhirResource = { resourceType: 'DocumentReference' }
 
 function artifacts(overrides: Partial<WritebackArtifacts> = {}): WritebackArtifacts {
-  return { qr, observations, documentReference, ...overrides }
+  return { qr, observations, conditions: [], documentReference, ...overrides }
 }
 
 /** Fake target: records created resources, assigns predictable server ids. */
@@ -70,6 +70,51 @@ describe('executeWritePlan — happy path (full capability)', () => {
     for (const o of writtenObs) {
       expect(o.derivedFrom).toEqual([{ reference: 'QuestionnaireResponse/srv-QuestionnaireResponse-1' }])
     }
+  })
+})
+
+describe('executeWritePlan — Tier-2 recorded Conditions', () => {
+  const drivers: ConditionResource[] = [
+    { resourceType: 'Condition', id: 'd1' },
+    { resourceType: 'Condition', id: 'd2' },
+  ]
+  const step = (steps: WriteStepResult[], type: string) => steps.find(s => s.resourceType === type)!
+
+  it('writes them in their own step and counts them apart from the Observations', async () => {
+    const target = fakeTarget()
+    const a = artifacts({ conditions: drivers })
+    const { steps } = await executeWritePlan(buildWritePlan(ALL, {}, a), target, a)
+    expect(step(steps, 'Observation').count).toEqual({ written: 2, of: 2 })
+    expect(step(steps, 'Condition')).toMatchObject({ tier: 2, outcome: 'written', count: { written: 2, of: 2 } })
+    expect(target.created.filter(r => r.resourceType === 'Condition')).toHaveLength(2)
+    expect(byTier(steps, 0).outcome).toBe('skipped')
+  })
+
+  it('a server without Condition create skips them, and the floor carries the form', async () => {
+    const target = fakeTarget()
+    const a = artifacts({ conditions: drivers })
+    const caps = { ...ALL, Condition: { create: false } }
+    const { steps } = await executeWritePlan(buildWritePlan(caps, {}, a), target, a)
+    expect(step(steps, 'Observation').outcome).toBe('written')
+    expect(step(steps, 'Condition')).toMatchObject({ outcome: 'skipped', skip: 'unsupported' })
+    expect(target.created.some(r => r.resourceType === 'Condition')).toBe(false)
+    expect(byTier(steps, 0).outcome).toBe('written')
+  })
+
+  it('problems and no scores still get the readable copy (#638)', async () => {
+    const target = fakeTarget()
+    const a = artifacts({ observations: [], conditions: drivers })
+    const { steps } = await executeWritePlan(buildWritePlan(ALL, {}, a), target, a)
+    expect(step(steps, 'Condition').outcome).toBe('written')
+    expect(byTier(steps, 0).outcome).toBe('written')
+  })
+
+  it('a partial failure is reported as one of how many', async () => {
+    const target = fakeTarget(r => r.id === 'd2')
+    const a = artifacts({ conditions: drivers })
+    const { steps } = await executeWritePlan(buildWritePlan(ALL, {}, a), target, a)
+    expect(step(steps, 'Condition')).toMatchObject({ outcome: 'failed', count: { written: 1, of: 2 } })
+    expect(byTier(steps, 0).outcome).toBe('written')
   })
 })
 

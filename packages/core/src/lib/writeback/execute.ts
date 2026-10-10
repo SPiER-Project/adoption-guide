@@ -19,10 +19,7 @@
  * `WritebackResult.steps` is what the scorecard renders.
  */
 import { resolveConfig } from './ladder'
-import type {
-  FhirResource,
-  ObservationResource,
-} from '../../types/fhir'
+import type { FhirResource } from '../../types/fhir'
 import type {
   WritebackArtifacts,
   WritebackConfig,
@@ -107,7 +104,11 @@ export async function executeWritePlan(
       steps.push(stepResult)
       inScopeDiscreteOutcomes.push(stepResult.outcome)
     } else if (step.resourceType === 'Observation') {
-      const stepResult = await writeObservations(target, artifacts.observations, serverRefs)
+      const stepResult = await writeEach(target, step, artifacts.observations, serverRefs)
+      steps.push(stepResult)
+      inScopeDiscreteOutcomes.push(stepResult.outcome)
+    } else if (step.resourceType === 'Condition') {
+      const stepResult = await writeEach(target, step, artifacts.conditions, serverRefs)
       steps.push(stepResult)
       inScopeDiscreteOutcomes.push(stepResult.outcome)
     }
@@ -125,7 +126,10 @@ export async function executeWritePlan(
   // Observation writes the readable copy too. Derived from the save, not from
   // a list of instruments, so a new form of either kind needs no entry.
   // `alwaysWriteDocument` still forces it for every save.
-  const noScores = !artifacts.observations.some(o => o.resourceType === 'Observation')
+  // `observations` holds Observations only since 2026-10-06 — CAMS Section B's
+  // recorded problems travel in `conditions` — so a form that recorded problems
+  // and no scores gets its readable copy too.
+  const noScores = artifacts.observations.length === 0
   if (floorStep) {
     const runFloor =
       cfg.alwaysWriteDocument ||
@@ -169,31 +173,33 @@ function toStepResult(step: WriteStep, result: CreateResult): WriteStepResult {
 }
 
 /**
- * Write every derived Observation, in order, remapping its references to what
- * has already landed and adding each one's server id as it does. One aggregate
- * step result: `written` only if all succeeded; otherwise
- * `failed`, with a `reason` recording how many of how many landed so a partial
- * write is visible in the scorecard.
+ * Write every resource of one Tier-2 step — the derived Observations, or the
+ * problems the form recorded — in order, remapping its references to what has
+ * already landed and adding each one's server id as it does. One aggregate step
+ * result: `written` only if all succeeded; otherwise `failed`, with a `count`
+ * (and a wire-vocabulary `reason`) recording how many of how many landed so a
+ * partial write is visible in the scorecard.
  */
-async function writeObservations(
+async function writeEach(
   target: WritebackTarget,
-  observations: ObservationResource[],
+  step: WriteStep,
+  resources: FhirResource[],
   serverRefs: ServerRefs,
 ): Promise<WriteStepResult> {
-  const step: WriteStep = { tier: 2, resourceType: 'Observation', role: 'discrete', disposition: 'attempt' }
+  const noun = `${step.resourceType}s`
   const ids: string[] = []
   const errors: string[] = []
-  for (const obs of observations) {
-    const payload = remapReferences(obs, serverRefs)
+  for (const resource of resources) {
+    const payload = remapReferences(resource, serverRefs)
     const result = await tryCreate(target, payload)
     if (result.ok) {
-      learn(serverRefs, 'Observation', obs.id, result.id)
+      learn(serverRefs, step.resourceType, resource.id, result.id)
       if (result.id) ids.push(result.id)
     } else {
       errors.push(result.error)
     }
   }
-  const total = observations.length
+  const total = resources.length
   const count = { written: total - errors.length, of: total }
   if (errors.length === 0) {
     return {
@@ -201,7 +207,7 @@ async function writeObservations(
       outcome: 'written',
       id: ids[0],
       count,
-      ...(total > 1 ? { reason: `${count.written} Observations written` } : {}),
+      ...(total > 1 ? { reason: `${count.written} ${noun} written` } : {}),
     }
   }
   return {
@@ -209,6 +215,6 @@ async function writeObservations(
     outcome: 'failed',
     count,
     error: errors.join('; '),
-    reason: `${count.written}/${total} Observations written`,
+    reason: `${count.written}/${total} ${noun} written`,
   }
 }
