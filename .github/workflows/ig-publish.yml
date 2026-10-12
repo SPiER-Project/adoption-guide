@@ -54,6 +54,9 @@ on:
       - 'ig/sushi-config.yaml'
       - 'ig/ig.ini'
       - '.github/workflows/ig-publish.yml'
+      # The publisher version is pinned here, so a bump must run the publisher.
+      # Without this line a PR changing only the pin never ran this job.
+      - 'scripts/lib/ig-publisher-release.mjs'
       # The publisher pin and the QA gate's parse. A pin bump changes nothing
       # else, so without this line the PR that moves to a new publisher would
       # be the one PR that never runs it.
