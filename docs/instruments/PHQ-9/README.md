@@ -34,6 +34,37 @@ match `tx.fhir.org` and the data dictionary, which had carried them all along.
 `bash scripts/loinc-audit/loinc-audit.sh . PHQ-9` re-checks them against
 Regenstrief.
 
+## Derived from US Core's PHQ-9 — not adopted from it
+
+The relationship to the PHQ-9 that US Core STU9 publishes
+(`http://hl7.org/fhir/us/core/Questionnaire/phq-9-example`, 9.0.0) is
+*derived from*, not *adopted*: HL7 publishes **no normative** PHQ-9 — US Core's
+is an experimental, informative example of the SDC base Questionnaire profile —
+so "SPiER uses HL7's PHQ-9" would overstate it.
+
+⚠️ **The Questionnaire does not say so yet.** `derivedFrom` is a canonical the IG
+Publisher must resolve, and an unresolvable one is a QA **error**, which cannot
+be suppressed. The IG depends on US Core 6.1.0, which does not carry this
+example, so the line waits on moving that dependency to 9.0.0. The HL7 validator
+script passes it regardless, because it runs without US Core loaded — only the
+publisher sees this.
+
+The two forms already agree on everything interoperable: panel `44249-1`, the
+nine item codes, the `LA6568-5`–`LA6571-9` answers with the same `ordinalValue`
+weights, and the `69722-7` difficulty item. Adopting the US Core form wholesale
+would gain no coded interoperability and would cost three things:
+
+- **No computed total.** US Core's has no `calculatedExpression` and no
+  `observationExtract`, and types the total `decimal` rather than `integer`.
+- **Item 9 is optional there** (`required: false`) while items 1–8 are required.
+  Item 9 is SPiER's trigger into Clarify Risk; an optional item 9 inverts the
+  thing the pathway depends on.
+- **Different linkIds** (`/44250-9`, not `q1`), which the mappers, the
+  reader gates and the scenario fixtures all key on.
+
+A response authored against the US Core form still lands: the fallback dispatch
+recognizes an instrument by its **item codes**, not its linkIds.
+
 Everything else is in [`ig/input/fsh/phq9.fsh`](../../../ig/input/fsh/phq9.fsh): the
 `SPiERPHQ9TotalScore` profile (whose description carries the five severity
 tiers), the discrete `SPiERPHQ9Item9` profile, the `AdministerPHQ9`
