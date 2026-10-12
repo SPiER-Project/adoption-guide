@@ -52,7 +52,7 @@ Usage: #definition
 * group[0].element[3].target[0].code = #LA9193-9
 * group[0].element[3].target[0].display = "High"
 * group[0].element[3].target[0].equivalence = #wider
-* group[0].element[3].target[0].comment = "LOINC has no distinct 'imminent' answer; mapped to the wider LOINC High, which subsumes the imminent case. The imminent/high boundary is a clinical judgment — PENDING SME sign-off (epic #77)."
+* group[0].element[3].target[0].comment = "LOINC has no distinct 'imminent' answer; mapped to the wider LOINC High, which subsumes the imminent case. The imminent/high boundary is a clinical judgment — PENDING SME sign-off."
 
 // `no-risk` is intentionally NOT mapped — see ^purpose above for why. A future
 // editor adding a target here is undoing a decision, not filling a gap.

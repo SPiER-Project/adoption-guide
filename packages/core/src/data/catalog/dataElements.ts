@@ -105,6 +105,25 @@ export interface Binding {
     system: string
     valueSet?: string
   }
+  /**
+   * Who asserts the value — set on every route into a shared Concept, and
+   * required there by `tests/dataElements.test.ts`.
+   *
+   * This is the second fidelity axis, and the one a ConceptMap cannot carry.
+   * Its `equivalence` says how much PRECISION survives the translation; it says
+   * nothing about whether the value being translated was a clinician's
+   * determination or the patient's rating of how they feel right now. A
+   * consumer reading a `high` tier needs both, and the tier ValueSet would let
+   * them tell neither apart.
+   *
+   * ⚠️ **Declared, not derived, and that is the one exception on this row.**
+   * Nothing on the definitional side of FHIR carries it — the Questionnaires
+   * all say `subjectType: Patient`, which is who the form is ABOUT — and the
+   * instance-level fact (`Observation.performer`) is not something a
+   * dictionary of definitions can read. `carried` is the episode's tier, which
+   * restates whichever route reached it last.
+   */
+  assertedBy?: 'clinician' | 'patient' | 'carried'
   fhirResource: FhirResourceType
   fhirPath: string
   usedBy: string[]                    // tool IDs — ['TL-002', 'TL-020', ...]
@@ -184,6 +203,19 @@ export function valueSetHref(canonical: string): string | undefined {
   return undefined
 }
 
+const SPIER_CM_PREFIX = 'http://thespierproject.org/fhir/ConceptMap/'
+
+/**
+ * A SPiER crosswalk's page in the IG we publish — where its per-row comments,
+ * which the dictionary only summarizes, are printed in full (#264). The same
+ * `<ResourceType>-<id>.html` shape as `valueSetHref`; the canonical comes from
+ * the generated ConceptMap itself, so it names a map that exists.
+ */
+export function conceptMapHref(canonical: string | undefined): string | undefined {
+  if (!canonical?.startsWith(SPIER_CM_PREFIX)) return undefined
+  return `${import.meta.env.BASE_URL}ig/ConceptMap-${canonical.slice(SPIER_CM_PREFIX.length)}.html`
+}
+
 /**
  * Short label for a ValueSet canonical — its id, which is what a reader scans
  * for. The full canonical stays in the `title`, exactly as `systemLabel` does
@@ -246,9 +278,10 @@ export const CONCEPTS: Concept[] = [
     // carry: CAMS was absent until 2026-09-21 — the CAMSOverallRiskToRiskTier
     // map was published and nothing emitted a code for it to translate,
     // because the SSF-5 recorded its overall-risk rating as a plain integer
-    // (#436). Surfacing each route's lossiness here is #264.
+    // (#436). Each route's lossiness and authorship is rendered beside it
+    // (#264), from the ConceptMaps and `assertedBy`.
     description:
-      'The instrument-agnostic, ordered risk tier — the one value a consumer can act on without knowing which tool produced it. Six instruments reach it by six different routes: C-SSRS through cssrs-risk-level, ASQ through asq-screening-result, BSSA through bssa-disposition, PSS-3 through pss3-result, CAMS through cams-ssf-overall-risk, and SAFE-T by binding the shared tier directly with no per-instrument crosswalk at all. All six carry LOINC 93374-7 as Observation.code, which is why the flat dictionary rendered one concept as several unrelated rows. A sixth binding carries the same tier in a different slot: the episode’s current-risk-tier extension, which has no Observation.code at all. How lossy each route is — a widening, a related-to, or an exact match — is recorded in each ConceptMap and is not surfaced here yet.',
+      'The instrument-agnostic, ordered risk tier — the one value a consumer can act on without knowing which tool produced it. Six instruments reach it by six different routes: C-SSRS through cssrs-risk-level, ASQ through asq-screening-result, BSSA through bssa-disposition, PSS-3 through pss3-result, CAMS through cams-ssf-overall-risk, and SAFE-T by binding the shared tier directly with no per-instrument crosswalk at all. All six carry LOINC 93374-7 as Observation.code, which is why the flat dictionary rendered one concept as several unrelated rows. A sixth binding carries the same tier in a different slot: the episode’s current-risk-tier extension, which has no Observation.code at all. How faithful each route is, who asserts its value, and whether its translation is still awaiting clinical sign-off is in the Fidelity column.',
   },
 ]
 
@@ -329,6 +362,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'suicide-risk-level',
     conceptId: 'suicide-risk-tier',
+    assertedBy: 'clinician',
     name: 'Suicide risk level',
     code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
     value: { system: 'http://thespierproject.org/fhir/CodeSystem/cssrs-risk-level', valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs' },
@@ -594,6 +628,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'asq-result',
     conceptId: 'suicide-risk-tier',
+    assertedBy: 'clinician',
     name: 'ASQ Screening Result',
     code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
     value: { system: 'http://thespierproject.org/fhir/CodeSystem/asq-screening-result', valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs' },
@@ -607,6 +642,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'bssa-disposition',
     conceptId: 'suicide-risk-tier',
+    assertedBy: 'clinician',
     name: 'BSSA Disposition',
     code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
     value: { system: 'http://thespierproject.org/fhir/CodeSystem/bssa-disposition', valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs' },
@@ -665,6 +701,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'pss3-result',
     conceptId: 'suicide-risk-tier',
+    assertedBy: 'clinician',
     name: 'PSS-3 Screening Result',
     code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
     value: { system: 'http://thespierproject.org/fhir/CodeSystem/pss3-result', valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs' },
@@ -705,6 +742,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'safet-risk-level',
     conceptId: 'suicide-risk-tier',
+    assertedBy: 'clinician',
     name: 'SAFE-T Risk Level',
     code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
     value: { system: 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier', valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs' },
@@ -860,6 +898,7 @@ export const BINDINGS: Binding[] = [
   {
     id: 'cams-overall-risk-level',
     conceptId: 'suicide-risk-tier',
+    assertedBy: 'patient',
     name: 'Overall Risk Rating (coded)',
     code: { system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' },
     value: { system: 'http://thespierproject.org/fhir/CodeSystem/cams-ssf-overall-risk', valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs' },
@@ -1135,6 +1174,7 @@ export const BINDINGS: Binding[] = [
     id: 'episode-current-risk-tier',
     name: 'Episode Current Risk Tier',
     conceptId: 'suicide-risk-tier',
+    assertedBy: 'carried',
     value: { system: 'http://thespierproject.org/fhir/CodeSystem/spier-suicide-risk-tier', valueSet: 'http://thespierproject.org/fhir/ValueSet/spier-suicide-risk-tier-vs' },
     fhirResource: 'EpisodeOfCare',
     fhirPath: "EpisodeOfCare.extension.where(url='http://thespierproject.org/fhir/StructureDefinition/episode-current-risk-tier').valueCodeableConcept",

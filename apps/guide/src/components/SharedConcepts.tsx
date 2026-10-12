@@ -5,6 +5,7 @@ import { SectionHeader } from '@spier/ui/SectionHeader'
 import { Pill } from '@spier/ui/Pill'
 import { DataTable } from '@spier/ui/DataTable'
 import { CodeLink, SystemCell, ValueSetLine } from './DictionaryCodeCells'
+import { RouteFidelity } from './RouteFidelity'
 import '../css/SharedConcepts.css'
 
 /**
@@ -163,6 +164,7 @@ export function SharedConcepts({
                       <col className="dd-rcol-value" />
                       <col className="dd-rcol-resource" />
                       <col className="dd-rcol-path" />
+                      <col className="dd-rcol-fidelity" />
                       <col className="dd-rcol-usedby" />
                     </colgroup>
                     <thead>
@@ -171,6 +173,7 @@ export function SharedConcepts({
                         <th>Value drawn from</th>
                         <th>FHIR Resource</th>
                         <th>FHIR Path</th>
+                        <th>Fidelity</th>
                         <th>Used By</th>
                       </tr>
                     </thead>
@@ -188,6 +191,9 @@ export function SharedConcepts({
                             </Pill>
                           </td>
                           <td className="dd-cell-path">{b.fhirPath}</td>
+                          <td>
+                            <RouteFidelity binding={b} />
+                          </td>
                           <td>
                             <div className="dd-tools">
                               {b.usedBy.map(tid => {

@@ -220,8 +220,11 @@ describe('search still explains itself', () => {
  * lands on the wrong stage.
  */
 describe('the stage drawers', () => {
+  // The stage drawers are the sections' OWN details. A nested one — a route's
+  // inexact rows in the normalization table, which shares the section class —
+  // is not a stage, and matching it made the first "stage" a closed row drawer.
   const drawers = (container: HTMLElement) =>
-    [...container.querySelectorAll<HTMLDetailsElement>('.dd-stage-section details')]
+    [...container.querySelectorAll<HTMLDetailsElement>('.dd-stage-section > details')]
 
   it('opens the first stage on arrival and closes the rest', () => {
     const { container } = renderPage()

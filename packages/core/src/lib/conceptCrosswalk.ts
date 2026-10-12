@@ -32,12 +32,16 @@ import { RISK_TIER_SYSTEM } from './riskEpisode'
 
 interface RawConceptMap {
   url?: string
+  name?: string
+  title?: string
+  status?: string
   group?: Array<{
     source?: string
     target?: string
     element?: Array<{
       code?: string
-      target?: Array<{ code?: string; equivalence?: string }>
+      display?: string
+      target?: Array<{ code?: string; display?: string; equivalence?: string; comment?: string }>
     }>
   }>
 }
@@ -104,4 +108,88 @@ export function tierForCodings(
     if (tier) return tier
   }
   return undefined
+}
+
+// ─── How faithful each route into the tier is ────────────────────────────────
+
+/** One row of a crosswalk, as the data dictionary shows it. */
+export interface CrosswalkRow {
+  source: { code: string; display?: string }
+  target: { code: string; display?: string }
+  equivalence: string
+  comment?: string
+}
+
+/**
+ * How a source vocabulary reaches the shared tier.
+ *
+ * `native`: the value is ALREADY a tier code (SAFE-T, the episode's
+ * current-tier extension) and nothing translates it. `crosswalk`: a published
+ * ConceptMap does, and every row of it is carried, because the rows are where
+ * the precision is lost.
+ */
+export type TierRoute =
+  | { kind: 'native' }
+  | { kind: 'crosswalk'; title: string; url?: string; draft: boolean; rows: CrosswalkRow[] }
+
+/**
+ * The route a value drawn from `system` takes into the tier, or `undefined`
+ * when no published crosswalk lands it there.
+ *
+ * Read from the generated ConceptMaps like everything else in this module, so
+ * a crosswalk whose equivalences or status change in FSH changes what the
+ * dictionary says with no TypeScript edit. ⚠️ `draft` is the ConceptMap's own
+ * `status`, which is how the IG marks a mapping still waiting on clinical
+ * sign-off — not a separate flag someone has to remember to clear.
+ */
+export function tierRoute(system: string | undefined): TierRoute | undefined {
+  if (!system) return undefined
+  if (system === RISK_TIER_SYSTEM) return { kind: 'native' }
+  for (const module of Object.values(conceptMapModules)) {
+    const map = module.default
+    const group = map?.group?.find(g => g.source === system && g.target === RISK_TIER_SYSTEM)
+    if (!map || !group) continue
+    const rows: CrosswalkRow[] = []
+    for (const element of group.element ?? []) {
+      for (const target of element.target ?? []) {
+        if (!element.code || !target.code || !target.equivalence) continue
+        rows.push({
+          source: { code: element.code, display: element.display },
+          target: { code: target.code, display: target.display },
+          equivalence: target.equivalence,
+          comment: target.comment,
+        })
+      }
+    }
+    return { kind: 'crosswalk', title: map.title ?? map.name ?? system, url: map.url, draft: map.status === 'draft', rows }
+  }
+  return undefined
+}
+
+/**
+ * The one word a route's precision is summarized by, and the rows that earn it.
+ *
+ * A route is as precise as its LOSSIEST row: a C-SSRS crosswalk that is exact
+ * for three levels and related-to for the fourth is not an exact route, and a
+ * reader deciding whether to act on a `high` needs to know that the `high` row
+ * is the inexact one. So the rows that are not `equivalent` / `equal` are
+ * returned beside the word, and the page names them.
+ *
+ *   native       no translation at all
+ *   exact        every row equivalent
+ *   approximate  some row related-to, inexact, or narrower — a neighbouring
+ *                meaning, not a containment
+ *   widened      some row wider or subsumes — the tier covers more than the
+ *                source said, so precision the instrument had is gone
+ */
+export type RoutePrecision = 'native' | 'exact' | 'approximate' | 'widened'
+
+const EXACT = new Set(['equivalent', 'equal'])
+const WIDENING = new Set(['wider', 'subsumes'])
+
+export function routePrecision(route: TierRoute): { precision: RoutePrecision; inexact: CrosswalkRow[] } {
+  if (route.kind === 'native') return { precision: 'native', inexact: [] }
+  const inexact = route.rows.filter(r => !EXACT.has(r.equivalence))
+  if (inexact.length === 0) return { precision: 'exact', inexact }
+  return { precision: inexact.some(r => WIDENING.has(r.equivalence)) ? 'widened' : 'approximate', inexact }
 }

@@ -9,15 +9,20 @@
    Routes-table column budget
    =========================== */
 
-.dd-rcol-route    { width: 18%; }
+/* Six columns since the Fidelity column (#264). Resource keeps the stage
+   tables' 14% — the narrowest the Observation pill fits — and the other
+   four gave up the width Fidelity needed. */
+.dd-rcol-route    { width: 15%; }
 
-.dd-rcol-value    { width: 22%; }
+.dd-rcol-value    { width: 17%; }
 
-.dd-rcol-resource { width: 15%; }
+.dd-rcol-resource { width: 14%; }
 
-.dd-rcol-path     { width: 23%; }
+.dd-rcol-path     { width: 17%; }
 
-.dd-rcol-usedby   { width: 22%; }
+.dd-rcol-fidelity { width: 19%; }
+
+.dd-rcol-usedby   { width: 18%; }
 
 /* The head is a flex ROW containing the toggle, the code link and the count as
    siblings — see the note in the TSX for why the link is no longer inside the
@@ -120,4 +125,45 @@
   margin: var(--space-2) 0;
   color: var(--text-muted);
   overflow-wrap: anywhere;
+}
+
+/* ===========================
+   Fidelity cell — precision, sign-off status and who asserts the value,
+   stacked, with the inexact rows in a quiet drawer under them.
+   =========================== */
+
+.dd-fidelity {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+
+.dd-fidelity-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.dd-fidelity-who,
+.dd-fidelity-none {
+  font: var(--type-caption);
+  color: var(--text-muted);
+}
+
+.dd-fidelity-rows {
+  font: var(--type-caption);
+  margin: var(--space-1) 0 0;
+  padding-left: var(--space-4);
+  color: var(--text-body);
+}
+
+.dd-fidelity-rows li + li {
+  margin-top: var(--space-1);
+}
+
+.dd-fidelity-map {
+  display: inline-block;
+  font: var(--type-caption);
+  margin-top: var(--space-1);
 }
