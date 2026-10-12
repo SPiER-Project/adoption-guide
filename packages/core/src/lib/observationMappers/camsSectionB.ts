@@ -1,4 +1,4 @@
-import { derivedId } from '../fromResponse'
+import { derivedId, responseTime } from '../fromResponse'
 import { walkItems, getCodingAnswer, getYesNoBoolean, type MapperResult, type RiskAlert, type ConditionResource, type QuestionnaireResponseResource } from './shared'
 import { suicideRiskCategory } from '../conceptDomain'
 
@@ -79,6 +79,10 @@ export function mapCAMSSectionB(response: QuestionnaireResponseResource): Mapper
         ],
         code: { text: description },
         ...(response.subject ? { subject: response.subject } : {}),
+        // When the clinician recorded it: the form's completion. Without it a
+        // problem list — the mock EHR's chart, or a real one — has no date to
+        // show for the driver, and no order to put two of them in.
+        recordedDate: responseTime(response),
         note: [
           { text: `${driver.label}: ${description}. Type: ${driverType?.display || 'Not classified'}. Identified during CAMS SSF-5 Section B assessment. Track on problem list until resolved.` },
         ],
