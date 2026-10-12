@@ -4,10 +4,10 @@ rather than restating them.
 
 ### Shared foundation
 
-- **[US Core 6.1.0](https://hl7.org/fhir/us/core/)** — Patient demographics
+- **[US Core 9.0.0](https://hl7.org/fhir/us/core/)** — Patient demographics
   and the standard Observation shape. SPiER's instrument Observations carry a
   named `survey` category slice, which is the element
-  [US Core Observation Screening Assessment](https://hl7.org/fhir/us/core/STU6.1/StructureDefinition-us-core-observation-screening-assessment.html)
+  [US Core Observation Screening Assessment](https://hl7.org/fhir/us/core/STU9/StructureDefinition-us-core-observation-screening-assessment.html)
   requires, so the two shapes agree.
 - **[SDC 3.0.0](https://hl7.org/fhir/uv/sdc/)** — `Questionnaire` authoring
   plus the `observationExtract` / `calculatedExpression` mechanics SPiER uses

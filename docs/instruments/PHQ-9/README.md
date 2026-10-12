@@ -36,18 +36,19 @@ Regenstrief.
 
 ## Derived from US Core's PHQ-9 — not adopted from it
 
-The relationship to the PHQ-9 that US Core STU9 publishes
-(`http://hl7.org/fhir/us/core/Questionnaire/phq-9-example`, 9.0.0) is
-*derived from*, not *adopted*: HL7 publishes **no normative** PHQ-9 — US Core's
-is an experimental, informative example of the SDC base Questionnaire profile —
-so "SPiER uses HL7's PHQ-9" would overstate it.
+The Questionnaire's `derivedFrom` points at the PHQ-9 that US Core STU9
+publishes: `http://hl7.org/fhir/us/core/Questionnaire/phq-9-example|9.0.0`. The
+relationship is *derived from*, not *adopted*: HL7 publishes **no normative**
+PHQ-9 — US Core's is an experimental, informative example of the SDC base
+Questionnaire profile — so "SPiER uses HL7's PHQ-9" would overstate it.
 
-⚠️ **The Questionnaire does not say so yet.** `derivedFrom` is a canonical the IG
-Publisher must resolve, and an unresolvable one is a QA **error**, which cannot
-be suppressed. The IG depends on US Core 6.1.0, which does not carry this
-example, so the line waits on moving that dependency to 9.0.0. The HL7 validator
-script passes it regardless, because it runs without US Core loaded — only the
-publisher sees this.
+⚠️ **The `|9.0.0` must match the US Core version in `ig/sushi-config.yaml`.**
+`derivedFrom` is a canonical the IG Publisher must resolve, and an unresolvable
+one is a QA **error**, which cannot be suppressed. US Core 6.1.0 carried the
+same example at version 6.1.0, and the publisher would not resolve a `|9.0.0`
+reference against it; the line landed together with the move to 9.0.0. Moving
+US Core again means moving this pin in the same change. Only the publisher
+checks it: `validate-fhir.mjs` passed the mismatched line.
 
 The two forms already agree on everything interoperable: panel `44249-1`, the
 nine item codes, the `LA6568-5`–`LA6571-9` answers with the same `ordinalValue`

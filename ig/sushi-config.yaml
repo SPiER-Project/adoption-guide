@@ -43,10 +43,16 @@ jurisdiction: urn:iso:std:iso:3166#US "United States of America"
 # US Core dependency anchors patient demographics and standard observations
 # to the US realm. Add additional dependencies (e.g., SDC) as needed.
 dependencies:
-  hl7.fhir.us.core: 6.1.0
+  hl7.fhir.us.core: 9.0.0
   # SDC: calculatedExpression (score totals) + observationExtract (declared
   # extraction contract) extensions used by the screening Questionnaires.
   hl7.fhir.uv.sdc: 3.0.0
+  # Bulk Data: the quality-reporter CapabilityStatement's `export` operation
+  # names its `group-export` OperationDefinition. Until US Core 9.0.0 this
+  # resolved only because US Core 6.1.0 depended on bulkdata 2.0.0; 9.0.0
+  # dropped that dependency and the canonical became a publisher QA error.
+  # Named here so a US Core bump cannot take it away again. R4.
+  hl7.fhir.uv.bulkdata: 2.0.0
   # CRMI and CQF Common are BOTH consequences of compiling the measure CQL, not
   # choices — nothing in the FSH references either by hand. Once a Measure has a
   # `library` pointing at compiled CQL, the publisher infers the measure's data
