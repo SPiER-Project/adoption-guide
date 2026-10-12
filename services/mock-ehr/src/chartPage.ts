@@ -41,6 +41,7 @@
  */
 import { DISCLAIMER, PRODUCT_NAME, crumbs, esc, page } from './hostChrome'
 import { ageOn, chartRecordFor, formatDate, type ChartSection } from './chartRecord'
+import type { MockResource } from './fixtures'
 import type { DemoPatient } from './fixtures'
 import { TRY_IT_ORDER, storyOf } from './demoStories'
 import { MRN_SYSTEM } from '@spier/core/lib/fhircast'
@@ -913,6 +914,7 @@ export function patientChartPage(
     panelOrigin,
     otherPatients,
     scriptUrl,
+    conditions,
   }: {
     cdsEndpoint: string
     panelOrigin: string
@@ -920,6 +922,8 @@ export function patientChartPage(
     otherPatients: DemoPatient[]
     /** The built chart module, from `clientScriptUrl('chart')`. */
     scriptUrl: string
+    /** This patient's served Conditions — fixtures plus writes. See chartRecord.ts. */
+    conditions?: MockResource[]
   },
 ): string {
   // The host's one-line annotation of this chart (demoStories.ts), so the launch
@@ -928,7 +932,7 @@ export function patientChartPage(
   // Everything clinical on this page, derived from the resources this server
   // serves for this patient. See chartRecord.ts: nothing here may come from
   // anywhere else.
-  const record = chartRecordFor(patient.id)
+  const record = chartRecordFor(patient.id, conditions ? { conditions } : {})
   const chips = record.chips.map(chip => `
           <span class="chip chip--${esc(chip.tone)}"${chip.detail ? ` title="${esc(chip.detail)}"` : ''}>${esc(chip.label)}</span>`).join('')
   // ⚠️ The EMPTY columns are dropped here rather than rendered blank. See the

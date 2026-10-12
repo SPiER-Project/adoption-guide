@@ -15,7 +15,11 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { SCENARIO_ANCHOR } from '@spier/demo-population'
 import app from './app'
 import { DEMO_PATIENTS, DEMO_PATIENTS_BY_ID, HELD_RESOURCES, resourceByKeyAsOf } from './fixtures'
-import { chartRecordFor } from './chartRecord'
+import { chartRecordFor, problemsOf } from './chartRecord'
+import { fakeStore } from './__fixtures__/store'
+import { deriveFromResponse } from '@spier/core/lib/deriveFromResponse'
+import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
+import CAMS_SECTION_B_EXAMPLE from '@spier/fhir-artifacts/generated/QuestionnaireResponse-ExampleCAMSSectionBResponse.json'
 import { esc } from './hostChrome'
 import { rankCards } from './client/cdsRanking'
 import { TRY_IT_ORDER, storyOf } from './demoStories'
@@ -653,6 +657,60 @@ describe('the chart body is the record, in two columns', () => {
     expect(body).toContain('@container chart-body (min-width: 60rem)')
     expect(body).toContain('container: chart-body / inline-size')
     expect(body).not.toMatch(/@media[^{]*\{\s*\.chart-body__cols/)
+  })
+})
+
+describe('the problem list', () => {
+  /**
+   * The drivers a clinician records in CAMS Section B, built by the REAL mapper
+   * from the IG's example response — so a change to what the app writes is a
+   * change to what this chart is tested against, not a hand-typed lookalike.
+   */
+  function camsDrivers(patientId: string) {
+    const qr = {
+      ...CAMS_SECTION_B_EXAMPLE,
+      id: 'cams-b-chart',
+      subject: { reference: `Patient/${patientId}` },
+    } as QuestionnaireResponseResource
+    const conditions = deriveFromResponse(qr)?.conditions ?? []
+    if (conditions.length === 0) throw new Error('the CAMS Section B example derived no drivers')
+    return conditions
+  }
+
+  it('reads a driver in a clinician\'s words: its text, its kind, its date, its status', () => {
+    const [driver] = camsDrivers('patient-011')
+    const [line] = problemsOf([driver!])
+    expect(line!.title).toBe((driver!.code as { text: string }).text)
+    expect(line!.detail).toMatch(/Suicide Driver/)
+    // The concept-domain tag rides on every SPiER resource and would say the
+    // same thing on every line.
+    expect(line!.detail).not.toMatch(/suicide risk/i)
+    expect(line!.when).not.toBe('—')
+    expect(line).toMatchObject({ status: 'active', tone: 'warning' })
+  })
+
+  it('is absent from every bundled chart, because no bundled record holds a problem', () => {
+    // The rule `sectionsOf` keeps: no heading over nothing.
+    for (const patient of DEMO_PATIENTS) {
+      expect(chartRecordFor(patient.id).side.map(s => s.id)).not.toContain('problems')
+    }
+  })
+
+  it('shows what the panel saved, on THIS chart and nobody else\'s', async () => {
+    // ⚠️ The reason the section exists. The chart is otherwise fixtures-only,
+    // and a fixtures-only problem list would never render: the drivers reach
+    // this server only through a save.
+    const env = fakeStore()
+    const drivers = camsDrivers('patient-011')
+    for (const driver of drivers) await env.state.add('patient-011', driver)
+
+    const res = await app.request(`${BASE}/chart/patient-011`, {}, env)
+    const body = await res.text()
+    expect(body).toContain('id="sect-problems"')
+    for (const driver of drivers) expect(body).toContain(esc((driver.code as { text: string }).text))
+
+    const other = await (await app.request(`${BASE}/chart/patient-004`, {}, env)).text()
+    expect(other).not.toContain('id="sect-problems"')
   })
 })
 

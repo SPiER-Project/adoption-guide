@@ -30,7 +30,18 @@
  * the panel just recorded. The launch card already says so (`#written-since`, outside the drawer) and
  * that line is the reason this is a known limit rather than a lie. Reading the
  * store would make every chart render await KV.
+ *
+ * ⚠️ **Except the Problems section, which is handed its Conditions** (decided
+ * 2026-10-12). No demo patient's record holds a Condition, so a fixtures-only
+ * problem list is empty on every chart and, by `sectionsOf`, never drawn. The
+ * problems that matter here are the ones a clinician just recorded in the panel
+ * — CAMS Section B's suicide drivers — so the page route collects this
+ * patient's Conditions from what the server SERVES (fixtures plus writes, the
+ * same search the FHIR API answers) and passes them in. One store read per
+ * chart render, on a route that was already async. Reload the chart after a
+ * save and the drivers are on it.
  */
+import { CONCEPT_DOMAIN_SYSTEM } from '@spier/core/lib/conceptDomain'
 import { heldResourcesAsOf, type MockResource } from './fixtures'
 
 /**
@@ -489,7 +500,7 @@ export function resultsFor(patientId: string): ChartResult[] {
 /*
  * ── The chart body ───────────────────────────────────────────────────────────
  *
- * Five sections over six resource types, in the two columns a chart uses: what
+ * Six sections over seven resource types, in the two columns a chart uses: what
  * happened and what was ordered on the wide side, the plan and the handover on
  * the narrow one.
  *
@@ -700,13 +711,50 @@ function documentsOf(patientId: string): ChartEntry[] {
   return newestFirst([...documents, ...consents])
 }
 
+/**
+ * The problem list: one line per Condition, its words as the title.
+ *
+ * The detail line is the Condition's categories in a clinician's words — for a
+ * CAMS driver, "Suicide Driver · Direct Driver" — minus the concept-domain tag
+ * every SPiER resource carries, which would read the same on every line. The
+ * status is the CLINICAL status (active, resolved), which is the one a problem
+ * list is about; an active problem gets the open-item tone.
+ */
+export function problemsOf(conditions: MockResource[]): ChartEntry[] {
+  return newestFirst(conditions.map((condition) => {
+    const recorded = stringAt(condition, 'recordedDate') ?? stringAt(condition, 'onsetDateTime') ?? ''
+    const kinds = ((condition.category as CodeableConcept[] | undefined) ?? [])
+      .filter(c => !c.coding?.some(coding => coding.system === CONCEPT_DOMAIN_SYSTEM))
+      .map(c => displayOf(c))
+      .filter((label): label is string => Boolean(label))
+    const status = (condition.clinicalStatus as CodeableConcept | undefined)?.coding?.[0]?.code
+    return {
+      title: displayOf(condition.code) ?? 'Problem',
+      ...(kinds.length > 0 ? { detail: kinds.join(' · ') } : {}),
+      when: formatDate(recorded || undefined),
+      iso: recorded,
+      ...(status ? { status } : {}),
+      tone: statusTone(status),
+      from: refOf(condition),
+    }
+  }))
+}
+
 /** Drop the empty ones. See the note above `OPEN_STATUSES`. */
 function sectionsOf(candidates: ChartSection[]): ChartSection[] {
   return candidates.filter(section => section.entries.length > 0)
 }
 
-/** Everything the chart draws about one patient, from this server's own resources. */
-export function chartRecordFor(patientId: string): ChartRecord {
+/**
+ * Everything the chart draws about one patient, from this server's own resources.
+ *
+ * `conditions` is the problem list's input — see the header. Absent, it is the
+ * bundled Conditions alone, which is what a caller with no store has.
+ */
+export function chartRecordFor(
+  patientId: string,
+  { conditions = heldFor(patientId, 'Condition') }: { conditions?: MockResource[] } = {},
+): ChartRecord {
   const flags = flagChips(patientId)
   return {
     chips: [...flags, ...episodeChips(patientId, flags.length > 0), ...taskChip(patientId)],
@@ -716,6 +764,9 @@ export function chartRecordFor(patientId: string): ChartRecord {
       { id: 'orders', title: 'Orders and tasks', entries: ordersOf(patientId) },
     ]),
     side: sectionsOf([
+      // First in the column: a problem list is what a clinician scans for before
+      // the plan that answers it.
+      { id: 'problems', title: 'Problems', entries: problemsOf(conditions) },
       { id: 'plans', title: 'Care plans', entries: plansOf(patientId) },
       { id: 'appointments', title: 'Appointments', entries: appointmentsOf(patientId) },
       { id: 'documents', title: 'Documents and consent', entries: documentsOf(patientId) },
