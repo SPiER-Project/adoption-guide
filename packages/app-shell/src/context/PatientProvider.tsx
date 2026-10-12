@@ -255,6 +255,7 @@ export function PatientProvider({
       appointments: slice.appointments ?? [],
       consents: slice.consents ?? [],
       procedures: slice.procedures ?? [],
+      conditions: slice.conditions ?? [],
       riskAlerts: slice.riskAlerts,
       addArtifact,
       isSliceLoading: sliceState.isLoading,

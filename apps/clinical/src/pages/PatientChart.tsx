@@ -13,6 +13,7 @@ import { buildCdsCards, isPathwayObligationCard } from '@spier/core/lib/cdsHooks
 import { derivePathwayStatus, groupArtifactsByStage } from '@spier/core/lib/patientPathway'
 import { workflowArtifactsOf } from '@spier/core/lib/registry'
 import { evaluatePathway } from '@spier/core/lib/pathwayEvaluation'
+import { problemState } from '../lib/chartDisplay'
 // This page is where `PatientChart.css` is imported for the whole chart — the
 // rail on `/patient/where` relies on that too rather than importing its own.
 import '../css/PatientChart.css'
@@ -63,6 +64,7 @@ export function PatientChart() {
     consents,
     procedures,
     episodes,
+    conditions,
     activePatientId,
     isSmartConnected,
     isSliceLoading,
@@ -133,7 +135,13 @@ export function PatientChart() {
     carePlans.length +
     observations.length +
     (communications?.length ?? 0) +
-    workflowArtifacts.length
+    workflowArtifacts.length +
+    conditions.length
+
+  // The problems still open — CAMS Section B's drivers until they are resolved.
+  // Counted here because a problem list is something a clinician checks on
+  // arrival; the problems themselves are the first group on *What's on file*.
+  const activeProblems = conditions.filter(c => problemState(c) === 'Active').length
 
   // Where the act is drawn. With nothing due it goes to the stage the patient is
   // AT, so "nothing is due" is stated somewhere a reader is already looking
@@ -201,6 +209,11 @@ export function PatientChart() {
         <span className="patient-chart__fact">
           {recordCount} {recordCount === 1 ? 'record' : 'records'}
         </span>
+        {activeProblems > 0 && (
+          <span className="patient-chart__fact">
+            {activeProblems} active {activeProblems === 1 ? 'problem' : 'problems'}
+          </span>
+        )}
       </p>
     </div>
   )

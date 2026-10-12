@@ -37,8 +37,21 @@ import { workflowArtifactsOf } from '@spier/core/lib/registry'
 import { useOnFileGroups } from '../lib/onFileGroups'
 import { recordPath } from '../lib/recordKeys'
 import { ArtifactCards } from '../components/ChartArtifacts'
+import { deriveFromResponse } from '@spier/core/lib/deriveFromResponse'
+import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
+import CAMS_SECTION_B_EXAMPLE from '@spier/fhir-artifacts/generated/QuestionnaireResponse-ExampleCAMSSectionBResponse.json'
 
 const scenario = POPULATION_SCENARIOS['patient-001']
+
+/**
+ * CAMS Section B's suicide drivers, built by the REAL mapper from the IG's
+ * example response — so what the app writes is what these tests read.
+ */
+const DRIVERS = deriveFromResponse({
+  ...CAMS_SECTION_B_EXAMPLE,
+  id: 'cams-b',
+  subject: { reference: 'Patient/patient-001' },
+} as QuestionnaireResponseResource)!.conditions
 
 const input = {
   episodes: scenario.episodes ?? [],
@@ -54,6 +67,7 @@ const input = {
   consents: scenario.consents ?? [],
   flags: scenario.flags ?? [],
   tasks: scenario.tasks ?? [],
+  conditions: DRIVERS,
 }
 
 vi.mock('@spier/tool-views/context/PatientContext', () => ({
@@ -169,6 +183,21 @@ describe('an opened record', () => {
       }
       cleanup()
     }
+  })
+})
+
+describe('an opened problem', () => {
+  it('reads as the problem the clinician recorded: its words, its kind, how it stands', () => {
+    const [driver] = DRIVERS
+    const { container } = open(`problem-${String(driver.id)}`)
+    const text = container.textContent ?? ''
+    expect(container.querySelector('h1, h2')?.textContent).toBe((driver.code as { text: string }).text)
+    expect(text).toMatch(/Problem · Active · /)
+    expect(text).toContain('Suicide Driver')
+    // No wire vocabulary: the resource type, and the concept-domain tag every
+    // SPiER resource carries.
+    expect(text).not.toContain('Condition')
+    expect(text).not.toMatch(/suicide risk/i)
   })
 })
 

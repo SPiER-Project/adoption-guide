@@ -95,6 +95,7 @@ function patientValue(): PatientContextType {
     carePlans: [],
     communications: [],
     procedures: [],
+    conditions: [],
     episodes: [],
     riskAlerts: [],
     activePatientId: 'patient-001',

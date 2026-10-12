@@ -9,6 +9,7 @@ import type {
   AppointmentResource,
   CarePlanResource,
   CommunicationResource,
+  ConditionResource,
   ConsentResource,
   DocumentReferenceResource,
   EncounterResource,
@@ -103,6 +104,12 @@ export interface PatientContextType {
   consents: ConsentResource[]
   /** Stage-4 lethal-means counseling Procedures — read by the Stage-8 measure. */
   procedures: ProcedureResource[]
+  /**
+   * The problems a clinician recorded on a form — CAMS Section B's suicide
+   * drivers. Read by *What's on file*, which lists them as the patient's
+   * problems.
+   */
+  conditions: ConditionResource[]
   riskAlerts: RiskAlert[]
   /**
    * Append a non-Questionnaire workflow artifact, routing it into the right
