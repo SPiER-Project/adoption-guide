@@ -137,9 +137,12 @@ const CAPS: Record<string, { cap: number; why: string }> = {
       'questions and the table’s row descriptions.',
   },
   'pathway/protocol': {
-    cap: 1950,
+    cap: 2010,
     why: 'The implementer’s page: the spine with its table, the pending-definition strip and provenance, ' +
-      'nearly all of it rendered from the artifact. Long on purpose, and the reason the explainer is short.',
+      'nearly all of it rendered from the artifact. Long on purpose, and the reason the explainer is short. ' +
+      'Raised from 1,950 on 2026-10-12 for one new PUBLISHED step (caring contacts after a care transition), ' +
+      'which measured 66 words at its trimmed minimum on a page that sat at 1,938 — a new step is the only ' +
+      'reason to raise this; prose that does not fit is cut or demoted.',
   },
   // ⚠️ Two setting pathways, two numbers — unlike the "see it running" pages
   // they are not one pattern held to one length: each spine is the ARTIFACT's,

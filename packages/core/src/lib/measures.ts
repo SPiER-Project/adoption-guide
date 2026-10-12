@@ -318,6 +318,18 @@ function episodePeriod(e: EpisodeOfCareResource | undefined): { start: number; e
   }
 }
 
+/**
+ * What marks a care transition, for every post-transition measure — the CQL's
+ * "Care Transition Dates" (handoffs union packets). The caring-contact
+ * schedule declares the same pair on its `care-transition` action, and
+ * tests/caringContactSchedule.test.ts holds the two equal: a transition the
+ * app counts a series from must be one these measures index on.
+ */
+export const CARE_TRANSITION_PROFILES = {
+  communication: SAFETY_HANDOFF_PROFILE,
+  documentReference: PACKET_PROFILE,
+} as const
+
 function buildContext(slice: PatientSlice, period: MeasurementPeriod): Ctx {
   const periodStart = timeOf(period.start)
   const periodEnd = timeOf(period.end)
@@ -347,10 +359,10 @@ function buildContext(slice: PatientSlice, period: MeasurementPeriod): Ctx {
     .pop()
 
   const handoffDates = communications
-    .filter(c => conformsTo(c, SAFETY_HANDOFF_PROFILE))
+    .filter(c => conformsTo(c, CARE_TRANSITION_PROFILES.communication))
     .map(c => timeOf(c.sent))
   const packetDates = (slice.documentReferences ?? [])
-    .filter((d: DocumentReferenceResource) => conformsTo(d, PACKET_PROFILE))
+    .filter((d: DocumentReferenceResource) => conformsTo(d, CARE_TRANSITION_PROFILES.documentReference))
     .map((d: DocumentReferenceResource) => timeOf((d as { date?: string }).date))
   const transitionDates = [...handoffDates, ...packetDates].filter(
     n => Number.isFinite(n) && n >= periodStart && n <= periodEnd,
@@ -424,6 +436,14 @@ function dischargeDispositionCodes(encounter: EncounterResource): string[] {
     .filter(c => c.system === DISCHARGE_DISPOSITION_SYSTEM && !!c.code)
     .map(c => c.code as string)
 }
+
+/**
+ * The caring-contact adherence window, in days — the CQL's
+ * `"Index Transition Date" + 30 days`. Named because the caring-contact
+ * schedule (caringContactSchedule.ts) must close its last window inside it,
+ * and tests/caringContactSchedule.test.ts compares the two.
+ */
+export const CARING_CONTACT_WINDOW_DAYS = 30
 
 function sentWithin(messages: CommunicationResource[], from: number, windowMs: number): boolean {
   return messages.some(c => {
@@ -565,7 +585,7 @@ const CRITERIA: Record<string, (ctx: Ctx) => boolean> = {
   },
   'Caring Contact Within 30 Days': ctx =>
     ctx.indexTransition !== undefined &&
-    sentWithin(ctx.caringContacts, ctx.indexTransition, 30 * DAY_MS),
+    sentWithin(ctx.caringContacts, ctx.indexTransition, CARING_CONTACT_WINDOW_DAYS * DAY_MS),
 
   // ── Measure 7: referral loop closure ──
   // Computable only because TL-017 is a ServiceRequest: a Communication records

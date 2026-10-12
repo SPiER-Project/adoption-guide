@@ -75,6 +75,7 @@ export function NextStep({
     communications,
     procedures,
     episodes,
+    documentReferences,
     riskAlerts,
   } = usePatient()
   const links = useSurfaceLinks()
@@ -88,9 +89,10 @@ export function NextStep({
       communications: fold(communications, pending?.communications),
       procedures: fold(procedures, pending?.procedures),
       episodes: fold(episodes, pending?.episodes),
+      documentReferences: fold(documentReferences, pending?.documentReferences),
       riskAlerts: [...riskAlerts, ...(pending?.riskAlerts ?? [])],
     }),
-    [responses, observations, carePlans, communications, procedures, episodes, riskAlerts, pending],
+    [responses, observations, carePlans, communications, procedures, episodes, documentReferences, riskAlerts, pending],
   )
   const { primary } = useMemo(() => evaluatePathway(record), [record])
 

@@ -83,10 +83,19 @@ import {
 } from './reassessment'
 import { episodeCurrentTier, findOpenEpisode, RISK_TIERS } from './riskEpisode'
 import { displayFor } from './codedOption'
+import {
+  CARING_CONTACT_SCHEDULE_URL,
+  caringContactDue,
+  caringContactState,
+  caringContactStatusLabel,
+  slotName,
+  type CaringContactState,
+} from './caringContactSchedule'
 import type { RiskAlert } from './observationMappers'
 import type {
   CarePlanResource,
   CommunicationResource,
+  DocumentReferenceResource,
   EpisodeOfCareResource,
   ObservationResource,
   PatientSlice,
@@ -119,6 +128,14 @@ const CRISIS_RESOURCES_CANONICAL =
 const SAFETY_PLAN_CANONICAL =
   'http://thespierproject.org/fhir/ActivityDefinition/AdministerStanleyBrown'
 
+/**
+ * The activity each caring contact in the schedule is — the step itself names
+ * the schedule, as the tier groups name the reassessment schedule, so the
+ * launch comes from here the way the reassessment's comes from the assess step.
+ */
+const SEND_CARING_CONTACT_CANONICAL =
+  'http://thespierproject.org/fhir/ActivityDefinition/SendCaringContact'
+
 /** What a step asks the clinician to do. */
 export type ObligationKind =
   | 'screen'
@@ -128,6 +145,7 @@ export type ObligationKind =
   | 'stat-safety-evaluation'
   | 'direct-question'
   | 'reassess'
+  | 'caring-contact'
 
 /**
  * How pressing the obligation is, in the record's terms rather than a
@@ -185,6 +203,12 @@ export interface PathwayEvaluation {
   /** The cadence state, once a tier is on record. */
   reassessment: ReassessmentState | null
   /**
+   * Where the post-transition caring-contact series stands. Read off the
+   * record whatever the tier, because a series follows a transition rather
+   * than a tier — `no-transition` for a patient who has not had one.
+   */
+  caringContacts: CaringContactState
+  /**
    * Whether anything on this record answers "has this patient been screened".
    *
    * ⚠️ **"Not screened" and "screened, nothing found" are different facts and
@@ -206,6 +230,8 @@ export interface PathwayRecord {
   communications?: CommunicationResource[]
   procedures?: ProcedureResource[]
   episodes?: EpisodeOfCareResource[]
+  /** Discharge safety packets are one of the two records that mark a care transition. */
+  documentReferences?: DocumentReferenceResource[]
   riskAlerts?: RiskAlert[]
 }
 
@@ -230,6 +256,7 @@ function asSlice(record: PathwayRecord): PatientSlice {
     communications: record.communications ?? [],
     procedures: record.procedures ?? [],
     episodes: record.episodes ?? [],
+    documentReferences: record.documentReferences ?? [],
   }
 }
 
@@ -437,13 +464,64 @@ export function evaluatePathway(
     screenArtifacts(slice).length > 0 ||
     assessmentArtifacts(slice).length > 0 ||
     tierHistory(slice).length > 0
-  return { ...walkPathway(record, options), screened }
+  const walked = walkPathway(record, options)
+  // Stamped at the same exit, for the same reason: the caring-contact step is
+  // triggered by a transition, not reached by the tier walk, so it applies on
+  // every row the walk can end on — a patient discharged with no tier on
+  // record is still owed the series.
+  const caring = evaluateCaringContacts(record, options)
+  if (!caring.obligation) return { ...walked, caringContacts: caring.state, screened }
+  // After the tier's own acts: those are what the tier obliges now, and a
+  // caring contact is low-burden outreach that is due over days, not minutes.
+  return walked.primary
+    ? { ...walked, alsoDue: [...walked.alsoDue, caring.obligation], caringContacts: caring.state, screened }
+    : {
+        ...walked,
+        primary: caring.obligation,
+        reason: caring.obligation.reason,
+        caringContacts: caring.state,
+        screened,
+      }
 }
+
+/**
+ * The post-transition step: the series' state, and a card when a contact is
+ * due within the due-soon window.
+ *
+ * A card only then, not for the whole 30 days — the reassessment obligation
+ * makes the same call with its own due-soon threshold. Before that the state
+ * is still on the evaluation for the caseload and the "Why this?" page.
+ */
+function evaluateCaringContacts(
+  record: PathwayRecord,
+  options: EvaluatePathwayOptions,
+): { state: CaringContactState; obligation: PathwayObligation | null } {
+  const now = options.now ?? new Date()
+  const pathway = options.pathway ?? loadPathway()
+  const state = caringContactState(record, now)
+  const action = childFor(stepAtStage(pathway, 'track-follow-up'), CARING_CONTACT_SCHEDULE_URL)
+  if (!action || state.kind !== 'scheduled' || !caringContactDue(state)) return { state, obligation: null }
+  return {
+    state,
+    obligation: obligation({
+      kind: 'caring-contact',
+      action,
+      // The published title states the rule; a card headline states the act.
+      title: `Send the ${slotName(state.next).toLowerCase()}`,
+      reason: `Care transition ${shortDate(state.transitionDate, now)}: ${caringContactStatusLabel(state).toLowerCase()}.`,
+      urgency: state.status === 'due-today' || state.missed > 0 ? 'elevated' : 'routine',
+      tool: toolForActivityDefinition(SEND_CARING_CONTACT_CANONICAL),
+    }),
+  }
+}
+
+/** What the walk itself decides; the exit stamps the two record-wide facts. */
+type Walked = Omit<PathwayEvaluation, 'screened' | 'caringContacts'>
 
 function walkPathway(
   record: PathwayRecord,
   options: EvaluatePathwayOptions,
-): Omit<PathwayEvaluation, 'screened'> {
+): Walked {
   const now = options.now ?? new Date()
   const pathway = options.pathway ?? loadPathway()
   const slice = asSlice(record)
@@ -573,7 +651,7 @@ function one(
   alsoDue: PathwayObligation[],
   tier: PathwayEvaluation['tier'],
   reassessment: ReassessmentState | null,
-): Omit<PathwayEvaluation, 'screened'> {
+): Walked {
   return { primary, alsoDue, reason: primary.reason, tier, reassessment }
 }
 
@@ -591,7 +669,7 @@ function evaluateTier(params: {
   tier: NonNullable<PathwayEvaluation['tier']>
   tiers: TierPoint[]
   now: Date
-}): Omit<PathwayEvaluation, 'screened'> {
+}): Walked {
   const { pathway, slice, tier, tiers, now } = params
 
   // `imminent` has no group of its own; it carries at least the high-risk

@@ -542,7 +542,10 @@ export const TOOL_UI_METADATA: Record<string, ToolUiMetadata> = {
       resources: [
         { type: 'Communication', description: 'The caring contact itself (SPiERCaringContact) — method, sent date, opt-out status. NOT an outreach attempt: a caring contact asks nothing of the patient, so it has no reached/unreached outcome', when: 'On each scheduled contact' },
       ],
-      workflowTrigger: 'Post-discharge caring-contact cadence (e.g. 24–48h, 7-day, 30-day).',
+      // No offsets here (#628): the cadence is PlanDefinition/SPiERCaringContactSchedule
+      // and lib/caringContactSchedule.ts reads it. Typing "24–48h, 7-day, 30-day"
+      // here is the copy this replaced, which nothing compared against.
+      workflowTrigger: 'After a care transition, on the published caring-contact schedule.',
     },
   },
   'TL-034': {

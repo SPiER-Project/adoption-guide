@@ -15,6 +15,7 @@ import { RISK_LABEL } from '../lib/populationSummary'
 import { riskTitle } from '@spier/app-shell/lib/riskLabel'
 import { RiskPill } from '@spier/tool-views/components/RiskPill'
 import { reassessmentStatusLabel } from '@spier/core/lib/reassessment'
+import { caringContactStatusLabel } from '@spier/core/lib/caringContactSchedule'
 import { formatDaysAgo, isoDay } from '@spier/tool-views/lib/dates'
 import type { FilterKey, SortCol } from '../lib/caseloadViews'
 import type { DerivedRegistryRow } from '@spier/core/lib/registry'
@@ -231,9 +232,34 @@ export const COLUMNS: Record<string, CaseloadColumn> = {
                 ? 'due-soon'
                 : 'ok'
       return (
-        <span className={`reassess-pill reassess-pill--${tone}`}>
+        <span className={`due-pill due-pill--${tone}`}>
           {reassessmentStatusLabel(r)}
         </span>
+      )
+    },
+  },
+  // The post-transition series (TL-010), from the row's one pathway evaluation
+  // — the same answer the chart's card gives. Tone as the reassessment
+  // column's: how close the next contact is, never the tier.
+  caringContacts: {
+    header: 'Caring Contacts',
+    render: row => {
+      const c = row.caringContacts
+      const tone =
+        c.kind !== 'scheduled'
+          ? 'none'
+          : c.status === 'due-today'
+            ? 'due-today'
+            : c.status === 'due-soon'
+              ? 'due-soon'
+              : 'ok'
+      return (
+        <>
+          <span className={`due-pill due-pill--${tone}`}>{caringContactStatusLabel(c)}</span>
+          {c.kind !== 'no-transition' && (
+            <div className="caseload-activity-date">Since transition {isoDay(c.transitionDate)}</div>
+          )}
+        </>
       )
     },
   },

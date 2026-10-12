@@ -42,6 +42,7 @@ import {
 // reassessment clock here cannot start from a different Observation than theirs.
 import { isRiskConcept } from './riskConcept'
 import { reassessmentState, riskLevelForTier, type ReassessmentState } from './reassessment'
+import type { CaringContactState } from './caringContactSchedule'
 // One definition of "when was this recorded", shared with the pathway evaluator.
 import { bestArtifactDate } from './artifactDate'
 import { evaluatePathway, type PathwayEvaluation } from './pathwayEvaluation'
@@ -183,6 +184,12 @@ export interface DerivedRegistryRow extends RegistryPatient {
   /** Date of the most recent risk-concept Observation, or null. */
   lastAssessment: string | null
   reassessment: ReassessmentState
+  /**
+   * The post-transition caring-contact series (TL-010, #628) — which contact
+   * is due next, from the published schedule. A query like the reassessment:
+   * recomputed on read, never stored.
+   */
+  caringContacts: CaringContactState
   /**
    * What the published pathway says to do next for this patient, or null when
    * nothing is due.
@@ -518,6 +525,7 @@ export function deriveRegistryRow(
       communications: slice.communications ?? [],
       procedures: slice.procedures ?? [],
       episodes: slice.episodes ?? [],
+      documentReferences: slice.documentReferences ?? [],
       riskAlerts: slice.riskAlerts,
     },
     { now },
@@ -538,6 +546,9 @@ export function deriveRegistryRow(
     // on no cadence, which `none` → `no-risk` already says: "not on the
     // suicide-safer care pathway".
     ...deriveReassessmentRollup(slice, currentRiskLevel === 'unknown' ? 'none' : currentRiskLevel, now),
+    // From the row's one evaluation, so the column and the chart's card are
+    // the same answer rather than two reads of the same schedule.
+    caringContacts: evaluation.caringContacts,
     nextStep: evaluation.primary
       ? { label: evaluation.primary.title, rationale: evaluation.reason }
       : null,

@@ -151,8 +151,8 @@ export const CASELOAD_VIEWS: CaseloadView[] = [
   {
     id: 'follow-up',
     label: 'Follow-up',
-    description: 'Booked visits, failed outreach and open referrals — soonest visit first.',
-    columns: ['patient', 'risk', 'nextVisit', 'outreach', 'referrals', 'activity'],
+    description: 'Booked visits, failed outreach, caring contacts and open referrals — soonest visit first.',
+    columns: ['patient', 'risk', 'nextVisit', 'outreach', 'caringContacts', 'referrals', 'activity'],
     defaultSort: { col: 'nextVisit', dir: 'asc' },
   },
   {

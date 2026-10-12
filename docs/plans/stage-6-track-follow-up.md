@@ -141,10 +141,13 @@ three FHIR gotchas it turned up.
   and now load-bearing: the Stage-8 measures rely on that extension to treat an
   opt-out as a denominator *exclusion* rather than a scored failure, so until a
   recorder writes it the exclusion can never fire.
-- **Nothing schedules the cadence.** Outreach and caring contacts are recorded
-  when a human opens the form; the 24–48h / 7-day / 30-day schedule that should
-  *generate* due work isn't modelled. TL-039's Task cadence is the closest
-  existing machinery.
+- ~~**Nothing schedules the cadence.**~~ **Done for caring contacts**
+  ([#628](https://github.com/SPiER-Project/adoption-guide/issues/628)):
+  `PlanDefinition/SPiERCaringContactSchedule` states the cadence as offsets
+  from the care transition, `packages/core/src/lib/caringContactSchedule.ts`
+  derives which contact is due, and the chart (a post-transition step in the
+  published pathway) and the caseload show it. Outreach calls still have no
+  schedule — the ED-SAFE call protocol is not modelled.
 - ~~Wave 6 — Measure and Share: `Measure` / `MeasureReport` over exactly the
   appointments, outreach attempts, and episodes these stages produce.~~ **Done**
   (definitional layer) — see [stage-8-measure-and-share.md](archive/stage-8-measure-and-share.md).
