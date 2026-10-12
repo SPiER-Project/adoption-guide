@@ -31,7 +31,10 @@
  *      the IG Publisher at render time; `check-ig-narrative.mjs` check H owns
  *      those. ⚠️ Until 2026-10-06 every `.html` target anywhere was skipped, so a
  *      README linking a repo `.html` file that had gone passed. Outside `ig/input/`
- *      an `.html` target is a repo file like any other.
+ *      an `.html` target is a repo file like any other. The two downloads the
+ *      publisher writes at the IG root (`PUBLISHER_DOWNLOADS`) are skipped there
+ *      too, by exact name: the rendered page links them, the repo never holds them,
+ *      and the publisher's own link check is what resolves them.
  *   3. Targets containing `…` — prose ellipsis inside inline code that happens to
  *      be shaped like a link (`StructureDefinition-…`), not a path. A real path
  *      never contains one.
@@ -74,6 +77,10 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 // — a third — after the corpus grew from 348). Raise it only alongside a real
 // jump in the printed live count; never pin it to the exact number.
 const LINK_FLOOR = 260
+
+// What the IG Publisher emits at the rendered IG's root besides pages. Exact
+// names, not an extension rule, so a mistyped `package.tgz` still fails.
+const PUBLISHER_DOWNLOADS = new Set(['package.tgz', 'full-ig.zip'])
 
 /**
  * Markdown inline links, in both spellings:
@@ -140,7 +147,7 @@ for (const file of files) {
     if (/^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(raw)) continue // skip 1
     const target = raw.split('#')[0]
     if (!target) continue
-    if (target.endsWith('.html') && file.startsWith('ig/input/')) continue // skip 2
+    if (file.startsWith('ig/input/') && (target.endsWith('.html') || PUBLISHER_DOWNLOADS.has(target))) continue // skip 2
     if (target.includes('…')) continue // skip 3
     // A `:137` suffix names a line in the target file, not a different file.
     const onDisk = target.replace(/:\d+(?::\d+)?$/, '')

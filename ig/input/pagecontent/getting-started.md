@@ -9,10 +9,12 @@ From zero to validating your own resources against SPiER.
   [PHQ-9](Questionnaire-PHQ-9.html)), ready to load into an SDC-capable form
   filler, beside the ActivityDefinition that administers it and the profile its
   result lands in. Every artifact is downloadable as JSON.
-- **IG package** — the IG publishes a FHIR NPM package, `thespierproject.fhir`
-  (canonical `http://thespierproject.org/fhir`). Point your FHIR tooling
-  (SUSHI, the HL7 validator, a Firely or HAPI server) at it to load every
-  definition at once.
+- **IG package** — every definition at once, as the FHIR NPM package
+  `thespierproject.fhir` (canonical `http://thespierproject.org/fhir`).
+  Download it as [package.tgz](package.tgz) and load that file into your FHIR
+  tooling (SUSHI, the HL7 validator, a Firely or HAPI server). The package is
+  not yet in the FHIR package registry, so tooling cannot fetch it by name.
+  The whole rendered guide is also downloadable, as [full-ig.zip](full-ig.zip).
 - **Build locally** — clone [the repository](https://github.com/SPiER-Project/adoption-guide),
   then from `ig/` run [SUSHI](https://fshschool.org/docs/sushi/) to compile the
   FSH sources to FHIR JSON and the HL7 IG Publisher to render this site.
@@ -21,13 +23,13 @@ From zero to validating your own resources against SPiER.
 
 Use the official HL7 validator. Download `validator_cli.jar` from the
 [validator releases](https://github.com/hapifhir/org.hl7.fhir.core/releases),
-then validate an instance against a SPiER profile, loading the SPiER IG so the
-profile resolves:
+then validate an instance against a SPiER profile, loading the downloaded
+`package.tgz` so the profile resolves:
 
 ```bash
 java -jar validator_cli.jar my-observation.json \
   -version 4.0.1 \
-  -ig thespierproject.fhir \
+  -ig package.tgz \
   -profile http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-concept
 ```
 
