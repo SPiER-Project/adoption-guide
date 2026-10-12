@@ -35,6 +35,7 @@ export function PatientOnFile() {
     encounters,
     flags,
     tasks,
+    conditions,
     isSliceLoading,
     dataSourceError,
   } = usePatient()
@@ -54,6 +55,7 @@ export function PatientOnFile() {
       consents,
       flags,
       tasks,
+      conditions,
     }),
     [
       episodes,
@@ -69,6 +71,7 @@ export function PatientOnFile() {
       consents,
       flags,
       tasks,
+      conditions,
     ],
   )
   const groups = useOnFileGroups(input)

@@ -43,6 +43,7 @@ import type {
   QuestionnaireResponseResource,
 } from '@spier/core/types/fhir'
 import { formatDate, formatDateTime, formatTime } from '@spier/tool-views/lib/dates'
+import { problemKind } from './chartDisplay'
 
 /* ---------- The answers ---------- */
 
@@ -268,6 +269,7 @@ export function recordFacts(resource: FhirResourceLike): RecordFact[] {
     // and the header above it said the day before that.
     add('Time', r.end ? `${formatDateTime(r.start)} to ${formatTime(r.end)}` : formatDateTime(r.start))
   }
+  if (resource.resourceType === 'Condition') add('Kind', problemKind(resource))
   add('Note', first((r.note ?? []).map(n => n?.text)))
   return facts
 }

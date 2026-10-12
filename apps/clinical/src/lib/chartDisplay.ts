@@ -7,6 +7,7 @@ import { bestArtifactDate, type DatedResourceLike } from '@spier/core/lib/artifa
 import { displayFor } from '@spier/core/lib/codedOption'
 import { RISK_TIERS } from '@spier/core/lib/riskEpisode'
 import { tierForCodings } from '@spier/core/lib/conceptCrosswalk'
+import { CONCEPT_DOMAIN_SYSTEM } from '@spier/core/lib/conceptDomain'
 import { toolForResponse } from '@spier/core/lib/patientPathway'
 import type {
   FhirResourceLike,
@@ -275,6 +276,11 @@ export function artifactLabel(resource: FhirResourceLike): string {
     const e = resource as RenderableResource & { class?: { display?: string } }
     return e.class?.display ? `${e.class.display} contact` : 'Contact'
   }
+  if (resource.resourceType === 'Condition') {
+    // A recorded problem's own words — for a CAMS driver, the patient's
+    // description of what is driving the risk.
+    return r.code?.text ?? r.code?.coding?.[0]?.display ?? 'Problem'
+  }
   if (resource.resourceType === 'Communication') {
     // The first category with prose; the #262 concept-domain category is coded
     // only, so it is skipped rather than shown as the name.
@@ -285,6 +291,30 @@ export function artifactLabel(resource: FhirResourceLike): string {
     )
   }
   return workflowArtifactDisplay(resource).name
+}
+
+/**
+ * What kind of problem this is, in the form's own words — for a CAMS driver,
+ * "Suicide Driver · Direct Driver".
+ *
+ * The concept-domain category every SPiER resource carries is left out: it is
+ * coded only (`check:jargon`'s concern aside, it would read the same on every
+ * problem), so a category with no display contributes nothing.
+ */
+export function problemKind(resource: FhirResourceLike): string | null {
+  const categories = (resource as { category?: CodeableConcept[] }).category ?? []
+  const words = categories
+    .filter(c => !c.coding?.some(coding => coding.system === CONCEPT_DOMAIN_SYSTEM))
+    .map(c => c.text ?? c.coding?.find(coding => coding.display)?.display)
+    .filter((w): w is string => Boolean(w))
+  return words.length > 0 ? words.join(' · ') : null
+}
+
+/** A problem's clinical status — `active`, `resolved` — in the chart's words. */
+export function problemState(resource: FhirResourceLike): string | null {
+  const status = (resource as { clinicalStatus?: CodeableConcept }).clinicalStatus?.coding?.[0]?.code
+  if (status === 'resolved' || status === 'remission') return 'Resolved'
+  return lifecycleWord(status)
 }
 
 /* ---------- The collapsed stage's readout ---------- */

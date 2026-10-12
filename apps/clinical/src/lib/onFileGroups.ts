@@ -137,10 +137,25 @@ export function sliceOf(input: Parameters<typeof groupByEpisode>[0]): PatientSli
   } as unknown as PatientSlice
 }
 
-export function useOnFileGroups(input: Parameters<typeof groupByEpisode>[0]): OnFileGroup[] {
+/**
+ * What the list is built from: the buckets the episode grouping walks, plus the
+ * problems a clinician recorded.
+ *
+ * ⚠️ **Problems are NOT handed to the episode grouping**, though a CAMS driver
+ * carries an Encounter like any other artifact and would land in an episode.
+ * A problem list is the one thing on a chart that outlives the visit it was
+ * recorded at — a driver is tracked until it is resolved — so it is its own
+ * group, first, rather than a row inside the episode that happened to note it.
+ */
+export type OnFileInput = Parameters<typeof groupByEpisode>[0] & {
+  conditions?: FhirResourceLike[]
+}
+
+export function useOnFileGroups(input: OnFileInput): OnFileGroup[] {
   return useMemo(() => {
     const { records, unassigned } = groupByEpisode(input)
     const slice = sliceOf(input)
+    const conditions = input.conditions ?? []
 
     const groups: OnFileGroup[] = records.map((record, i) => {
       const period = (record.episode as { period?: { start?: string } }).period ?? {}
@@ -154,6 +169,16 @@ export function useOnFileGroups(input: Parameters<typeof groupByEpisode>[0]): On
       }
     })
     groups.sort((a, b) => byNewest({ at: timeOf(a.when) }, { at: timeOf(b.when) }))
+
+    if (conditions.length > 0) {
+      groups.unshift({
+        key: 'problems',
+        title: 'Problems',
+        state: null,
+        when: undefined,
+        rows: conditions.map((resource, j) => rowFor(resource, slice, j)).sort(byNewest),
+      })
+    }
 
     if (unassigned.length > 0) {
       groups.push({

@@ -54,6 +54,9 @@ export function bestArtifactDate(resource: DatedResourceLike): string | undefine
     // up with the clinical fields because both answer "when was this written
     // down", not "when did it happen".
     created?: string
+    // A Condition's: when the problem was written down (a CAMS driver carries
+    // the form's completion here).
+    recordedDate?: string
     _savedAt?: string
     meta?: { lastUpdated?: string }
   }
@@ -72,6 +75,7 @@ export function bestArtifactDate(resource: DatedResourceLike): string | undefine
     r.period?.end ??
     r.period?.start ??
     r.created ??
+    r.recordedDate ??
     r._savedAt ??
     // Resources read back from a SMART server carry no `_savedAt`; the server's
     // own stamp is the last resort before the row goes undated.

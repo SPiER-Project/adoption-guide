@@ -72,7 +72,7 @@ import { sourceResponse } from '@spier/core/lib/recordQueries'
 import type { FhirResourceLike } from '@spier/core/lib/patientPathway'
 import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 import { sliceOf, useOnFileGroups } from '../lib/onFileGroups'
-import { artifactLabel, lifecycleWord } from '../lib/chartDisplay'
+import { artifactLabel, lifecycleWord, problemState } from '../lib/chartDisplay'
 import { KIND_WORD, recordKey, recordKind, recordPath } from '../lib/recordKeys'
 import { answerSections, planSteps, recordFacts, resultReading } from '../lib/recordDetail'
 import '../css/PatientRecord.css'
@@ -92,7 +92,11 @@ const RECORD_TRAIL: Crumb[] = [
 
 /** The record's own line under the title: what it is, how it stands, when. */
 function subtitle(resource: FhirResourceLike, when: string | undefined): string {
-  const state = lifecycleWord(typeof resource.status === 'string' ? resource.status : undefined)
+  // A problem has no `status`; how it stands is its CLINICAL status.
+  const state =
+    recordKind(resource) === 'problem'
+      ? problemState(resource)
+      : lifecycleWord(typeof resource.status === 'string' ? resource.status : undefined)
   return [KIND_WORD[recordKind(resource)], state, when ? formatDate(when) : null]
     .filter(Boolean)
     .join(' · ')
@@ -126,6 +130,7 @@ export function PatientRecord() {
     encounters,
     flags,
     tasks,
+    conditions,
   } = usePatient()
 
   const input = useMemo(
@@ -143,6 +148,7 @@ export function PatientRecord() {
       consents,
       flags,
       tasks,
+      conditions,
     }),
     [
       episodes,
@@ -158,6 +164,7 @@ export function PatientRecord() {
       consents,
       flags,
       tasks,
+      conditions,
     ],
   )
   const groups = useOnFileGroups(input)

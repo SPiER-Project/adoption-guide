@@ -125,6 +125,7 @@ vi.mock('@spier/tool-views/context/PatientContext', () => ({
     communications: scenario.communications ?? [],
     riskAlerts: scenario.riskAlerts,
     procedures: scenario.procedures ?? [],
+    conditions: scenario.conditions ?? [],
     episodes: scenario.episodes ?? [],
     encounters: scenario.encounters ?? [],
     documentReferences: scenario.documentReferences ?? [],

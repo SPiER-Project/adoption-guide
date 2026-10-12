@@ -28,10 +28,23 @@ import { MemoryRouter } from 'react-router-dom'
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
 import { useOnFileGroups } from '../lib/onFileGroups'
 import { OnFileList } from './OnFileList'
+import { deriveFromResponse } from '@spier/core/lib/deriveFromResponse'
+import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
+import CAMS_SECTION_B_EXAMPLE from '@spier/fhir-artifacts/generated/QuestionnaireResponse-ExampleCAMSSectionBResponse.json'
 
 afterEach(cleanup)
 
 const scenario = POPULATION_SCENARIOS['patient-001']
+
+/**
+ * CAMS Section B's suicide drivers, built by the REAL mapper from the IG's
+ * example response — so what the app writes is what these tests read.
+ */
+const DRIVERS = deriveFromResponse({
+  ...CAMS_SECTION_B_EXAMPLE,
+  id: 'cams-b',
+  subject: { reference: 'Patient/patient-001' },
+} as QuestionnaireResponseResource)!.conditions
 
 /**
  * The types a row used to name. Spelled out here rather than imported: the
@@ -59,6 +72,7 @@ const input = {
   consents: scenario.consents ?? [],
   flags: scenario.flags ?? [],
   tasks: scenario.tasks ?? [],
+  conditions: [] as typeof DRIVERS,
 }
 
 function groupsFor(over: Partial<typeof input> = {}) {
@@ -142,3 +156,29 @@ describe('what’s on file', () => {
     }
   })
 })
+
+describe('the problem list', () => {
+  it('is its own group, first, and absent when nothing is recorded', () => {
+    expect(groupsFor().map(g => g.key)).not.toContain('problems')
+    const groups = groupsFor({ conditions: DRIVERS })
+    expect(groups[0]).toMatchObject({ key: 'problems', title: 'Problems' })
+    expect(groups[0].rows.map(r => r.name)).toEqual(
+      expect.arrayContaining(DRIVERS.map(d => (d.code as { text: string }).text)),
+    )
+  })
+
+  it('lists each problem once — not again inside the episode that noted it', () => {
+    // A driver carries an Encounter like any artifact, so the episode grouping
+    // would file it there too if it were handed one.
+    const keys = groupsFor({ conditions: DRIVERS }).flatMap(g => g.rows.map(r => r.key))
+    for (const d of DRIVERS) expect(keys.filter(k => k === `Condition/${String(d.id)}`)).toHaveLength(1)
+  })
+
+  it('opens each problem, and dates it', () => {
+    for (const row of groupsFor({ conditions: DRIVERS })[0].rows) {
+      expect(row.href).toBe(`/patient/on-file/problem-${String(row.resource.id)}`)
+      expect(row.when).toBeTruthy()
+    }
+  })
+})
+

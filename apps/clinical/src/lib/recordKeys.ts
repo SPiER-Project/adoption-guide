@@ -38,6 +38,7 @@ export type RecordKind =
   | 'task'
   | 'visit'
   | 'episode'
+  | 'problem'
   | 'record'
 
 /**
@@ -62,6 +63,7 @@ const KIND_BY_TYPE: Record<string, RecordKind> = {
   Task: 'task',
   Encounter: 'visit',
   EpisodeOfCare: 'episode',
+  Condition: 'problem',
 }
 
 /** What this record is, in one word a clinician uses. */
@@ -79,6 +81,7 @@ export const KIND_WORD: Record<RecordKind, string> = {
   task: 'Task',
   visit: 'Visit',
   episode: 'Episode of care',
+  problem: 'Problem',
   record: 'Record',
 }
 

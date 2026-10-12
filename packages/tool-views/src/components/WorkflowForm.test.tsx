@@ -60,7 +60,7 @@ const GUIDE_LINKS: SurfaceLinks = {
  */
 const EMPTY: Pick<
   PatientContextType,
-  'responses' | 'observations' | 'carePlans' | 'riskAlerts' | 'communications' | 'procedures' | 'episodes'
+  'responses' | 'observations' | 'carePlans' | 'riskAlerts' | 'communications' | 'procedures' | 'conditions' | 'episodes'
 > = {
   responses: [],
   observations: [],
@@ -68,6 +68,7 @@ const EMPTY: Pick<
   riskAlerts: [],
   communications: [],
   procedures: [],
+  conditions: [],
   episodes: [],
 }
 
