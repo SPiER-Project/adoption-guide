@@ -8,6 +8,19 @@
   "derivedFrom": [
     "http://hl7.org/fhir/us/core/Questionnaire/phq-9-example|9.0.0"
   ],
+  "_derivedFrom": [
+    {
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-derivationType",
+          "valueCoding": {
+            "system": "http://hl7.org/fhir/questionnaire-derivationType",
+            "code": "inspiredBy"
+          }
+        }
+      ]
+    }
+  ],
   "status": "draft",
   "experimental": true,
   "subjectType": [
