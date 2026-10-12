@@ -239,13 +239,15 @@ const CAPS: Record<string, { cap: number; why: string }> = {
       'almost nothing of its own. Raise this one for a longer instrument; never raise it for a sentence.',
   },
   '/patient/pathway': {
-    cap: 1150,
+    cap: 1200,
     why:
       'The published protocol, rendered from the artifact. 1,667 words until 2026-10-09, when the artifact ' +
       'began marking which of its notes are written for the clinician and this view stopped rendering the ' +
       'rest — modelling rationale, codes and definition names now render only in the guide — and it measured ' +
       '1,118. What remains is every step, the tier obligations and the clinician-facing notes, rendered from ' +
-      'the artifact rather than written here; lower this again if the artifact sheds a note, never raise it.',
+      'the artifact rather than written here. Raised from 1,150 on 2026-10-12 for one new PUBLISHED step ' +
+      '(caring contacts after a care transition, 46 words at its trimmed minimum, on a view at 1,146). Lower ' +
+      'this if the artifact sheds a note; raise it only for a new published step, never to fit prose.',
   },
   '/population/caseload': {
     cap: 1100,

@@ -806,19 +806,10 @@
             "patient-011/ed-11-7-2a"
           ],
           "fhirText": "`Task` series (24–48h call, 7-day visit) + `CommunicationRequest` + `Communication` (per-attempt outreach) + `PlanDefinition` (follow-up cadence) + registry enrollment",
-          "profileBinding": "SPiER Caring Contact ([built — `spier-caring-contact`](../../ig/input/fsh/follow-up.fsh)) — TL-010 is built and launchable at `/patient/workflow/caring-contact`, and each follow-up call is recordable as a SPiER Follow-Up Outreach Attempt ([built — `spier-outreach-attempt`](../../ig/input/fsh/follow-up.fsh), TL-033); **gap** — no PlanDefinition schedules the series: neither the caring-contact cadence ([#628](https://github.com/SPiER-Project/adoption-guide/issues/628)) nor the ED-SAFE telephone-call protocol it would envelope",
+          "profileBinding": "SPiER Caring Contact ([built — `spier-caring-contact`](../../ig/input/fsh/follow-up.fsh)) — TL-010 is built and launchable at `/patient/workflow/caring-contact`, each follow-up call is recordable as a SPiER Follow-Up Outreach Attempt ([built — `spier-outreach-attempt`](../../ig/input/fsh/follow-up.fsh), TL-033), and the caring-contact series is scheduled by the SPiER Caring Contact Schedule ([built — `SPiERCaringContactSchedule`](../../ig/input/fsh/follow-up.fsh)), offsets from the care transition that the published pathway's post-transition step references; **gap** — no PlanDefinition schedules the ED-SAFE telephone-call protocol",
           "cdsHook": null,
           "profileGaps": [
-            "Caring Contacts PlanDefinition (the schedule, not the contact)",
             "ED-SAFE telephone follow-up protocol (the call schedule; each call is already recordable)"
-          ],
-          "gatingIssues": [
-            {
-              "number": 628,
-              "label": "Caring-contact schedule",
-              "tool": "TL-010",
-              "remaining": "a PlanDefinition that schedules the post-discharge cadence"
-            }
           ]
         },
         {
@@ -883,7 +874,7 @@
         }
       ],
       "summary": "**Care transitions and follow-up** — transition-of-care packet, post-discharge caring contacts with overdue escalation.",
-      "note": "**Gating issue:** the caring-contact schedule (#628). The contact itself is built (`spier-caring-contact`), and so is each follow-up call (`spier-outreach-attempt`); what is missing is a PlanDefinition to schedule the series, and the ED-SAFE call protocol it would envelope. Transition is built and no longer gates this section."
+      "note": "The caring-contact series is built end to end: the contact (`spier-caring-contact`), and the schedule (`SPiERCaringContactSchedule`), from which the chart and the caseload derive which contact is due after the most recent care transition. Each follow-up call is recordable (`spier-outreach-attempt`); what is still missing is the ED-SAFE call protocol that would schedule them. Transition is built and no longer gates this section."
     }
   ],
   "extraWalkthroughSteps": {

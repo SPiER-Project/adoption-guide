@@ -94,6 +94,7 @@ describe('the published pathway artifact', () => {
       'high-every-contact-question: Every contact',
       'problem-list-entry: Usual entries',
       'problem-list-entry: ICD-10-CM crosswalk (billing)',
+      'send-caring-contacts: Opt-out',
     ])
   })
 
@@ -111,12 +112,14 @@ describe('the published pathway artifact', () => {
       'assess-risk',
       'tier-branch',
       'clinician-guidance',
+      'after-transition',
     ])
     expect(model.steps.map(s => s.stage?.code)).toEqual([
       'identify-possible-risk',
       'clarify-risk',
       'define-risk-picture',
       'define-risk-picture',
+      'track-follow-up',
     ])
   })
 

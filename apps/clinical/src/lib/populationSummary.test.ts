@@ -31,6 +31,7 @@ function row(over: Partial<DerivedRegistryRow> = {}): DerivedRegistryRow {
     // DerivedRegistryRow field should fail the typecheck here, not blow up at
     // runtime the way `as DerivedRegistryRow` let it.
     reassessment: { kind: 'no-cadence', reason: 'test fixture' },
+    caringContacts: { kind: 'no-transition' },
     ...over,
   }
 }

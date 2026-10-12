@@ -510,6 +510,51 @@ Usage: #definition
     * documentation[=].display = "The source diagram states a per-tier contact frequency as a row of its own, distinct from the reassessment cadence, with values that coincide at the higher tiers and diverge at the lower ones. Whether that is one rule or two is an open clinical question, so this pathway publishes the obligation without an interval rather than settle that question by accident. The one cadence SPiER does publish is the reassessment schedule, PlanDefinition/SPiERReassessmentSchedule, which each tier group above references rather than restates."
 
 
+// ─── Step 5 — Caring contacts after a care transition (#628) ─
+//
+// ⚠️ NOT FROM THE SOURCE DIAGRAM, and the one step in this file that is not.
+// The header's rule is that every claim traces to the diagram's transcription;
+// the diagram has no post-transition row. This step comes from the Suicide
+// Safer Care stage tiles (Stage 6, Track Follow-Up: caring contacts, with an
+// opt-out) and the emergency-department setting pathway's "follow up after
+// discharge with caring contacts", and was added on 2026-10-12 so the chart is
+// told when a contact is due — the evaluator reads only this protocol. It says
+// so on the artifact, and it is held for clinical review with the rest.
+//
+// Same shape as the reassessment: the step references the schedule by
+// `definitionCanonical` and states no offset (check:pathway rule c). It is
+// triggered by the transition record rather than gated on a tier, because
+// caring contacts follow a transition whatever the tier was.
+
+* action[+]
+  * id = "after-transition"
+  * title = "After a care transition"
+  * description = "Follows a care transition at every risk tier."
+  * code[+] = SPiERPathwayStage#track-follow-up "Track Follow-Up"
+  * trigger[+]
+    * type = #data-added
+    * name = "careTransition"
+    * data[+]
+      * type = #Communication
+      * profile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-safety-handoff"
+    * data[+]
+      * type = #DocumentReference
+      * profile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-discharge-safety-packet"
+  * documentation[+].type = #documentation
+  * documentation[=].label = "Source"
+  * documentation[=].display = "Not on the source diagram: from the Suicide Safer Care Track Follow-Up stage. A draft awaiting clinical review."
+  * action[+]
+    * id = "send-caring-contacts"
+    * title = "Send caring contacts on the published schedule"
+    * code[+] = SPiERPathwayStage#track-follow-up "Track Follow-Up"
+    * description = "Brief, non-demanding supportive messages."
+    * definitionCanonical = "http://thespierproject.org/fhir/PlanDefinition/SPiERCaringContactSchedule"
+    * documentation[+].type = #documentation
+    * documentation[=].label = "Opt-out"
+    * documentation[=].display = "If the patient opts out, send no more. The adherence measure excludes them rather than counting a miss."
+    * documentation[=].extension[ClinicianFacing].valueBoolean = true
+
+
 // ─── Which notes a clinician is shown ────────────────────────
 //
 // A note on a step is written for one of two readers. The clinician carrying
