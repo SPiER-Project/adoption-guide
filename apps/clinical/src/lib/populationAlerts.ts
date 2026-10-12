@@ -29,6 +29,7 @@
  * what keeps the population view and the measure dashboard from disagreeing
  * about the same patient.
  */
+import { caringContactDue, caringContactStatusLabel } from '@spier/core/lib/caringContactSchedule'
 import { MEASURE_SPECS, type MeasureEvaluation } from '@spier/core/lib/measures'
 import type { DerivedRegistryRow } from '@spier/core/lib/registry'
 
@@ -258,6 +259,22 @@ export function alertsForPatient(
         source: null,
       })
     }
+  }
+
+  // Caring-contact series (TL-010, #628), on the reassessment's clock: yellow
+  // inside the due-soon window. Never red — a window that closes unsent is
+  // counted as missed and the series moves on to the next contact, so there is
+  // no "overdue" to escalate. The missed count rides in the label instead.
+  const caring = row.caringContacts
+  if (caringContactDue(caring) && caring.kind === 'scheduled') {
+    alerts.push({
+      patientId: row.id,
+      patientName: row.displayName,
+      severity: 'yellow',
+      label: caringContactStatusLabel(caring),
+      detail: `Window closes ${caring.dueDate}, on the caring-contact schedule published for the weeks after a care transition.`,
+      source: null,
+    })
   }
 
   if (row.awaitingNoShowFollowUp) {

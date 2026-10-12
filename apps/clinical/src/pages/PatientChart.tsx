@@ -103,8 +103,8 @@ export function PatientChart() {
   const stageGroups = useMemo(() => groupArtifactsByStage(artifacts), [artifacts])
 
   const record = useMemo(
-    () => ({ responses, observations, carePlans, communications, procedures, episodes, riskAlerts }),
-    [responses, observations, carePlans, communications, procedures, episodes, riskAlerts],
+    () => ({ responses, observations, carePlans, communications, procedures, episodes, documentReferences, riskAlerts }),
+    [responses, observations, carePlans, communications, procedures, episodes, documentReferences, riskAlerts],
   )
   const evaluation = useMemo(() => evaluatePathway(record), [record])
 

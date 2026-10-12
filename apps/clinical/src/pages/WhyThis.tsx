@@ -50,7 +50,7 @@ import { StageAlternatives } from '../components/StageAlternatives'
 import '../css/WhyThis.css'
 
 export function WhyThis() {
-  const { responses, observations, carePlans, communications, procedures, episodes, riskAlerts } =
+  const { responses, observations, carePlans, communications, procedures, episodes, documentReferences, riskAlerts } =
     usePatient()
   const { isToolEnabled: siteToolEnabled } = useToolConfig()
   const { chromeMode } = usePresentation()
@@ -68,9 +68,10 @@ export function WhyThis() {
         communications,
         procedures,
         episodes,
+        documentReferences,
         riskAlerts,
       }),
-    [responses, observations, carePlans, communications, procedures, episodes, riskAlerts],
+    [responses, observations, carePlans, communications, procedures, episodes, documentReferences, riskAlerts],
   )
 
   const primary = evaluation.primary

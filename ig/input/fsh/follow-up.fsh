@@ -241,6 +241,87 @@ Usage: #definition
 * copyright = "SPiER-authored workflow content: this activity records that a caring contact was sent and how the patient responded. Caring contacts are a published intervention pattern rather than a proprietary instrument, and SPiER ships no message text of its own here. The activity and its SPiER profiles are published with the SPiER Implementation Guide under the guide's own license (CC0-1.0). Message templates a site adopts from a published caring-contacts program carry that program's own terms, which SPiER has not audited."
 
 
+// ─── TL-010 — The caring-contact schedule (#628) ─────────────
+//
+// The cadence's ONE home, the way SPiERReassessmentSchedule is the
+// reassessment cadence's. Until this existed "24–48 h, 7-day, 30-day" was a
+// string in the app's catalogue that nothing read, so nothing could say a
+// contact was due. packages/core/src/lib/caringContactSchedule.ts reads the
+// offsets below and nothing else; the published pathway reaches them by
+// `definitionCanonical` rather than restating them (check:pathway rule c).
+//
+// Timing is RELATIVE, and FHIR's way to say "N after an event" is
+// `relatedAction` with an offset, so the event is an action of its own:
+// `care-transition`, defined by the two records SPiER writes at one — the
+// safety handoff and the discharge packet. Those are the same two the Stage-8
+// measures index on (measures.ts, the CQL's "Care Transition Dates");
+// tests/caringContactSchedule.test.ts holds the two lists equal.
+//
+// ⚠️ The LAST offset bounds the adherence measure's window. A contact the app
+// counts toward any slot is one SPiERCaringContactAdherence counts too, only
+// while every offset is at or under that measure's 30 days — the same test
+// fails if one is not.
+Instance: SPiERCaringContactSchedule
+InstanceOf: PlanDefinition
+Title: "SPiER Caring Contact Schedule"
+Description: "When caring contacts are due after a care transition: a first contact 24 to 48 hours after it, a second at 7 days and a third at 30 days, unless the patient opts out."
+Usage: #definition
+* url = "http://thespierproject.org/fhir/PlanDefinition/SPiERCaringContactSchedule"
+* name = "SPiERCaringContactSchedule"
+* version = "1.0.0"
+* title = "SPiER Caring Contact Schedule"
+* status = #draft
+* experimental = true
+* publisher = "SPiER"
+* description = "The post-transition caring-contact cadence, as offsets from the care transition so that a due date is derived from the record rather than remembered. Three contacts: 24 to 48 hours after the transition, at 7 days and at 30 days. A contact sent within a window satisfies it; a window that closes unsent is missed, and the next contact is the one due. A patient who opts out of caring contacts is sent no further contacts."
+* purpose = "Make the caring-contact cadence machine-readable. Caring contacts are one of the few interventions with direct randomized evidence for reducing repeat suicide attempts, and adherence to the sending schedule is the whole intervention; before this existed nothing could tell a clinician that one was due."
+* type = http://terminology.hl7.org/CodeSystem/plan-definition-type#workflow-definition
+* useContext[+].code = http://terminology.hl7.org/CodeSystem/usage-context-type#focus
+* useContext[=].valueCodeableConcept = SPiERPathwayStage#track-follow-up
+
+* action[+]
+  * id = "care-transition"
+  * title = "Care transition"
+  * description = "The event the series counts from: the patient leaves a setting of care, recorded as a suicide-safety handoff to the next provider or as a discharge safety packet. The most recent transition is the anchor. Recorded at the Coordinate Handoffs stage; nothing is performed here."
+  * input[+]
+    * type = #Communication
+    * profile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-safety-handoff"
+  * input[+]
+    * type = #DocumentReference
+    * profile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-discharge-safety-packet"
+
+* action[+]
+  * id = "caring-contact-1"
+  * title = "First caring contact, 24 to 48 hours after the transition"
+  * description = "A brief, non-demanding supportive message in the first two days after the patient leaves care."
+  * relatedAction[+]
+    * actionId = "care-transition"
+    * relationship = #after-end
+    * offsetRange.low = 24 'h' "hour"
+    * offsetRange.high = 48 'h' "hour"
+  * definitionCanonical = "http://thespierproject.org/fhir/ActivityDefinition/SendCaringContact"
+
+* action[+]
+  * id = "caring-contact-2"
+  * title = "Second caring contact, 7 days after the transition"
+  * description = "A second brief, non-demanding supportive message a week after the patient leaves care."
+  * relatedAction[+]
+    * actionId = "care-transition"
+    * relationship = #after-end
+    * offsetDuration = 7 'd' "day"
+  * definitionCanonical = "http://thespierproject.org/fhir/ActivityDefinition/SendCaringContact"
+
+* action[+]
+  * id = "caring-contact-3"
+  * title = "Third caring contact, 30 days after the transition"
+  * description = "A third brief, non-demanding supportive message a month after the patient leaves care."
+  * relatedAction[+]
+    * actionId = "care-transition"
+    * relationship = #after-end
+    * offsetDuration = 30 'd' "day"
+  * definitionCanonical = "http://thespierproject.org/fhir/ActivityDefinition/SendCaringContact"
+
+
 Instance: TrackFollowUpAppointment
 InstanceOf: ActivityDefinition
 Title: "Track Follow-Up Appointment"

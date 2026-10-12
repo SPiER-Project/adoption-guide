@@ -199,6 +199,7 @@ export function buildPatientViewResponse(
         communications: scenario.communications ?? [],
         procedures: scenario.procedures ?? [],
         episodes: scenario.episodes ?? [],
+        documentReferences: scenario.documentReferences ?? [],
         riskAlerts: scenario.riskAlerts,
       },
       isToolEnabled: () => true, // see the live path above — must match the panel
