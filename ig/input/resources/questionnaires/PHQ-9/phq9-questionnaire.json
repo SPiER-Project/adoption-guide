@@ -5,9 +5,6 @@
   "version": "1.0.0",
   "name": "PHQ9",
   "title": "Patient Health Questionnaire-9 (PHQ-9)",
-  "derivedFrom": [
-    "http://hl7.org/fhir/us/core/Questionnaire/phq-9-example|9.0.0"
-  ],
   "status": "draft",
   "experimental": true,
   "subjectType": [
