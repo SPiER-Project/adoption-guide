@@ -50,6 +50,14 @@ reference against it; the line landed together with the move to 9.0.0. Moving
 US Core again means moving this pin in the same change. Only the publisher
 checks it: `validate-fhir.mjs` passed the mismatched line.
 
+⚠️ **The derivation type is `inspiredBy`, and must stay that unless the linkIds
+change.** The `questionnaire-derivationType` extension on `derivedFrom` says
+how strong the relationship is. `extends` and `compliesWith` both promise that a
+response to this form is also valid against US Core's, and none is: the linkIds
+differ, so no SPiER response answers a single US Core item. Declaring either
+would ask the IG Publisher to check the derivation, and that check would fail on
+the linkIds. With no type at all, the publisher warns that it did not check.
+
 The two forms already agree on everything interoperable: panel `44249-1`, the
 nine item codes, the `LA6568-5`–`LA6571-9` answers with the same `ordinalValue`
 weights, and the `69722-7` difficulty item. Adopting the US Core form wholesale
