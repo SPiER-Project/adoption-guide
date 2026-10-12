@@ -357,6 +357,7 @@ groups:
       - ActivityDefinition/SendCaringContact
       - ActivityDefinition/SendRapidReferral
       - ActivityDefinition/TrackFollowUpAppointment
+      - PlanDefinition/SPiERCaringContactSchedule
       - StructureDefinition/caring-contact-opt-out
       - StructureDefinition/handoff-content-item
       - StructureDefinition/handoff-withheld-item
