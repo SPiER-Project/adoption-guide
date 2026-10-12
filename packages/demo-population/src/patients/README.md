@@ -52,11 +52,12 @@ the app's system fails the import, and `npm run check:patients`.
 ## On `us-core-patient`, deliberately not claimed
 
 These validate as base R4 `Patient`. Claiming
-`us-core-patient` looks free — us-core 6.1.0 is already an IG dependency and
+`us-core-patient` looks free — us-core 9.0.0 is already an IG dependency and
 these carry identifier, name, gender and birthDate.
 
-It is not claimed, for one reason worth stating: US Core Patient must-supports
-race, ethnicity and birthSex, and inventing those for 14 synthetic patients would
+It is not claimed, for one reason worth stating: US Core Patient lists race,
+ethnicity and sex (`us-core-individual-sex`; 9.0.0 no longer has a birth-sex
+slice) as Additional USCDI Requirements, and inventing those for 14 synthetic patients would
 be fabricating demographic data to satisfy a profile badge. #220 is this repo's
 precedent for what that costs — a plausible assertion nobody verified reads
 exactly like a verified one. If a partner needs the claim, add the extensions

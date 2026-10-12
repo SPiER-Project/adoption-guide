@@ -57,7 +57,7 @@ const root = resolve(here, '..')
  */
 
 /** IG dependencies, mirroring `ig/sushi-config.yaml`. */
-const PACKAGE_DEPS = ['hl7.fhir.us.core#6.1.0', 'hl7.fhir.uv.sdc#3.0.0']
+const PACKAGE_DEPS = ['hl7.fhir.us.core#9.0.0', 'hl7.fhir.uv.sdc#3.0.0']
 
 const GENERATED_DIR = join(root, 'ig/fsh-generated/resources')
 // Every `path-resource` directory in ig/sushi-config.yaml — the hand-authored JSON
