@@ -25,7 +25,7 @@
 Instance: ASQDispositionToRiskTier
 InstanceOf: ConceptMap
 Title: "ASQ Disposition → SPiER Suicide Risk Tier"
-Description: "Maps the three ASQ screening dispositions (negative / non-acute-positive / acute-positive) to the common SPiER suicide-risk tiers. Proposed crosswalk pending clinical sign-off (epic #77)."
+Description: "Maps the three ASQ screening dispositions (negative / non-acute-positive / acute-positive) to the common SPiER suicide-risk tiers. Proposed crosswalk pending clinical sign-off."
 Usage: #definition
 * url = "http://thespierproject.org/fhir/ConceptMap/ASQDispositionToRiskTier"
 * version = "0.1.0"

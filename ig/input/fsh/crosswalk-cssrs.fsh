@@ -46,7 +46,7 @@
 Instance: CSSRSRiskLevelToRiskTier
 InstanceOf: ConceptMap
 Title: "C-SSRS Risk Level → SPiER Suicide Risk Tier"
-Description: "Maps the four C-SSRS derived risk levels (none/low/moderate/high) to the common SPiER suicide-risk tiers. Proposed crosswalk pending clinical sign-off (epic #77)."
+Description: "Maps the four C-SSRS derived risk levels (none/low/moderate/high) to the common SPiER suicide-risk tiers. Proposed crosswalk pending clinical sign-off."
 Usage: #definition
 * url = "http://thespierproject.org/fhir/ConceptMap/CSSRSRiskLevelToRiskTier"
 * version = "0.1.0"
@@ -80,11 +80,11 @@ Usage: #definition
 * group[0].element[2].target[0].code = #moderate
 * group[0].element[2].target[0].display = "Moderate risk"
 * group[0].element[2].target[0].equivalence = #equivalent
-* group[0].element[2].target[0].comment = "C-SSRS item 3 (active ideation with a method, no intent), or item 6 suicidal behavior that is lifetime-only — i.e. not within the past three months. Both sit in the published instrument's orange band; verified in docs/reference/suicide-safer-care-pathway-spec.md §Phase 1b. SME to confirm equivalence to the moderate tier."
+* group[0].element[2].target[0].comment = "C-SSRS item 3 (active ideation with a method, no intent), or item 6 suicidal behavior that is lifetime-only — i.e. not within the past three months. Both sit in the published instrument's orange band. SME to confirm equivalence to the moderate tier."
 
 * group[0].element[3].code = #high
 * group[0].element[3].display = "High"
 * group[0].element[3].target[0].code = #high
 * group[0].element[3].target[0].display = "High risk"
 * group[0].element[3].target[0].equivalence = #relatedto
-* group[0].element[3].target[0].comment = "C-SSRS item 4 (some intent to act) or item 5 (specific plan with intent), and/or item 6 suicidal behavior within the past three months. Items 4, 5 and recent-6 are the published instrument's red band; lifetime-only behavior is NOT high (it maps to moderate above) — verified in docs/reference/suicide-safer-care-pathway-spec.md §Phase 1b. Mapped to high; `relatedto` rather than `equivalent` because cases with active intent + means may warrant escalation to the `imminent` tier — a clinical judgment the C-SSRS risk level does not itself encode. PENDING SME sign-off on the high/imminent boundary."
+* group[0].element[3].target[0].comment = "C-SSRS item 4 (some intent to act) or item 5 (specific plan with intent), and/or item 6 suicidal behavior within the past three months. Items 4, 5 and recent-6 are the published instrument's red band; lifetime-only behavior is NOT high (it maps to moderate above). Mapped to high; `relatedto` rather than `equivalent` because cases with active intent + means may warrant escalation to the `imminent` tier — a clinical judgment the C-SSRS risk level does not itself encode. PENDING SME sign-off on the high/imminent boundary."

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { BINDINGS, CONCEPTS, codeHref, valueSetHref, valueSetLabel } from '@spier/core/data/catalog/dataElements'
+import { tierRoute } from '@spier/core/lib/conceptCrosswalk'
+import { BINDINGS, CONCEPTS, codeHref, conceptMapHref, valueSetHref, valueSetLabel } from '@spier/core/data/catalog/dataElements'
 
 /**
  * The data dictionary's links are claims about what the published IG contains,
@@ -61,5 +62,42 @@ describe('every dictionary ValueSet canonical is linkable', () => {
     // page. If SPiER ever does name an external ValueSet here, this test should
     // fail and force a decision about how to link it.
     expect(valueSetHref(vs)).toBeDefined()
+  })
+})
+
+/**
+ * Every route into a shared concept renders its fidelity on the Data Dictionary
+ * (#264), on two axes: precision, derived from the published crosswalk, and who
+ * asserts the value, declared on the binding because no ConceptMap can say it.
+ * A new route that the page would show as "Not translated", or with no author,
+ * fails here rather than shipping as a blank cell.
+ */
+describe('every route into a shared concept has a fidelity to show', () => {
+  const routes = BINDINGS.filter(b => b.conceptId)
+
+  it('finds the routes — an empty sweep would pass vacuously', () => {
+    expect(routes.length).toBeGreaterThanOrEqual(6)
+  })
+
+  it.each(routes.map(b => [b.id, b] as const))('%s is translated into the tier, or already is one', (_id, b) => {
+    expect(tierRoute(b.value?.system), `${b.id}: no published crosswalk lands ${b.value?.system} on the tier`).toBeDefined()
+  })
+
+  it.each(routes.map(b => [b.id, b] as const))('%s says who asserts the value', (_id, b) => {
+    expect(b.assertedBy).toBeDefined()
+  })
+
+  it('links each crosswalk to its page in the published IG, by the map’s own canonical', () => {
+    const asq = tierRoute(BINDINGS.find(b => b.id === 'asq-result')?.value?.system)
+    expect(asq?.kind === 'crosswalk' && conceptMapHref(asq.url)).toBe(
+      `${import.meta.env.BASE_URL}ig/ConceptMap-ASQDispositionToRiskTier.html`,
+    )
+    expect(conceptMapHref('http://example.org/ConceptMap/x')).toBeUndefined()
+  })
+
+  it('keeps the one patient self-rating marked as one', () => {
+    // The reason the axis exists: a CAMS `high` is the patient’s own rating of
+    // how they feel right now, and must not read as a clinician’s determination.
+    expect(BINDINGS.find(b => b.id === 'cams-overall-risk-level')?.assertedBy).toBe('patient')
   })
 })
