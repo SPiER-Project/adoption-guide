@@ -185,7 +185,7 @@ Usage: #example
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = LethalMeansMethodCodes#firearm "Firearm"
 * subject = Reference(Patient/example)
-* performer = Reference(Practitioner/example)
+* performer = Reference(Practitioner/practitioner-1)
 * effectiveDateTime = "2026-07-15T16:30:00Z"
 * valueCodeableConcept = MeansSafetyActionCodes#transferred-to-other-party "Transferred to a trusted party"
 * note.text = "Responsible party: patient's brother. Firearm + ammunition transferred and stored off-site until follow-up."
@@ -200,7 +200,7 @@ Usage: #example
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = LethalMeansMethodCodes#medication "Medication"
 * subject = Reference(Patient/example)
-* performer = Reference(Practitioner/example)
+* performer = Reference(Practitioner/practitioner-1)
 * effectiveDateTime = "2026-07-15T16:30:00Z"
 * valueCodeableConcept = MeansSafetyActionCodes#locked-and-secured "Locked and secured"
 * note.text = "Responsible party: spouse holds the lockbox key; only single daily doses dispensed."

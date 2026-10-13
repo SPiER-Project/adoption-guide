@@ -726,7 +726,7 @@ Usage: #example
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
-* performer = Reference(Practitioner/example)
+* performer = Reference(Practitioner/practitioner-1)
 * effectiveDateTime = "2026-07-15T16:00:00Z"
 * derivedFrom[+] = Reference(ExampleCAMSOutcomeDispositionResponse)
 * valueCodeableConcept = CAMSDispositionCodes#resolved "CAMS resolved — episode complete"

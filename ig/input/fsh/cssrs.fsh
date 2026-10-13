@@ -287,7 +287,7 @@ Usage: #example
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
-* performer = Reference(Practitioner/example)
+* performer = Reference(Practitioner/practitioner-1)
 * effectiveDateTime = "2026-03-19T11:00:00Z"
 // Dual-coded: SPiER-local tier + matching LOINC answer (LL465-6) for HL7 interop.
 * valueCodeableConcept.coding[0] = CSSRSRiskLevelCodes#high "High"
@@ -305,7 +305,7 @@ Usage: #example
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
-* performer = Reference(Practitioner/example)
+* performer = Reference(Practitioner/practitioner-1)
 * effectiveDateTime = "2026-03-19T11:15:00Z"
 // Dual-coded: SPiER-local tier + matching LOINC answer (LL465-6) for HL7 interop.
 * valueCodeableConcept.coding[0] = CSSRSRiskLevelCodes#moderate "Moderate"
@@ -353,7 +353,7 @@ Usage: #example
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
-* performer = Reference(Practitioner/example)
+* performer = Reference(Practitioner/practitioner-1)
 * effectiveDateTime = "2026-07-15T12:00:00Z"
 * derivedFrom[+] = Reference(ExampleCSSRSSinceLastContactResponse)
 // Dual-coded: SPiER-local tier + matching LOINC answer (LL465-6) for HL7 interop.
@@ -399,7 +399,7 @@ Usage: #example
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
-* performer = Reference(Practitioner/example)
+* performer = Reference(Practitioner/practitioner-1)
 * effectiveDateTime = "2026-07-15T13:30:00Z"
 * derivedFrom[+] = Reference(ExampleCSSRSPediatricResponse)
 // Dual-coded: SPiER-local tier + matching LOINC answer (LL465-6) for HL7 interop.
