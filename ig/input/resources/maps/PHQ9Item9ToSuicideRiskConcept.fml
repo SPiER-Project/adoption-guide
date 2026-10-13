@@ -45,7 +45,11 @@ group phq9Item9ToConcept(source src : PHQ9Item9, target tgt : Concept) {
   // Re-code to the generic concept LOINC (source carries item-9 code 44260-8).
   src -> tgt.code = cc('http://loinc.org', '93374-7') "concept-code";
   src.subject as subj -> tgt.subject = subj "carry-subject";
-  src.effective as eff -> tgt.effective = eff "carry-effective";
+  // effective[x] is dateTime or Period on every source profile and on the
+  // concept profile, so the copy is typed once per allowed type: an untyped
+  // copy of a choice element leaves the target type unresolvable.
+  src.effective : dateTime as eff -> tgt.effective = eff "carry-effective-datetime";
+  src.effective : Period as eff -> tgt.effective = eff "carry-effective-period";
   src -> tgt.derivedFrom = reference(src) "derived-from";
   src -> tgt.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'survey') "cat-survey";
   src -> tgt.category = cc('http://thespierproject.org/fhir/CodeSystem/spier-concept-domain', 'suicide-risk') "cat-domain";
