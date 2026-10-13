@@ -363,7 +363,7 @@ Profile: SPiEREncounter
 Parent: Encounter
 Id: spier-encounter
 Title: "SPiER Encounter"
-Description: "A contact during which suicide-safer care happened. Artifacts reference it through their native `.encounter` element and it references the episode, so one episode's record is assembled with standard search parameters. Instances SHOULD carry `meta.tag = SPiERPathwayStage#<stage>` where the contact maps to a single pathway stage."
+Description: "A contact during which suicide-safer care happened. Artifacts reference it through their native `.encounter` element and it references the episode, so one episode's record is assembled with standard search parameters. Instances SHOULD carry that stage's `SPiERPathwayStage` code in `meta.tag` where the contact maps to a single pathway stage."
 * ^status = #draft
 * ^experimental = true
 * status 1..1
