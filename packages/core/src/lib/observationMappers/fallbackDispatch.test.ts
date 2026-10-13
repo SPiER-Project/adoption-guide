@@ -5,6 +5,8 @@ import { deriveFromResponse } from '@spier/core/lib/deriveFromResponse'
 import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 import bhpCssrs from './__fixtures__/bhp-cssrs-example.json'
 import bhpPhq9 from './__fixtures__/bhp-phq9-example.json'
+import nlmPhq9Positive from './__fixtures__/nlm-phq9-qr-17746.json'
+import nlmPhq9WithDifficulty from './__fixtures__/nlm-phq9-qr-17653.json'
 
 // SPiER PHQ-9 answer-option ordinals (ig/input/resources/questionnaires/PHQ-9/phq9-questionnaire.json).
 const LA = { 0: 'LA6568-5', 1: 'LA6569-3', 2: 'LA6570-1', 3: 'LA6571-9' } as const
@@ -239,6 +241,67 @@ describe('fallback dispatch — the US Behavioral Health Profiles IG examples', 
     qr.item?.forEach((it, i) => { it.linkId = `question-${i + 1}` })
     expect(recognizeInstrument(qr)).toBeNull()
     expect(mapResponseToObservations(qr)).toBeNull()
+  })
+})
+
+/**
+ * Real PHQ-9 responses from a second producer: NLM's LHC-Forms demo server
+ * (2019). See `__fixtures__/README.md`. They differ from the BHP example in the
+ * ways a fallback can trip on — `questionnaire` is a server-local reference, the
+ * reported total is a `valueQuantity`, qr-17653 carries the unscored difficulty
+ * item — and, unlike it, both endorse item 9.
+ */
+describe('fallback dispatch — the NLM LHC-Forms PHQ-9 responses', () => {
+  const ORDINAL: Record<string, number> = Object.fromEntries(Object.entries(LA).map(([n, code]) => [code, Number(n)]))
+  /** The nine item scores, read from the fixture's own answers in SPiER's q1..q9 order. */
+  const scoresOf = (qr: QuestionnaireResponseResource) =>
+    ITEM_LOINC.map(code => ORDINAL[qr.item!.find(i => i.linkId === `/${code}`)!.answer![0].valueCoding!.code!])
+  /**
+   * The total the NLM form itself reported in item 44261-6. SPiER's answer type
+   * has no `valueQuantity` because nothing in SPiER reads one — so this reads
+   * the fixture's raw shape rather than widening that type for a test.
+   */
+  const reportedTotalOf = (qr: QuestionnaireResponseResource) =>
+    (qr.item!.find(i => i.linkId === '/44261-6')!.answer![0] as { valueQuantity?: { value?: number } })
+      .valueQuantity?.value
+
+  const cases = [
+    { name: 'qr-17746', qr: nlmPhq9Positive as unknown as QuestionnaireResponseResource, total: 15 },
+    { name: 'qr-17653 (with the difficulty item)', qr: nlmPhq9WithDifficulty as unknown as QuestionnaireResponseResource, total: 8 },
+  ]
+
+  it.each(cases)('$name points `questionnaire` at a server-local reference, so Tier 1 cannot fire', ({ qr }) => {
+    expect(qr.questionnaire).toBe('Questionnaire/44249-1-x')
+    expect(recognizeInstrument(qr)?.confidence).toBe('code')
+  })
+
+  it.each(cases)('$name scores to the total its own form reported ($total)', ({ qr, total }) => {
+    const result = mapResponseToObservations(qr)!
+    expect(result.dispatch?.via).toBe('code')
+    expect(result.dispatch?.recognizedCanonical).toBe('http://thespierproject.org/fhir/Questionnaire/PHQ-9')
+    // SPiER derives the total from the nine items and never reads 44261-6, so
+    // agreeing with NLM's reported value is a real check, not an echo.
+    expect(reportedTotalOf(qr)).toBe(total)
+    expect(totalOf(result)).toBe(total)
+  })
+
+  it.each(cases)('$name endorses item 9 and raises the same alert SPiER\'s own form would', ({ qr }) => {
+    const foreign = mapResponseToObservations(qr)!
+    const native = mapResponseToObservations(nativeQr(scoresOf(qr)))!
+    expect(scoresOf(qr)[8]).toBeGreaterThan(0)
+    expect(item9InterpOf(foreign)).toBe('A')
+    expect(item9InterpOf(foreign)).toBe(item9InterpOf(native))
+    expect(foreign.riskAlert.level).toBe(native.riskAlert.level)
+    expect(foreign.riskAlert.summary).toBe(native.riskAlert.summary)
+  })
+
+  it('normalizes qr-17653 onto the nine scored items, leaving its reported total and difficulty answer behind', () => {
+    const sig = INSTRUMENT_SIGNATURES.find(s => s.spierCanonical.endsWith('/PHQ-9'))!
+    const qr = nlmPhq9WithDifficulty as unknown as QuestionnaireResponseResource
+    expect(qr.item?.map(i => i.linkId)).toContain('/69722-7')
+    const normalized = normalizeToSpierQr(qr, sig)!
+    expect(normalized).not.toBeNull()
+    expect(normalized.item?.map(i => i.linkId)).toEqual(['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8', 'q9'])
   })
 })
 
