@@ -320,7 +320,10 @@ resource's publisher validation entirely (structure is still checked by
 three things deleted together when the server updates — see
 [`docs/scheduled-checks-triage.md`](../scheduled-checks-triage.md) § Cause 1b.
 Also: every non-blank line in `ignoreWarnings.txt`, comments included, is
-listed on qa.html with a use count, so keep it short. A resource under
+listed on qa.html with a use count, so keep it short. Every entry is the
+**exact** message text, never a pattern, so it cannot hide anything else; the
+one entry today is the NowMattersNow PDF link on the pathway PlanDefinition,
+a false positive of the `url` datatype check (the file says why). A resource under
 `path-resource` with no `id` is now a gate failure rather than a page the
 publisher names unpredictably (the Stanley-Brown Questionnaire had none).
 
