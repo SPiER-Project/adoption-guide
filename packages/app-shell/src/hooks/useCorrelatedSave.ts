@@ -25,6 +25,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { makeId } from '@spier/core/lib/id'
 import { toDataSourceFailure, type DataSourceFailure } from '@spier/core/lib/dataSource/failure'
 import { deriveFromResponse } from '@spier/core/lib/deriveFromResponse'
+import { camsDispositionResolved, resolveCamsDrivers } from '@spier/core/lib/camsDriverResolution'
 import {
   buildEpisode,
   findOpenEpisode,
@@ -207,6 +208,20 @@ export function useCorrelatedSave({
             : null
           await activeSource.saveResponse(sliceKey, stampedEntry, stampedDerived)
 
+          // A CAMS Outcome/Disposition that records the episode as `resolved`
+          // resolves every active CAMS driver on the chart, dated at the form.
+          // ⚠️ NOT CLINICALLY REVIEWED — a clinician must review this rule
+          // before it is made available externally; see camsDriverResolution.ts
+          // and docs/decisions/cams-driver-resolution.md. Each driver is updated
+          // in place (it keeps the Encounter it was recorded at), and before the
+          // episode logic below, which returns early for anything but a screen.
+          if (stampedDerived && camsDispositionResolved(stampedDerived.observations)) {
+            const resolvedAt = entry.resource.authored ?? entry.completedAt
+            for (const driver of resolveCamsDrivers(slice.conditions ?? [], resolvedAt)) {
+              await activeSource.saveArtifact(sliceKey, driver)
+            }
+          }
+
           // Decision 1 (#263): a positive screen opens the episode, and the
           // episode names the screen that opened it. Only when none is already
           // open — a second positive screen belongs to the episode already
@@ -230,7 +245,7 @@ export function useCorrelatedSave({
         })(),
       )
     },
-    [activeSource, ensureEncounter, saveAgainstEncounter, slice.episodes, sliceKey, trackSave],
+    [activeSource, ensureEncounter, saveAgainstEncounter, slice.conditions, slice.episodes, sliceKey, trackSave],
   )
 
   // Generic adder for non-Questionnaire workflow artifacts. The source routes

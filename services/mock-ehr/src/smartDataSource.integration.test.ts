@@ -23,6 +23,7 @@ import Client from 'fhirclient/Client'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { SmartDataSource } from '@spier/core/lib/dataSource/smartDataSource'
 import { deriveFromResponse } from '@spier/core/lib/deriveFromResponse'
+import { resolveCamsDrivers } from '@spier/core/lib/camsDriverResolution'
 import { POPULATION_SCENARIOS } from '@spier/demo-population'
 import type { QuestionnaireResponseResource, StoredResponse } from '@spier/core/types/fhir'
 import CAMS_SECTION_B_EXAMPLE from '@spier/fhir-artifacts/generated/QuestionnaireResponse-ExampleCAMSSectionBResponse.json'
@@ -560,6 +561,25 @@ describe('CAMS Section B drivers against the mock EHR', () => {
     const slice = await source.getSlice('patient-011')
     expect(slice.conditions?.map(c => c.resourceType)).toEqual(derived.conditions.map(() => 'Condition'))
     expect(slice.observations.some(o => (o.resourceType as string) === 'Condition')).toBe(false)
+  })
+
+  it('full: resolving a driver UPDATES the server\'s copy — no second, active twin', async () => {
+    // ⚠️ The rule is NOT clinically reviewed — docs/decisions/cams-driver-resolution.md.
+    // What is held here is the write: the read-back driver carries the SERVER'S
+    // id, so the update is a PUT to it, and a create would leave the old active
+    // copy on the problem list beside a resolved one.
+    const { store, source } = await submitCamsB('full')
+    const before = await source.getSlice('patient-011')
+    const resolved = resolveCamsDrivers(before.conditions ?? [], '2026-10-12T09:00:00Z')
+    expect(resolved.length).toBe(before.conditions?.length)
+    for (const driver of resolved) await source.saveArtifact('patient-011', driver)
+
+    const written = (await store.state.list()).filter(w => w.resource.resourceType === 'Condition')
+    expect(written).toHaveLength(resolved.length)
+    const after = await source.getSlice('patient-011')
+    expect(
+      after.conditions?.map(c => (c as { clinicalStatus?: { coding?: { code?: string }[] } }).clinicalStatus?.coding?.[0]?.code),
+    ).toEqual(resolved.map(() => 'resolved'))
   })
 
   it('no-observation: a server without Condition create skips them, and the floor carries the form', async () => {

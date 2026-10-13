@@ -94,7 +94,12 @@ export function creatableTypes(profile: CapabilityProfile): string[] {
  */
 export function updatableTypes(profile: CapabilityProfile): string[] {
   if (profile === 'read-only') return []
-  return [...LIFECYCLE_RESOURCE_TYPES]
+  // A Condition this server accepted can also be UPDATED — a CAMS driver is
+  // resolved in place at the disposition session (camsDriverResolution.ts in
+  // core). Tied to the profile's create: a server that would not take the
+  // driver has none to update, and a PUT there should be refused the same way.
+  const conditions = CREATABLE[profile].includes('Condition') ? ['Condition'] : []
+  return [...LIFECYCLE_RESOURCE_TYPES, ...conditions]
 }
 
 /**

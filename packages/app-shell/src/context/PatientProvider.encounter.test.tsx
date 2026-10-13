@@ -27,6 +27,8 @@ import { LocalDataSource, resetLocalDemoData } from '../lib/dataSource/localData
 import { ENCOUNTER_PROFILE } from '@spier/core/lib/encounters'
 import { TRIGGER_EXT } from '@spier/core/lib/riskEpisode'
 import type { FhirResource, QuestionnaireResponseResource } from '@spier/core/types/fhir'
+import CAMS_SECTION_B from '@spier/fhir-artifacts/generated/QuestionnaireResponse-ExampleCAMSSectionBResponse.json'
+import CAMS_DISPOSITION from '@spier/fhir-artifacts/generated/QuestionnaireResponse-ExampleCAMSOutcomeDispositionResponse.json'
 
 const SMART_STUB = {
   client: null,
@@ -386,3 +388,63 @@ describe('the rest of the correlation funnel', () => {
 function patient011() {
   return source.getSliceSync('patient-011')
 }
+
+/**
+ * CAMS drivers resolved at the disposition session, through the real save path.
+ *
+ * ⚠️ The rule is NOT clinically reviewed — docs/decisions/cams-driver-resolution.md.
+ * What is held here is that the save hook applies it, to the drivers on THIS
+ * chart, updating them in place rather than adding a second copy.
+ */
+describe('a resolved CAMS disposition resolves the drivers', () => {
+  beforeEach(freshSource)
+
+  const statuses = () =>
+    (slice().conditions ?? []).map(
+      c => (c as { clinicalStatus?: { coding?: { code?: string }[] } }).clinicalStatus?.coding?.[0]?.code,
+    )
+
+  it('marks every driver Section B recorded resolved, in place, when the disposition is saved', async () => {
+    const { submit } = await mount()
+
+    submit({ ...CAMS_SECTION_B } as QuestionnaireResponseResource)
+    await waitFor(() => expect(slice().conditions?.length ?? 0).toBeGreaterThan(0))
+    const recorded = slice().conditions!.length
+    expect(statuses().every(s => s === 'active')).toBe(true)
+
+    submit({ ...CAMS_DISPOSITION } as QuestionnaireResponseResource)
+    await waitFor(() => expect(statuses().every(s => s === 'resolved')).toBe(true))
+    // Updated, not appended: the problem list did not grow a resolved twin.
+    expect(slice().conditions!.length).toBe(recorded)
+    for (const c of slice().conditions!) {
+      expect((c as { abatementDateTime?: string }).abatementDateTime).toBe(CAMS_DISPOSITION.authored)
+    }
+  })
+
+  it('leaves the drivers active when the disposition is anything but resolved', async () => {
+    const { submit } = await mount()
+    submit({ ...CAMS_SECTION_B } as QuestionnaireResponseResource)
+    await waitFor(() => expect(slice().conditions?.length ?? 0).toBeGreaterThan(0))
+
+    const continuing = JSON.parse(JSON.stringify(CAMS_DISPOSITION)) as QuestionnaireResponseResource
+    const walk = (items: NonNullable<QuestionnaireResponseResource['item']>) => {
+      for (const item of items) {
+        if (item.linkId === 'disposition' && item.answer?.[0]?.valueCoding) {
+          item.answer[0].valueCoding = {
+            system: 'http://thespierproject.org/fhir/CodeSystem/cams-disposition',
+            code: 'continue-cams',
+            display: 'Continue CAMS outpatient care',
+          }
+        }
+        walk(item.item ?? [])
+      }
+    }
+    walk(continuing.item ?? [])
+    const responsesBefore = slice().responses.length
+    submit(continuing)
+    await waitFor(() => expect(slice().responses.length).toBe(responsesBefore + 1))
+    await act(async () => {})
+    expect(statuses().every(s => s === 'active')).toBe(true)
+  })
+})
+
