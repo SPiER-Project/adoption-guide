@@ -21,8 +21,8 @@ map "http://thespierproject.org/fhir/StructureMap/ASQResultToSuicideRiskConcept"
 // Adopters SHALL validate them against their own clinical protocols before
 // using the harmonized tier to drive care decisions.
 
-uses "http://hl7.org/fhir/StructureDefinition/Observation" alias ASQResult as source
-uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Concept as target
+uses "http://thespierproject.org/fhir/StructureDefinition/spier-asq-result" alias ASQResult as source
+uses "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-concept" alias Concept as target
 
 // ─── Implementation notes (not published — see README.md) ────────────
 //
@@ -57,10 +57,11 @@ group asqResultToConcept(source src : ASQResult, target tgt : Concept) {
   src -> tgt.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'survey') "cat-survey";
   src -> tgt.category = cc('http://thespierproject.org/fhir/CodeSystem/spier-concept-domain', 'suicide-risk') "cat-domain";
 
-  // --- value: translate the ASQ disposition coding to the common tier coding ---
-  src.value : CodeableConcept as disp -> tgt.value = create('CodeableConcept') as tier then {
-    disp.coding as dc -> tier.coding = translate(dc, 'http://thespierproject.org/fhir/ConceptMap/ASQDispositionToRiskTier', 'Coding') "translate-tier";
-  } "map-value";
+  // --- value: translate the ASQ disposition to the common tier ---
+  // The whole CodeableConcept, not its coding: the profiles bind value[x]
+  // `required`, a Coding inside it carries no binding of its own, and the
+  // publisher can only check the ConceptMap against bound elements.
+  src.value : CodeableConcept as disp -> tgt.value = translate(disp, 'http://thespierproject.org/fhir/ConceptMap/ASQDispositionToRiskTier', 'CodeableConcept') "map-value";
 
   // --- interpretation: NEG for a negative disposition, POS otherwise ---
   src.value : CodeableConcept as disp where (coding.code = 'negative') ->

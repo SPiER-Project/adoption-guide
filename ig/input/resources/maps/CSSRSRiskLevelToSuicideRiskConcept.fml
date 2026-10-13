@@ -16,8 +16,8 @@ map "http://thespierproject.org/fhir/StructureMap/CSSRSRiskLevelToSuicideRiskCon
 // Adopters SHALL validate them against their own clinical protocols before
 // using the harmonized tier to drive care decisions.
 
-uses "http://hl7.org/fhir/StructureDefinition/Observation" alias CSSRSRiskLevel as source
-uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Concept as target
+uses "http://thespierproject.org/fhir/StructureDefinition/spier-cssrs-risk-level" alias CSSRSRiskLevel as source
+uses "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-concept" alias Concept as target
 
 // ─── Implementation notes (not published — see README.md) ────────────
 //
@@ -46,10 +46,11 @@ group cssrsRiskLevelToConcept(source src : CSSRSRiskLevel, target tgt : Concept)
   src -> tgt.category = cc('http://terminology.hl7.org/CodeSystem/observation-category', 'survey') "cat-survey";
   src -> tgt.category = cc('http://thespierproject.org/fhir/CodeSystem/spier-concept-domain', 'suicide-risk') "cat-domain";
 
-  // --- value: translate the C-SSRS risk-level coding to the common tier coding ---
-  src.value : CodeableConcept as level -> tgt.value = create('CodeableConcept') as tier then {
-    level.coding as lc -> tier.coding = translate(lc, 'http://thespierproject.org/fhir/ConceptMap/CSSRSRiskLevelToRiskTier', 'Coding') "translate-tier";
-  } "map-value";
+  // --- value: translate the C-SSRS risk level to the common tier ---
+  // The whole CodeableConcept, not its coding: the profiles bind value[x]
+  // `required`, a Coding inside it carries no binding of its own, and the
+  // publisher can only check the ConceptMap against bound elements.
+  src.value : CodeableConcept as level -> tgt.value = translate(level, 'http://thespierproject.org/fhir/ConceptMap/CSSRSRiskLevelToRiskTier', 'CodeableConcept') "map-value";
 
   // --- interpretation: NEG for a 'none' risk level, POS otherwise ---
   src.value : CodeableConcept as level where (coding.code = 'none') ->

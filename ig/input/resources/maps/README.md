@@ -46,6 +46,15 @@ because SUSHI never sees them.
   published IG — everything between the `map` line and the first `uses`. Write
   it for an implementer reading the IG. Repo mechanics go in an
   "Implementation notes" block *after* the `uses` lines, which is not published.
+- **A map that `translate()`s declares the SPiER profiles in `uses`, not base
+  `Observation`, AND translates the bound element itself.** The IG Publisher
+  checks a ConceptMap only against a `required` binding on the source and
+  target variables. Base `Observation.value[x]` has none, and inside a profile
+  that binds `value[x]` the `Coding`s under it still have none. So
+  `translate(value, …, 'CodeableConcept')`, never `translate(value.coding, …,
+  'Coding')`. The ASQ and C-SSRS maps did both of the wrong things until
+  2026-10-13 and drew two "does not have a required binding, so this concept
+  map can't be checked" warnings each; fixing `uses` alone left all four.
 - **Do not `imports` a ConceptMap.** `StructureMap.import` is
   `canonical(StructureMap)`; `translate()` resolves the ConceptMap from its own
   argument.
