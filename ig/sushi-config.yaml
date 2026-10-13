@@ -80,6 +80,16 @@ parameters:
   apply-contact: true
   apply-jurisdiction: true
   apply-publisher: true
+  # Pin an unversioned canonical to the latest loaded version, but only when
+  # more than one version is loaded. US Core 9.0.0 brings in
+  # smart-app-launch 2.2.0, which depends on the R5-era hl7.terminology 5.5.0,
+  # so several THO ValueSets and CodeSystems arrive twice (beside
+  # hl7.terminology.r4). The publisher already picked the latest and warned
+  # that it had to guess: five "multiple different potential matches"
+  # warnings, two of them on CQL-generated Library relatedArtifacts that no
+  # FSH can pin by hand. This makes that choice explicit in the published
+  # resources. It changes no binding's meaning, only states its version.
+  pin-canonicals: pin-multiples
   # FHIR Mapping Language sources. SUSHI does not compile .fml — the IG
   # Publisher does, but only for folders it is told to scan, and the default
   # scan of input/resources does not recurse into subfolders. Naming the
