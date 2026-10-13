@@ -48,6 +48,15 @@ patient. What it cannot see:
 - **scoring.** It compares population membership; how exclusions and exceptions
   combine into a score lives only in `evaluateMeasure` (below).
 
+⚠️ **The CQL reads a FHIR primitive's `.value`; it does not compare the primitive.**
+`A.status = 'fulfilled'` makes the translator insert a FHIRHelpers `ToString`
+overload, one per FHIR type, and the publisher's Measure narrative anchors
+functions by name, so two overloads put one anchor on a page twice. That was
+14 warnings across the 7 Measure pages until 2026-10-13.
+`tests/measureFhirHelpersOverloads.test.ts` reads the translated ELM, where the
+implicit calls are visible, and fails a second overload of any FHIRHelpers
+function.
+
 It needs the IG's `fhir.cqf.common` package in `~/.fhir/packages` (FHIRHelpers
 and the FHIR model info), which SUSHI downloads — run `npm run copy-fhir` first.
 A missing package fails the test; it never skips.
