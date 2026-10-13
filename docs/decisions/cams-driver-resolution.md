@@ -5,6 +5,9 @@
 > so the hosted demo applies it in the meantime. That
 > availability is a demo of the mechanism. It is not a claim that the rule is
 > clinically right, and this record must not be cited as if it were.
+>
+> The review is tracked as
+> [SPiER-Project/adoption-guide#675](https://github.com/SPiER-Project/adoption-guide/issues/675).
 
 ## The rule
 
@@ -61,6 +64,7 @@ The builder is `packages/core/src/lib/camsDriverResolution.ts`; the save hook in
 
 ## What would reopen it
 
-A clinical review that answers the questions above. If the rule changes, add a
+A clinical review that answers the questions above
+([#675](https://github.com/SPiER-Project/adoption-guide/issues/675)). If the rule changes, add a
 dated note at the top of this record rather than rewriting it (see the
 [README](README.md)).
