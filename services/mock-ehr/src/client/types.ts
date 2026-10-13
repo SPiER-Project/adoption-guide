@@ -31,3 +31,17 @@ export interface SettingsClientConfig {
   defaultPanelWidth: number
   panelWidthKey: string
 }
+
+/**
+ * One line of the chart's problem list, as `/_admin/problems` returns it and
+ * the chart's client module draws it. The fields of the server's `ChartEntry`
+ * the line shows — `tone` is one of the host's status tones.
+ */
+export interface ProblemLine {
+  title: string
+  detail?: string
+  when: string
+  status?: string
+  tone: 'critical' | 'warning' | 'notice' | 'info'
+}
+

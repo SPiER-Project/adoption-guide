@@ -6,6 +6,7 @@
 import { heldResourcesAsOf, type MockResource } from './fixtures'
 import { storeFor } from './store'
 import { envOf, type Env } from './env'
+import { applySearch } from './search'
 
 export const FHIR_JSON = 'application/fhir+json'
 
@@ -71,5 +72,18 @@ export function searchset(resources: MockResource[], base: string) {
       search: { mode: 'match' },
     })),
   }
+}
+
+/**
+ * One patient's Conditions as this server SERVES them — the bundled record
+ * plus anything the panel saved — through the FHIR API's own search, so the
+ * chart, its live refresh and the app cannot disagree about whose they are.
+ *
+ * Read by the chart page when it renders and by `/_admin/problems`, which the
+ * chart polls while the panel is open. See chartRecord.ts on why the problem
+ * list is the one part of the chart that reads writes at all.
+ */
+export async function servedConditionsFor(c: { env?: Env }, patientId: string): Promise<MockResource[]> {
+  return applySearch(await servableFor(c), 'Condition', { patientIds: [patientId] })
 }
 

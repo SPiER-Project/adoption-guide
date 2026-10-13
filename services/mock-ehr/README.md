@@ -144,7 +144,7 @@ reads them to learn how to authorize at all.
 | Route | |
 |---|---|
 | `GET /` | **the front door** — "Start here" (three named charts with a reason and a thing to notice), the host's patient list with a one-line story per chart, then SPiER's caseload summary embedded as a hosted activity, then a closed "About this demo" drawer holding every caveat |
-| `GET /chart/{id}` | one chart: host banner, the **launch** front and centre, CDS Hooks cards, the panel **in an iframe**, and a closed "Under the hood" drawer holding the evidence (CDS endpoint, the SMART launch context the host minted, write log, FHIRcast). The chart body is drawn from the bundled record — except **Problems**, which also lists the Conditions the panel saved (CAMS Section B's drivers): reload after a save to see them |
+| `GET /chart/{id}` | one chart: host banner, the **launch** front and centre, CDS Hooks cards, the panel **in an iframe**, and a closed "Under the hood" drawer holding the evidence (CDS endpoint, the SMART launch context the host minted, write log, FHIRcast). The chart body is drawn from the bundled record — except **Problems**, which also lists the Conditions the panel saved (CAMS Section B's drivers) and refreshes in place while the panel is open, no reload needed |
 | `GET /settings` | the operator's bench — capability switch, panel-width preference, top-level launch, FHIR base |
 | `GET /chart` | 301 to `/` (this URL was the list before the list became the front door) |
 

@@ -18,8 +18,7 @@ import { FAVICON_SVG } from '../hostChrome'
 import { authRequired } from '../smart'
 import { CDS_SERVICE_PATH, cdsOriginFor, envOf, panelBaseFor, type AppEnv } from '../env'
 import { liveProfile } from '../profile'
-import { fhirBase, servableFor } from '../fhirResponses'
-import { applySearch } from '../search'
+import { fhirBase, servedConditionsFor } from '../fhirResponses'
 import { clientScriptUrl, serveClientScript } from '../clientAssets'
 
 export const pageRoutes = new Hono<AppEnv>()
@@ -99,10 +98,8 @@ pageRoutes.get('/chart/:patientId', async (c) => {
     // demonstrate nothing.
     otherPatients: DEMO_PATIENTS.filter(p => p.id !== patient.id),
     scriptUrl: clientScriptUrl('chart'),
-    // The problem list reads what this server SERVES — the bundled record plus
-    // anything the panel saved — through the FHIR API's own search, so the chart
-    // and the app cannot disagree about which Conditions are this patient's.
-    conditions: applySearch(await servableFor(c), 'Condition', { patientIds: [patient.id] }),
+    // The problem list reads what this server SERVES — see servedConditionsFor.
+    conditions: await servedConditionsFor(c, patient.id),
   }))
 })
 

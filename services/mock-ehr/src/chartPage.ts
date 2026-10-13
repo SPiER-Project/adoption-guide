@@ -938,7 +938,11 @@ export function patientChartPage(
   // ⚠️ The EMPTY columns are dropped here rather than rendered blank. See the
   // note on `.chart-body__cols--single`: a two-track grid with nothing in its
   // second track reads as a column that failed to load.
-  const columns = [record.main, record.side].filter(sections => sections.length > 0)
+  // Named, because the client module needs to find the SIDE column to put a
+  // newly saved problem in — and which column survived the filter is not
+  // something it could otherwise tell.
+  const columns = ([['main', record.main], ['side', record.side]] as const)
+    .filter(([, sections]) => sections.length > 0)
   const tiles = record.results.map(result => `
         <li class="tile tile--${esc(result.tone)}">
           <p class="label">${esc(result.label)}</p>
@@ -1034,13 +1038,18 @@ export function patientChartPage(
            An empty COLUMN goes the same way, and so does the whole block: a
            patient with nothing on file gets nothing here rather than a grid of
            blank panels. -->
-      ${columns.length > 0
+      <!-- ⚠️ The anchor is ALWAYS rendered, even empty. The problem list
+           refreshes live (client/chart.ts), and the first problem saved on a
+           chart with no side column — or no chart body at all — has to be put
+           somewhere; it builds the column there rather than the server
+           rendering an empty one. -->
+      <div id="chart-body-anchor">${columns.length > 0
     ? `<div class="chart-body">
         <div class="chart-body__cols${columns.length === 1 ? ' chart-body__cols--single' : ''}">
-          ${columns.map(sections => `<div class="chart-body__col">${sections.map(chartSection).join('')}</div>`).join('')}
+          ${columns.map(([name, sections]) => `<div class="chart-body__col" data-col="${name}">${sections.map(chartSection).join('')}</div>`).join('')}
         </div>
       </div>`
-    : ''}
+    : ''}</div>
 
       <!-- ⚠️ Everything below is EVIDENCE, and it used to sit inline at the
            same weight as the launch button — the endpoint that was called, the

@@ -660,25 +660,25 @@ describe('the chart body is the record, in two columns', () => {
   })
 })
 
-describe('the problem list', () => {
-  /**
-   * The drivers a clinician records in CAMS Section B, built by the REAL mapper
-   * from the IG's example response — so a change to what the app writes is a
-   * change to what this chart is tested against, not a hand-typed lookalike.
-   */
-  function camsDrivers(patientId: string) {
-    const qr = {
-      ...CAMS_SECTION_B_EXAMPLE,
-      id: 'cams-b-chart',
-      subject: { reference: `Patient/${patientId}` },
-    } as QuestionnaireResponseResource
-    const conditions = deriveFromResponse(qr)?.conditions ?? []
-    if (conditions.length === 0) throw new Error('the CAMS Section B example derived no drivers')
-    return conditions
-  }
+/**
+ * The drivers a clinician records in CAMS Section B, built by the REAL mapper
+ * from the IG's example response — so a change to what the app writes is a
+ * change to what this chart is tested against, not a hand-typed lookalike.
+ */
+function camsDriversFor(patientId: string) {
+  const qr = {
+    ...CAMS_SECTION_B_EXAMPLE,
+    id: 'cams-b-chart',
+    subject: { reference: `Patient/${patientId}` },
+  } as QuestionnaireResponseResource
+  const conditions = deriveFromResponse(qr)?.conditions ?? []
+  if (conditions.length === 0) throw new Error('the CAMS Section B example derived no drivers')
+  return conditions
+}
 
+describe('the problem list', () => {
   it('reads a driver in a clinician\'s words: its text, its kind, its date, its status', () => {
-    const [driver] = camsDrivers('patient-011')
+    const [driver] = camsDriversFor('patient-011')
     const [line] = problemsOf([driver!])
     expect(line!.title).toBe((driver!.code as { text: string }).text)
     expect(line!.detail).toMatch(/Suicide Driver/)
@@ -701,7 +701,7 @@ describe('the problem list', () => {
     // and a fixtures-only problem list would never render: the drivers reach
     // this server only through a save.
     const env = fakeStore()
-    const drivers = camsDrivers('patient-011')
+    const drivers = camsDriversFor('patient-011')
     for (const driver of drivers) await env.state.add('patient-011', driver)
 
     const res = await app.request(`${BASE}/chart/patient-011`, {}, env)
@@ -711,6 +711,47 @@ describe('the problem list', () => {
 
     const other = await (await app.request(`${BASE}/chart/patient-004`, {}, env)).text()
     expect(other).not.toContain('id="sect-problems"')
+  })
+})
+
+describe('the problem list, live', () => {
+  // A second copy of the problem list's derivation would be a second answer to
+  // what it says, so the endpoint the chart polls is held to the page's own.
+  it('/_admin/problems returns the lines the page renders, for that patient only', async () => {
+    const env = fakeStore()
+    const drivers = camsDriversFor('patient-011')
+    for (const driver of drivers) await env.state.add('patient-011', driver)
+
+    const res = await app.request(`${BASE}/_admin/problems?patient=patient-011`, {}, env)
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as { problems: Array<{ title: string; status?: string }> }
+    expect(body.problems.map(p => p.title)).toEqual(problemsOf(drivers).map(e => e.title))
+    expect(body.problems.every(p => p.status === 'active')).toBe(true)
+
+    const other = (await (await app.request(`${BASE}/_admin/problems?patient=patient-004`, {}, env)).json()) as { problems: unknown[] }
+    expect(other.problems).toEqual([])
+  })
+
+  it('answers with no store bound, rather than failing the refresh on a read-only deployment', async () => {
+    const res = await app.request(`${BASE}/_admin/problems?patient=patient-011`)
+    expect(res.status).toBe(200)
+    expect(((await res.json()) as { problems: unknown[] }).problems).toEqual([])
+  })
+
+  it('renders a place for the first problem on EVERY chart, and names its columns', async () => {
+    // patient-004's record is bare and patient-014's has no side column — the
+    // two charts where a newly saved problem would otherwise have nowhere to go.
+    for (const id of ['patient-004', 'patient-011', 'patient-014']) {
+      const { body } = await html(`/chart/${id}`)
+      expect(body, id).toContain('id="chart-body-anchor"')
+    }
+    expect((await html('/chart/patient-011')).body).toContain('data-col="side"')
+    expect((await html('/chart/patient-014')).body).toContain('data-col="main"')
+  })
+
+  it('polls the problem list from the chart module', async () => {
+    const js = await clientModule('/chart/patient-011')
+    expect(js).toContain('/_admin/problems?patient=')
   })
 })
 
