@@ -11,6 +11,9 @@ import {
   isCapabilityProfile,
 } from '../capability'
 import { RESOURCES_BY_KEY } from '../fixtures'
+import { problemsOf } from '../chartRecord'
+import { servedConditionsFor } from '../fhirResponses'
+import type { ProblemLine } from '../client/types'
 import { storeFor } from '../store'
 import { mintLaunch } from '../smart'
 import { envOf, panelBaseFor, type AppEnv } from '../env'
@@ -177,6 +180,31 @@ adminRoutes.get('/_admin/writes', async (c) => {
       id: w.resource.id,
     })),
   })
+})
+
+/**
+ * One chart's problem list, as the chart draws it — what the chart page polls
+ * while the panel is open, so a CAMS driver the clinician just saved (or just
+ * resolved) appears without a reload.
+ *
+ * The same lines the page rendered: `problemsOf` over `servedConditionsFor`,
+ * the two calls the page route makes. A second derivation here would be a
+ * second answer to what the problem list says.
+ *
+ * ⚠️ Works with no store bound, unlike `/_admin/writes`: the bundled record
+ * alone is still a problem list (an empty one today), and a 503 would make the
+ * chart's refresh fail on a deployment that is merely read-only.
+ */
+adminRoutes.get('/_admin/problems', async (c) => {
+  const patient = c.req.query('patient') ?? ''
+  const problems: ProblemLine[] = problemsOf(await servedConditionsFor(c, patient)).map(entry => ({
+    title: entry.title,
+    ...(entry.detail ? { detail: entry.detail } : {}),
+    when: entry.when,
+    ...(entry.status ? { status: entry.status } : {}),
+    tone: entry.tone,
+  }))
+  return c.json({ patient, problems })
 })
 
 /**

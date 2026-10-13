@@ -10,7 +10,8 @@
  */
 import { errorText, must, readConfig, renderInline } from './config'
 import { rankCards } from './cdsRanking'
-import type { ChartClientConfig } from './types'
+import { renderProblems } from './problems'
+import type { ChartClientConfig, ProblemLine } from './types'
 
 const config = readConfig<ChartClientConfig>()
 const PATIENT = config.patient.id
@@ -334,8 +335,21 @@ function refreshWrittenSince(): Promise<void> {
     .catch(() => { out.hidden = true })
 }
 
+/**
+ * The problem list, re-read from the server and patched in place — see
+ * problems.ts. Failure is silence, like the line above: the section the page
+ * rendered stays as it was, which is the chart as of load and never wrong about
+ * anything but recency.
+ */
+function refreshProblems(): Promise<void> {
+  return fetch('/_admin/problems?patient=' + encodeURIComponent(PATIENT))
+    .then(res => (res.ok ? (res.json() as Promise<{ problems: ProblemLine[] }>) : null))
+    .then((body) => { if (body) renderProblems(body.problems) })
+    .catch(() => {})
+}
+
 function refreshAllWrites(): Promise<unknown> {
-  return Promise.all([refreshWrites(), refreshWrittenSince()])
+  return Promise.all([refreshWrites(), refreshWrittenSince(), refreshProblems()])
 }
 void refreshAllWrites()
 // The panel writes on submit, inside a cross-origin frame we cannot observe,

@@ -38,8 +38,9 @@
  * — CAMS Section B's suicide drivers — so the page route collects this
  * patient's Conditions from what the server SERVES (fixtures plus writes, the
  * same search the FHIR API answers) and passes them in. One store read per
- * chart render, on a route that was already async. Reload the chart after a
- * save and the drivers are on it.
+ * chart render, on a route that was already async. While the panel is open the
+ * chart keeps it current without a reload: `client/problems.ts` polls
+ * `/_admin/problems`, which returns these same lines.
  */
 import { CONCEPT_DOMAIN_SYSTEM } from '@spier/core/lib/conceptDomain'
 import { heldResourcesAsOf, type MockResource } from './fixtures'
