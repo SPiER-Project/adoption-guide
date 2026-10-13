@@ -5,7 +5,18 @@
 # an error, and lists every non-blank line here (comments included) with a use
 # count on qa.html. Keep it minimal; document every entry.
 #
-# Empty on purpose. The two patterns that used to live here hid every unresolved
-# `http://thespierproject.org/fhir/Questionnaire/*` canonical; since #473 the
-# Questionnaires are IG artifacts (input/resources/questionnaires, a symlink to
-# ig/input/resources/questionnaires/, named in sushi-config.yaml) and those canonicals resolve.
+# Every entry is the EXACT message text — no wildcards — so it cannot hide any
+# other message. Two patterns that used to live here hid every unresolved
+# `http://thespierproject.org/fhir/Questionnaire/*` canonical, real defects
+# included; since #473 the Questionnaires are IG artifacts and those canonicals
+# resolve. Do not add a pattern that matches more than the one thing it is for.
+
+# The pathway PlanDefinition's three "Emotional Fire Safety Plan" documentation
+# links (Document Safety Actions, every tier). RelatedArtifact.url is the FHIR
+# element for a link to web content, and this one is live third-party patient
+# education (HTTP 200, application/pdf, checked 2026-10-13). The validator's
+# check on the `url` datatype expects a FHIR definition at the address, which a
+# PDF on nowmattersnow.org never is, so the warning is a false positive. If the
+# link moves, update it in suicide-safer-care-pathway.fsh AND here: a stale
+# entry shows on qa.html with a use count of 0.
+No definition could be found for URL value 'https://www.nowmattersnow.org/wp-content/uploads/2018/10/0.-NowMattersNow.org-Safety-Plan-Website-Version.pdf'
