@@ -18,7 +18,8 @@ A record keeps its historical wording and dates. If a decision is reversed,
 add a dated note at the top rather than rewriting the record.
 
 * [`behavioral-health-profiles-alignment.md`](behavioral-health-profiles-alignment.md) — same LOINC codes as the HL7 US Behavioral Health Profiles IG, no package dependency on it: the fixtures that prove the alignment and the August 2026 inspection that deferred the dependency.
-* [`cams-driver-resolution.md`](cams-driver-resolution.md) — ⚠️ **not clinically reviewed; must be reviewed by a clinician before it is made available externally.** A `resolved` CAMS disposition resolves every active CAMS driver, and the four open questions for the reviewer.
+* [`cams-driver-resolution.md`](cams-driver-resolution.md) — ⚠️ **not clinically reviewed; must be reviewed by a clinician before it is made available externally**
+([#675](https://github.com/SPiER-Project/adoption-guide/issues/675)). A `resolved` CAMS disposition resolves every active CAMS driver, and the four open questions for the reviewer.
 * [`crosswalk-kinds.md`](crosswalk-kinds.md) — ConceptMap for coded dispositions, StructureMap for values, why the ASQ and C-SSRS carry both, and why no CAMS rating maps to `imminent`.
 * [`domain-category-required.md`](domain-category-required.md) — why the suicide-risk domain slice is `1..1`, additive and orthogonal to the stage axis, and the category-loss defect that shaped the named slices.
 * [`follow-up-artifact-shapes.md`](follow-up-artifact-shapes.md) — one outreach profile for two tools, why a caring contact is a separate profile with no outcome, and why its floor is low.
