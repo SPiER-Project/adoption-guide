@@ -104,6 +104,7 @@ Usage: #example
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#44261-6 "Patient Health Questionnaire 9 item (PHQ-9) total score [Reported]"
 * subject = Reference(Patient/example)
+* performer = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T10:30:00Z"
 * derivedFrom = Reference(ExamplePHQ9Response)
 * valueInteger = 18
@@ -120,6 +121,7 @@ Usage: #example
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#44260-8 "Thoughts that you would be better off dead, or of hurting yourself in some way in last 2 weeks [Reported.PHQ]"
 * subject = Reference(Patient/example)
+* performer = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T10:30:00Z"
 * derivedFrom = Reference(ExamplePHQ9Response)
 * valueInteger = 2

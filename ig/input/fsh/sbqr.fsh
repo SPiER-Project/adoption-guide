@@ -85,6 +85,7 @@ Usage: #example
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://snomed.info/sct#225337009 "Suicide risk assessment (procedure)"
 * subject = Reference(Patient/example)
+* performer = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T10:45:00Z"
 * valueInteger = 9
 * interpretation[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#H "High"

@@ -209,6 +209,7 @@ Usage: #example
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
+* performer = Reference(Practitioner/practitioner-1)
 * effectiveDateTime = "2026-07-15T14:20:00Z"
 * derivedFrom[+] = Reference(ExampleBSSAResponse)
 * valueCodeableConcept = BSSADispositionCodes#further-evaluation-necessary "Further evaluation of risk is necessary"
@@ -223,6 +224,7 @@ Usage: #example
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
+* performer = Reference(Practitioner/practitioner-1)
 * effectiveDateTime = "2026-07-15T14:20:00Z"
 * valueCodeableConcept = BSSADispositionCodes#emergency-psychiatric-evaluation "Emergency psychiatric evaluation"
 
