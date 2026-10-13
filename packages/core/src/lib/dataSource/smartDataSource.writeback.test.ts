@@ -18,7 +18,8 @@ import { describe, it, expect } from 'vitest'
 import { SmartDataSource } from '@spier/core/lib/dataSource/smartDataSource'
 import { deriveFromResponse } from '@spier/core/lib/deriveFromResponse'
 import { nativeQr } from '../observationMappers/__fixtures__/nativeQr'
-import type { StoredResponse, FhirResource } from '@spier/core/types/fhir'
+import type { StoredResponse, FhirResource, QuestionnaireResponseResource } from '@spier/core/types/fhir'
+import CAMS_SECTION_B from '@spier/fhir-artifacts/generated/QuestionnaireResponse-ExampleCAMSSectionBResponse.json'
 
 const CSSRS_SCREENER = 'http://thespierproject.org/fhir/Questionnaire/C-SSRS-Screener'
 const PATIENT = 'smart-pt-1'
@@ -364,6 +365,22 @@ describe('getSlice — a save shows on the chart before the search index catches
     const slice = await source.getSlice(null)
     expect(slice.responses).toHaveLength(1)
     expect(slice.observations.length).toBe(derived?.observations.length)
+  })
+
+  // ⚠️ The drivers' read narrows by a `system|code` token, URL-encoded, and the
+  // merge compared that raw token to a bare code — so a just-saved driver was
+  // never merged in, and the problem list stayed empty until the index caught up.
+  it('includes the CAMS drivers this session wrote, through the category-narrowed read', async () => {
+    const { client } = fakeClient({ search: 'lagging' })
+    const source = new SmartDataSource(client as never)
+    const resource = { ...CAMS_SECTION_B, id: 'client-cams-b' } as QuestionnaireResponseResource
+    const derived = deriveFromResponse(resource)
+    const entry: StoredResponse = { id: 'client-cams-b', questionnaireName: 'CAMS Section B', completedAt: String(resource.authored), resource }
+    await source.saveResponse(PATIENT, entry, derived)
+
+    const slice = await source.getSlice(null)
+    expect(derived?.conditions.length).toBeGreaterThan(0)
+    expect(slice.conditions?.length).toBe(derived?.conditions.length)
   })
 
   it("adds nothing for another patient's chart", async () => {

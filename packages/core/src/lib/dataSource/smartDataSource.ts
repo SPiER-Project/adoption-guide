@@ -289,12 +289,25 @@ function mergeWritten(buckets: SliceBuckets, written: Iterable<FhirResource>, pi
   }
 }
 
-/** Whether a resource would be returned by a read's extra search params (only `category` is used). */
+/**
+ * Whether a resource would be returned by a read's extra search params (only
+ * `category` is used).
+ *
+ * ⚠️ **A token can be `code` or `system|code`, and the second arrives
+ * URL-encoded.** The Observation reads use a bare code; the CAMS-driver read
+ * (#662) uses `system|code`, encoded. Compared raw, that token never equalled a
+ * code, so a just-saved driver was never merged in on a server whose search
+ * lags — the chart showed no problem until the index caught up.
+ */
 function matchesReadFilter(resource: FhirResource, params: string): boolean {
-  const category = /[?&]category=([^&]+)/.exec(params)?.[1]
-  if (!category) return true
-  const categories = (resource as { category?: Array<{ coding?: Array<{ code?: string }> }> }).category ?? []
-  return categories.some(c => c.coding?.some(cd => cd.code === category))
+  const raw = /[?&]category=([^&]+)/.exec(params)?.[1]
+  if (!raw) return true
+  const token = decodeURIComponent(raw)
+  const bar = token.indexOf('|')
+  const system = bar >= 0 ? token.slice(0, bar) : undefined
+  const code = bar >= 0 ? token.slice(bar + 1) : token
+  const categories = (resource as { category?: Array<{ coding?: Array<{ system?: string; code?: string }> }> }).category ?? []
+  return categories.some(c => c.coding?.some(cd => cd.code === code && (system === undefined || cd.system === system)))
 }
 
 function emptyBuckets(): SliceBuckets {
@@ -897,7 +910,15 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
     if (stageId && !alreadyTagged) {
       payload.meta = { ...meta, tag: [...(meta.tag ?? []), { system: PATHWAY_STAGE_SYSTEM, code: stageId }] }
     }
-    if (LIFECYCLE_RESOURCE_TYPES.has(resource.resourceType) && resource.id) {
+    if (resource.resourceType === 'Condition' && resource.id) {
+      // A recorded problem being UPDATED — a CAMS driver resolved at the
+      // disposition session (camsDriverResolution.ts). Unlike a lifecycle type,
+      // it was never written through here: the writeback ladder created it,
+      // and the copy in the slice was READ BACK from the server, so its id is
+      // already the server's. No identifier lookup, and no create on a miss —
+      // a miss would mint a second, active copy of the problem.
+      await this.put({ ...payload, id: resource.id })
+    } else if (LIFECYCLE_RESOURCE_TYPES.has(resource.resourceType) && resource.id) {
       // A lifecycle resource is MUTATED rather than appended — an episode opens
       // then closes, a flag is raised then cleared — so every transition has to
       // land on the one resource rather than leaving the superseded version
