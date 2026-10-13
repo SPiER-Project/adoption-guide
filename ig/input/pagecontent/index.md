@@ -44,3 +44,19 @@ your own clinical protocols before relying on them (see
 [Harmonization status](conformance.html#harmonization-status)). How the
 pathway relates to the Zero Suicide framework is on the
 [Zero Suicide ↔ SPiER mapping](zero-suicide-mapping.html) page.
+
+### Intellectual property statements
+
+{% include ip-statements.xhtml %}
+
+### Dependencies
+
+{% include dependency-table.xhtml %}
+
+### Global profiles
+
+{% include globals-table.xhtml %}
+
+### Cross-version analysis
+
+{% include cross-version-analysis.xhtml %}

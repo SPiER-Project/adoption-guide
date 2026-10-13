@@ -41,6 +41,7 @@
       ]
     }
   ],
+  "description": "Example care plan recording a completed Stanley-Brown Safety Plan for an example patient: one activity for each of its seven steps, from warning signs to a reason for living.",
   "subject": {
     "reference": "Patient/example",
     "display": "Example Patient"
