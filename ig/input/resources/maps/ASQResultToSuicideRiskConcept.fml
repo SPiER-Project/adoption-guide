@@ -44,7 +44,11 @@ group asqResultToConcept(source src : ASQResult, target tgt : Concept) {
   src -> tgt.status = 'final' "set-status";
   src.code as code -> tgt.code = code "carry-code";            // generic LOINC 93374-7 passes through unchanged
   src.subject as subj -> tgt.subject = subj "carry-subject";
-  src.effective as eff -> tgt.effective = eff "carry-effective";
+  // effective[x] is dateTime or Period on every source profile and on the
+  // concept profile, so the copy is typed once per allowed type: an untyped
+  // copy of a choice element leaves the target type unresolvable.
+  src.effective : dateTime as eff -> tgt.effective = eff "carry-effective-datetime";
+  src.effective : Period as eff -> tgt.effective = eff "carry-effective-period";
 
   // --- provenance: the concept is DERIVED from the disposition Observation ---
   src -> tgt.derivedFrom = reference(src) "derived-from";
