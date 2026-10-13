@@ -200,6 +200,7 @@ Usage: #example
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
+* performer = Reference(Practitioner/example)
 * effectiveDateTime = "2026-07-15T09:10:00Z"
 * derivedFrom[+] = Reference(ExamplePSS3ResponsePositive)
 * valueCodeableConcept = PSS3ResultCodes#positive "Positive Screen"

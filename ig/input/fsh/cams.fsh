@@ -630,6 +630,7 @@ Usage: #example
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = CAMSSSFMeasureCodes#psychological-pain "Psychological Pain"
 * subject = Reference(Patient/example)
+* performer = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T11:00:00Z"
 * valueInteger = 4
 * interpretation[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#H "High"
@@ -725,6 +726,7 @@ Usage: #example
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
+* performer = Reference(Practitioner/example)
 * effectiveDateTime = "2026-07-15T16:00:00Z"
 * derivedFrom[+] = Reference(ExampleCAMSOutcomeDispositionResponse)
 * valueCodeableConcept = CAMSDispositionCodes#resolved "CAMS resolved — episode complete"

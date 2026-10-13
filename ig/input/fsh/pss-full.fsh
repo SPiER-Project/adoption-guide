@@ -96,6 +96,7 @@ Usage: #example
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
+* performer = Reference(Practitioner/example)
 * effectiveDateTime = "2026-07-15T09:40:00Z"
 * derivedFrom[+] = Reference(ExamplePSSFullResponse)
 * valueCodeableConcept = SPiERSuicideRiskTier#moderate "Moderate risk"

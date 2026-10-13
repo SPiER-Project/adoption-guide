@@ -225,6 +225,7 @@ Usage: #example
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
+* performer = Reference(Practitioner/example)
 * effectiveDateTime = "2026-03-19T10:35:00Z"
 * valueCodeableConcept = ASQResultCodes#non-acute-positive "Non-Acute Positive Screen"
 
@@ -238,6 +239,7 @@ Usage: #example
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
+* performer = Reference(Practitioner/example)
 * effectiveDateTime = "2026-03-19T10:35:00Z"
 * valueCodeableConcept = ASQResultCodes#acute-positive "Acute Positive Screen"
 
