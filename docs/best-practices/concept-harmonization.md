@@ -83,7 +83,7 @@ References:
 
 ## 3. The mechanics: HL7 SDC extraction
 
-The transformation from a completed instrument to derived resources is standardized by HL7 **Structured Data Capture (SDC)**, which SPiER already depends on (`sushi-config.yaml` → SDC 3.0.0). Relevant mechanisms:
+The transformation from a completed instrument to derived resources is standardized by HL7 **Structured Data Capture (SDC)**, which SPiER already depends on (`sushi-config.yaml` → SDC 4.0.0). Relevant mechanisms:
 
 - **Observation-based extraction** — `sdc-questionnaire-observationExtract` (boolean) marks items that become *literal* Observations. SPiER uses this today; `scripts/check-observation-extract.mjs` guards it against drift.
 - **StructureMap-based extraction** — `sdc-questionnaire-targetStructureMap` references a StructureMap for *computed/inferred* resources. This is the home for the harmonized concept.

@@ -9,7 +9,7 @@ rather than restating them.
   named `survey` category slice, which is the element
   [US Core Observation Screening Assessment](https://hl7.org/fhir/us/core/STU9/StructureDefinition-us-core-observation-screening-assessment.html)
   requires, so the two shapes agree.
-- **[SDC 3.0.0](https://hl7.org/fhir/uv/sdc/)** — `Questionnaire` authoring
+- **[SDC 4.0.0](https://hl7.org/fhir/uv/sdc/)** — `Questionnaire` authoring
   plus the `observationExtract` / `calculatedExpression` mechanics SPiER uses
   to derive Observations from a completed `QuestionnaireResponse`.
 - **[Gravity / SDOH Clinical Care](https://hl7.org/fhir/us/sdoh-clinicalcare/)**

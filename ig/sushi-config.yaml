@@ -46,7 +46,10 @@ dependencies:
   hl7.fhir.us.core: 9.0.0
   # SDC: calculatedExpression (score totals) + observationExtract (declared
   # extraction contract) extensions used by the screening Questionnaires.
-  hl7.fhir.uv.sdc: 3.0.0
+  # 4.0.0 because US Core 9.0.0 depends on it, so naming 3.0.0 loaded both.
+  # Same extension URLs; both moved draft -> active, and observationExtract
+  # only gained a `code` value beside the `boolean` SPiER uses. Still R4.
+  hl7.fhir.uv.sdc: 4.0.0
   # Bulk Data: the quality-reporter CapabilityStatement's `export` operation
   # names its `group-export` OperationDefinition. Until US Core 9.0.0 this
   # resolved only because US Core 6.1.0 depended on bulkdata 2.0.0; 9.0.0
