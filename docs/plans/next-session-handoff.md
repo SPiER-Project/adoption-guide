@@ -42,7 +42,7 @@ durable material was five findings and one standing rule. That is the restructur
 working as intended. The temptation each time is to narrate the session; resist
 it.
 
-## State of the repo — derived 2026-09-20, check it rather than trust it
+## State of the repo — derived 2026-10-12, check it rather than trust it
 
 ⚠️ **The SHA below is one commit stale by construction, and chasing it is a
 regress.** The commit that writes this file is necessarily the next one after the
@@ -50,28 +50,20 @@ regress.** The commit that writes this file is necessarily the next one after th
 and the twelve rewrites above are partly that loop. `git log --oneline -1` is
 always the authority; this line is a timestamp, not a fact to maintain.
 
-- `main` was at **`b191d89`** when this was written, plus the commit that wrote
-  it. **No open PRs** at that point.
-  **41 open issues** (counted with `--limit 200`; `gh issue list` defaults to 30
-  and truncates silently).
-- **All four `verify` pipelines green**, each re-run against this `main` rather
-  than copied forward from the session that changed them:
-
-  | Package | Exit | Tests | Covered by the root's verify? |
-  |---|---|---|---|
-  | repo root | 0 | 96 files / **1087** | — |
-  | `services/guide` | 0 | 3 files / **43** | **No** |
-  | `services/clinical` | 0 | 1 file / **12** | **No** |
-  | `services/mock-ehr` | 0 | 11 files / **200** | **No** |
-
-- The one `eslint` warning (`MeasureDashboard.tsx`, a `useMemo` dep) is
-  **pre-existing**.
+- `main` was at **`8e6ab1d`** when this was written, plus the commit that wrote
+  it. **One open PR, #671** (Bulk Data 2.0.0 → 3.0.0, from another session's
+  US Core follow-up). **18 open issues** (counted with `--limit 200`;
+  `gh issue list` defaults to 30 and truncates silently).
+- **All four Worker `verify` pipelines and the root's were green on #668's
+  branch** (root: 1,832 tests). Re-run them rather than trust that — this file
+  no longer carries a per-package test-count table, because it was the part
+  that went stale first. `eslint` runs with `--max-warnings 0` and is clean.
 - ⚠️ **`web/` NO LONGER EXISTS** (#553). The repo root is the tooling host: one
   `package.json`, one `node_modules`, one `scripts/` tree, and `tests/` +
   `shims/` where `web/src` used to be. Anything telling you to `cd web` is
   older than 2026-09-19.
-- ⚠️ **There are FOUR install targets, and `packages/*` are not among them.** A
-  fresh worktree needs `npm install` at the repo root and in each of the three
+- ⚠️ **There are FIVE install targets, and `packages/*` are not among them.** A
+  fresh worktree needs `npm install` at the repo root and in each of the four
   `services/*`, then `npm run copy-fhir` at the root. Every `packages/*`
   manifest declares **zero** dependencies — the test is whether a directory has
   a **lockfile**, which only those four do. Counting `package.json` files gets
@@ -91,10 +83,10 @@ always the authority; this line is a timestamp, not a fact to maintain.
   | `apps/` | `guide` (the Adoption Guide) and `clinical` (the two SMART apps) |
   | `packages/` | `core`, `ui`, `tool-views`, `app-shell`, `worker-http`, `demo-population`, `fhir-artifacts/generated/` (gitignored) |
 
-- **Three Workers, one per deployable**, and the names do not match their
+- **Four Workers, one per deployable**, and the names do not match their
   directories — `services/guide` deploys as `spier-adoption-guide` and
-  serves the guide, the CDS endpoint *and* `/ig/`, which is why #553 left
-  renaming it alone:
+  serves the guide and `/ig/`; the CDS endpoint moved to its own Worker on
+  2026-09-20:
 
   | | | |
   |---|---|---|
@@ -263,31 +255,36 @@ one-pager and that workflow are gone.)
   replace and only a test caught it; and `@spier/...` package aliases are
   unrelated and must NOT be swept up. A path segment (`/fhir`) was chosen so the
   identifier namespace does not collide with the live marketing site's URL space.
-- **#231 — the CDS service's auth posture.** Narrower than filed. `require` is
-  implemented and unit-tested and is one `wrangler.jsonc` var; the app only fetches
-  discovery (open either way), so flipping would break the guide's published curl
-  and any CDS Hooks Sandbox trial, not the demo UI. The guide page and README
-  already state warn mode — what is missing is that both frame it as *transitional*
-  and nobody scheduled the flip. Declaring warn deliberate is a two-line doc
-  change, but it is a security posture, so it is Brad's call.
+- ✅ ~~**#231 — the CDS service's auth posture.**~~ **CLOSED.** `CDS_JWT_ENFORCE`
+  is `require` and the mock EHR is the registered client (CLAUDE.md, the four
+  Workers).
+- **The post-transition caring-contacts step in the published pathway (#668)
+  needs clinical review.** It is the one step not on the source diagram the rest
+  of the protocol transcribes — it comes from the SSC Track Follow-Up stage — and
+  it says so on the artifact (a "Source" note). Two page word budgets were raised
+  by its measured cost, with the reason beside each cap. If review removes the
+  step, lower both caps again.
 - **#326 — clinical review of ED Scenario 11**: 10 proposed steps, 3 new patient
   courses, one open note. Not a code task.
-- **#93 — SME sign-off on all six risk-tier crosswalks.** Not a code task, and it
-  **blocks #264**.
-- **Two corrections from the #355 audit remain**, mechanical:
-  `surfaces-and-distribution.md` §4's "transitional" IG-redirect comment (drop the
-  word or file the move), and §8's phase table, which still lists phases B–D as
-  deferred "because no client ship is near-term" — true, but it sits beside a
-  retired track split and should be re-read whole.
+- **#93 — SME sign-off on all six risk-tier crosswalks.** Not a code task. #264
+  (#665) now *shows* each route's fidelity and a "Proposed" marker read from
+  each ConceptMap's `status: draft`, so sign-off clears the marker by changing
+  the FSH status — no TypeScript edit. It still blocks #588's option 1.
+- **One correction from the #355 audit remains** (the "transitional" comment is
+  fixed and its history recorded in §4): `surfaces-and-distribution.md` §8's
+  phase table still lists phases B–D as deferred "because no client ship is
+  near-term" — true, but it sits beside a retired track split and should be
+  re-read whole.
 
 ## Blocked
 
-- **#264 — crosswalk fidelity in the data dictionary**, on #93. The
-  `fidelity`-derived-from-ConceptMap half could land early, but presenting
-  fidelity as settled is the failure mode the issue warns about. #317 left the
-  landing spot: the value cell in both binding tables carries the system and the
-  bindable set, and fidelity qualifies exactly that pair. **No column was stubbed
-  for it — an empty column is a claim of its own.**
+- **#588 option 1 and #77** on #93's sign-off. (#588 option 2 is not blocked —
+  see the actionable table.)
+- **#479** on tx.fhir.org serving LOINC 2.83. Both `PENDING_TX` maps fail the
+  run on a stale entry, so the gate says when.
+- ✅ ~~**#264 — crosswalk fidelity**~~ **DONE (#665)**, without waiting on #93:
+  showing that a mapping is still a proposal is the right response to sign-off
+  being pending, not something sign-off gates.
 
 ## The reshape is DONE
 
@@ -372,6 +369,28 @@ scripts folder.
   but it is not another reader, and auth is the worst place for that gap.
 
 ## Findings that generalize — do not re-derive these
+
+### 2026-10-12: three checks that passed locally and were not the whole check
+
+- **`validate-fhir.mjs` cannot see an unresolvable canonical to a dependency
+  IG.** It runs without the dependencies loaded, so #664's PHQ-9 `derivedFrom`
+  to a US Core 9.0.0 example passed it; the IG Publisher failed QA on it
+  (unsuppressable error) because the IG then depended on US Core 6.1.0. A
+  canonical into another IG is checked only by the publisher in CI.
+- **`build-ig-groups.mjs --check` is not in `npm run verify`.** A new published
+  FSH resource fails CI's `sushi` job until the groups block is regenerated
+  (#668). Run it, then `copy-fhir`, before pushing any new resource — the
+  check's "no groupingId" half reads the compiled ImplementationGuide, so it
+  stays red until SUSHI recompiles.
+- **A baseline measured by deleting content can measure nothing.** To find what
+  a new pathway step cost a page's word budget, cutting the FSH at the step
+  also cut what followed it; SUSHI failed, `copy-fhir` kept the old generated
+  files, and the "baseline" equalled the new count. Remove exactly the block,
+  and confirm the generated artifact changed before reading the number.
+
+Also: a squash merge can carry a "Closes #N" from an individual commit message
+into the merge commit. When a PR's scope narrows after a commit said it closed
+something, write the squash subject and body yourself (#664 did).
 
 ### The 2026-08-22 chain: a mapper reading a shape its own form never emits
 
@@ -646,17 +665,21 @@ was deleted rather than relabelled. The host launches the dashboard.
 
 | Issue | What | Milestone |
 |---|---|---|
-| #412 | The IG package is published but unreachable — nothing links `package.tgz` and `thespierproject.fhir` is not in the FHIR registry, so Getting Started §1's instruction cannot be followed | — |
-| #125 | Consolidate hardcoded example Observations into IG example instances | M7 |
-| #128 | Export a configured pathway as a FHIR Bundle (Preset → PlanDefinition subset) | — |
-| #628 | [TL-010] Schedule caring contacts on the declared post-discharge cadence | — |
-| #629 | [TL-026] One positive-screen trigger on the harmonized risk concept (gated on #93's sign-off) | M4 |
+| #588 | Option 2 only: patient-013's walkthrough narrates a derived risk tier with no assessment behind it — fix the narration or record a true miss. ⚠️ The comment beside its `EXPLAINED_MISSES` entry (`measures.narration.test.ts`) says the scenario has no risk concept; it has had one since #600 — correct that too | — |
+| #670 | Schedule the post-discharge follow-up calls (ED-SAFE) the way #668 scheduled caring contacts. **First find a published source** — the repo has none for the call timing | — |
+| #128 | Export a configured pathway as a FHIR Bundle (Preset → PlanDefinition subset); wants a short design note first | — |
+| #339 | "BHP bridge" demo — the one upstream-BH-IG issue that is real code | — |
 | #277 | [Epic] Suicide Care Dashboard — a CoCM registry spec and the five gaps it exposes | — |
+
+Two follow-ups from #665 with no issue yet: `check:jargon` does not read
+ConceptMap `comment`s (only the rendered-page test caught the repo paths in the
+crosswalk comments, which #665 removed), and the stage tables do not repeat the
+fidelity the normalization table shows.
 
 **Per-tool epics are retired (2026-10-07).** The ten `status:built` tool epics,
 the four `status:future` placeholders and #164 were closed: built, decided, or
 blocked by licensing. The two pieces of real work left in them became the tasks
-#628 and #629 above. Tool work is a `type:task` with a `tool:TL-0NN` label from
+#628 and #629 — both since DONE (#668, #635). Tool work is a `type:task` with a `tool:TL-0NN` label from
 now on (see [`../README.md`](../README.md) § Roadmap). #228 and #259 are closed;
 #128 left M5 because it does not depend on the pilot partners.
 
