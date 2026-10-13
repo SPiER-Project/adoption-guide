@@ -114,6 +114,14 @@ define "Caring Contact Opt Out Extension": 'http://thespierproject.org/fhir/Stru
 
 // ─── Helpers ─────────────────────────────────────────────────
 
+/* Read a FHIR primitive's `.value` — `A.status.value = 'fulfilled'`,
+ * `C.sent.value during …` — rather than comparing the primitive itself. The
+ * bare form makes the translator insert a FHIRHelpers conversion, one overload
+ * per FHIR type, and the publisher's Measure narrative anchors functions by
+ * name: two overloads of one function render one anchor twice, a warning per
+ * Measure page. `.value` is exactly what each overload returns.
+ * tests/measureFhirHelpersOverloads.test.ts fails a second overload. */
+
 /* Turning a FHIR choice-typed date into an Interval<DateTime>.
  *
  * These two functions are the whole of what the first compile of this file
@@ -139,9 +147,9 @@ define function "Effective Interval"(
 ):
   case
     when value is FHIR.dateTime then
-      Interval[FHIRHelpers.ToDateTime(value as FHIR.dateTime), FHIRHelpers.ToDateTime(value as FHIR.dateTime)]
+      Interval[(value as FHIR.dateTime).value, (value as FHIR.dateTime).value]
     when value is FHIR.instant then
-      Interval[FHIRHelpers.ToDateTime(value as FHIR.instant), FHIRHelpers.ToDateTime(value as FHIR.instant)]
+      Interval[(value as FHIR.instant).value, (value as FHIR.instant).value]
     when value is FHIR.Period then
       FHIRHelpers.ToInterval(value as FHIR.Period)
     else null
@@ -152,7 +160,7 @@ define function "Performed Interval"(
 ):
   case
     when value is FHIR.dateTime then
-      Interval[FHIRHelpers.ToDateTime(value as FHIR.dateTime), FHIRHelpers.ToDateTime(value as FHIR.dateTime)]
+      Interval[(value as FHIR.dateTime).value, (value as FHIR.dateTime).value]
     when value is FHIR.Period then
       FHIRHelpers.ToInterval(value as FHIR.Period)
     else null
@@ -174,13 +182,13 @@ define function TaggedStage(resource DomainResource, stageCode String):
 /* The coded value of a CodeableConcept-valued extension, or null. */
 define function ExtensionCode(resource DomainResource, extensionUrl String):
   singleton from (
-    (resource.extension E where E.url = extensionUrl) X
+    (resource.extension E where E.url.value = extensionUrl) X
       return (X.value as FHIR.CodeableConcept).coding[0].code.value
   )
 
 define function BooleanExtension(resource DomainResource, extensionUrl String):
   singleton from (
-    (resource.extension E where E.url = extensionUrl) X
+    (resource.extension E where E.url.value = extensionUrl) X
       return (X.value as FHIR.boolean).value
   )
 
@@ -218,7 +226,7 @@ define "Episode Closed As Deceased":
 define "Risk Concept Observations":
   [Observation: "Suicide risk level"] O
     where ConformsTo(O, "Risk Concept Profile")
-      and O.status = 'final'
+      and O.status.value = 'final'
 
 define "Screens In Period":
   "Risk Concept Observations" O
@@ -230,7 +238,7 @@ define "Has A Suicide Risk Screen":
 
 define "Positive Screens In Period":
   "Screens In Period" O
-    where exists (O.interpretation I where I.coding.code contains "Positive".code)
+    where exists (O.interpretation I where exists (I.coding C where C.code.value = "Positive".code))
 
 define "Has A Positive Screen":
   exists "Positive Screens In Period"
@@ -284,13 +292,13 @@ define "Risk Tier Documented During Episode":
 define "Safety Handoffs In Period":
   [Communication] C
     where ConformsTo(C, "Safety Handoff Profile")
-      and C.sent during "Measurement Period"
+      and C.sent.value during "Measurement Period"
     return C.sent.value
 
 define "Discharge Packets In Period":
   [DocumentReference] D
     where ConformsTo(D, "Discharge Packet Profile")
-      and D.date during "Measurement Period"
+      and D.date.value during "Measurement Period"
     return D.date.value
 
 define "Care Transition Dates":
@@ -309,7 +317,7 @@ define "Index Transition Date":
 define "Safety Plans":
   [CarePlan] P
     where (ConformsTo(P, "Stanley Brown Profile") or ConformsTo(P, "Crisis Response Plan Profile"))
-      and P.status in { 'active', 'completed' }
+      and P.status.value in { 'active', 'completed' }
 
 /* A plan is dated by period.start alone: when it came into effect. `created`
    is when the record was written, and is not read. A plan with no period never
@@ -333,10 +341,10 @@ define "Patient Copy Of Safety Plan Documented":
     and exists (
       [DocumentReference] D
         where ConformsTo(D, "Discharge Packet Profile")
-          and D.date during "Measurement Period"
+          and D.date.value during "Measurement Period"
           and exists (
             D.extension E
-              where E.url = "Handoff Content Extension"
+              where E.url.value = "Handoff Content Extension"
                 and exists (
                   ((E.value as FHIR.CodeableConcept).coding) C
                     where (C.system is null or C.system.value = "Handoff Content System")
@@ -351,7 +359,7 @@ define "Lethal Means Counseling During Episode":
   exists (
     [Procedure] P
       where ConformsTo(P, "Lethal Means Counseling Profile")
-        and P.status = 'completed'
+        and P.status.value = 'completed'
         and "Performed Interval"(P.performed) during "Most Recent Episode".period
   )
 
@@ -420,26 +428,26 @@ define "Outreach Within 48 Hours Of Transition":
   "Has A Documented Care Transition"
     and exists (
       "Outreach Attempts" C
-        where C.sent during Interval["Index Transition Date", "Index Transition Date" + 48 hours]
+        where C.sent.value during Interval["Index Transition Date", "Index Transition Date" + 48 hours]
     )
 
 define "Attended Follow Up Appointments":
   [Appointment] A
     where ConformsTo(A, "Follow Up Appointment Profile")
-      and A.status = 'fulfilled'
+      and A.status.value = 'fulfilled'
 
 define "Follow Up Visit Within 7 Days":
   "Has A Documented Care Transition"
     and exists (
       "Attended Follow Up Appointments" A
-        where A.start during Interval["Index Transition Date", "Index Transition Date" + 7 days]
+        where A.start.value during Interval["Index Transition Date", "Index Transition Date" + 7 days]
     )
 
 define "Follow Up Visit Within 30 Days":
   "Has A Documented Care Transition"
     and exists (
       "Attended Follow Up Appointments" A
-        where A.start during Interval["Index Transition Date", "Index Transition Date" + 30 days]
+        where A.start.value during Interval["Index Transition Date", "Index Transition Date" + 30 days]
     )
 
 // ─── Measure 6 — Caring contact adherence ────────────────────
@@ -464,7 +472,7 @@ define "Caring Contact Within 30 Days":
   "Has A Documented Care Transition"
     and exists (
       "Caring Contacts" C
-        where C.sent during Interval["Index Transition Date", "Index Transition Date" + 30 days]
+        where C.sent.value during Interval["Index Transition Date", "Index Transition Date" + 30 days]
     )
 
 // ─── Measure 7 — Referral loop closure ───────────────────────
@@ -474,11 +482,11 @@ define "Caring Contact Within 30 Days":
 define "Safety Referrals In Period":
   [ServiceRequest] R
     where ConformsTo(R, "Safety Referral Profile")
-      and R.authoredOn during "Measurement Period"
+      and R.authoredOn.value during "Measurement Period"
 
 define "Valid Safety Referrals":
   "Safety Referrals In Period" R
-    where R.status != 'entered-in-error'
+    where R.status.value != 'entered-in-error'
 
 define "Has A Suicide Safety Referral":
   exists "Safety Referrals In Period"
@@ -492,7 +500,7 @@ define "All Referrals Completed":
   exists "Valid Safety Referrals"
     and not exists (
       "Valid Safety Referrals" R
-        where R.status != 'completed'
+        where R.status.value != 'completed'
     )
 
 // ─── Measure 8 — Reassessment on time ────────────────────────
