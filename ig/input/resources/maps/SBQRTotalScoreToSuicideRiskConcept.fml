@@ -39,6 +39,7 @@ group sbqrTotalToConcept(source src : SBQRTotal, target tgt : Concept) {
   // Re-code to the generic concept LOINC (source carries SNOMED 225337009).
   src -> tgt.code = cc('http://loinc.org', '93374-7') "concept-code";
   src.subject as subj -> tgt.subject = subj "carry-subject";
+  src.performer as perf -> tgt.performer = perf "carry-performer";   // the tier restates the source's result, so it is asserted by the same party
   // effective[x] is dateTime or Period on every source profile and on the
   // concept profile, so the copy is typed once per allowed type: an untyped
   // copy of a choice element leaves the target type unresolvable.

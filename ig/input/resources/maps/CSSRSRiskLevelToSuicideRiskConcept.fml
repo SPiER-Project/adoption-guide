@@ -33,6 +33,7 @@ group cssrsRiskLevelToConcept(source src : CSSRSRiskLevel, target tgt : Concept)
   src -> tgt.status = 'final' "set-status";
   src.code as code -> tgt.code = code "carry-code";            // generic LOINC 93374-7 passes through unchanged
   src.subject as subj -> tgt.subject = subj "carry-subject";
+  src.performer as perf -> tgt.performer = perf "carry-performer";   // the tier restates the source's result, so it is asserted by the same party
   // effective[x] is dateTime or Period on every source profile and on the
   // concept profile, so the copy is typed once per allowed type: an untyped
   // copy of a choice element leaves the target type unresolvable.
