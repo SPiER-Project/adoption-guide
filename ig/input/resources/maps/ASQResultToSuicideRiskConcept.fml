@@ -21,8 +21,8 @@ map "http://thespierproject.org/fhir/StructureMap/ASQResultToSuicideRiskConcept"
 // Adopters SHALL validate them against their own clinical protocols before
 // using the harmonized tier to drive care decisions.
 
-uses "http://hl7.org/fhir/StructureDefinition/Observation" alias ASQResult as source
-uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Concept as target
+uses "http://thespierproject.org/fhir/StructureDefinition/spier-asq-result" alias ASQResult as source
+uses "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-concept" alias Concept as target
 
 // ─── Implementation notes (not published — see README.md) ────────────
 //
