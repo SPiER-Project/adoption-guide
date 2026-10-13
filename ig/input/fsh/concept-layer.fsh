@@ -313,6 +313,7 @@ Usage: #example
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
+* performer = Reference(Practitioner/practitioner-1)
 * effectiveDateTime = "2026-06-05T14:20:00Z"
 * derivedFrom[+] = Reference(ExampleASQResultNonAcutePositive)
 * valueCodeableConcept = SPiERSuicideRiskTier#moderate "Moderate risk"
@@ -329,6 +330,7 @@ Usage: #example
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
+* performer = Reference(Practitioner/practitioner-1)
 * effectiveDateTime = "2026-03-19T11:00:00Z"
 * derivedFrom[+] = Reference(ExampleCSSRSScreenerHighRisk)
 * valueCodeableConcept = SPiERSuicideRiskTier#high "High risk"
@@ -344,6 +346,7 @@ Usage: #example
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
+* performer = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T10:30:00Z"
 * derivedFrom[+] = Reference(ExamplePHQ9Item9Positive)
 * valueCodeableConcept = SPiERSuicideRiskTier#moderate "Moderate risk"
@@ -359,6 +362,7 @@ Usage: #example
 * category[suicideRisk] = SPiERConceptDomain#suicide-risk
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject = Reference(Patient/example)
+* performer = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T10:45:00Z"
 * derivedFrom[+] = Reference(ExampleSBQRTotalScore9)
 * valueCodeableConcept = SPiERSuicideRiskTier#high "High risk"
