@@ -14,7 +14,7 @@
  * always appends its own path and two consumers can never disagree about a
  * slash. The test beside this file holds that shape.
  *
- * ⚠️ These are personal-account `workers.dev` hosts until the project has a
+ * ⚠️ These are the SPiER account's `workers.dev` hosts until the project has a
  * domain (see `docs/internals/workers.md`). When it does, this file and the
  * wrangler copies the gate names are the whole change.
  */

@@ -68,7 +68,7 @@ import { cx } from '@spier/ui/cx'
  *
  * ⚠️ **The label reads "Demo EHR" and the IDENTIFIERS still say `MOCK_EHR`.**
  * That is deliberate, not an unfinished rename: the host's own hostname is
- * `spier-mock-ehr.bbthorson.workers.dev`, so the constant names what it points
+ * `spier-mock-ehr.spier-project.workers.dev`, so the constant names what it points
  * at. The reasoning for the label — and the three assertions that now carry the
  * honesty claim the word "Mock" used to carry alone — is in `data/surfaces.ts`,
  * beside the string itself rather than restated here.

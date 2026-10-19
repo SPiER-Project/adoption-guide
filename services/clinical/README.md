@@ -4,7 +4,7 @@ The Worker that serves SPiER's **`clinical` build surface**: the provider app
 and the population dashboard, with no adoption guide and no synthetic patient.
 
 ```
-https://spier-clinical.bbthorson.workers.dev/
+https://spier-clinical.spier-project.workers.dev/
 ```
 
 It is ~30 lines of Worker over a Static Assets binding. Everything interesting
@@ -96,7 +96,7 @@ Two registrars point here:
   stayed behind. Its `DEFAULT_REDIRECT_URIS` carries this origin.
 - **Medplum** — one field on one `ClientApplication`:
   ```sh
-  node scripts/medplum-register-launch.mjs --app https://spier-clinical.bbthorson.workers.dev/ --apply
+  node scripts/medplum-register-launch.mjs --app https://spier-clinical.spier-project.workers.dev/ --apply
   ```
   ⚠️ A second `ClientApplication` will not give you both this and localhost:
   `clientIdForIssuer` keys on the **issuer's** origin, and both would be

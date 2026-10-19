@@ -227,8 +227,8 @@ describe('one patient chart', () => {
     // worked — that build contains the same two apps — which is exactly why
     // this needs an assertion rather than a default nobody re-reads.
     const { body } = await html('/chart/patient-011')
-    expect(body).toContain('https://spier-clinical.bbthorson.workers.dev')
-    expect(body).not.toContain('spier-adoption-guide.bbthorson.workers.dev/#')
+    expect(body).toContain('https://spier-clinical.spier-project.workers.dev')
+    expect(body).not.toContain('spier-adoption-guide.spier-project.workers.dev/#')
   })
 
   it('points the CDS call at the CDS Worker by default — a THIRD origin', async () => {
@@ -241,10 +241,10 @@ describe('one patient chart', () => {
     // ⚠️ Three origins now, none derivable from another: the panel is the
     // clinical Worker, the service is `spier-cds`, and the guide is a third.
     const { body } = await html('/chart/patient-011')
-    expect(body).toContain('https://spier-cds.bbthorson.workers.dev/cds-services/spier-patient-view')
+    expect(body).toContain('https://spier-cds.spier-project.workers.dev/cds-services/spier-patient-view')
     // The two really are different hosts now; a regression to the derivation
     // would put the service on the panel's origin.
-    expect(body).not.toContain('https://spier-clinical.bbthorson.workers.dev/cds-services')
+    expect(body).not.toContain('https://spier-clinical.spier-project.workers.dev/cds-services')
   })
 
   it('points the CDS call elsewhere when MOCK_CDS_BASE_URL says so, and still frames the panel from its own base', async () => {

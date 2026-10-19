@@ -161,7 +161,7 @@ async function fhir(baseUrl, token, path, init = {}) {
 async function main() {
   const baseUrl = process.env.MEDPLUM_BASE_URL ?? 'https://api.medplum.com/'
   const issuerOrigin = new URL(baseUrl).origin
-  const appBase = flag('--app') ?? 'https://spier-adoption-guide.bbthorson.workers.dev/'
+  const appBase = flag('--app') ?? 'https://spier-adoption-guide.spier-project.workers.dev/'
 
   const parsedApp = (() => {
     try { return new URL(appBase) } catch { return null }

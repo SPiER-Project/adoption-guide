@@ -288,6 +288,13 @@ adoption-guide Worker after the API had left it. They come from
 cannot import. It reads the apps' `index.html` too since 2026-10-06 — a stale
 host in a `<link rel="preconnect">` passed before.
 
+On 2026-10-19 the four Workers moved from a personal Cloudflare account
+(`*.bbthorson.workers.dev`) to the SPiER account (`*.spier-project.workers.dev`).
+Worker names stayed the same, so the service bindings did too; only the hosts
+changed. What the move could NOT carry: the mock EHR's Durable Object state
+(demo store, signing key — both re-created on the new account) and the Medplum
+launch registration's redirect URIs, which are edited at Medplum, not here.
+
 ⚠️ **Two importers read the JSON relatively, and that is the alias cost of
 #387 showing through, not a shortcut.** `packages/worker-http/src/spaAssets.ts`
 builds `DEFAULT_FRAME_ANCESTORS` from `origins.mockEhr`, and

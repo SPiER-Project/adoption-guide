@@ -63,7 +63,7 @@ export interface CdsJwtEnv {
    *
    * ⚠️ **Not a convenience — a plain `fetch()` to its JWKS CANNOT work from this
    * Worker**, and this is the return leg of the bug #581 fixed outbound. Both
-   * Workers live on `*.bbthorson.workers.dev`, one zone, and Cloudflare refuses
+   * Workers live on `*.spier-project.workers.dev`, one zone, and Cloudflare refuses
    * a same-zone Worker subrequest. #581 bound this service INTO the host so the
    * invoke could arrive; the host's token carries `jku` pointing back at its own
    * `/.well-known/jwks.json`, and verifying it is a subrequest in the other

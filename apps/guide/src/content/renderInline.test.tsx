@@ -205,9 +205,9 @@ describe('renderInline — absolute URLs (#466)', () => {
     // navigated to a route that does not exist. Nothing about the rendered
     // anchor said which kind it had become.
     const html = draw(
-      'Open the [Demo EHR](https://spier-mock-ehr.bbthorson.workers.dev/) and launch.',
+      'Open the [Demo EHR](https://spier-mock-ehr.spier-project.workers.dev/) and launch.',
     )
-    expect(html).toContain('href="https://spier-mock-ehr.bbthorson.workers.dev/"')
+    expect(html).toContain('href="https://spier-mock-ehr.spier-project.workers.dev/"')
     expect(html).toContain('target="_blank"')
     expect(html).toContain('rel="noopener noreferrer"')
   })

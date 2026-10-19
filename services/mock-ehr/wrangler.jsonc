@@ -39,7 +39,7 @@
   // ── The CDS Hooks service, as a binding ─────────────────────────────────
   //
   // ⚠️ **A plain `fetch()` to that Worker's URL does not work, and the failure
-  // is invisible to every gate.** Both Workers live on `*.bbthorson.workers.dev`,
+  // is invisible to every gate.** Both Workers live on `*.spier-project.workers.dev`,
   // which is ONE zone, and Cloudflare refuses a Worker subrequest to another
   // Worker on the same zone: the response is HTTP 404 with the body
   // `error code: 1042`. `routes/cds.ts` passed that through faithfully and the
