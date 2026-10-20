@@ -295,6 +295,19 @@ changed. What the move could NOT carry: the mock EHR's Durable Object state
 (demo store, signing key — both re-created on the new account) and the Medplum
 launch registration's redirect URIs, which are edited at Medplum, not here.
 
+⚠️ **The first deploy to the empty account failed, and the fix is now in
+`deploy.yml`.** CDS binds `spier-mock-ehr` (`CLIENT`) and the mock EHR binds
+`spier-cds` (`CDS`); Cloudflare refuses to deploy a binding whose target does
+not exist (`code: 10143`), so on a fresh account each job failed waiting for the
+other, and re-running changed nothing. The `cds` job now asks the API whether
+`spier-mock-ehr` exists. On a 404 it deploys from
+`scripts/cds-bootstrap-config.mjs`'s copy of the config with `services` removed,
+`mock-ehr` (which `needs: cds`) deploys against it, and `cds-bind` re-deploys
+CDS with the real config. Any status but 200 or 404 fails the job instead of
+guessing. The window without `CLIENT` is minutes, and CDS still runs in it: the
+binding is optional, but the mock EHR's tokens cannot be verified until
+`cds-bind` lands. An adopter deploying to their own account gets the same path.
+
 ⚠️ **Two importers read the JSON relatively, and that is the alias cost of
 #387 showing through, not a shortcut.** `packages/worker-http/src/spaAssets.ts`
 builds `DEFAULT_FRAME_ANCESTORS` from `origins.mockEhr`, and

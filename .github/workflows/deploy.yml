@@ -481,9 +481,21 @@ jobs:
   # assertion — every response is JSON from the bundle. It does need the root
   # install and the FHIR package cache, because the card derivation imports the
   # catalog, the mappers and the demo population through `@spier/core`.
+  #
+  # ⚠️ **On an EMPTY account it deploys WITHOUT its mock-EHR binding, once.**
+  # CDS binds `spier-mock-ehr` and the mock EHR binds `spier-cds`, and
+  # Cloudflare refuses a binding to a Worker that does not exist (code 10143),
+  # so on a fresh account neither can go first — the 2026-10-20 move to the
+  # SPiER account stalled on exactly this. The deploy step asks the API whether
+  # `spier-mock-ehr` exists: 200 is the normal deploy; 404 deploys from
+  # `scripts/cds-bootstrap-config.mjs`'s binding-free copy and sets
+  # `bootstrapped`, which the `mock-ehr` job waits on and `cds-bind` acts on;
+  # anything else fails rather than guessing.
   cds:
     name: Deploy the CDS Hooks Worker to Cloudflare
     runs-on: ubuntu-latest
+    outputs:
+      bootstrapped: ${{ steps.deploy.outputs.bootstrapped }}
     steps:
       - uses: actions/checkout@v4
 
@@ -519,11 +531,28 @@ jobs:
         run: npm run build
 
       - name: Deploy to Cloudflare
+        id: deploy
         working-directory: ./services/cds
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: npx wrangler deploy
+        run: |
+          status=$(curl -s -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/spier-mock-ehr/settings")
+          case "$status" in
+            200)
+              npx wrangler deploy
+              echo "bootstrapped=false" >> "$GITHUB_OUTPUT" ;;
+            404)
+              echo "::warning::spier-mock-ehr does not exist on this account yet; deploying spier-cds without its CLIENT binding. The cds-bind job restores it after the mock EHR deploys."
+              node ../../scripts/cds-bootstrap-config.mjs
+              npx wrangler deploy --config wrangler.bootstrap.json
+              echo "bootstrapped=true" >> "$GITHUB_OUTPUT" ;;
+            *)
+              echo "::error::Checking for spier-mock-ehr returned HTTP $status (expected 200 or 404). Not deploying on a guess."
+              exit 1 ;;
+          esac
 
       - name: Report what shipped
         run: |
@@ -558,11 +587,15 @@ jobs:
   # an empty one — at module load, so a Worker built without the tree deploys
   # fine and 500s on its first request.
   #
-  # ⚠️ **Deliberately `needs:` NOTHING**, for the reason the `clinical` job
-  # states: this Worker holds no IG, so waiting on a ~6-minute Java render would
-  # couple the demo host to a failure it does not depend on.
+  # ⚠️ **`needs: cds` and nothing else.** Not the IG build, for the reason the
+  # `clinical` job states: this Worker holds no IG, so waiting on a ~6-minute
+  # Java render would couple the demo host to a failure it does not depend on.
+  # But it binds `spier-cds`, and on an empty account that Worker exists only
+  # once the `cds` job has deployed it (see the note there) — so it waits on
+  # that job, a couple of minutes, on every deploy.
   mock-ehr:
     name: Deploy the mock EHR Worker to Cloudflare
+    needs: cds
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -614,6 +647,55 @@ jobs:
             echo "- Serves: the demo host — a FHIR read API over the 14 scenarios, the chart pages, and SMART authorization"
             echo "- Frames: the clinical Worker (\`DEFAULT_PANEL_BASE_URL\`); written data resets nightly on a Cron Trigger"
           } >> "$GITHUB_STEP_SUMMARY"
+
+  # ── Cloudflare Workers: CDS again, WITH its binding, after a bootstrap ──
+  #
+  # Runs only when the `cds` job had to deploy without `CLIENT` because the mock
+  # EHR did not exist yet. By now it does, so the real config deploys. On every
+  # ordinary run this job is skipped.
+  cds-bind:
+    name: Re-deploy the CDS Hooks Worker with its mock EHR binding
+    needs: [cds, mock-ehr]
+    if: needs.cds.outputs.bootstrapped == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .github/.nvmrc
+
+      - name: Install root dependencies
+        working-directory: .
+        run: npm ci
+
+      - name: Install Worker dependencies
+        working-directory: ./services/cds
+        run: npm ci
+
+      - name: Cache FHIR package cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.fhir/packages
+          key: fhir-packages-${{ hashFiles('ig/sushi-config.yaml') }}
+          restore-keys: |
+            fhir-packages-
+
+      - name: Generate the FHIR artifacts
+        working-directory: .
+        run: npm run copy-fhir
+
+      - name: Build the Worker
+        working-directory: ./services/cds
+        run: npm run build
+
+      - name: Deploy to Cloudflare
+        working-directory: ./services/cds
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler deploy
 
   # ── Cloudflare Workers: the Adoption Guide SPA + the rendered IG, one origin ──
   #

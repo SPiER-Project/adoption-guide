@@ -50,6 +50,7 @@
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs'
 import { join, resolve, dirname, relative } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { stripJsonc } from './lib/jsonc.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
@@ -60,30 +61,6 @@ const MIN_SERVICES = 4
 const failures = []
 const fail = (msg) => failures.push(msg)
 const rel = (p) => relative(root, p)
-
-/** Strip line and block comments so a JSONC config parses. Strings are respected. */
-function stripJsonc(text) {
-  let out = ''
-  let i = 0
-  let inString = false
-  while (i < text.length) {
-    const ch = text[i]
-    const next = text[i + 1]
-    if (inString) {
-      out += ch
-      if (ch === '\\') { out += next ?? ''; i += 2; continue }
-      if (ch === '"') inString = false
-      i++
-      continue
-    }
-    if (ch === '"') { inString = true; out += ch; i++; continue }
-    if (ch === '/' && next === '/') { while (i < text.length && text[i] !== '\n') i++; continue }
-    if (ch === '/' && next === '*') { i += 2; while (i < text.length && !(text[i] === '*' && text[i + 1] === '/')) i++; i += 2; continue }
-    out += ch
-    i++
-  }
-  return out
-}
 
 function readJsonc(path) {
   try {

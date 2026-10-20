@@ -40,3 +40,6 @@ npm-debug.log*
 .env
 .env.local
 .env.*.local
+
+# CDS first-deploy config, derived by scripts/cds-bootstrap-config.mjs in CI
+services/cds/wrangler.bootstrap.json
