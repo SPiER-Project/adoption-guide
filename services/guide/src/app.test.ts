@@ -20,7 +20,7 @@ describe('frame-ancestors (the SMART panel is embedded cross-origin)', () => {
     const res = await app.request(`${BASE}/`, {}, { ASSETS })
     const csp = res.headers.get('content-security-policy')
     expect(csp).toContain('frame-ancestors')
-    expect(csp).toContain('https://spier-mock-ehr.bbthorson.workers.dev')
+    expect(csp).toContain('https://spier-mock-ehr.spier-project.workers.dev')
     expect(csp).toContain("'self'")
     // Deliberately NOT a wildcard: a `frame-ancestors *` would let anything
     // embed the app, which is the shortcut that makes the header decorative.

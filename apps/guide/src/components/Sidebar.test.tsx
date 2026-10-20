@@ -63,7 +63,7 @@ describe('Sidebar footer — outbound links', () => {
   it('offers the Demo EHR, which is the only place SPiER appears as a panel', () => {
     renderSidebar()
     const demo = screen.getByRole('link', { name: /Demo EHR/ })
-    expect(demo.getAttribute('href')).toBe('https://spier-mock-ehr.bbthorson.workers.dev/')
+    expect(demo.getAttribute('href')).toBe('https://spier-mock-ehr.spier-project.workers.dev/')
 
     // ⚠️ **This used to assert the label contained "Mock"**, on the grounds that
     // the word was load-bearing: the host is controlled by the project it

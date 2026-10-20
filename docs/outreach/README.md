@@ -29,7 +29,7 @@ pointer). Nothing else referenced the HTML — no app route, no Worker config.
 
 **Both published URLs now 404**, which is the one consequence worth knowing:
 
-- `https://spier-adoption-guide.bbthorson.workers.dev/SPiER-Overview-Care-Pathway`
+- `https://spier-adoption-guide.spier-project.workers.dev/SPiER-Overview-Care-Pathway`
 - `https://spier-project.github.io/adoption-guide/SPiER-Overview-Care-Pathway`
 
 ⚠️ Only on GitHub Pages will that read as a 404. The Worker sets

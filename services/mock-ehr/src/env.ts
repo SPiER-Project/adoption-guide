@@ -25,7 +25,7 @@ export interface Env extends SmartEnv {
    * The CDS Hooks service (`services/cds`), bound Worker-to-Worker.
    *
    * ⚠️ **Not a convenience — a plain `fetch()` to its URL CANNOT work from this
-   * Worker.** Both live on `*.bbthorson.workers.dev`, one zone, and Cloudflare
+   * Worker.** Both live on `*.spier-project.workers.dev`, one zone, and Cloudflare
    * refuses a same-zone Worker subrequest with HTTP 404 / `error code: 1042`.
    * See the long note in `wrangler.jsonc`.
    *

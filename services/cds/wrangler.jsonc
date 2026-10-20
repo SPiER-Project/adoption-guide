@@ -30,7 +30,7 @@
     // and nothing noticed — see the note at the top of src/index.ts. Deriving
     // it again would silently point launches at whatever origin happens to host
     // this service.
-    "SMART_LAUNCH_URL": "https://spier-clinical.bbthorson.workers.dev/",
+    "SMART_LAUNCH_URL": "https://spier-clinical.spier-project.workers.dev/",
 
     // CDS Hooks bearer-JWT policy (read by src/auth.ts). See README "Bearer-token
     // authentication".
@@ -59,31 +59,31 @@
     // ⚠️ The INVOKE URL, not the origin — the mock EHR mints `aud` to match this
     // string exactly, and an origin here fails as a flat 401 with no hint which
     // half is wrong.
-    "CDS_JWT_AUDIENCE": "https://spier-cds.bbthorson.workers.dev/cds-services/spier-patient-view",
+    "CDS_JWT_AUDIENCE": "https://spier-cds.spier-project.workers.dev/cds-services/spier-patient-view",
     // Comma-separated allowlist of accepted `iss` values. The demo host is the
     // one registered client; a real adopter's EHR is added here (and its JWKS
     // host below) when it registers.
-    "CDS_JWT_TRUSTED_ISSUERS": "https://spier-mock-ehr.bbthorson.workers.dev",
+    "CDS_JWT_TRUSTED_ISSUERS": "https://spier-mock-ehr.spier-project.workers.dev",
     // Fixed JWK Set URL used when a token carries no `jku` header. The demo
     // host DOES send `jku`, so this is the belt to that braces — a registered
     // issuer whose token omits the header still verifies.
-    "CDS_JWT_JWKS_URL": "https://spier-mock-ehr.bbthorson.workers.dev/.well-known/jwks.json",
+    "CDS_JWT_JWKS_URL": "https://spier-mock-ehr.spier-project.workers.dev/.well-known/jwks.json",
     // SSRF guard: comma-separated hosts a token's `jku` header may point at.
     // A `jku` on any other host is rejected WITHOUT being fetched. Blank =
     // ignore `jku` entirely and rely on CDS_JWT_JWKS_URL / registered issuers.
     // ⚠️ Non-blank now, which is what puts that guard on the LIVE path rather
     // than only under test — the demo host's tokens carry `jku`.
-    "CDS_JWT_JKU_ALLOWED_HOSTS": "spier-mock-ehr.bbthorson.workers.dev",
+    "CDS_JWT_JKU_ALLOWED_HOSTS": "spier-mock-ehr.spier-project.workers.dev",
     // The ONE host whose key set is fetched through the `CLIENT` binding below
     // instead of over the network. Must also be allowlisted above: this chooses
     // the transport, never whether the token is trusted.
-    "CDS_JWT_BOUND_JWKS_HOST": "spier-mock-ehr.bbthorson.workers.dev"
+    "CDS_JWT_BOUND_JWKS_HOST": "spier-mock-ehr.spier-project.workers.dev"
   },
 
   // ⚠️ **The return leg of the same-zone problem #581 fixed outbound.**
   //
   // `services/mock-ehr` binds THIS service as `CDS` so its invoke can arrive —
-  // both Workers are on `*.bbthorson.workers.dev`, one zone, and Cloudflare
+  // both Workers are on `*.spier-project.workers.dev`, one zone, and Cloudflare
   // refuses a same-zone Worker subrequest. Verifying the token that invoke
   // carries is a subrequest in the other direction: the host signs with a key it
   // publishes at its own `/.well-known/jwks.json` and names in the token's `jku`,

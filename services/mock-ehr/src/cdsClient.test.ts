@@ -193,7 +193,7 @@ describe('POST /_admin/cds', () => {
     expect(res.status).toBe(200)
 
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
-    expect(url).toBe('https://spier-cds.bbthorson.workers.dev/cds-services/spier-patient-view')
+    expect(url).toBe('https://spier-cds.spier-project.workers.dev/cds-services/spier-patient-view')
     const authorization = (init.headers as Record<string, string>).authorization
     expect(authorization).toMatch(/^Bearer /)
 
@@ -205,7 +205,7 @@ describe('POST /_admin/cds', () => {
       // ⚠️ The INVOKE URL, not the origin. The service's CDS_JWT_AUDIENCE is
       // this exact string, and the origin is the easy mistake — it fails as a
       // flat 401 whose only symptom is cards that stop appearing.
-      aud: 'https://spier-cds.bbthorson.workers.dev/cds-services/spier-patient-view',
+      aud: 'https://spier-cds.spier-project.workers.dev/cds-services/spier-patient-view',
     })
   })
 
@@ -229,7 +229,7 @@ describe('POST /_admin/cds', () => {
     expect(bound).toHaveBeenCalledTimes(1)
     // The URL is unchanged by the transport — the signed `aud` is that string.
     expect(bound.mock.calls[0]?.[0]).toBe(
-      'https://spier-cds.bbthorson.workers.dev/cds-services/spier-patient-view',
+      'https://spier-cds.spier-project.workers.dev/cds-services/spier-patient-view',
     )
     // And the zone-refused path is not taken.
     expect(fetchMock).not.toHaveBeenCalled()

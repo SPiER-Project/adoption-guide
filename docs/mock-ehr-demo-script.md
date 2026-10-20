@@ -1,7 +1,7 @@
 # Demo script — SPiER launched inside a (mock) EHR
 
 A one-page walkthrough of the hosted demo: **Northfield Health**, a stand-in
-vendor EHR at <https://spier-mock-ehr.bbthorson.workers.dev>, with SPiER launched into a
+vendor EHR at <https://spier-mock-ehr.spier-project.workers.dev>, with SPiER launched into a
 patient's chart over a real SMART on FHIR handshake. About ten minutes end to end.
 
 This describes the pages as they read after
@@ -44,7 +44,7 @@ the cards lead with these two.
 
 ### 1. The front door (1 min)
 
-Open <https://spier-mock-ehr.bbthorson.workers.dev>. Read the first paragraph
+Open <https://spier-mock-ehr.spier-project.workers.dev>. Read the first paragraph
 aloud if you like — it is the whole instruction: *open a chart, press Launch
 SPiER.* **Start here** offers three charts. Say which you are opening and why:
 

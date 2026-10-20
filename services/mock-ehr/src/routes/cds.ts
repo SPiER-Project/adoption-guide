@@ -114,7 +114,7 @@ cdsRoutes.post('/_admin/cds', async (c) => {
   })
 
   // ⚠️ **The binding, not `fetch`, and it is a correctness fix.** On the
-  // deployed origins both Workers sit on `*.bbthorson.workers.dev` — one zone —
+  // deployed origins both Workers sit on `*.spier-project.workers.dev` — one zone —
   // and Cloudflare refuses a Worker subrequest to another Worker on the same
   // zone, answering HTTP 404 with the body `error code: 1042`. The passthrough
   // below relayed that 404 and the chart blamed the CDS service for a request it

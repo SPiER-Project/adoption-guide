@@ -3,7 +3,7 @@
     "THE ORIGINS SPIER IS DEPLOYED AT. One file, imported by every module that",
     "needs one and gated against every config that must repeat one.",
     "",
-    "Four Workers and one GitHub Pages site, all on personal/project accounts",
+    "Four Workers on the SPiER Cloudflare account and one GitHub Pages site,",
     "until the project has a domain. Before this file the same five strings were",
     "typed into nine places across seven source files, and each rename (the CDS",
     "split, the clinical Worker) found them one at a time. Code imports",
@@ -18,9 +18,9 @@
     "An adopter deploying SPiER replaces these with their own. They are not",
     "secrets; they are the same strings a browser's address bar shows."
   ],
-  "guide": "https://spier-adoption-guide.bbthorson.workers.dev",
-  "clinical": "https://spier-clinical.bbthorson.workers.dev",
-  "cds": "https://spier-cds.bbthorson.workers.dev",
-  "mockEhr": "https://spier-mock-ehr.bbthorson.workers.dev",
+  "guide": "https://spier-adoption-guide.spier-project.workers.dev",
+  "clinical": "https://spier-clinical.spier-project.workers.dev",
+  "cds": "https://spier-cds.spier-project.workers.dev",
+  "mockEhr": "https://spier-mock-ehr.spier-project.workers.dev",
   "pages": "https://spier-project.github.io/adoption-guide"
 }
