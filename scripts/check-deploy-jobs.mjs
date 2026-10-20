@@ -177,7 +177,12 @@ function deployedDirs(id, jobLines) {
  * `mock-ehr` job passed this gate until 2026-10-06 while every other rule held:
  * the job existed, ran in its directory and named the deploy, and never ran.
  */
-const ALLOWED_JOB_GUARDS = new Map()
+const ALLOWED_JOB_GUARDS = new Map([
+  // `cds-bind` is the second half of a first deploy on an empty account: it
+  // re-deploys CDS with the binding the `cds` job had to leave out. Skipped is
+  // the right state on every other run — `cds` already shipped the real config.
+  ["needs.cds.outputs.bootstrapped == 'true'", 'cds-bind: only after a binding-free bootstrap deploy'],
+])
 
 const deployedByJob = new Map()
 for (const [id, jobLines] of jobs) {
