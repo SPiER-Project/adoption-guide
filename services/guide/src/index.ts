@@ -29,6 +29,7 @@ import { Hono } from 'hono'
 import origins from '../../../deploy-origins.json'
 import { serveSpaAsset } from '@spier/worker-http/spaAssets'
 import type { SpaAssetsEnv } from '@spier/worker-http/spaAssets'
+import { withIgNotice } from './igNotice'
 
 /**
  * `SpaAssetsEnv` carries the Static Assets binding and the `frame-ancestors`
@@ -71,7 +72,8 @@ const app = new Hono<{ Bindings: Env }>()
 // and nothing else). `npm run check:origins` at the root fails a literal here.
 const IG_FALLBACK_BASE = `${origins.pages}/ig/`
 
-app.all('*', (c) => serveSpaAsset(c.req.raw, c.env, (url) =>
+app.all('*', async (c) => {
+  const response = await serveSpaAsset(c.req.raw, c.env, (url) =>
   // An IG path we do not hold is an oversized download; the canonical Pages
   // render has it. 302 rather than 301: what is too big is a property of this
   // deploy, not of the URL, and a permanent redirect would outlive it in
@@ -80,6 +82,9 @@ app.all('*', (c) => serveSpaAsset(c.req.raw, c.env, (url) =>
   // Returning `undefined` for everything else takes the shared SPA fallback.
   url.pathname.startsWith('/ig/')
     ? Response.redirect(IG_FALLBACK_BASE + url.pathname.slice('/ig/'.length) + url.search, 302)
-    : undefined))
+    : undefined)
+  // Every IG page carries the under-development notice; the SPA draws its own.
+  return new URL(c.req.url).pathname.startsWith('/ig/') ? withIgNotice(response) : response
+})
 
 export default app

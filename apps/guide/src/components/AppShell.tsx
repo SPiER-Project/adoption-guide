@@ -4,6 +4,7 @@ import { ExternalLink } from 'lucide-react'
 import { useScrollToTopOnNavigate } from '@spier/app-shell/hooks/useScrollToHash'
 import { Sidebar } from './Sidebar'
 import { SpierLogo } from '@spier/app-shell/components/SpierLogo'
+import { DevelopmentBanner } from '@spier/app-shell/components/DevelopmentBanner'
 import '@spier/app-shell/css/AppShell.css'
 import { cx } from '@spier/ui/cx'
 
@@ -54,6 +55,7 @@ export function AppShell() {
 
   return (
     <div className="app-shell">
+      <DevelopmentBanner />
       <header className="app-shell__header">
         <div className="app-shell__header-content">
           <button

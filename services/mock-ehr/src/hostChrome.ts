@@ -60,6 +60,8 @@
  * dock, the front door's activity frame. `page()` composes the two.
  */
 
+import { DEVELOPMENT_NOTICE } from '@spier/core/lib/developmentNotice'
+
 /** The host's product name — see "Why the host has a name" above. */
 export const PRODUCT_NAME = 'Northfield Health'
 
@@ -188,6 +190,21 @@ export function esc(value: unknown): string {
  * palette came to have three copies.
  */
 export const COMPONENTS = `
+  /* ── Development notice ───────────────────────────────────────────────────
+     SPiER's under-development notice, in this host's own palette: the words
+     are shared (packages/core/src/lib/developmentNotice.ts), the styling is
+     not. Above the app bar and NOT sticky — the bar and the chart's dock both
+     pin to the top of the viewport by --bar-h, so a sticky row here would
+     have to be folded into that offset; in flow it simply scrolls away. */
+  .dev-notice {
+    margin: 0;
+    padding: var(--s1) var(--s5);
+    background: var(--warning-soft);
+    color: var(--warning);
+    font-size: var(--text-xs);
+    text-align: center;
+  }
+
   * { box-sizing: border-box; }
 
   body {
@@ -694,6 +711,7 @@ export function page({
 <style>${TOKENS}${COMPONENTS}${css}</style>
 </head>
 <body>
+<p class="dev-notice" role="note"><strong>${esc(DEVELOPMENT_NOTICE.title)}</strong> ${esc(DEVELOPMENT_NOTICE.body)}</p>
 <header class="app-bar">
   <a class="app-bar__mark" href="/">${esc(PRODUCT_NAME)}</a>
   <span class="app-bar__tag">Demo host</span>
