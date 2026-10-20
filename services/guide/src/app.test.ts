@@ -10,6 +10,7 @@
  */
 import { describe, expect, it } from 'vitest'
 import app from './index'
+import { IG_NOTICE_HTML } from './igNotice'
 
 const BASE = 'http://guide.test'
 
@@ -136,5 +137,36 @@ describe('the CDS Hooks API is NOT on this Worker', () => {
     expect(seen).toEqual(['/cds-services'])
     expect(res.headers.get('content-type')).not.toContain('application/json')
     expect(await res.text()).toBe('asset')
+  })
+})
+
+describe('every IG page carries the under-development notice', () => {
+  const page = '<!doctype html><html><head></head><body class="ig"><h1>SPiER</h1></body></html>'
+  const serve = (body: string, type: string) => ({
+    fetch: async () => new Response(body, { headers: { 'content-type': type, 'content-length': String(body.length) } }),
+  })
+
+  it('writes the notice in once, straight after <body>', async () => {
+    const res = await app.request(`${BASE}/ig/index.html`, {}, { ASSETS: serve(page, 'text/html; charset=utf-8') })
+    const html = await res.text()
+    expect(html).toContain(`<body class="ig">${IG_NOTICE_HTML}<h1>`)
+    expect(html.split('role="note"')).toHaveLength(2)
+    expect(res.headers.get('content-length')).toBeNull()
+  })
+
+  it('keeps the CSP on the rewritten page', async () => {
+    const res = await app.request(`${BASE}/ig/index.html`, {}, { ASSETS: serve(page, 'text/html') })
+    expect(res.headers.get('content-security-policy')).toContain('frame-ancestors')
+  })
+
+  it('leaves a non-HTML IG file byte-for-byte alone', async () => {
+    const css = 'body{color:red}'
+    const res = await app.request(`${BASE}/ig/assets/css/ig.css`, {}, { ASSETS: serve(css, 'text/css') })
+    expect(await res.text()).toBe(css)
+  })
+
+  it('does NOT touch the SPA, which draws its own banner', async () => {
+    const res = await app.request(`${BASE}/`, {}, { ASSETS: serve(page, 'text/html') })
+    expect(await res.text()).toBe(page)
   })
 })

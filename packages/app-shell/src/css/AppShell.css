@@ -35,8 +35,9 @@
 .app-shell {
   display: grid;
   grid-template-columns: 240px 1fr;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto auto 1fr auto;
   grid-template-areas:
+    "notice  notice"
     "header  header"
     "sidebar content"
     "footer  footer";
@@ -311,6 +312,7 @@
   .app-shell {
     grid-template-columns: 1fr;
     grid-template-areas:
+      "notice"
       "header"
       "content"
       "footer";

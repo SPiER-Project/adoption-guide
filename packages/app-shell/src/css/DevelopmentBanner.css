@@ -1,0 +1,13 @@
+/* ===========================
+   Development banner — the shell grid's `notice` row (AppShell.css).
+   Full-bleed like the app bar and the footer: it is chrome, not page.
+   =========================== */
+.development-banner {
+  grid-area: notice;
+  font: var(--type-caption);
+  background: var(--status-warning-bg);
+  color: var(--status-warning-text);
+  border-bottom: 1px solid var(--status-warning-border);
+  padding: var(--space-1) var(--space-6);
+  text-align: center;
+}
