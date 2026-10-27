@@ -340,25 +340,14 @@ const SCAN = [
  * A code that is absent because it is wrong is #220, and it belongs in a fix.
  */
 const PENDING_TX = new Map([
-  // ASQ — LOINC 2.83 published the panel and its item codes; tx.fhir.org serves
-  // 2.82 (confirmed by $lookup on 2026-09-08, which reports "Unable to find code
-  // ... in http://loinc.org version 2.82"). Codes and displays were read off the
-  // LOINC-derived Questionnaire NLM publishes for panel 115564-7. Added
-  // 2026-09-08; delete each line as tx.fhir.org picks up 2.83.
+  // Empty. Its first tenants were five ASQ item codes from LOINC 2.83, held here
+  // from 2026-09-08 until tx.fhir.org served 2.83 (2026-10-26, #479). Rule 2 is
+  // what removed them: the run went red the week the server caught up.
   //
-  // ⚠️ Only the FIVE codes this script can see are listed. The panel (115564-7)
-  // and the two uncoded-by-the-mapper items (115570-4, 115572-0) are written in
-  // the Questionnaire JSON, which this script deliberately does not scan — they
-  // are `validate-fhir.mjs --tx`'s to check, and this workflow runs that too.
-  // ⚠️ That script has its OWN PENDING_TX for them since #480 — see its note.
-  // Listing them here was rule 3's first catch: an entry for a code no scan can
-  // reach is an exemption that never expires, because nothing can ever prove it
-  // stale.
-  ['http://loinc.org|115566-2', 'ASQ q1 — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
-  ['http://loinc.org|115567-0', 'ASQ q2 — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
-  ['http://loinc.org|115568-8', 'ASQ q3 — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
-  ['http://loinc.org|115569-6', 'ASQ q4 — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
-  ['http://loinc.org|115571-2', 'ASQ q5 — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
+  // ⚠️ List only codes this script can SEE — a mapper's literals in TypeScript.
+  // A code written only in the Questionnaire JSON belongs in validate-fhir.mjs's
+  // twin instead; listing it here is an exemption nothing can prove stale (rule
+  // 3's first catch, on the ASQ panel code).
 ])
 
 

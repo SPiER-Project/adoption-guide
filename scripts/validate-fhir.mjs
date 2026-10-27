@@ -464,28 +464,14 @@ let silentPasses = 0
  * these errors cannot occur at all, so absence proves nothing.
  */
 const PENDING_TX = new Map([
-  // ASQ — LOINC 2.83 published the panel, its item codes and the recency
-  // answers; tx.fhir.org serves 2.82. Adopted 2026-09-08 (ig/input/fsh/asq.fsh),
-  // confirmed by $lookup the same day. Delete each line as tx picks up 2.83 —
-  // together with the matching lines in check-codings.mjs's PENDING_TX, the
-  // "Currently expected" paragraph in docs/scheduled-checks-triage.md and the
-  // no-validate parameter in ig/sushi-config.yaml (#479).
+  // Empty. It held the ASQ's ten LOINC 2.83 codes (panel, eight items, the
+  // recency answers) from 2026-09-14 until tx.fhir.org served 2.83 on
+  // 2026-10-26 (#479). When the next edition lags, an entry here comes with its
+  // twin in check-codings.mjs for the codes that script can see, and with a
+  // scoped `no-validate` in ig/sushi-config.yaml if the publisher errors on it.
   //
-  // ⚠️ This list is LONGER than its twin's five, and that asymmetry is correct:
-  // check-codings.mjs scans TypeScript only, so it can never see the panel code
-  // or the two items no mapper writes. Those live in the Questionnaire JSON,
-  // which is this script's to check. An entry there for a code that script
-  // cannot reach would be an exemption nothing could ever prove stale.
-  ['http://loinc.org|115564-7', 'ASQ panel — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
-  ['http://loinc.org|115566-2', 'ASQ q1 — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
-  ['http://loinc.org|115567-0', 'ASQ q2 — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
-  ['http://loinc.org|115568-8', 'ASQ q3 — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
-  ['http://loinc.org|115569-6', 'ASQ q4 — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
-  ['http://loinc.org|115570-4', 'ASQ recency item — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
-  ['http://loinc.org|115571-2', 'ASQ q5 — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
-  ['http://loinc.org|115572-0', 'ASQ acuity item — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
-  ['http://loinc.org|LA37190-8', 'ASQ recency answer "Yes" — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
-  ['http://loinc.org|LA37191-6', 'ASQ recency answer "No" — LOINC 2.83, tx serves 2.82 (2026-09-08)'],
+  // ⚠️ This list may be LONGER than its twin, correctly: check-codings.mjs scans
+  // TypeScript only, so it never sees a panel code or an item no mapper writes.
 ])
 
 /**
@@ -576,9 +562,9 @@ if (txLive) {
   if (stale.length) {
     console.error(
       `\n✗ ${stale.length} PENDING_TX entr(ies) no longer suppress anything — ${tx} has ` +
-        'caught up, so delete them (and their twins in check-codings.mjs, the "Currently ' +
-        'expected" paragraph in docs/scheduled-checks-triage.md, and the no-validate ' +
-        'parameter in ig/sushi-config.yaml):',
+        'caught up, so delete them (and their twins in check-codings.mjs, any no-validate ' +
+        'entry for the same resource in ig/sushi-config.yaml, and update the "Last ' +
+        'occurrence" note in docs/scheduled-checks-triage.md § Cause 1b):',
     )
     for (const k of stale) console.error(`  ${k}  (was: ${PENDING_TX.get(k)})`)
     process.exitCode = 1

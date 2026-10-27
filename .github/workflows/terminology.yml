@@ -49,8 +49,8 @@ name: Terminology — external-code check
 # ig.yml and fml-validate.yml, so a PR run reuses it.
 #
 # ⚠️ **This depended on giving `validate-fhir.mjs` a PENDING_TX list of its
-# own.** Without it that job is red on every run until tx.fhir.org ships LOINC
-# 2.83 — and wiring a months-red check onto every terminology PR would have made
+# own.** Without it that job was red on every run until tx.fhir.org shipped LOINC
+# 2.83 (it did on 2026-10-26; #479 emptied both lists) — and wiring a months-red check onto every terminology PR would have made
 # the signal worse, not better, which is the whole argument of #480.
 #
 # ─── Two things worth knowing before editing ─────────────────
