@@ -20,7 +20,8 @@ npm run check:codings    # every LOINC / SNOMED / terminology.hl7.org code+displ
 ⚠️ **`PENDING_TX` is its one tolerated failure, and it is built to expire.**
 tx.fhir.org lags LOINC releases, so a code SPiER adopts from a new edition can be
 correct and still not resolve — the ASQ codes from LOINC 2.83 against the
-server's 2.82 are the case it was written for. An entry (keyed `system|code`,
+server's 2.82 are the case it was written for (2026-09-08 to 2026-10-26; both
+lists are empty today, #479). An entry (keyed `system|code`,
 valued with the edition and date) lets that code pass. **Two of its three rules
 FAIL rather than warn:** an entry the server *does* resolve fails the run, so a
 caught-up server forces the line's deletion instead of leaving a permanent hole;
@@ -40,8 +41,8 @@ months-red job onto every terminology PR would have degraded the signal rather
 than added any.
 
 The two lists are **different lengths on purpose**: `check-codings.mjs` scans
-TypeScript, so it carries the five codes a mapper writes; `validate-fhir.mjs`
-reads the resources, so it carries all ten — the panel and the two items no
+TypeScript, so for the ASQ it carried the five codes a mapper writes; `validate-fhir.mjs`
+reads the resources, so it carried all ten — the panel and the two items no
 mapper writes included. Listing a resource-only code in the TypeScript list is
 what rule 2 caught on its first run: an exemption for something the scan cannot
 reach can never be proven stale.

@@ -280,8 +280,9 @@ one-pager and that workflow are gone.)
 
 - **#588 option 1 and #77** on #93's sign-off. (#588 option 2 is not blocked —
   see the actionable table.)
-- **#479** on tx.fhir.org serving LOINC 2.83. Both `PENDING_TX` maps fail the
-  run on a stale entry, so the gate says when.
+- ✅ ~~**#479** on tx.fhir.org serving LOINC 2.83~~ **DONE** — the server
+  caught up 2026-10-26, the terminology run went red naming the stale entries,
+  and both `PENDING_TX` maps and the ASQ `no-validate` were deleted.
 - ✅ ~~**#264 — crosswalk fidelity**~~ **DONE (#665)**, without waiting on #93:
   showing that a mapping is still a proposal is the right response to sign-off
   being pending, not something sign-off gates.

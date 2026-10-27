@@ -108,53 +108,36 @@ Response depends on which job is red, because only one of them has a mechanism:
   date. It is built to expire: an entry the server *does* resolve fails the run,
   and so does an entry naming a code the scan no longer finds. Do not add a code
   here because it is wrong — that is Cause 1, and `PENDING_TX` would bury it.
-- **Resources job** (`validate-fhir.mjs --tx`) — **has no allowlist, on purpose.**
-  It reports through the HL7 validator's own output, so suppressing one issue
-  means pattern-matching the validator's text, and the condition is temporary by
-  definition. Record the expected failure below instead and leave the tracking
-  issue open until tx catches up. `ig.yml` runs this same script with `-tx n/a`,
-  so a PR is unaffected either way.
+- **Resources job** (`validate-fhir.mjs --tx`) — the code belongs in that
+  script's own `PENDING_TX`, the twin of the one above, with the same expiry
+  rule. It may list more codes than the codings job's, correctly: a panel code
+  or an item no mapper writes lives only in the Questionnaire JSON, which the
+  codings job never scans. `ig.yml` runs this script with `-tx n/a`, so a PR is
+  unaffected either way.
 - **IG Publisher** (`ig-publish.yml`, `deploy.yml`) — since #473 the
   Questionnaires are IG artifacts, so the publisher validates their codes against
   tx.fhir.org too, and an unknown code there is an ERROR that fails the QA gate
   and blocks the deploy. `ignoreWarnings.txt` cannot help: it suppresses
   warnings, hints and broken links only (tried on #512; qa.html says so in its
   heading). The only lever is the IG parameter `no-validate`, scoped to the one
-  resource (`Questionnaire/ASQ-Screening-Tool` in `ig/sushi-config.yaml`), which
-  skips the publisher's validation of that resource entirely — so it is listed
-  below as a third thing to delete when the server updates, and the resource
-  stays covered by `validate-fhir.mjs` (structure, every PR), this workflow
-  (codes) and the loinc-audit in the meantime.
+  resource (`no-validate: [Questionnaire/<id>]` in `ig/sushi-config.yaml`), which
+  skips the publisher's validation of that resource entirely — the widest of
+  the three, so delete it the moment the server catches up. The resource stays
+  covered by `validate-fhir.mjs` (structure, every PR), this workflow (codes)
+  and the loinc-audit in the meantime.
 
-**Suppressed, not expected (#480):** the ASQ Questionnaire's LOINC codes —
-panel `115564-7`, items `115566-2`, `115567-0`, `115568-8`, `115569-6`,
-`115570-4`, `115571-2`, `115572-0`, and the two answer codes `LA37190-8` /
-`LA37191-6` on the recency item (which also appear in
-`packages/demo-population/src/scenarios/patient-013.json`). Published in LOINC
-2.83, adopted 2026-09-08 (see `ig/input/fsh/asq.fsh`), and not served by
-tx.fhir.org's 2.82.
+**Last occurrence:** the ASQ's ten LOINC 2.83 codes (panel `115564-7`, its
+items, and the recency answers `LA37190-8` / `LA37191-6`), adopted 2026-09-08
+and suppressed in all three places until tx.fhir.org served 2.83 on
+2026-10-26. Both `PENDING_TX` lists turned the run red that week, naming every
+line to delete, and #479 deleted them with the `no-validate` entry. Nothing is
+suppressed today; a red run means something new.
 
-⚠️ **This paragraph used to say the resources job was expected to be RED, and it
-was — every night from 2026-09-14.** `check-codings.mjs` had carried a
-`PENDING_TX` list for its five visible codes since 2026-09-08 and stayed green;
-`validate-fhir.mjs` had no equivalent, so the same lag failed the other job
-indefinitely. #480 gave it one, because a check that is red for months is one
-people stop reading — and that is exactly when real drift arrives unnoticed. Both
-jobs are green today; a red one means something new.
-
-Four things to delete together once tx.fhir.org serves 2.83 (#479), because a
-lingering entry in any of them is a hole in the gate:
-
-1. `PENDING_TX` in `scripts/validate-fhir.mjs` (all ten codes)
-2. `PENDING_TX` in `scripts/check-codings.mjs` (the five it can see)
-3. this paragraph
-4. `no-validate: Questionnaire/ASQ-Screening-Tool` in `ig/sushi-config.yaml` —
-   **the widest of the four**, since it skips the publisher's validation of that
-   resource entirely
-
-⚠️ You should not have to remember: both `PENDING_TX` lists **fail the run** when
-an entry stops suppressing anything, so the server catching up turns each one
-red with a message naming what to delete.
+⚠️ **Before #480 the resources job had no allowlist, and it was RED every night
+from 2026-09-14** while the codings job sat green behind its own. A check that
+is red for months is one people stop reading — which is exactly when real drift
+arrives unnoticed. Give a lagging code an entry in each list that can see it,
+not a paragraph telling the reader to expect red.
 
 ### Cause 2 — `tx.fhir.org` was unreachable or erroring
 

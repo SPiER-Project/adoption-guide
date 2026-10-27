@@ -49,13 +49,11 @@ that do not exist in LOINC at all. Anything that re-codes these items should be
 read against LOINC's own published panel definition, item by item — not against
 this file.
 
-⚠️ **`tx.fhir.org` serves LOINC 2.82 and does not resolve these codes yet.**
-**Two** `PENDING_TX` allowlists carry them — `scripts/check-codings.mjs` for the
-five written in TypeScript, and `scripts/validate-fhir.mjs` for all ten,
-including the panel and the two items no mapper writes. Each fails its run once
-the server catches up, so the entries get deleted rather than becoming
-permanent. If you see that failure, the fix is to remove those lines from both,
-along with the `no-validate` parameter in `ig/sushi-config.yaml` (#479).
+`tx.fhir.org` lagged this release: it served LOINC 2.82 until 2026-10-26, so
+from adoption until then these codes sat in both `PENDING_TX` allowlists and the
+IG Publisher's validation of this Questionnaire was switched off. #479 removed
+all three once the server caught up; the ASQ is now checked like every other
+instrument, by the terminology job and by the publisher.
 
 Three further CodeSystems used to live here — `asq-screening-result`,
 `asq-attempt-recency` and `asq-age-group` — and were **removed in favour of the
