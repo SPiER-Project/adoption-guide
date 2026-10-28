@@ -16,9 +16,10 @@ rather than restating them.
   — the per-role conformance pattern ([Conformance](conformance.html)) and the
   derived-concept modeling the suicide-risk concept layer follows.
 
-### HL7 US Behavioral Health Profiles (USCDI+ Behavioral Health)
+### US Behavioral Health Profiles (USCDI+ Behavioral Health)
 
-The [HL7 US Behavioral Health Profiles IG](https://build.fhir.org/ig/HL7/us-behavioral-health-profiles/)
+The [US Behavioral Health Profiles IG](https://fhir.org/guides/onc/bhp/),
+published by ONC with SAMHSA funding and HL7 EHR Work Group input,
 expresses the USCDI+ Behavioral Health data elements as FHIR. It is **broad
 and shallow** by design, covering the whole behavioral-health domain on the
 same US Core + SDC + SDOH foundation. The two guides are complementary, and a
@@ -45,9 +46,10 @@ one concept:
   ([`LL465-6`](https://loinc.org/93374-7)); SPiER's finer-grained tier maps
   onto it through the [egress ConceptMap](ConceptMap-SPiERRiskTierToLOINC.html).
 
-SPiER does **not** declare a package dependency on that guide: it is a
-pre-ballot CI build whose artifacts change frequently and whose own
-consistency was still settling when inspected in August 2026, so SPiER aligns
-at the terminology and modeling level and will revisit a formal dependency
-when it reaches a stable ballot release. The inspection notes are in
+SPiER does **not** declare a package dependency on that guide: it is an
+early release (0.1.0, with 0.2.0 in preparation in October 2026) whose
+artifacts, package name and canonical URL are still moving, and whose own
+consistency was still settling when inspected in August and October 2026, so
+SPiER aligns at the terminology and modeling level and will revisit a formal
+dependency when it stabilizes. The inspection notes are in
 [this research note](https://github.com/SPiER-Project/adoption-guide/blob/main/docs/research/2026-08-us-behavioral-health-profiles-ig.md).
