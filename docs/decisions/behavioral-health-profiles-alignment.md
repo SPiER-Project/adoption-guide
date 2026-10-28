@@ -1,4 +1,4 @@
-# Aligning with the HL7 US Behavioral Health Profiles IG without depending on it
+# Aligning with the US Behavioral Health Profiles IG without depending on it
 
 **Decided:** 2026-08 (the investigation is
 [`research/2026-08-us-behavioral-health-profiles-ig.md`](../research/2026-08-us-behavioral-health-profiles-ig.md)).
@@ -46,7 +46,19 @@ coverage. None of this is unusual for a pre-ballot CI build — it is simply why
 the dependency waits. Read the US Core version off each artifact rather than
 off the guide.
 
+**2026-10-28:** 0.2.0, in preparation upstream, fixes the version mismatch,
+the US Core mix (except one example) and the two canonical bases. It renames
+the package to `fhir.onc.bhp` and moves the canonical URL to
+`fhir.org/guides/onc/bhp`. The removed-but-still-listed elements and the
+coverage contradiction remain. The details are in the research note's 0.2.0
+section.
+
 ## What would reopen it
 
 A stable ballot release of the BH Profiles guide, at which point a formal
 dependency and a declared conformance relationship become worth their cost.
+
+⚠️ As worded, this condition may never be met: the guide is published by ONC
+on fhir.org, not balloted by HL7, and 0.2.0 asks for a `trial-use` milestone
+release instead. Whether a trial-use ONC release counts as "stable" is a
+decision still to be made, not a fact the 0.2.0 release settles.

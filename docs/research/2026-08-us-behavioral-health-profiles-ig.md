@@ -8,7 +8,9 @@ PHQ-9 / anxiety examples. Structural claims about FHIR R4 and US Core were check
 `hl7.org/fhir/us/core/STU6.1/StructureDefinition-us-core-observation-screening-assessment.json`.
 
 The §5 defects were **re-verified against the live build on 2026-08-13** before being filed
-upstream, and all five still held.
+upstream, and all five still held. They were **re-verified again on 2026-10-28 against 0.2.0**
+(renamed `fhir.onc.bhp`): two are fixed, one is mostly fixed, two still hold. See
+[Re-verified against 0.2.0](#re-verified-against-020-2026-10-28).
 
 This is a **CI build that changes regularly**. Every finding below is dated; re-verify before
 acting on any of it. Where this report contradicts
@@ -238,6 +240,45 @@ strengthens it.
    requested afternoon appointments.
 All five re-verified against the live build on **2026-08-13** — including that the six removed
 elements are still live crosswalk rows. Tracked as [#337](https://github.com/SPiER-Project/adoption-guide/issues/337).
+
+### Re-verified against 0.2.0 (2026-10-28)
+
+The list above describes 0.1.0. Upstream has since prepared **0.2.0** on the `development`
+branch of `HL7/us-behavioral-health-profiles` (head `e5f0462`, 2026-10-12; its CI build at
+`build.fhir.org/ig/HL7/us-behavioral-health-profiles/branches/development/` was generated
+2026-09-14, so it lags the source). What changed in that release:
+
+- **Renamed and re-homed.** Package `fhir.astp.bhp` → **`fhir.onc.bhp`**; canonical
+  `http://fhir.org/guides/astp/bhp` → **`http://fhir.org/guides/onc/bhp`**; publisher is ONC.
+  `publication-request.json` asks for a `trial-use` milestone release with
+  `movedFrom: http://fhir.org/guides/astp/bhp`. `fhir.org/guides/onc/bhp/` already 301s to the
+  `astp` path, which still serves 0.1.0 (2025-08-18) as the current release.
+- **Built differently.** Profiles are now FSH (SUSHI); pages are authored on Simplifier and
+  passed through the HL7 IG publisher. Dependencies: US Core 6.1.0, SDOH Clinical Care 2.3.0,
+  US Military Service 1.0.0.
+- **The suicide-risk gap is unchanged.** The C-SSRS example still points `questionnaire` at the
+  CMS PDF and carries its LOINC codes only in `linkId`; there is still no suicide-risk
+  Observation. §2, §4.2 and §4.3 still hold, and so do our checked-in fixtures.
+
+The five findings, one by one, against the 0.2.0 source:
+
+| # | Finding | 0.2.0 | Evidence |
+|---|---|---|---|
+| 1 | Mixed US Core versions | **Mostly fixed** | Both profiles now derive from US Core 6.1.0 and every example pins `\|6.1.0`, except `average-blood-pressure-example-1`, which pins `us-core-average-blood-pressure\|7.0.0`, a profile US Core 6.1.0 does not have and US Core 7.0.0 is not a dependency. The paroxetine example still uses the US Core 7.0.0 MedicationAdherence extension. |
+| 2 | Change log says 0.2.0, package is 0.1.0 | **Fixed** | Both say 0.2.0 now. |
+| 3 | Six removed elements still in the crosswalk | **Still holds, and worse** | All six are still rows in *both* the crosswalk (`bh_to_fhir_profiles`) and the USCDI+ BH elements table. 0.2.0 also adds an **`AdverseEvent` example** (`fall-adverse-event-example-1`) to the published set; 0.1.0 had none (`AdverseEvent-fall-adverse-event-example-1.html` is 404 on 0.1.0, 200 on the 0.2.0 build). The change log still says Adverse Event was removed. |
+| 4 | Two canonical bases | **Fixed** | The `ImplementationGuide` and every artifact use `http://fhir.org/guides/onc/bhp`. |
+| 5 | Story contradicts its examples | **Half holds** | `quick_facts` still says **Medicare**; `full_story` and the Coverage/Organization examples say Florida Medicaid. The counselor-preference contradiction no longer reproduces: "afternoon" appears nowhere in the 0.2.0 sources. |
+
+Two findings that are new in 0.2.0:
+
+- **The feedback links are unchanged.** The footer still offers
+  `github.com/HL7/us-behavioral-health-profiles/issues/new` (issues still disabled) and
+  `lantanagroup/astp-bhp/issues` (no push since 2026-02-26; its six issues are all link tests).
+  The live channel is the people committing on `development` and the ASTP inquiry portal.
+- **`scope_and_usage` hard-links the old CI build.** Ten table links on that page point at
+  `build.fhir.org/ig/HL7/us-behavioral-health-profiles/…`, the build of `main` (0.1.0 content),
+  instead of at pages inside the guide.
 
 ### Where to send feedback
 
