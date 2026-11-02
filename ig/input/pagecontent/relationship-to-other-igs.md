@@ -4,22 +4,75 @@ rather than restating them.
 
 ### Shared foundation
 
-- **[US Core 9.0.0](https://hl7.org/fhir/us/core/)** — Patient demographics
-  and the standard Observation shape. SPiER's instrument Observations carry a
-  named `survey` category slice, which is the element
-  [US Core Observation Screening Assessment](https://hl7.org/fhir/us/core/STU9/StructureDefinition-us-core-observation-screening-assessment.html)
-  requires, so the two shapes agree.
+- **[US Core 9.0.0](https://hl7.org/fhir/us/core/)** — the parent of every
+  SPiER profile whose resource type US Core profiles, so an instance that
+  conforms to SPiER also conforms to US Core:
+
+  | SPiER profiles | US Core parent |
+  |---|---|
+  | The 12 instrument and concept Observations | [Observation Screening Assessment](https://hl7.org/fhir/us/core/STU9/StructureDefinition-us-core-observation-screening-assessment.html) |
+  | Means Safety Action | [Simple Observation](https://hl7.org/fhir/us/core/STU9/StructureDefinition-us-core-simple-observation.html) |
+  | Suicide-Related Condition, CAMS Suicide Driver | [Condition Problems and Health Concerns](https://hl7.org/fhir/us/core/STU9/StructureDefinition-us-core-condition-problems-health-concerns.html) |
+  | The four safety-plan and CAMS CarePlans | [CarePlan](https://hl7.org/fhir/us/core/STU9/StructureDefinition-us-core-careplan.html) |
+  | Lethal Means Counseling | [Procedure](https://hl7.org/fhir/us/core/STU9/StructureDefinition-us-core-procedure.html) |
+  | [Encounter](StructureDefinition-spier-encounter.html) | [Encounter](https://hl7.org/fhir/us/core/STU9/StructureDefinition-us-core-encounter.html) |
+  | [Discharge Safety Packet](StructureDefinition-spier-discharge-safety-packet.html) | [DocumentReference](https://hl7.org/fhir/us/core/STU9/StructureDefinition-us-core-documentreference.html) |
+  | [Safety Referral](StructureDefinition-spier-safety-referral.html) | [ServiceRequest](https://hl7.org/fhir/us/core/STU9/StructureDefinition-us-core-servicerequest.html) |
+
+  US Core requires a code on the last three, and SPiER fixes them:
+  `Encounter.type` follows the encounter's class (SNOMED CT `4525004`
+  Emergency department patient visit, `32485007` Hospital admission, otherwise
+  `308335008` Patient encounter procedure); the packet's type is LOINC
+  `87626-8` Suicide Prevention Note; and a referral is coded SNOMED CT
+  `390866009` Referral to mental health team, or `183524004` Referral to
+  psychiatry service for a transfer to inpatient psychiatric care, with the
+  service named in `code.text`.
+
+  The remaining profiles — the Communications, Consent, Flag, Task, Appointment
+  and EpisodeOfCare — constrain types US Core does not profile, and build on
+  the base resources.
 - **[SDC 4.0.0](https://hl7.org/fhir/uv/sdc/)** — `Questionnaire` authoring
   plus the `observationExtract` / `calculatedExpression` mechanics SPiER uses
   to derive Observations from a completed `QuestionnaireResponse`.
 - **[Gravity / SDOH Clinical Care](https://hl7.org/fhir/us/sdoh-clinicalcare/)**
   — the per-role conformance pattern ([Conformance](conformance.html)) and the
-  derived-concept modeling the suicide-risk concept layer follows.
+  domain category on every resource. SPiER departs from Gravity in one place:
+  Gravity gives each derived result its own code, while SPiER's instrument
+  results and harmonized tier share one (see
+  [Known limitations](conformance.html#known-limitations)).
+
+### Other standards SPiER uses
+
+- **[CDS Hooks](https://cds-hooks.hl7.org/)** — SPiER's reference decision
+  support service answers the `patient-view` hook with cards for the patient's
+  next pathway step and any active risk alerts, derived from their completed
+  assessments. The service is one implementation of the Act layer, not part of
+  the conformance contract.
+- **[SMART App Launch](https://hl7.org/fhir/smart-app-launch/)** — the
+  reference apps launch from an EHR with SMART, read the patient's record, and
+  write results back. SPiER defines no scopes or launch context of its own.
+- **[Bulk Data Access](https://hl7.org/fhir/uv/bulkdata/)** — the
+  [Quality Reporter](CapabilityStatement-quality-reporter.html) exports the
+  SPiER resource types with a group-level `$export`.
+- **[CRMI](https://hl7.org/fhir/uv/crmi/) and CQF Common** — dependencies of
+  the measures. When the guide is published, the measure CQL is compiled and
+  each Measure's data requirements are worked out from it, which uses both.
+  SPiER does not hand-author any CRMI artifact.
+- **[Clinical Practice Guidelines (CPG)](https://hl7.org/fhir/uv/cpg/)** — the
+  pathway is written as base R4 PlanDefinitions and ActivityDefinitions in the
+  shape CPG describes (a protocol that applies setting pathways, steps that
+  reference activity definitions), but no SPiER artifact claims a CPG profile
+  yet, and SPiER does not depend on the CPG package.
+- **Quality measure IGs ([QI-Core](https://hl7.org/fhir/us/qicore/),
+  [DEQM](https://hl7.org/fhir/us/davinci-deqm/), CQF Measures)** — not used.
+  The measures read SPiER's own profiles rather than QI-Core, and are
+  patient-based base R4 Measures, which needs nothing from CQF Measures; see
+  [Measures](measurement.html).
 
 ### US Behavioral Health Profiles (USCDI+ Behavioral Health)
 
-The [US Behavioral Health Profiles IG](https://fhir.org/guides/onc/bhp/),
-published by ONC with SAMHSA funding and HL7 EHR Work Group input,
+The [US Behavioral Health Profiles IG](https://fhir.org/guides/astp/bhp/),
+published by ASTP/ONC with SAMHSA funding and HL7 EHR Work Group input,
 expresses the USCDI+ Behavioral Health data elements as FHIR. It is **broad
 and shallow** by design, covering the whole behavioral-health domain on the
 same US Core + SDC + SDOH foundation. The two guides are complementary, and a

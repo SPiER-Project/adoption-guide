@@ -152,6 +152,7 @@ RuleSet: SuicideRiskDomainSlicingOn(element)
 RuleSet: SuicideRiskDomainSliceOn(element)
 * {element} contains suicideRisk 1..1
 * {element}[suicideRisk] = SPiERConceptDomain#suicide-risk
+* {element}[suicideRisk] MS
 * {element}[suicideRisk] ^short = "SPiER concept domain — suicide risk"
 * {element}[suicideRisk] ^definition = "Marks this resource as part of the suicide-safer care record, so a consumer can retrieve the whole chain by domain without knowing which instrument or workflow step produced it. Screening-level: it indicates the domain addressed, not a confirmed clinical finding."
 
@@ -186,34 +187,40 @@ RuleSet: SuicideRiskDomainCategory
 // instance and instances do NOT restate it. Slicing stays `#open`, so naming
 // one standard category still permits any number of unsliced others.
 
-RuleSet: SurveyCategorySlice
-* category contains survey 1..1
-* category[survey] = http://terminology.hl7.org/CodeSystem/observation-category#survey
-* category[survey] ^short = "Standard HL7 observation category — survey"
-* category[survey] ^definition = "Marks this as a survey/assessment-derived Observation. Named rather than left to a numeric index so the value is not overwritten by the domain slice, and so the profile satisfies us-core-observation-screening-assessment's required `survey` slice."
-
 // A survey-derived instrument Observation: `survey` + the domain tag.
+//
+// The profiles that insert this have US Core Observation Screening Assessment as
+// their Parent, which already slices `category` (discriminator `value` on
+// `$this`) and already declares a `survey` slice at `1..1`. So this adds the
+// domain slice to US Core's slicing and nothing else: re-declaring the slicing
+// or a second `survey` slice in a child profile would contradict the parent.
+// Instances keep writing `category[survey]` — it is US Core's slice name.
 RuleSet: SurveyAndSuicideRiskCategory
-* insert SuicideRiskDomainSlicing
-* insert SurveyCategorySlice
 * insert SuicideRiskDomainSlice
 
-// The other three standard categories, same treatment. Each keeps the display
+// The other standard categories. Each keeps the display
 // its instances already used, so naming the slice preserves the coding exactly
 // rather than reducing it to a bare code.
 
+// For an Observation whose Parent is US Core Simple Observation. US Core has
+// already sliced `category` and offers `us-core` (required binding over the
+// observation-category codes) as the slot for a standard category, so
+// `procedure` goes there rather than into a slice of SPiER's own, which the same
+// coding would also match.
 RuleSet: ProcedureAndSuicideRiskCategory
-* insert SuicideRiskDomainSlicing
-* category contains procedure 1..1
-* category[procedure] = http://terminology.hl7.org/CodeSystem/observation-category#procedure
-* category[procedure] ^short = "Standard HL7 observation category — procedure"
+* category[us-core] 1..1
+* category[us-core] = http://terminology.hl7.org/CodeSystem/observation-category#procedure
+* category[us-core] MS
+* category[us-core] ^short = "Standard HL7 observation category — procedure"
 * insert SuicideRiskDomainSlice
 
+// For a Condition whose Parent is US Core Condition Problems and Health
+// Concerns. US Core has already sliced `category` and requires its `us-core`
+// slice (problem-list-item | health-concern), so `problem-list-item` is fixed
+// there rather than in a slice of SPiER's own that the same coding would match.
 RuleSet: ProblemListAndSuicideRiskCategory
-* insert SuicideRiskDomainSlicing
-* category contains problemList 1..1
-* category[problemList] = http://terminology.hl7.org/CodeSystem/condition-category#problem-list-item "Problem List Item"
-* category[problemList] ^short = "Standard HL7 condition category — problem list item"
+* category[us-core] = http://terminology.hl7.org/CodeSystem/condition-category#problem-list-item "Problem List Item"
+* category[us-core] ^short = "Problem list item — the US Core problem/health-concern category"
 * insert SuicideRiskDomainSlice
 
 // The safety-plan CarePlans. The two NARRATIVE plans additionally carry the
@@ -263,7 +270,7 @@ RuleSet: SuicideRiskDomainServiceCategory
 
 
 Profile: SPiERSuicideRiskConcept
-Parent: Observation
+Parent: USCoreObservationScreeningAssessmentProfile
 Id: spier-suicide-risk-concept
 Title: "SPiER Suicide Risk Concept Observation"
 Description: "The instrument-agnostic suicide-risk concept derived from a completed screening or assessment: LOINC 93374-7, a common risk-tier value, an interpretation flag, the domain category, and a derivedFrom link to the source QuestionnaireResponse or instrument Observations. A screening-level, unconfirmed signal that flags a need for follow-up — not a diagnosis, and to be verified by a care team member."
@@ -295,7 +302,7 @@ Description: "The instrument-agnostic suicide-risk concept derived from a comple
 // Provenance is mandatory: the concept is derived, never freestanding.
 * derivedFrom 1..*
 * subject 1..1
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 * effective[x] 1..1
 * effective[x] only dateTime or Period
 

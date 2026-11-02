@@ -6,6 +6,7 @@
   "name": "SSF5_SectionB",
   "title": "CAMS Suicide Status Form (SSF-5) - Section B (Clinician Risk Assessment)",
   "status": "draft",
+  "experimental": true,
   "subjectType": [
     "Patient"
   ],

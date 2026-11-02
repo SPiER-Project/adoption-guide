@@ -98,7 +98,7 @@ Description: "The SAFE-T Step 2 protective-factor checklist options."
 // intermediate crosswalk.
 
 Profile: SPiERSAFETRiskLevel
-Parent: Observation
+Parent: USCoreObservationScreeningAssessmentProfile
 Id: spier-safet-risk-level
 Title: "SPiER SAFE-T Risk Level Observation"
 Description: "An Observation representing the clinician-determined suicide-risk level from a SAFE-T formulation. The value is a common suicide-risk tier (low / moderate / high) bound directly to the shared SPiER Suicide Risk Tier ValueSet — SAFE-T lands on the concept layer without a per-instrument crosswalk."
@@ -113,7 +113,7 @@ Description: "An Observation representing the clinician-determined suicide-risk 
 * insert SurveyAndSuicideRiskCategory
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject 1..1
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 * effective[x] 1..1
 * effective[x] only dateTime or Period
 * value[x] 1..1

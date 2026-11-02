@@ -204,7 +204,7 @@ Description: "A documented suicide-safety handoff at a transition of care: who i
 // ─── TL-030 — Discharge Safety Packet / Transition Bundle ────
 
 Profile: SPiERDischargeSafetyPacket
-Parent: DocumentReference
+Parent: USCoreDocumentReferenceProfile
 Id: spier-discharge-safety-packet
 Title: "SPiER Discharge Safety Packet DocumentReference"
 Description: "The bundle of suicide-safety material given to a patient and/or the next provider at discharge or transition. `content.attachment` is the packet; `context.related` points at the live resources it was assembled from; the handoff-content-item extensions record what was included, and the handoff-withheld-item extensions what the patient's sharing consent excluded, with the governing Consent itself in `context.related`."
@@ -213,7 +213,7 @@ Description: "The bundle of suicide-safety material given to a patient and/or th
 * status 1..1
 * status = #current (exactly)
 * subject 1..1
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 * date 1..1
 * content 1..*
 // Two halves of one statement — what the packet carries, and what it does not.
@@ -228,13 +228,19 @@ Description: "The bundle of suicide-safety material given to a patient and/or th
 * content MS
 // Gravity-pattern domain tag, so this resource is retrievable with the rest
 // of the suicide-safer care record by category alone (#262).
-* insert SuicideRiskDomainCategory
+// US Core already slices `category`, so only the domain slice is added.
+* insert SuicideRiskDomainSlice
+// US Core requires a LOINC document type (required binding). The packet is
+// suicide-safety material for the patient and the next provider, not a
+// clinician's discharge or transfer summary, so it is the suicide prevention
+// note, fixed here so every packet is found by one type.
+* type = http://loinc.org#87626-8 "Suicide Prevention Note"
 
 
 // ─── TL-017 — Referral or Next Provider Handoff ──────────────
 
 Profile: SPiERSafetyReferral
-Parent: ServiceRequest
+Parent: USCoreServiceRequestProfile
 Id: spier-safety-referral
 Title: "SPiER Suicide-Safety Referral ServiceRequest"
 Description: "A referral or handoff to the next provider/team for suicide-safety care. ServiceRequest because the SSC requires tracking whether the referral was accepted or completed — ServiceRequest.status models draft → active → completed (or revoked) natively, which a Communication cannot. `performer` is the receiving provider/team, `reasonCode` the suicide-safety reason."
@@ -244,7 +250,7 @@ Description: "A referral or handoff to the next provider/team for suicide-safety
 * intent 1..1
 * intent = #order (exactly)
 * subject 1..1
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 * authoredOn 1..1
 * reasonCode 0..*
 * reasonCode from ReferralReason (extensible)
@@ -256,7 +262,14 @@ Description: "A referral or handoff to the next provider/team for suicide-safety
 * reasonCode MS
 // Gravity-pattern domain tag, so this resource is retrievable with the rest
 // of the suicide-safer care record by category alone (#262).
-* insert SuicideRiskDomainCategory
+// US Core already slices `category`, so only the domain slice is added.
+* insert SuicideRiskDomainSlice
+// US Core requires `code` (extensible to its procedure codes). SPiER requires a
+// coding, so a referral is searchable by code: typically SNOMED CT 390866009
+// "Referral to mental health team", or 183524004 "Referral to psychiatry
+// service" for a transfer to inpatient psychiatric care.
+* code.coding 1..*
+* code ^short = "What the referral is to — a SNOMED CT referral procedure, with the service named in text"
 
 
 // ─── TL-031 — Next Appointment / Follow-Up Scheduling ────────
@@ -473,8 +486,11 @@ Usage: #example
 * type.text = "Suicide-safety discharge packet"
 * subject = Reference(Patient/example)
 * date = "2026-07-20T15:10:00Z"
-* content[+].attachment.title = "Suicide-safety discharge packet (PDF)"
-* content[=].attachment.contentType = #application/pdf
+// US Core requires `data` or `url` on the attachment. The example carries the
+// packet as plain text: what it includes, and what the consent withheld.
+* content[+].attachment.title = "Suicide-safety discharge packet"
+* content[=].attachment.contentType = #text/plain
+* content[=].attachment.data = "U3VpY2lkZS1zYWZldHkgZGlzY2hhcmdlIHBhY2tldAoKSW5jbHVkZWQ6Ci0gU2FmZXR5IHBsYW4gY29weQotIENyaXNpcyBjb250YWN0cyAvIHJlc291cmNlcwotIEFwcG9pbnRtZW50IGRldGFpbHMKLSBQYXRpZW50IGluc3RydWN0aW9ucwoKV2l0aGhlbGQgdW5kZXIgdGhlIHBhdGllbnQncyBzaGFyaW5nIGNvbnNlbnQ6Ci0gTW9zdCByZWNlbnQgc3VpY2lkZS1yaXNrIGFzc2Vzc21lbnQgKENhdGVnb3J5IGV4Y2x1ZGVkIGJ5IHRoZSBwYXRpZW50KQo="
 * context.related[+] = Reference(ExampleStanleyBrownSafetyPlan)
 // The consent that governed assembly, so the omission below is traceable to
 // the preference that caused it rather than reading as a missing section.
@@ -496,6 +512,7 @@ Usage: #example
 * meta.tag[+] = SPiERPathwayStage#coordinate-handoffs
 * status = #active
 * intent = #order
+* code = http://snomed.info/sct#390866009 "Referral to mental health team"
 * code.text = "Referral to outpatient behavioral health"
 * subject = Reference(Patient/example)
 * authoredOn = "2026-07-20T15:05:00Z"

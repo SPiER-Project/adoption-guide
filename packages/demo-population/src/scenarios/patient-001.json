@@ -1569,6 +1569,13 @@
       },
       "status": "current",
       "type": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "87626-8",
+            "display": "Suicide Prevention Note"
+          }
+        ],
         "text": "Suicide-safety discharge packet"
       },
       "subject": {
@@ -1593,8 +1600,9 @@
       "content": [
         {
           "attachment": {
-            "contentType": "application/pdf",
-            "title": "Suicide-safety discharge packet (PDF)"
+            "contentType": "text/plain",
+            "title": "Suicide-safety discharge packet",
+            "data": "U3VpY2lkZS1zYWZldHkgZGlzY2hhcmdlIHBhY2tldAoKSW5jbHVkZWQ6Ci0gQ3VycmVudCByaXNrIHN0YXR1cwotIFNhZmV0eSBwbGFuIGNvcHkKLSBMZXRoYWwgbWVhbnMgc2FmZXR5IGFjdGlvbnMKLSBDcmlzaXMgY29udGFjdHMgLyByZXNvdXJjZXMKLSBGb2xsb3ctdXAgcGxhbgotIEFwcG9pbnRtZW50IGRldGFpbHMK"
           }
         }
       ],
@@ -1705,6 +1713,13 @@
       "status": "completed",
       "intent": "order",
       "code": {
+        "coding": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "390866009",
+            "display": "Referral to mental health team"
+          }
+        ],
         "text": "Referral to outpatient behavioral health"
       },
       "subject": {
@@ -1956,6 +1971,17 @@
         "code": "IMP",
         "display": "inpatient encounter"
       },
+      "type": [
+        {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "32485007",
+              "display": "Hospital admission"
+            }
+          ]
+        }
+      ],
       "episodeOfCare": [
         {
           "reference": "EpisodeOfCare/p001-episode"
@@ -1989,6 +2015,17 @@
         "code": "VR",
         "display": "virtual"
       },
+      "type": [
+        {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "308335008",
+              "display": "Patient encounter procedure"
+            }
+          ]
+        }
+      ],
       "episodeOfCare": [
         {
           "reference": "EpisodeOfCare/p001-episode"
@@ -2022,6 +2059,17 @@
         "code": "AMB",
         "display": "ambulatory"
       },
+      "type": [
+        {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "308335008",
+              "display": "Patient encounter procedure"
+            }
+          ]
+        }
+      ],
       "episodeOfCare": [
         {
           "reference": "EpisodeOfCare/p001-episode"
@@ -2060,6 +2108,17 @@
         "code": "VR",
         "display": "virtual"
       },
+      "type": [
+        {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "308335008",
+              "display": "Patient encounter procedure"
+            }
+          ]
+        }
+      ],
       "episodeOfCare": [
         {
           "reference": "EpisodeOfCare/p001-episode"

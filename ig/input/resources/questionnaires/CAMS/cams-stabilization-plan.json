@@ -6,6 +6,7 @@
   "name": "CAMS_Stabilization_Plan",
   "title": "CAMS Stabilization Plan",
   "status": "draft",
+  "experimental": true,
   "subjectType": [
     "Patient"
   ],

@@ -283,6 +283,13 @@
       },
       "status": "current",
       "type": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "87626-8",
+            "display": "Suicide Prevention Note"
+          }
+        ],
         "text": "Suicide-safety discharge packet"
       },
       "subject": {
@@ -304,8 +311,9 @@
       "content": [
         {
           "attachment": {
-            "contentType": "application/pdf",
-            "title": "Suicide-safety transition packet (PDF)"
+            "contentType": "text/plain",
+            "title": "Suicide-safety transition packet",
+            "data": "U3VpY2lkZS1zYWZldHkgdHJhbnNpdGlvbiBwYWNrZXQKCkluY2x1ZGVkOgotIEN1cnJlbnQgcmlzayBzdGF0dXMKLSBDcmlzaXMgY29udGFjdHMgLyByZXNvdXJjZXMKLSBOZXh0IHByb3ZpZGVyIC8gdGVhbQotIFJlZmVycmFsIGRldGFpbHMK"
           }
         }
       ],
@@ -392,6 +400,13 @@
       "status": "active",
       "intent": "order",
       "code": {
+        "coding": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "390866009",
+            "display": "Referral to mental health team"
+          }
+        ],
         "text": "Referral to outpatient behavioral health"
       },
       "subject": {
@@ -504,6 +519,17 @@
         "code": "EMER",
         "display": "emergency"
       },
+      "type": [
+        {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "4525004",
+              "display": "Emergency department patient visit"
+            }
+          ]
+        }
+      ],
       "episodeOfCare": [
         {
           "reference": "EpisodeOfCare/p007-episode"
@@ -537,6 +563,17 @@
         "code": "AMB",
         "display": "ambulatory"
       },
+      "type": [
+        {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "308335008",
+              "display": "Patient encounter procedure"
+            }
+          ]
+        }
+      ],
       "episodeOfCare": [
         {
           "reference": "EpisodeOfCare/p007-episode"

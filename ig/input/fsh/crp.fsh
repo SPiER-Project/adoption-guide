@@ -30,7 +30,7 @@
 // ─── CarePlan profile ────────────────────────────────────────
 
 Profile: SPiERCrisisResponsePlan
-Parent: CarePlan
+Parent: USCoreCarePlanProfile
 Id: spier-crisis-response-plan
 Title: "SPiER Crisis Response Plan CarePlan"
 Description: "A CarePlan derived from a completed Crisis Response Plan QuestionnaireResponse. Carries one CarePlan.activity per CRP section; each activity is identified by a SPiER-local safety-plan section code in detail.code (shared with the Stanley-Brown Safety Plan), retains the human label in detail.code.text, and holds the patient-authored content in detail.description."
@@ -43,7 +43,7 @@ Description: "A CarePlan derived from a completed Crisis Response Plan Questionn
 * category 1..*
 * category.coding 1..*
 * subject 1..1
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 // When the plan took effect. The safety-plan-before-discharge measure dates a
 // plan by period.start and nothing else, so a plan without it can never count.
 // `created` is when the record was written — the same instant for a plan
@@ -160,3 +160,35 @@ Usage: #example
   * code.text = "Professional & Crisis Support"
   * status = #in-progress
   * description = "Dr. Lee (555-0212); 988 Suicide & Crisis Lifeline; Crisis Text Line (text HOME to 741741); Memorial ED 555-0911"
+
+
+Instance: ExampleCrisisResponsePlanResponse
+InstanceOf: QuestionnaireResponse
+Title: "Example — Crisis Response Plan QuestionnaireResponse"
+Description: "Source Crisis Response Plan QuestionnaireResponse carrying the same content as the ExampleCrisisResponsePlan CarePlan, one answer per entry in each of the five sections."
+Usage: #example
+* status = #completed
+* questionnaire = "http://thespierproject.org/fhir/Questionnaire/CrisisResponsePlan"
+* subject = Reference(Patient/example)
+* authored = "2026-08-08T14:00:00Z"
+* item[+].linkId = "warning-signs-list"
+* item[=].answer[+].valueString = "Racing thoughts late at night"
+* item[=].answer[+].valueString = "Skipping meals"
+* item[=].answer[+].valueString = "Feeling like a burden"
+* item[+].linkId = "coping-list"
+* item[=].answer[+].valueString = "Go for a run"
+* item[=].answer[+].valueString = "Play guitar"
+* item[=].answer[+].valueString = "Box-breathing 4-4-4"
+* item[+].linkId = "reasons-living-list"
+* item[=].answer[+].valueString = "My daughter"
+* item[=].answer[+].valueString = "Getting back to teaching"
+* item[=].answer[+].valueString = "My dog Rufus"
+* item[+].linkId = "social-support-list"
+* item[=].answer[+].valueString = "Call my sister (555-0170)"
+* item[=].answer[+].valueString = "Text my sponsor"
+* item[=].answer[+].valueString = "Go to the community center"
+* item[+].linkId = "professional-support-list"
+* item[=].answer[+].valueString = "Dr. Lee (555-0212)"
+* item[=].answer[+].valueString = "988 Suicide & Crisis Lifeline"
+* item[=].answer[+].valueString = "Crisis Text Line (text HOME to 741741)"
+* item[=].answer[+].valueString = "Memorial ED 555-0911"

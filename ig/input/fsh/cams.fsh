@@ -121,7 +121,7 @@ Description: "All CAMS SSF-5 Outcome/Disposition final-session decisions."
 // ─── Observation profile: SSF Vital ──────────────────────────
 
 Profile: SPiERCAMSSSFVital
-Parent: Observation
+Parent: USCoreObservationScreeningAssessmentProfile
 Id: spier-cams-ssf-vital
 Title: "SPiER CAMS SSF Vital Observation"
 Description: "Integer rating (1–5) for one of the six Suicide Status Form (SSF) Core Assessment measures collected during CAMS Section A. Each SSF measure (psychological pain, stress, agitation, hopelessness, self-hate, overall risk) produces a separate Observation conformant to this profile so that EHRs can chart them longitudinally across CAMS sessions."
@@ -142,7 +142,7 @@ Description: "Integer rating (1–5) for one of the six Suicide Status Form (SSF
 * effective[x] MS
 * value[x] MS
 * subject 1..1
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 * effective[x] 1..1
 * effective[x] only dateTime or Period
 * value[x] 1..1
@@ -195,7 +195,7 @@ Description: "All five CAMS SSF self-rated Overall Risk of Suicide ratings (1–
 // ─── Condition profile: Suicide Driver ───────────────────────
 
 Profile: SPiERCAMSSuicideDriver
-Parent: Condition
+Parent: USCoreConditionProblemsHealthConcernsProfile
 Id: spier-cams-suicide-driver
 Title: "SPiER CAMS Suicide Driver Condition"
 Description: "A Condition representing a CAMS-identified driver of suicidality. Surfaces on the patient's problem list (active until resolved at CAMS disposition). The driver's narrative description is captured in Condition.code.text; the marker category http://thespierproject.org/fhir/CodeSystem/cams-driver-category#suicide-driver identifies the resource as a CAMS driver."
@@ -219,7 +219,6 @@ Description: "A Condition representing a CAMS-identified driver of suicidality. 
 // using a two-code binding — the fixed system is what makes the slice
 // discriminable, and the required binding is what constrains it to direct or
 // indirect.
-* insert SuicideRiskDomainSlicing
 * category contains driverCategory 1..1 and driverType 0..1
 * category[driverCategory] = CAMSDriverCategoryCodes#suicide-driver
 * category[driverCategory] ^short = "CAMS suicide-driver marker"
@@ -227,7 +226,7 @@ Description: "A Condition representing a CAMS-identified driver of suicidality. 
 * category[driverType].coding.system = "http://thespierproject.org/fhir/CodeSystem/cams-driver-type" (exactly)
 * category[driverType] from CAMSDriverType (required)
 * category[driverType] ^short = "Direct or indirect driver, when the clinician classified it"
-* insert SuicideRiskDomainSlice
+* insert ProblemListAndSuicideRiskCategory
 * category.coding 1..*
 * code 1..1
 // The text stays required and the coding stays optional — reviewed under #43
@@ -243,7 +242,8 @@ Description: "A Condition representing a CAMS-identified driver of suicidality. 
 // any code set, and where one happens to align, this is the set to draw from so
 // the coded row matches SPiERSuicideRelatedCondition elsewhere on the problem
 // list. See suicide-related-conditions.fsh for the scoping rationale in full.
-* code from SPiERSuicideRelatedProblem (example)
+// No binding of its own: US Core binds `code` extensibly to its Condition codes,
+// and a driver usually has no coded concept, so `code.text` carries it (1..1).
 * code.text 1..1
 // Must-Support — a producer SHALL populate these; a consumer SHALL process them.
 * clinicalStatus MS
@@ -251,7 +251,7 @@ Description: "A Condition representing a CAMS-identified driver of suicidality. 
 * category MS
 * code MS
 * subject 1..1
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 
 
 // ─── CarePlan section codes ──────────────────────────────────
@@ -329,7 +329,7 @@ Description: "The four content sections of a CAMS Therapeutic Worksheet, as used
 // ─── CarePlan profile: CAMS Stabilization Plan ───────────────
 
 Profile: SPiERCAMSStabilizationPlan
-Parent: CarePlan
+Parent: USCoreCarePlanProfile
 Id: spier-cams-stabilization-plan
 Title: "SPiER CAMS Stabilization Plan CarePlan"
 Description: "CarePlan capturing a CAMS Stabilization Plan — a CAMS-framework safety plan that should be reviewed and updated at the start of every CAMS session. Five-section structure: lethal-means reduction, coping strategies, emergency contact, support network, and treatment-adherence plan."
@@ -342,7 +342,7 @@ Description: "CarePlan capturing a CAMS Stabilization Plan — a CAMS-framework 
 * category 1..*
 * category.coding 1..*
 * subject 1..1
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 // Every activity IS a named section, so the section code is the discriminator.
 // Slicing is declared `open` rather than `closed` as a style choice only: with a
 // required binding plus 1..1 on all five slices, the sections are already
@@ -381,7 +381,7 @@ Description: "CarePlan capturing a CAMS Stabilization Plan — a CAMS-framework 
 // ─── CarePlan profile: CAMS Therapeutic Worksheet ────────────
 
 Profile: SPiERCAMSTherapeuticWorksheet
-Parent: CarePlan
+Parent: USCoreCarePlanProfile
 Id: spier-cams-therapeutic-worksheet
 Title: "SPiER CAMS Therapeutic Worksheet CarePlan"
 Description: "CarePlan capturing a CAMS Therapeutic Worksheet — the personal narrative, direct/indirect suicide drivers, and the patient's working model of their suicidal crisis. Used to guide ongoing CAMS-framework treatment between sessions."
@@ -394,7 +394,7 @@ Description: "CarePlan capturing a CAMS Therapeutic Worksheet — the personal n
 * category 1..*
 * category.coding 1..*
 * subject 1..1
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 // Four activities, not three: the Questionnaire's section II
 // (`drivers-exploration`) carries both the direct- and indirect-driver
 // analyses, and they are separate concepts downstream — so the CarePlan splits
@@ -433,7 +433,7 @@ Description: "CarePlan capturing a CAMS Therapeutic Worksheet — the personal n
 // ─── Observation profile: CAMS Outcome Disposition ───────────
 
 Profile: SPiERCAMSOutcomeDisposition
-Parent: Observation
+Parent: USCoreObservationScreeningAssessmentProfile
 Id: spier-cams-outcome-disposition
 Title: "SPiER CAMS Outcome Disposition Observation"
 Description: "The disposition decision from the CAMS SSF-5 Outcome/Disposition final session. Follows the BSSA precedent: the Observation carries the generic LOINC 93374-7 ('Suicide risk level') and a SPiER-local disposition value (continue-cams / resolved / refer-adjunctive / higher-level-care). A care-disposition decision, not a risk tier."
@@ -448,7 +448,7 @@ Description: "The disposition decision from the CAMS SSF-5 Outcome/Disposition f
 * insert SurveyAndSuicideRiskCategory
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject 1..1
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 * effective[x] 1..1
 * effective[x] only dateTime or Period
 * value[x] 1..1
@@ -632,6 +632,7 @@ Usage: #example
 * subject = Reference(Patient/example)
 * performer = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T11:00:00Z"
+* derivedFrom[+] = Reference(ExampleCAMSSectionAResponse)
 * valueInteger = 4
 * interpretation[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#H "High"
 * interpretation[=].text = "Elevated (4/5)"
@@ -784,3 +785,126 @@ Usage: #example
 * item[=].item[=].answer.valueInteger = 2
 * item[+].linkId = "disposition"
 * item[=].answer.valueCoding = http://thespierproject.org/fhir/CodeSystem/cams-disposition#resolved "CAMS resolved — episode complete"
+
+
+Instance: ExampleCAMSSectionAResponse
+InstanceOf: QuestionnaireResponse
+Title: "Example — CAMS SSF-5 Section A QuestionnaireResponse"
+Description: "Source patient-completed Suicide Status Form, Section A: the six SSF ratings with their free-text prompts, the self/others ratings, ranked reasons for living and dying, and the wish to live/die. The derived SPiERCAMSSSFVital (ExampleCAMSSSFPsychologicalPain) references this via Observation.derivedFrom."
+Usage: #example
+* status = #completed
+* questionnaire = "http://thespierproject.org/fhir/Questionnaire/CAMS-SSF5-SectionA"
+* subject = Reference(Patient/example)
+* authored = "2026-03-19T11:00:00Z"
+* item[+].linkId = "core-ratings"
+* item[=].item[+].linkId = "1-psychological-pain"
+* item[=].item[=].item[+].linkId = "1-score"
+* item[=].item[=].item[=].answer.valueInteger = 4
+* item[=].item[=].item[+].linkId = "1-text"
+* item[=].item[=].item[=].answer.valueString = "Constant ache in my chest, feeling of dread that won't go away"
+* item[=].item[+].linkId = "2-stress"
+* item[=].item[=].item[+].linkId = "2-score"
+* item[=].item[=].item[=].answer.valueInteger = 4
+* item[=].item[=].item[+].linkId = "2-text"
+* item[=].item[=].item[=].answer.valueString = "Work pressure, relationship problems, financial strain"
+* item[=].item[+].linkId = "3-agitation"
+* item[=].item[=].item[+].linkId = "3-score"
+* item[=].item[=].item[=].answer.valueInteger = 3
+* item[=].item[=].item[+].linkId = "3-text"
+* item[=].item[=].item[=].answer.valueString = "Can't sit still, pacing at night"
+* item[=].item[+].linkId = "4-hopelessness"
+* item[=].item[=].item[+].linkId = "4-score"
+* item[=].item[=].item[=].answer.valueInteger = 4
+* item[=].item[=].item[+].linkId = "4-text"
+* item[=].item[=].item[=].answer.valueString = "Nothing will ever get better"
+* item[=].item[+].linkId = "5-self-hate"
+* item[=].item[=].item[+].linkId = "5-score"
+* item[=].item[=].item[=].answer.valueInteger = 3
+* item[=].item[=].item[+].linkId = "5-text"
+* item[=].item[=].item[=].answer.valueString = "I'm a burden to everyone around me"
+* item[=].item[+].linkId = "6-overall-risk"
+* item[=].item[=].item[+].linkId = "6-score"
+* item[=].item[=].item[=].answer.valueInteger = 3
+
+
+Instance: ExampleCAMSTherapeuticWorksheetResponse
+InstanceOf: QuestionnaireResponse
+Title: "Example — CAMS Therapeutic Worksheet QuestionnaireResponse"
+Description: "Source CAMS Therapeutic Worksheet QuestionnaireResponse from an interim session, carrying the same content as the ExampleCAMSTherapeuticWorksheet CarePlan: the personal story, the direct and indirect drivers, and the patient's crisis working model."
+Usage: #example
+* status = #completed
+* questionnaire = "http://thespierproject.org/fhir/Questionnaire/CAMS-Therapeutic-Worksheet"
+* subject = Reference(Patient/example)
+* authored = "2026-04-02T10:00:00Z"
+* item[+].linkId = "personal-story"
+* item[=].item[+].linkId = "story-narrative"
+* item[=].item[=].answer.valueString = "Began after the layoff in November; worsened when the marriage ended. Describes feeling 'replaceable at work and at home'."
+* item[+].linkId = "drivers-exploration"
+* item[=].item[+].linkId = "direct-drivers-analysis"
+* item[=].item[=].item[+].linkId = "dd-thoughts"
+* item[=].item[=].item[=].answer.valueString = "I'm a burden to my family"
+* item[=].item[=].item[+].linkId = "dd-feelings"
+* item[=].item[=].item[=].answer.valueString = "Shame about losing the job"
+* item[=].item[=].item[+].linkId = "dd-behaviors"
+* item[=].item[=].item[=].answer.valueString = "Staying in bed through the morning"
+* item[=].item[=].item[+].linkId = "dd-themes"
+* item[=].item[=].item[=].answer.valueString = "Loss of professional identity since the layoff"
+* item[=].item[+].linkId = "indirect-drivers-analysis"
+* item[=].item[=].item[+].linkId = "id-desc"
+* item[=].item[=].item[=].answer.valueString = "Escalating alcohol use in the evenings; chronic insomnia; untreated PTSD from a 2019 motor-vehicle collision."
+* item[+].linkId = "crisis-model"
+* item[=].item[+].linkId = "stage-indirect"
+* item[=].item[=].item[+].linkId = "si-increase"
+* item[=].item[=].item[=].answer.valueString = "Drinking alone after 9pm"
+* item[=].item[=].item[+].linkId = "si-decrease"
+* item[=].item[=].item[=].answer.valueString = "Morning gym"
+* item[=].item[+].linkId = "stage-direct"
+* item[=].item[=].item[+].linkId = "sd-increase"
+* item[=].item[=].item[=].answer.valueString = "Scrolling former colleagues' posts"
+* item[=].item[=].item[+].linkId = "sd-decrease"
+* item[=].item[=].item[=].answer.valueString = "Calling my sister"
+* item[=].item[+].linkId = "stage-suicide-option"
+* item[=].item[=].item[+].linkId = "so-increase"
+* item[=].item[=].item[=].answer.valueString = "Being alone at night after an argument"
+* item[=].item[=].item[+].linkId = "so-decrease"
+* item[=].item[=].item[=].answer.valueString = "Weekly group; calling the crisis line"
+
+
+// lethal-means-list and support-list declare questionnaire-maxOccurs 3, and
+// validator_cli 6.10.0 rejects exactly three answers ("The maximum number of
+// answers is 3 but this has 3 answers"), so each carries two.
+Instance: ExampleCAMSStabilizationPlanResponse
+InstanceOf: QuestionnaireResponse
+Title: "Example — CAMS Stabilization Plan QuestionnaireResponse"
+Description: "Source CAMS Stabilization Plan QuestionnaireResponse carrying the same content as the ExampleCAMSStabilizationPlan CarePlan: lethal-means steps, coping strategies, the emergency contact, support people, and two treatment barriers with their solutions."
+Usage: #example
+* status = #completed
+* questionnaire = "http://thespierproject.org/fhir/Questionnaire/CAMS-Stabilization-Plan"
+* subject = Reference(Patient/example)
+* authored = "2026-03-19T11:45:00Z"
+* item[+].linkId = "lethal-means"
+* item[=].item[+].linkId = "lethal-means-list"
+* item[=].item[=].answer[+].valueString = "Locked medication box"
+* item[=].item[=].answer[+].valueString = "Firearm transferred to trusted family member; clinic gun-lock voucher accepted"
+* item[+].linkId = "coping-strategies"
+* item[=].item[+].linkId = "coping-list"
+* item[=].item[=].answer[+].valueString = "Mindfulness breathing"
+* item[=].item[=].answer[+].valueString = "Grounding 5-4-3-2-1"
+* item[=].item[=].answer[+].valueString = "Calling the crisis line before pain peaks"
+* item[+].linkId = "emergency-contact"
+* item[=].answer.valueString = "Dr. Chen (555-0200), pager 555-0299; 988 Suicide & Crisis Lifeline"
+* item[+].linkId = "support-people"
+* item[=].item[+].linkId = "support-list"
+* item[=].item[=].answer[+].valueString = "Sister Maria (555-0143)"
+* item[=].item[=].answer[+].valueString = "Best friend Joe (555-0188); NAMI peer support group, Thursdays"
+* item[+].linkId = "treatment-adherence"
+* item[=].item[+].linkId = "barrier-solution-group"
+* item[=].item[=].item[+].linkId = "barrier"
+* item[=].item[=].item[=].answer.valueString = "Transportation"
+* item[=].item[=].item[+].linkId = "solution"
+* item[=].item[=].item[=].answer.valueString = "Ride-share voucher from clinic"
+* item[=].item[+].linkId = "barrier-solution-group"
+* item[=].item[=].item[+].linkId = "barrier"
+* item[=].item[=].item[=].answer.valueString = "Medication cost"
+* item[=].item[=].item[+].linkId = "solution"
+* item[=].item[=].item[=].answer.valueString = "Patient-assistance program"

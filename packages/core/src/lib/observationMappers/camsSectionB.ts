@@ -56,6 +56,13 @@ export function mapCAMSSectionB(response: QuestionnaireResponseResource): Mapper
         // see SPiERCAMSSuicideDriver in ig/input/fsh/cams.fsh, where each of
         // these is now a named, bound slice on Condition.category.
         category: [
+          // REQUIRED by US Core Condition Problems and Health Concerns, the
+          // profile's parent: a driver surfaces on the problem list.
+          {
+            coding: [
+              { system: 'http://terminology.hl7.org/CodeSystem/condition-category', code: 'problem-list-item', display: 'Problem List Item' },
+            ],
+          },
           {
             coding: [
               { ...CAMS_DRIVER_CATEGORY, display: 'Suicide Driver' },

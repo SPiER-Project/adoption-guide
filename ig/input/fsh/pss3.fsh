@@ -127,7 +127,7 @@ Description: "The PSS-3 item 3a recency answer options."
 // the Observation code is the generic LOINC 93374-7.
 
 Profile: SPiERPSS3Result
-Parent: Observation
+Parent: USCoreObservationScreeningAssessmentProfile
 Id: spier-pss3-result
 Title: "SPiER PSS-3 Screening Result Observation"
 Description: "An Observation representing the binary suicide-risk result of a Patient Safety Screener 3. The value identifies one of two result tiers (negative / positive) using a SPiER-local CodeSystem."
@@ -142,7 +142,7 @@ Description: "An Observation representing the binary suicide-risk result of a Pa
 * insert SurveyAndSuicideRiskCategory
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject 1..1
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 * effective[x] 1..1
 * effective[x] only dateTime or Period
 * value[x] 1..1

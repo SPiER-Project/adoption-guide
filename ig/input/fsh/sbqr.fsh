@@ -10,7 +10,7 @@
 
 
 Profile: SPiERSBQRTotalScore
-Parent: Observation
+Parent: USCoreObservationScreeningAssessmentProfile
 Id: spier-sbqr-total-score
 Title: "SPiER SBQ-R Total Score Observation"
 Description: "Integer total score (3–18) derived from a completed SBQ-R QuestionnaireResponse. General-population clinical cutoff is ≥7 (93% sensitivity, 95% specificity); psychiatric inpatient cutoff is ≥8 (80%/91%)."
@@ -41,7 +41,7 @@ Description: "Integer total score (3–18) derived from a completed SBQ-R Questi
 * subject MS
 * effective[x] MS
 * value[x] MS
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 * effective[x] 1..1
 * effective[x] only dateTime or Period
 * value[x] 1..1

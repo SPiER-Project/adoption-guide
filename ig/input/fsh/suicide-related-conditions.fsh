@@ -49,7 +49,7 @@ Description: "Nine SNOMED CT concepts for suicide-related findings on a problem 
 
 
 Profile: SPiERSuicideRelatedCondition
-Parent: Condition
+Parent: USCoreConditionProblemsHealthConcernsProfile
 Id: spier-suicide-related-condition
 Title: "SPiER Suicide-Related Condition"
 Description: "A suicide-related finding asserted by a clinician and carried on the patient's problem list. For clinician assertions only: a positive screening or assessment result is a SPiERSuicideRiskConcept Observation, and SPiER derives no Condition from one. `verificationStatus` is required so a consumer can tell a confirmed assertion from a provisional or differential one; `code` is bound extensibly so a finding outside the reviewed set is coded rather than pushed into `code.text`."
@@ -74,7 +74,7 @@ Description: "A suicide-related finding asserted by a clinician and carried on t
 * code MS
 * subject MS
 * subject 1..1
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 
 
 

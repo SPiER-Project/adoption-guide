@@ -35,6 +35,7 @@ import type {
 } from '../types/fhir'
 import { suicideRiskCategory } from './conceptDomain'
 import { patientReference } from './patientReference'
+import { base64Utf8 } from './writeback/documentReference'
 
 // `satisfies StageId`: the literal keeps its type, and a stage renamed in the
 // CodeSystem (stage-ids.generated.ts follows it) is a compile error here rather
@@ -60,6 +61,22 @@ export const HANDOFF_WITHHELD_ITEM_EXT =
 const CONSENT_SCOPE_SYSTEM = 'http://terminology.hl7.org/CodeSystem/consentscope'
 const CONSENT_POLICY_SYSTEM = 'http://terminology.hl7.org/CodeSystem/consentpolicycodes'
 const PARTICIPATION_TYPE_SYSTEM = 'http://terminology.hl7.org/CodeSystem/v3-ParticipationType'
+
+/**
+ * The packet's document type, fixed by the profile. US Core (its parent) binds
+ * `DocumentReference.type` to LOINC document codes; the packet is suicide-safety
+ * material, not a clinician's discharge or transfer summary.
+ */
+export const PACKET_TYPE = { system: 'http://loinc.org', code: '87626-8', display: 'Suicide Prevention Note' } as const
+
+/**
+ * The referral's coded service. The profile requires a coding (US Core requires
+ * `code`); the free-text service a clinician names rides along in `code.text`.
+ * A transfer to inpatient psychiatric care is the psychiatry service; anything
+ * else this demo refers to is a mental health team.
+ */
+export const REFERRAL_TO_MENTAL_HEALTH_TEAM = { system: 'http://snomed.info/sct', code: '390866009', display: 'Referral to mental health team' } as const
+export const REFERRAL_TO_PSYCHIATRY_SERVICE = { system: 'http://snomed.info/sct', code: '183524004', display: 'Referral to psychiatry service' } as const
 
 /**
  * The shared TL-009/TL-030 content vocabulary (spier-handoff-content). One code
@@ -336,6 +353,22 @@ export function safetyHandoffs(communications: CommunicationResource[]): Communi
 
 // ─── TL-030 — Discharge safety packet (DocumentReference) ─────
 
+/**
+ * The packet's attachment body: what it carries, and what the sharing consent
+ * kept out of it and why. US Core (the profile's parent) requires an attachment
+ * to have `data` or `url`, and the demo has no PDF to point at, so the packet
+ * travels as this plain-text rendering instead. The scenario fixtures carry the
+ * same text, held to this function by a test.
+ */
+export function packetSummaryText(title: string, contentCodes: string[], withheld: WithheldItem[]): string {
+  const lines = [title, '', 'Included:', ...contentCodes.map(c => `- ${displayFor(HANDOFF_CONTENT_ITEMS, c)}`)]
+  if (withheld.length) {
+    lines.push('', 'Withheld under the patient\'s sharing consent:')
+    lines.push(...withheld.map(w => `- ${displayFor(HANDOFF_CONTENT_ITEMS, w.code)} (${displayFor(WITHHOLDING_BASES, w.basis)})`))
+  }
+  return lines.join('\n') + '\n'
+}
+
 export function buildDischargePacket(params: {
   id: string
   patientId: string | null
@@ -366,17 +399,17 @@ export function buildDischargePacket(params: {
     meta: { profile: [PACKET_PROFILE], tag: stageTag(STAGE_ID) },
     category: [suicideRiskCategory()],
     status: 'current',
-    type: { text: 'Suicide-safety discharge packet' },
+    type: { coding: [{ ...PACKET_TYPE }], text: 'Suicide-safety discharge packet' },
     subject: patientReference(params.patientId),
     date: params.date,
-    // The attachment IS the packet. In the demo there is no binary to attach,
-    // so only its title and content type are asserted — a real implementation
-    // would carry `url` or `data`.
+    // The attachment IS the packet. A real implementation would attach the
+    // printed packet; the demo has none, so it carries the plain-text rendering.
     content: [
       {
         attachment: {
-          contentType: 'application/pdf',
+          contentType: 'text/plain',
           title: params.title,
+          data: base64Utf8(packetSummaryText(params.title, params.contentCodes, withheld)),
         },
       },
     ],
@@ -414,7 +447,10 @@ export function buildSafetyReferral(params: {
     status: params.status,
     // Fixed by the profile: this is an order, not a proposal or a plan.
     intent: 'order',
-    code: { text: params.serviceText?.trim() || 'Suicide-safety referral' },
+    code: {
+      coding: [{ ...REFERRAL_TO_MENTAL_HEALTH_TEAM }],
+      text: params.serviceText?.trim() || 'Suicide-safety referral',
+    },
     subject: patientReference(params.patientId),
     authoredOn: params.authoredOn,
     reasonCode: [

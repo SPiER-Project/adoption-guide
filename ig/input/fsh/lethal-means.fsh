@@ -68,7 +68,7 @@ Description: "Concrete means-safety actions for a given lethal means."
 // ─── Procedure profile: counseling provided ──────────────────
 
 Profile: SPiERLethalMeansCounseling
-Parent: Procedure
+Parent: USCoreProcedureProfile
 Id: spier-lethal-means-counseling
 Title: "SPiER Lethal Means Safety Counseling Procedure"
 Description: "A Procedure recording that lethal-means safety counseling (e.g., CALM) was provided to the patient/family. The concrete per-method actions are recorded as separate SPiERMeansSafetyAction Observations."
@@ -78,7 +78,7 @@ Description: "A Procedure recording that lethal-means safety counseling (e.g., C
 * status = #completed (exactly)
 * code 1..1
 * subject 1..1
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 * performed[x] 1..1
 * performed[x] only dateTime or Period
 * status MS
@@ -102,7 +102,7 @@ Description: "A Procedure recording that lethal-means safety counseling (e.g., C
 // ─── Observation profile: per-method means-safety action ─────
 
 Profile: SPiERMeansSafetyAction
-Parent: Observation
+Parent: USCoreSimpleObservationProfile
 Id: spier-means-safety-action
 Title: "SPiER Means Safety Action Observation"
 Description: "One means-safety action for a specific lethal means. Observation.code identifies the means (SPiER lethal-means-method); the value is the action taken (SPiER means-safety-action). status = final for a completed action, preliminary for a planned/agreed one; the responsible party and plan details go in note."
@@ -118,7 +118,7 @@ Description: "One means-safety action for a specific lethal means. Observation.c
 * code 1..1
 * code from LethalMeansMethod (required)
 * subject 1..1
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 * effective[x] 1..1
 * effective[x] only dateTime or Period
 * value[x] 1..1

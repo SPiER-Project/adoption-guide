@@ -28,13 +28,24 @@ SPiER defines conformance per **system role**, the approach of the HL7
 Following [US Core](https://hl7.org/fhir/us/core/conformance-expectations.html),
 Must-Support is defined **operationally, by role**:
 
-- A **producer** (screening-source EHR) *SHALL be capable of populating* every
+- A **Screening-Source EHR** (producer) *SHALL be capable of populating* every
   Must-Support element.
-- A **consumer** (risk client) *SHALL be capable of processing* instances
-  containing those elements *without erroring or failing*.
-- **Missing data:** when an element's absence reason is unknown, a producer
-  SHALL omit the element, and a consumer SHALL interpret a missing element as
-  *data not present*, not as an error.
+- An **HIE Intermediary** *SHALL be capable of storing and returning* every
+  Must-Support element it receives, unchanged — including `derivedFrom`, every
+  `category` and `meta.profile` — so a downstream consumer receives what the
+  producer sent. It SHALL NOT drop a coding it does not recognize.
+- A **Risk Consumer** *SHALL be capable of processing* instances containing
+  those elements *without erroring or failing*.
+- A **Quality Reporter** *SHALL be capable of processing* the Must-Support
+  elements the [Measures](measurement.html) read — status, code, category, the
+  resource's date and its subject — across a population.
+- **Missing data:** when an element is optional and its value is unknown, a
+  producer SHALL omit it. When the element is required (minimum cardinality 1
+  or more) and its value is unknown, the producer SHALL populate it with the
+  [Data Absent Reason](https://hl7.org/fhir/R4/extension-data-absent-reason.html)
+  extension, or, for a coded element whose value set includes one, an
+  `unknown` code. A consumer SHALL interpret a missing element as *data not
+  present*, not as an error.
 
 Must-Support says *what must be supported*; it does **not** constrain maximum
 cardinality, so a source system is never forced to strip data out.
@@ -72,9 +83,9 @@ Observation belongs to.
 ### The problem list
 
 **A screen never becomes a `Condition`.** A positive ASQ, C-SSRS, PHQ-9 item 9
-or SBQ-R produces a
+or SBQ-R produces Observations — the instrument's own result and a
 [SPiER Suicide Risk Concept](StructureDefinition-spier-suicide-risk-concept.html)
-Observation and nothing else. Systems implementing this guide SHALL NOT derive
+— and never a `Condition`. Systems implementing this guide SHALL NOT derive
 a problem-list `Condition` from a screening or assessment result; a problem-list
 entry is a clinician's assertion, and a screen is a signal that one may be
 warranted.
@@ -91,8 +102,11 @@ disorder from one.
 
 **A CAMS driver stays narrative.**
 [SPiER CAMS Suicide Driver](StructureDefinition-spier-cams-suicide-driver.html)
-requires `code.text` and leaves `code.coding` optional with an `example`
-binding, because no terminology carries concepts at a driver's granularity.
+requires `code.text` and leaves `code.coding` optional, because no terminology
+carries concepts at a driver's granularity. `code` keeps US Core's extensible
+binding to its Condition codes, so a driver with no suitable code is text-only;
+validators report that as a warning, which is expected. A driver is a
+clinician-identified problem and carries the `problem-list-item` category.
 
 ### Categories and codes every profile carries
 
@@ -122,8 +136,9 @@ binding, because no terminology carries concepts at a driver's granularity.
   [instrument-licensing-status](StructureDefinition-instrument-licensing-status.html).
   `unknown` is a positive statement that SPiER's audit has not established the
   answer, not a synonym for unrestricted. No status has been checked against
-  what the rights holder publishes *today*; an adopter SHALL verify licensing
-  against the rights holder's current terms before deploying an instrument.
+  what the rights holder publishes *today*. Before deploying an instrument, an
+  adopter SHALL contact SPiER about licensing and SHALL verify the rights
+  holder's current terms; see [Licensing](index.html#licensing).
 - **A code-less ActivityDefinition is a catalogue entry, not a modelled
   instrument.** A few pathway steps are published with structural metadata only
   — no LOINC or SNOMED codes, no Questionnaire binding, no derived-Observation
@@ -175,3 +190,26 @@ Until sign-off by suicide-prevention subject-matter experts, every tier
 assignment above is **illustrative reference logic**. Adopters SHALL validate
 tier assignments against their own clinical protocols before using the
 harmonized tier to drive care decisions.
+
+### Known limitations {#known-limitations}
+
+**Instrument results and the harmonized tier share one code.** Seven
+instrument result profiles — ASQ, BSSA, C-SSRS, CAMS Outcome/Disposition,
+PSS-3, PSS-Full and SAFE-T — are coded LOINC `93374-7` "Suicide risk level" and
+carry the same `survey` and `suicide-risk` categories as the
+[SPiER Suicide Risk Concept](StructureDefinition-spier-suicide-risk-concept.html).
+A search on code and category returns all of them together, and nothing in the
+resource marks which layer it belongs to except its value's code system and
+its `derivedFrom` chain. A consumer SHALL NOT treat an Observation as the
+harmonized tier on its code alone; it SHALL check that the value comes from
+[SPiERSuicideRiskTier](CodeSystem-spier-suicide-risk-tier.html).
+[Quick Starts](quick-starts.html#risk-tier) has the query. A distinguishing
+code is planned and not yet published.
+
+**Placing these results on `93374-7` is SPiER's choice, not the instrument
+developers'.** LOINC publishes `93374-7` as part of its C-SSRS content. SPiER uses it for the
+other instruments' results so that every result can be found and compared in
+one place, but the ASQ, BSSA, CAMS, PSS-3, PSS-Full and SAFE-T developers have
+not reviewed or agreed to their results being normalized onto it. Until they
+have, treat the `93374-7` coding of those results, and the tier crosswalks
+above, as SPiER's proposal.

@@ -66,7 +66,7 @@ import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, w
 import { fileURLToPath } from 'node:url'
 import { basename, dirname, join, relative, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
-import { FHIR_VERSION, VALIDATOR_VERSION, resolveValidatorJar } from './lib/validator-jar.mjs'
+import { FHIR_VERSION, VALIDATOR_PACKAGE_DEPS, VALIDATOR_VERSION, resolveValidatorJar } from './lib/validator-jar.mjs'
 import { normalizeCarePlan, PARITY_EXCLUSIONS } from './lib/careplan-parity.mjs'
 import { argValue, die as fail } from './lib/cli.mjs'
 
@@ -208,6 +208,10 @@ for (const file of allMaps) {
       '-output', out,
       '-version', FHIR_VERSION,
       '-tx', 'n/a',
+      // The IG's package dependencies first: the generated profiles have US
+      // Core parents, and loading a profile whose base cannot be resolved
+      // fails the whole compile, not just the map that uses it.
+      ...VALIDATOR_PACKAGE_DEPS.flatMap((p) => ['-ig', p]),
       // Order matters only in that both must be present: the generated
       // resources resolve `imports` (the ConceptMaps), and the map folders
       // are what actually put the .fml into the context.
@@ -277,6 +281,7 @@ if (tx === 'n/a') {
         '-output', out,
         '-version', FHIR_VERSION,
         '-tx', tx,
+        ...VALIDATOR_PACKAGE_DEPS.flatMap((p) => ['-ig', p]),
         '-ig', GENERATED_DIR,
         '-ig', MAPS_DIR,
       ],

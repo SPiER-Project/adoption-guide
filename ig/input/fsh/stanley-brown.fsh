@@ -25,7 +25,7 @@
 // ─── CarePlan profile ────────────────────────────────────────
 
 Profile: SPiERStanleyBrownSafetyPlan
-Parent: CarePlan
+Parent: USCoreCarePlanProfile
 Id: spier-stanley-brown-safety-plan
 Title: "SPiER Stanley-Brown Safety Plan CarePlan"
 Description: "A CarePlan derived from a completed Stanley-Brown Safety Plan QuestionnaireResponse. Carries one CarePlan.activity per safety-plan step; each activity is identified by a SPiER-local safety-plan section code in detail.code, retains the human label in detail.code.text, and holds the patient-authored content in detail.description."
@@ -38,7 +38,7 @@ Description: "A CarePlan derived from a completed Stanley-Brown Safety Plan Ques
 * category 1..*
 * category.coding 1..*
 * subject 1..1
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 // When the plan took effect. The safety-plan-before-discharge measure dates a
 // plan by period.start and nothing else, so a plan without it can never count.
 // `created` is when the record was written — the same instant for a plan
@@ -166,3 +166,66 @@ Usage: #example
   * code.text = "Step 7: Reason for Living"
   * status = #in-progress
   * description = "Niece's high-school graduation in six weeks; finishing the novel I'm writing"
+
+
+Instance: ExampleStanleyBrownSafetyPlanResponse
+InstanceOf: QuestionnaireResponse
+Title: "Example — Stanley-Brown Safety Plan QuestionnaireResponse"
+Description: "Source Stanley-Brown Safety Plan QuestionnaireResponse carrying the same content as the ExampleStanleyBrownSafetyPlan CarePlan, all seven steps answered. It is the input the StanleyBrownQRToCarePlan StructureMap transforms into a safety-plan CarePlan."
+Usage: #example
+* status = #completed
+* questionnaire = "http://thespierproject.org/fhir/Questionnaire/StanleyBrownSafetyPlan"
+* subject = Reference(Patient/example)
+* authored = "2026-08-08T14:00:00Z"
+* item[+].linkId = "step-1-warning-signs"
+* item[=].item[+].linkId = "1-1-warning-sign"
+* item[=].item[=].answer[+].valueString = "Sleep disruption"
+* item[=].item[=].answer[+].valueString = "Isolation from friends"
+* item[=].item[=].answer[+].valueString = "Thoughts of being a burden"
+* item[+].linkId = "step-2-internal-coping"
+* item[=].item[+].linkId = "2-1-coping-strategy"
+* item[=].item[=].answer[+].valueString = "Long walk"
+* item[=].item[=].answer[+].valueString = "Cold shower"
+* item[=].item[=].answer[+].valueString = "Breathing exercise from app"
+* item[+].linkId = "step-3-distraction-contacts"
+* item[=].item[+].linkId = "3-1-distraction-contact-group"
+* item[=].item[=].item[+].linkId = "3-1-name-place"
+* item[=].item[=].item[=].answer.valueString = "Brother"
+* item[=].item[=].item[+].linkId = "3-2-contact-info"
+* item[=].item[=].item[=].answer.valueString = "555-0102"
+* item[=].item[+].linkId = "3-1-distraction-contact-group"
+* item[=].item[=].item[+].linkId = "3-1-name-place"
+* item[=].item[=].item[=].answer.valueString = "Coffee shop on 2nd Ave"
+* item[=].item[=].item[+].linkId = "3-2-contact-info"
+* item[=].item[=].item[=].answer.valueString = "2nd Ave and Main St"
+* item[+].linkId = "step-4-crisis-support"
+* item[=].item[+].linkId = "4-1-support-person-group"
+* item[=].item[=].item[+].linkId = "4-1-name"
+* item[=].item[=].item[=].answer.valueString = "Best friend Maria"
+* item[=].item[=].item[+].linkId = "4-2-contact-info"
+* item[=].item[=].item[=].answer.valueString = "555-0143"
+* item[=].item[+].linkId = "4-1-support-person-group"
+* item[=].item[=].item[+].linkId = "4-1-name"
+* item[=].item[=].item[=].answer.valueString = "Aunt Carol"
+* item[=].item[=].item[+].linkId = "4-2-contact-info"
+* item[=].item[=].item[=].answer.valueString = "555-0188"
+* item[+].linkId = "step-5-professionals"
+* item[=].item[+].linkId = "5-1-clinician-agency-group"
+* item[=].item[=].item[+].linkId = "5-1-name"
+* item[=].item[=].item[=].answer.valueString = "Dr. Chen"
+* item[=].item[=].item[+].linkId = "5-2-contact-info"
+* item[=].item[=].item[=].answer.valueString = "555-0200"
+* item[=].item[+].linkId = "5-3-emergency-dept"
+* item[=].item[=].item[+].linkId = "5-3-name"
+* item[=].item[=].item[=].answer.valueString = "Memorial ED"
+* item[=].item[=].item[+].linkId = "5-4-address"
+* item[=].item[=].item[=].answer.valueString = "100 Hospital Dr"
+* item[=].item[=].item[+].linkId = "5-5-phone"
+* item[=].item[=].item[=].answer.valueString = "555-0911"
+* item[+].linkId = "step-6-lethal-means"
+* item[=].item[+].linkId = "6-1-safety-action"
+* item[=].item[=].answer[+].valueString = "Roommate to hold medications until follow-up"
+* item[=].item[=].answer[+].valueString = "Gun-lock voucher accepted from clinic"
+* item[+].linkId = "step-7-reason-for-living"
+* item[=].item[+].linkId = "7-1-worth-living"
+* item[=].item[=].answer.valueString = "Niece's high-school graduation in six weeks; finishing the novel I'm writing"

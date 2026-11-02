@@ -10,7 +10,7 @@
 
 
 Profile: SPiERPHQ9TotalScore
-Parent: Observation
+Parent: USCoreObservationScreeningAssessmentProfile
 Id: spier-phq9-total-score
 Title: "SPiER PHQ-9 Total Score Observation"
 Description: "Integer total score (0–27) derived from a completed PHQ-9 QuestionnaireResponse. Severity tiers: 0–4 Minimal, 5–9 Mild, 10–14 Moderate, 15–19 Moderately Severe, 20+ Severe."
@@ -31,7 +31,7 @@ Description: "Integer total score (0–27) derived from a completed PHQ-9 Questi
 * subject MS
 * effective[x] MS
 * value[x] MS
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 * effective[x] 1..1
 * effective[x] only dateTime or Period
 * value[x] 1..1
@@ -39,7 +39,7 @@ Description: "Integer total score (0–27) derived from a completed PHQ-9 Questi
 
 
 Profile: SPiERPHQ9Item9
-Parent: Observation
+Parent: USCoreObservationScreeningAssessmentProfile
 Id: spier-phq9-item9
 Title: "SPiER PHQ-9 Item 9 Observation"
 Description: "Discrete Observation for PHQ-9 item 9 (\"Thoughts that you would be better off dead or of hurting yourself\"). Value 0–3 reflects the four answer options; any value > 0 should advance the patient to Clarify Risk."
@@ -60,7 +60,7 @@ Description: "Discrete Observation for PHQ-9 item 9 (\"Thoughts that you would b
 * subject MS
 * effective[x] MS
 * value[x] MS
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 * effective[x] 1..1
 * effective[x] only dateTime or Period
 * value[x] 1..1

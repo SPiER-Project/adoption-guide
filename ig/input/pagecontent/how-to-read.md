@@ -5,7 +5,7 @@ the model the artifacts share and the clinical terms they use.
 ### Reading a profile page
 
 Each profile (for example *SPiER ASQ Screening Result Observation*) shows the
-base resource it constrains, a formal element table (cardinality, type,
+base resource or US Core profile it constrains, a formal element table (cardinality, type,
 bindings) and links to examples.
 
 - **Cardinality** — `1..1` means required; `0..*` optional and repeating.

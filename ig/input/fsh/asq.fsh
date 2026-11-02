@@ -145,7 +145,7 @@ Description: "The two ASQ outcomes that should trigger advancement to the Clarif
 // resource derived from an ASQ QuestionnaireResponse.
 
 Profile: SPiERASQResult
-Parent: Observation
+Parent: USCoreObservationScreeningAssessmentProfile
 Id: spier-asq-result
 Title: "SPiER ASQ Screening Result Observation"
 Description: "An Observation representing the disposition of an ASQ suicide-risk screen. The value identifies one of three result tiers (negative / non-acute-positive / acute-positive) using a SPiER-local CodeSystem."
@@ -164,7 +164,7 @@ Description: "An Observation representing the disposition of an ASQ suicide-risk
 * insert SurveyAndSuicideRiskCategory
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject 1..1
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 * effective[x] 1..1
 * effective[x] only dateTime or Period
 * value[x] 1..1
