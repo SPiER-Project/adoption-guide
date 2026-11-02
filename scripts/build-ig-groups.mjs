@@ -317,6 +317,9 @@ const EXTERNAL_PROFILES = new Map([
   ['USCoreConditionProblemsHealthConcernsProfile', 'Condition'],
   ['USCoreCarePlanProfile', 'CarePlan'],
   ['USCoreProcedureProfile', 'Procedure'],
+  ['USCoreEncounterProfile', 'Encounter'],
+  ['USCoreDocumentReferenceProfile', 'DocumentReference'],
+  ['USCoreServiceRequestProfile', 'ServiceRequest'],
 ])
 
 /** Resolve an InstanceOf / Parent to a base FHIR resource type. */

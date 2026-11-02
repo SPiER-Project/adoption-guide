@@ -536,6 +536,17 @@
         "code": "EMER",
         "display": "emergency"
       },
+      "type": [
+        {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "4525004",
+              "display": "Emergency department patient visit"
+            }
+          ]
+        }
+      ],
       "episodeOfCare": [
         {
           "reference": "EpisodeOfCare/p014-episode"

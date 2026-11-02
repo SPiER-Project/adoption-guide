@@ -508,6 +508,13 @@
       "intent": "order",
       "priority": "urgent",
       "code": {
+        "coding": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "183524004",
+            "display": "Referral to psychiatry service"
+          }
+        ],
         "text": "Transfer to inpatient psychiatric care (accepted, Riverbend Behavioral Health)"
       },
       "subject": {
@@ -572,6 +579,17 @@
         "code": "EMER",
         "display": "emergency"
       },
+      "type": [
+        {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "4525004",
+              "display": "Emergency department patient visit"
+            }
+          ]
+        }
+      ],
       "episodeOfCare": [
         {
           "reference": "EpisodeOfCare/p013-episode"

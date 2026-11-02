@@ -1031,10 +1031,11 @@ export const BINDINGS: Binding[] = [
   {
     id: 'discharge-packet-content',
     name: 'Discharge Safety Packet',
+    code: { system: 'http://loinc.org', code: '87626-8', display: 'Suicide Prevention Note' },
     fhirResource: 'DocumentReference',
     fhirPath: 'DocumentReference.content.attachment',
     usedBy: ['TL-030'],
-    description: 'The packet artifact itself, with the live resources it was assembled from in context.related. status is fixed to #current. No code: the SPiER profile carries a type.text rather than a document-type coding, so the resource is recognised by its profile canonical (spier-discharge-safety-packet) plus the suicide-risk domain category.',
+    description: 'The packet artifact itself, with the live resources it was assembled from in context.related. status is fixed to #current. Its type is fixed to LOINC 87626-8 Suicide Prevention Note: US Core, the profile\'s parent, requires a LOINC document type, and the packet is suicide-safety material rather than a clinician\'s discharge or transfer summary.',
   },
   {
     id: 'referral-reason',

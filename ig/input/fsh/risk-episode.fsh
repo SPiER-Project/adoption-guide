@@ -360,7 +360,7 @@ Description: "An active episode of suicide-safer care, tracked from entry to res
 //    and it is cleaner than routing through basedOn → ServiceRequest.
 
 Profile: SPiEREncounter
-Parent: Encounter
+Parent: USCoreEncounterProfile
 Id: spier-encounter
 Title: "SPiER Encounter"
 Description: "A contact during which suicide-safer care happened. Artifacts reference it through their native `.encounter` element and it references the episode, so one episode's record is assembled with standard search parameters. Instances SHOULD carry that stage's `SPiERPathwayStage` code in `meta.tag` where the contact maps to a single pathway stage."
@@ -372,13 +372,18 @@ Description: "A contact during which suicide-safer care happened. Artifacts refe
 // an ED visit, an ambulatory visit and a telephone contact are all in scope,
 // and SPiER has no reason to narrow that.
 * class MS
+// US Core requires `type` (1..*, extensible). SPiER types the contact by its
+// class: EMER → 4525004 "Emergency department patient visit", IMP → 32485007
+// "Hospital admission", AMB and VR → 308335008 "Patient encounter procedure"
+// (a virtual contact may be a call, a letter or a text, so no narrower code
+// fits all of them).
 // The reason this profile exists. 1..* rather than 1..1 because a single
 // contact can legitimately belong to more than one programme's episode; the
 // requirement is that a suicide-safer-care contact names at least one.
 * episodeOfCare 1..*
 * episodeOfCare MS
 * subject 1..1
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 * subject MS
 * period 1..1
 * period.start 1..1
@@ -703,6 +708,7 @@ Usage: #example
 * meta.tag[+] = SPiERPathwayStage#identify-possible-risk
 * status = #finished
 * class = http://terminology.hl7.org/CodeSystem/v3-ActCode#EMER "emergency"
+* type = http://snomed.info/sct#4525004 "Emergency department patient visit"
 * episodeOfCare[+] = Reference(ExampleActiveSuicideRiskEpisode)
 * subject = Reference(Patient/example)
 * period.start = "2026-07-02T08:15:00Z"
@@ -717,6 +723,7 @@ Usage: #example
 * meta.tag[+] = SPiERPathwayStage#track-risk-over-time
 * status = #finished
 * class = http://terminology.hl7.org/CodeSystem/v3-ActCode#VR "virtual"
+* type = http://snomed.info/sct#308335008 "Patient encounter procedure"
 * episodeOfCare[+] = Reference(ExampleActiveSuicideRiskEpisode)
 * subject = Reference(Patient/example)
 * period.start = "2026-07-09T14:00:00Z"

@@ -38,6 +38,27 @@ const ACT_CODE_SYSTEM = 'http://terminology.hl7.org/CodeSystem/v3-ActCode'
  */
 export const DEFAULT_ENCOUNTER_CLASS = { code: 'AMB', display: 'ambulatory' } as const
 
+const SNOMED = 'http://snomed.info/sct'
+
+/**
+ * `Encounter.type` by class. US Core (the profile's parent) requires a type, and
+ * SPiER derives it from the class rather than asking for a second judgment:
+ * this map is the one place that pairing lives, and the scenario fixtures are
+ * held to it by a test. AMB and VR share the generic concept because a virtual
+ * contact may be a call, a letter or a text, and no narrower code fits all three.
+ */
+export const ENCOUNTER_TYPE_BY_CLASS: Record<string, { system: string; code: string; display: string }> = {
+  EMER: { system: SNOMED, code: '4525004', display: 'Emergency department patient visit' },
+  IMP: { system: SNOMED, code: '32485007', display: 'Hospital admission' },
+  AMB: { system: SNOMED, code: '308335008', display: 'Patient encounter procedure' },
+  VR: { system: SNOMED, code: '308335008', display: 'Patient encounter procedure' },
+}
+
+/** The `Encounter.type` for a class code; the generic concept for any class not mapped. */
+export function encounterTypeFor(classCode: string): { coding: [{ system: string; code: string; display: string }] } {
+  return { coding: [{ ...(ENCOUNTER_TYPE_BY_CLASS[classCode] ?? ENCOUNTER_TYPE_BY_CLASS.AMB) }] }
+}
+
 /**
  * An Encounter still accepting new artifacts.
  *
@@ -88,6 +109,7 @@ export function buildEncounter(params: {
       code: DEFAULT_ENCOUNTER_CLASS.code,
       display: DEFAULT_ENCOUNTER_CLASS.display,
     },
+    type: [encounterTypeFor(DEFAULT_ENCOUNTER_CLASS.code)],
     subject: patientReference(params.patientId),
     period: { start: params.startIso },
   }

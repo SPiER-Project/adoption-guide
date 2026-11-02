@@ -458,6 +458,13 @@
       "status": "completed",
       "intent": "order",
       "code": {
+        "coding": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "390866009",
+            "display": "Referral to mental health team"
+          }
+        ],
         "text": "Referral to integrated behavioral health"
       },
       "subject": {
@@ -565,6 +572,17 @@
         "code": "EMER",
         "display": "emergency"
       },
+      "type": [
+        {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "4525004",
+              "display": "Emergency department patient visit"
+            }
+          ]
+        }
+      ],
       "episodeOfCare": [
         {
           "reference": "EpisodeOfCare/p008-episode"
@@ -598,6 +616,17 @@
         "code": "AMB",
         "display": "ambulatory"
       },
+      "type": [
+        {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "308335008",
+              "display": "Patient encounter procedure"
+            }
+          ]
+        }
+      ],
       "episodeOfCare": [
         {
           "reference": "EpisodeOfCare/p008-episode"
@@ -631,6 +660,17 @@
         "code": "VR",
         "display": "virtual"
       },
+      "type": [
+        {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "308335008",
+              "display": "Patient encounter procedure"
+            }
+          ]
+        }
+      ],
       "episodeOfCare": [
         {
           "reference": "EpisodeOfCare/p008-episode"
@@ -664,6 +704,17 @@
         "code": "VR",
         "display": "virtual"
       },
+      "type": [
+        {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "308335008",
+              "display": "Patient encounter procedure"
+            }
+          ]
+        }
+      ],
       "episodeOfCare": [
         {
           "reference": "EpisodeOfCare/p008-episode"
@@ -697,6 +748,17 @@
         "code": "AMB",
         "display": "ambulatory"
       },
+      "type": [
+        {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "308335008",
+              "display": "Patient encounter procedure"
+            }
+          ]
+        }
+      ],
       "episodeOfCare": [
         {
           "reference": "EpisodeOfCare/p008-episode"

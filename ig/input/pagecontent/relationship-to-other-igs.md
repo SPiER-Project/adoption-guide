@@ -15,16 +15,22 @@ rather than restating them.
   | Suicide-Related Condition, CAMS Suicide Driver | [Condition Problems and Health Concerns](https://hl7.org/fhir/us/core/STU9/StructureDefinition-us-core-condition-problems-health-concerns.html) |
   | The four safety-plan and CAMS CarePlans | [CarePlan](https://hl7.org/fhir/us/core/STU9/StructureDefinition-us-core-careplan.html) |
   | Lethal Means Counseling | [Procedure](https://hl7.org/fhir/us/core/STU9/StructureDefinition-us-core-procedure.html) |
+  | [Encounter](StructureDefinition-spier-encounter.html) | [Encounter](https://hl7.org/fhir/us/core/STU9/StructureDefinition-us-core-encounter.html) |
+  | [Discharge Safety Packet](StructureDefinition-spier-discharge-safety-packet.html) | [DocumentReference](https://hl7.org/fhir/us/core/STU9/StructureDefinition-us-core-documentreference.html) |
+  | [Safety Referral](StructureDefinition-spier-safety-referral.html) | [ServiceRequest](https://hl7.org/fhir/us/core/STU9/StructureDefinition-us-core-servicerequest.html) |
 
-  Three profiles are not yet built on US Core:
-  [Encounter](StructureDefinition-spier-encounter.html),
-  [Discharge Safety Packet](StructureDefinition-spier-discharge-safety-packet.html)
-  and [Safety Referral](StructureDefinition-spier-safety-referral.html). US Core
-  requires a coded `Encounter.type`, `DocumentReference.type` and
-  `ServiceRequest.code`, and SPiER has not yet settled which codes to use. The
-  remaining profiles — the Communications, Consent, Flag, Task, Appointment and
-  EpisodeOfCare — constrain types US Core does not profile, and build on the
-  base resources.
+  US Core requires a code on the last three, and SPiER fixes them:
+  `Encounter.type` follows the encounter's class (SNOMED CT `4525004`
+  Emergency department patient visit, `32485007` Hospital admission, otherwise
+  `308335008` Patient encounter procedure); the packet's type is LOINC
+  `87626-8` Suicide Prevention Note; and a referral is coded SNOMED CT
+  `390866009` Referral to mental health team, or `183524004` Referral to
+  psychiatry service for a transfer to inpatient psychiatric care, with the
+  service named in `code.text`.
+
+  The remaining profiles — the Communications, Consent, Flag, Task, Appointment
+  and EpisodeOfCare — constrain types US Core does not profile, and build on
+  the base resources.
 - **[SDC 4.0.0](https://hl7.org/fhir/uv/sdc/)** — `Questionnaire` authoring
   plus the `observationExtract` / `calculatedExpression` mechanics SPiER uses
   to derive Observations from a completed `QuestionnaireResponse`.
