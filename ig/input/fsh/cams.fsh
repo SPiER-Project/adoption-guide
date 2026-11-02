@@ -121,7 +121,7 @@ Description: "All CAMS SSF-5 Outcome/Disposition final-session decisions."
 // ─── Observation profile: SSF Vital ──────────────────────────
 
 Profile: SPiERCAMSSSFVital
-Parent: Observation
+Parent: USCoreObservationScreeningAssessmentProfile
 Id: spier-cams-ssf-vital
 Title: "SPiER CAMS SSF Vital Observation"
 Description: "Integer rating (1–5) for one of the six Suicide Status Form (SSF) Core Assessment measures collected during CAMS Section A. Each SSF measure (psychological pain, stress, agitation, hopelessness, self-hate, overall risk) produces a separate Observation conformant to this profile so that EHRs can chart them longitudinally across CAMS sessions."
@@ -142,7 +142,7 @@ Description: "Integer rating (1–5) for one of the six Suicide Status Form (SSF
 * effective[x] MS
 * value[x] MS
 * subject 1..1
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 * effective[x] 1..1
 * effective[x] only dateTime or Period
 * value[x] 1..1
@@ -195,7 +195,7 @@ Description: "All five CAMS SSF self-rated Overall Risk of Suicide ratings (1–
 // ─── Condition profile: Suicide Driver ───────────────────────
 
 Profile: SPiERCAMSSuicideDriver
-Parent: Condition
+Parent: USCoreConditionProblemsHealthConcernsProfile
 Id: spier-cams-suicide-driver
 Title: "SPiER CAMS Suicide Driver Condition"
 Description: "A Condition representing a CAMS-identified driver of suicidality. Surfaces on the patient's problem list (active until resolved at CAMS disposition). The driver's narrative description is captured in Condition.code.text; the marker category http://thespierproject.org/fhir/CodeSystem/cams-driver-category#suicide-driver identifies the resource as a CAMS driver."
@@ -219,7 +219,6 @@ Description: "A Condition representing a CAMS-identified driver of suicidality. 
 // using a two-code binding — the fixed system is what makes the slice
 // discriminable, and the required binding is what constrains it to direct or
 // indirect.
-* insert SuicideRiskDomainSlicing
 * category contains driverCategory 1..1 and driverType 0..1
 * category[driverCategory] = CAMSDriverCategoryCodes#suicide-driver
 * category[driverCategory] ^short = "CAMS suicide-driver marker"
@@ -227,7 +226,7 @@ Description: "A Condition representing a CAMS-identified driver of suicidality. 
 * category[driverType].coding.system = "http://thespierproject.org/fhir/CodeSystem/cams-driver-type" (exactly)
 * category[driverType] from CAMSDriverType (required)
 * category[driverType] ^short = "Direct or indirect driver, when the clinician classified it"
-* insert SuicideRiskDomainSlice
+* insert ProblemListAndSuicideRiskCategory
 * category.coding 1..*
 * code 1..1
 // The text stays required and the coding stays optional — reviewed under #43
@@ -243,7 +242,8 @@ Description: "A Condition representing a CAMS-identified driver of suicidality. 
 // any code set, and where one happens to align, this is the set to draw from so
 // the coded row matches SPiERSuicideRelatedCondition elsewhere on the problem
 // list. See suicide-related-conditions.fsh for the scoping rationale in full.
-* code from SPiERSuicideRelatedProblem (example)
+// No binding of its own: US Core binds `code` extensibly to its Condition codes,
+// and a driver usually has no coded concept, so `code.text` carries it (1..1).
 * code.text 1..1
 // Must-Support — a producer SHALL populate these; a consumer SHALL process them.
 * clinicalStatus MS
@@ -251,7 +251,7 @@ Description: "A Condition representing a CAMS-identified driver of suicidality. 
 * category MS
 * code MS
 * subject 1..1
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 
 
 // ─── CarePlan section codes ──────────────────────────────────
@@ -329,7 +329,7 @@ Description: "The four content sections of a CAMS Therapeutic Worksheet, as used
 // ─── CarePlan profile: CAMS Stabilization Plan ───────────────
 
 Profile: SPiERCAMSStabilizationPlan
-Parent: CarePlan
+Parent: USCoreCarePlanProfile
 Id: spier-cams-stabilization-plan
 Title: "SPiER CAMS Stabilization Plan CarePlan"
 Description: "CarePlan capturing a CAMS Stabilization Plan — a CAMS-framework safety plan that should be reviewed and updated at the start of every CAMS session. Five-section structure: lethal-means reduction, coping strategies, emergency contact, support network, and treatment-adherence plan."
@@ -342,7 +342,7 @@ Description: "CarePlan capturing a CAMS Stabilization Plan — a CAMS-framework 
 * category 1..*
 * category.coding 1..*
 * subject 1..1
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 // Every activity IS a named section, so the section code is the discriminator.
 // Slicing is declared `open` rather than `closed` as a style choice only: with a
 // required binding plus 1..1 on all five slices, the sections are already
@@ -381,7 +381,7 @@ Description: "CarePlan capturing a CAMS Stabilization Plan — a CAMS-framework 
 // ─── CarePlan profile: CAMS Therapeutic Worksheet ────────────
 
 Profile: SPiERCAMSTherapeuticWorksheet
-Parent: CarePlan
+Parent: USCoreCarePlanProfile
 Id: spier-cams-therapeutic-worksheet
 Title: "SPiER CAMS Therapeutic Worksheet CarePlan"
 Description: "CarePlan capturing a CAMS Therapeutic Worksheet — the personal narrative, direct/indirect suicide drivers, and the patient's working model of their suicidal crisis. Used to guide ongoing CAMS-framework treatment between sessions."
@@ -394,7 +394,7 @@ Description: "CarePlan capturing a CAMS Therapeutic Worksheet — the personal n
 * category 1..*
 * category.coding 1..*
 * subject 1..1
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 // Four activities, not three: the Questionnaire's section II
 // (`drivers-exploration`) carries both the direct- and indirect-driver
 // analyses, and they are separate concepts downstream — so the CarePlan splits
@@ -433,7 +433,7 @@ Description: "CarePlan capturing a CAMS Therapeutic Worksheet — the personal n
 // ─── Observation profile: CAMS Outcome Disposition ───────────
 
 Profile: SPiERCAMSOutcomeDisposition
-Parent: Observation
+Parent: USCoreObservationScreeningAssessmentProfile
 Id: spier-cams-outcome-disposition
 Title: "SPiER CAMS Outcome Disposition Observation"
 Description: "The disposition decision from the CAMS SSF-5 Outcome/Disposition final session. Follows the BSSA precedent: the Observation carries the generic LOINC 93374-7 ('Suicide risk level') and a SPiER-local disposition value (continue-cams / resolved / refer-adjunctive / higher-level-care). A care-disposition decision, not a risk tier."
@@ -448,7 +448,7 @@ Description: "The disposition decision from the CAMS SSF-5 Outcome/Disposition f
 * insert SurveyAndSuicideRiskCategory
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject 1..1
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 * effective[x] 1..1
 * effective[x] only dateTime or Period
 * value[x] 1..1

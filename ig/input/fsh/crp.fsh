@@ -30,7 +30,7 @@
 // ─── CarePlan profile ────────────────────────────────────────
 
 Profile: SPiERCrisisResponsePlan
-Parent: CarePlan
+Parent: USCoreCarePlanProfile
 Id: spier-crisis-response-plan
 Title: "SPiER Crisis Response Plan CarePlan"
 Description: "A CarePlan derived from a completed Crisis Response Plan QuestionnaireResponse. Carries one CarePlan.activity per CRP section; each activity is identified by a SPiER-local safety-plan section code in detail.code (shared with the Stanley-Brown Safety Plan), retains the human label in detail.code.text, and holds the patient-authored content in detail.description."
@@ -43,7 +43,7 @@ Description: "A CarePlan derived from a completed Crisis Response Plan Questionn
 * category 1..*
 * category.coding 1..*
 * subject 1..1
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 // When the plan took effect. The safety-plan-before-discharge measure dates a
 // plan by period.start and nothing else, so a plan without it can never count.
 // `created` is when the record was written — the same instant for a plan

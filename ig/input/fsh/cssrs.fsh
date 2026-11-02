@@ -118,7 +118,7 @@ Description: "The six C-SSRS Since Last Visit / Since Last Contact items, as use
 // ─── Shared Observation profile ──────────────────────────────
 
 Profile: SPiERCSSRSRiskLevel
-Parent: Observation
+Parent: USCoreObservationScreeningAssessmentProfile
 Id: spier-cssrs-risk-level
 Title: "SPiER C-SSRS Risk Level Observation"
 Description: "Derived risk-level Observation produced by either the C-SSRS Screener or the full C-SSRS Lifetime/Recent assessment. Value is one of none/low/moderate/high from the SPiER C-SSRS risk-level CodeSystem."
@@ -133,7 +133,7 @@ Description: "Derived risk-level Observation produced by either the C-SSRS Scree
 * insert SurveyAndSuicideRiskCategory
 * code = http://loinc.org#93374-7
 * subject 1..1
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 * effective[x] 1..1
 * effective[x] only dateTime or Period
 * value[x] 1..1

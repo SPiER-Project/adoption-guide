@@ -24,7 +24,7 @@
 // ─── Observation profile ─────────────────────────────────────
 
 Profile: SPiERPSSFullRiskLevel
-Parent: Observation
+Parent: USCoreObservationScreeningAssessmentProfile
 Id: spier-pss-full-risk-level
 Title: "SPiER PSS Full Risk Level Observation"
 Description: "The site-stratified suicide-risk level from the full Patient Safety Screener / Suicide Risk Screener. Value is a common suicide-risk tier (low / moderate / high) bound directly to the shared SPiER Suicide Risk Tier ValueSet — the combined screen lands on the concept layer without a per-instrument crosswalk."
@@ -39,7 +39,7 @@ Description: "The site-stratified suicide-risk level from the full Patient Safet
 * insert SurveyAndSuicideRiskCategory
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject 1..1
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 * effective[x] 1..1
 * effective[x] only dateTime or Period
 * value[x] 1..1

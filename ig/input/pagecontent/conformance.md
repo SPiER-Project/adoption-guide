@@ -28,13 +28,24 @@ SPiER defines conformance per **system role**, the approach of the HL7
 Following [US Core](https://hl7.org/fhir/us/core/conformance-expectations.html),
 Must-Support is defined **operationally, by role**:
 
-- A **producer** (screening-source EHR) *SHALL be capable of populating* every
+- A **Screening-Source EHR** (producer) *SHALL be capable of populating* every
   Must-Support element.
-- A **consumer** (risk client) *SHALL be capable of processing* instances
-  containing those elements *without erroring or failing*.
-- **Missing data:** when an element's absence reason is unknown, a producer
-  SHALL omit the element, and a consumer SHALL interpret a missing element as
-  *data not present*, not as an error.
+- An **HIE Intermediary** *SHALL be capable of storing and returning* every
+  Must-Support element it receives, unchanged — including `derivedFrom`, every
+  `category` and `meta.profile` — so a downstream consumer receives what the
+  producer sent. It SHALL NOT drop a coding it does not recognize.
+- A **Risk Consumer** *SHALL be capable of processing* instances containing
+  those elements *without erroring or failing*.
+- A **Quality Reporter** *SHALL be capable of processing* the Must-Support
+  elements the [Measures](measurement.html) read — status, code, category, the
+  resource's date and its subject — across a population.
+- **Missing data:** when an element is optional and its value is unknown, a
+  producer SHALL omit it. When the element is required (minimum cardinality 1
+  or more) and its value is unknown, the producer SHALL populate it with the
+  [Data Absent Reason](https://hl7.org/fhir/R4/extension-data-absent-reason.html)
+  extension, or, for a coded element whose value set includes one, an
+  `unknown` code. A consumer SHALL interpret a missing element as *data not
+  present*, not as an error.
 
 Must-Support says *what must be supported*; it does **not** constrain maximum
 cardinality, so a source system is never forced to strip data out.
@@ -91,8 +102,11 @@ disorder from one.
 
 **A CAMS driver stays narrative.**
 [SPiER CAMS Suicide Driver](StructureDefinition-spier-cams-suicide-driver.html)
-requires `code.text` and leaves `code.coding` optional with an `example`
-binding, because no terminology carries concepts at a driver's granularity.
+requires `code.text` and leaves `code.coding` optional, because no terminology
+carries concepts at a driver's granularity. `code` keeps US Core's extensible
+binding to its Condition codes, so a driver with no suitable code is text-only;
+validators report that as a warning, which is expected. A driver is a
+clinician-identified problem and carries the `problem-list-item` category.
 
 ### Categories and codes every profile carries
 

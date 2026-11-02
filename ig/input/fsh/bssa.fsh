@@ -136,7 +136,7 @@ Description: "The BSSA symptom checklist answer options."
 // the Observation code is the generic LOINC 93374-7.
 
 Profile: SPiERBSSADispositionResult
-Parent: Observation
+Parent: USCoreObservationScreeningAssessmentProfile
 Id: spier-bssa-disposition-result
 Title: "SPiER BSSA Disposition Result Observation"
 Description: "An Observation representing the clinician-selected disposition of a NIMH Brief Suicide Safety Assessment. The value identifies one of four dispositions (emergency psychiatric evaluation / further evaluation necessary / non-urgent follow-up / no intervention) using a SPiER-local CodeSystem."
@@ -151,7 +151,7 @@ Description: "An Observation representing the clinician-selected disposition of 
 * insert SurveyAndSuicideRiskCategory
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * subject 1..1
-* subject only Reference(Patient)
+* subject only Reference(USCorePatientProfile)
 * effective[x] 1..1
 * effective[x] only dateTime or Period
 * value[x] 1..1

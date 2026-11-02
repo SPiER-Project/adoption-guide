@@ -304,13 +304,19 @@ for (const d of defs) {
   }
 }
 
-// External profiles an Instance may be InstanceOf, by the FSH name SUSHI
-// resolves them under, with the base type taught explicitly. A spelling that
-// looks like a resource name (`USCorePatientProfile`) would otherwise be
-// published as that string and fail the `published` half of --check.
+// External profiles an Instance may be InstanceOf, or a local profile may name
+// as Parent, by the FSH name SUSHI resolves them under, with the base type
+// taught explicitly. A spelling that looks like a resource name
+// (`USCorePatientProfile`) would otherwise be published as that string and
+// fail the `published` half of --check.
 const EXTERNAL_PROFILES = new Map([
   ['USCorePatientProfile', 'Patient'],
   ['USCorePractitionerProfile', 'Practitioner'],
+  ['USCoreObservationScreeningAssessmentProfile', 'Observation'],
+  ['USCoreSimpleObservationProfile', 'Observation'],
+  ['USCoreConditionProblemsHealthConcernsProfile', 'Condition'],
+  ['USCoreCarePlanProfile', 'CarePlan'],
+  ['USCoreProcedureProfile', 'Procedure'],
 ])
 
 /** Resolve an InstanceOf / Parent to a base FHIR resource type. */
