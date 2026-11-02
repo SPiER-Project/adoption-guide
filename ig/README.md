@@ -11,7 +11,7 @@ ig/
 │   ├── fsh/                    # FSH sources for profiles, ValueSets, CodeSystems, instances
 │   ├── cql/                    # CQL, compiled to ELM by the IG Publisher
 │   ├── resources/maps/         # FHIR Mapping Language (.fml) → published StructureMaps
-│   ├── resources/questionnaires -> ../../../ig/input/resources/questionnaires   # symlink: the Questionnaires, published as-is
+│   ├── resources/questionnaires/<tool>/   # hand-authored Questionnaire JSON, published as-is
 │   └── pagecontent/            # Narrative IG pages (Markdown)
 ├── drafts/                     # NOT in the build — see that folder's README
 └── README.md                   # This file
@@ -20,15 +20,12 @@ ig/
 `input/resources/maps/` is scanned only because `sushi-config.yaml` declares
 `path-resource: input/resources/maps` (the publisher's default scan of
 `input/resources` does not recurse); see that folder's README for authoring
-rules and gate coverage. `input/resources/questionnaires` is a **symlink** to
-`ig/input/resources/questionnaires/` at the repo root, and each tool folder under it is its own
-`path-resource` entry (`input/resources/questionnaires/ASQ`, …); it is a
-symlink because the publisher refuses a `path-resource` that escapes the IG
-root, and the Questionnaires cannot move — the app imports the same files. One
-entry per folder rather than the recursive `/*` form, because the publisher
-tries to load every file it finds and the `references/` subfolders hold PDFs;
-a new tool folder needs its line here, and `check-ig-narrative.mjs` fails when
-one is missing. `input/cql/` is compiled to ELM and attached to
+rules and gate coverage. `input/resources/questionnaires/` is a real folder,
+one subfolder per instrument, published by a single recursive
+`path-resource: input/resources/questionnaires/*` entry. It holds **resource
+JSON only**: the publisher tries to load every file it finds, so a PDF, README
+or spreadsheet put here breaks the build. Reference material for an instrument
+goes to `docs/instruments/<tool>/` at the repo root. `input/cql/` is compiled to ELM and attached to
 `Library/SPiERSuicideSaferCareMeasures` only because `sushi-config.yaml` sets
 `path-binary: input/cql`, the CQL loader's activation switch. All three are
 one config line away from silently not being built.
@@ -75,7 +72,7 @@ for each gate is in `docs/internals/ig-build.md`.
   folder) needs one line in its `RULES`, and `--check` names the file when it
   is missing. Never edit the block by hand — regenerate it.
 - **Reference, don't duplicate.** When a Questionnaire already lives under
-  `ig/input/resources/questionnaires/<stage>/<tool>/...`, the IG's ActivityDefinition references
+  `ig/input/resources/questionnaires/<tool>/`, the IG's ActivityDefinition references
   it via canonical URL rather than re-defining it.
 - **LOINC/SNOMED where published.** Use local CodeSystems only when no
   authoritative code exists. Note the substitution intent in the FSH source.

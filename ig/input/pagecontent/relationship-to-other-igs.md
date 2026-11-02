@@ -18,8 +18,8 @@ rather than restating them.
 
 ### US Behavioral Health Profiles (USCDI+ Behavioral Health)
 
-The [US Behavioral Health Profiles IG](https://fhir.org/guides/onc/bhp/),
-published by ONC with SAMHSA funding and HL7 EHR Work Group input,
+The [US Behavioral Health Profiles IG](https://fhir.org/guides/astp/bhp/),
+published by ASTP/ONC with SAMHSA funding and HL7 EHR Work Group input,
 expresses the USCDI+ Behavioral Health data elements as FHIR. It is **broad
 and shallow** by design, covering the whole behavioral-health domain on the
 same US Core + SDC + SDOH foundation. The two guides are complementary, and a

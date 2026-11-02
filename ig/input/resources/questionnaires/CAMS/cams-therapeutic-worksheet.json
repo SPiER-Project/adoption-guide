@@ -6,6 +6,7 @@
   "name": "CAMS_Therapeutic_Worksheet",
   "title": "CAMS Therapeutic Worksheet: Understanding Your Suicidality",
   "status": "draft",
+  "experimental": true,
   "subjectType": [
     "Patient"
   ],

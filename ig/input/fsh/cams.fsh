@@ -632,6 +632,7 @@ Usage: #example
 * subject = Reference(Patient/example)
 * performer = Reference(Patient/example)
 * effectiveDateTime = "2026-03-19T11:00:00Z"
+* derivedFrom[+] = Reference(ExampleCAMSSectionAResponse)
 * valueInteger = 4
 * interpretation[+] = http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation#H "High"
 * interpretation[=].text = "Elevated (4/5)"
@@ -784,3 +785,126 @@ Usage: #example
 * item[=].item[=].answer.valueInteger = 2
 * item[+].linkId = "disposition"
 * item[=].answer.valueCoding = http://thespierproject.org/fhir/CodeSystem/cams-disposition#resolved "CAMS resolved — episode complete"
+
+
+Instance: ExampleCAMSSectionAResponse
+InstanceOf: QuestionnaireResponse
+Title: "Example — CAMS SSF-5 Section A QuestionnaireResponse"
+Description: "Source patient-completed Suicide Status Form, Section A: the six SSF ratings with their free-text prompts, the self/others ratings, ranked reasons for living and dying, and the wish to live/die. The derived SPiERCAMSSSFVital (ExampleCAMSSSFPsychologicalPain) references this via Observation.derivedFrom."
+Usage: #example
+* status = #completed
+* questionnaire = "http://thespierproject.org/fhir/Questionnaire/CAMS-SSF5-SectionA"
+* subject = Reference(Patient/example)
+* authored = "2026-03-19T11:00:00Z"
+* item[+].linkId = "core-ratings"
+* item[=].item[+].linkId = "1-psychological-pain"
+* item[=].item[=].item[+].linkId = "1-score"
+* item[=].item[=].item[=].answer.valueInteger = 4
+* item[=].item[=].item[+].linkId = "1-text"
+* item[=].item[=].item[=].answer.valueString = "Constant ache in my chest, feeling of dread that won't go away"
+* item[=].item[+].linkId = "2-stress"
+* item[=].item[=].item[+].linkId = "2-score"
+* item[=].item[=].item[=].answer.valueInteger = 4
+* item[=].item[=].item[+].linkId = "2-text"
+* item[=].item[=].item[=].answer.valueString = "Work pressure, relationship problems, financial strain"
+* item[=].item[+].linkId = "3-agitation"
+* item[=].item[=].item[+].linkId = "3-score"
+* item[=].item[=].item[=].answer.valueInteger = 3
+* item[=].item[=].item[+].linkId = "3-text"
+* item[=].item[=].item[=].answer.valueString = "Can't sit still, pacing at night"
+* item[=].item[+].linkId = "4-hopelessness"
+* item[=].item[=].item[+].linkId = "4-score"
+* item[=].item[=].item[=].answer.valueInteger = 4
+* item[=].item[=].item[+].linkId = "4-text"
+* item[=].item[=].item[=].answer.valueString = "Nothing will ever get better"
+* item[=].item[+].linkId = "5-self-hate"
+* item[=].item[=].item[+].linkId = "5-score"
+* item[=].item[=].item[=].answer.valueInteger = 3
+* item[=].item[=].item[+].linkId = "5-text"
+* item[=].item[=].item[=].answer.valueString = "I'm a burden to everyone around me"
+* item[=].item[+].linkId = "6-overall-risk"
+* item[=].item[=].item[+].linkId = "6-score"
+* item[=].item[=].item[=].answer.valueInteger = 3
+
+
+Instance: ExampleCAMSTherapeuticWorksheetResponse
+InstanceOf: QuestionnaireResponse
+Title: "Example — CAMS Therapeutic Worksheet QuestionnaireResponse"
+Description: "Source CAMS Therapeutic Worksheet QuestionnaireResponse from an interim session, carrying the same content as the ExampleCAMSTherapeuticWorksheet CarePlan: the personal story, the direct and indirect drivers, and the patient's crisis working model."
+Usage: #example
+* status = #completed
+* questionnaire = "http://thespierproject.org/fhir/Questionnaire/CAMS-Therapeutic-Worksheet"
+* subject = Reference(Patient/example)
+* authored = "2026-04-02T10:00:00Z"
+* item[+].linkId = "personal-story"
+* item[=].item[+].linkId = "story-narrative"
+* item[=].item[=].answer.valueString = "Began after the layoff in November; worsened when the marriage ended. Describes feeling 'replaceable at work and at home'."
+* item[+].linkId = "drivers-exploration"
+* item[=].item[+].linkId = "direct-drivers-analysis"
+* item[=].item[=].item[+].linkId = "dd-thoughts"
+* item[=].item[=].item[=].answer.valueString = "I'm a burden to my family"
+* item[=].item[=].item[+].linkId = "dd-feelings"
+* item[=].item[=].item[=].answer.valueString = "Shame about losing the job"
+* item[=].item[=].item[+].linkId = "dd-behaviors"
+* item[=].item[=].item[=].answer.valueString = "Staying in bed through the morning"
+* item[=].item[=].item[+].linkId = "dd-themes"
+* item[=].item[=].item[=].answer.valueString = "Loss of professional identity since the layoff"
+* item[=].item[+].linkId = "indirect-drivers-analysis"
+* item[=].item[=].item[+].linkId = "id-desc"
+* item[=].item[=].item[=].answer.valueString = "Escalating alcohol use in the evenings; chronic insomnia; untreated PTSD from a 2019 motor-vehicle collision."
+* item[+].linkId = "crisis-model"
+* item[=].item[+].linkId = "stage-indirect"
+* item[=].item[=].item[+].linkId = "si-increase"
+* item[=].item[=].item[=].answer.valueString = "Drinking alone after 9pm"
+* item[=].item[=].item[+].linkId = "si-decrease"
+* item[=].item[=].item[=].answer.valueString = "Morning gym"
+* item[=].item[+].linkId = "stage-direct"
+* item[=].item[=].item[+].linkId = "sd-increase"
+* item[=].item[=].item[=].answer.valueString = "Scrolling former colleagues' posts"
+* item[=].item[=].item[+].linkId = "sd-decrease"
+* item[=].item[=].item[=].answer.valueString = "Calling my sister"
+* item[=].item[+].linkId = "stage-suicide-option"
+* item[=].item[=].item[+].linkId = "so-increase"
+* item[=].item[=].item[=].answer.valueString = "Being alone at night after an argument"
+* item[=].item[=].item[+].linkId = "so-decrease"
+* item[=].item[=].item[=].answer.valueString = "Weekly group; calling the crisis line"
+
+
+// lethal-means-list and support-list declare questionnaire-maxOccurs 3, and
+// validator_cli 6.10.0 rejects exactly three answers ("The maximum number of
+// answers is 3 but this has 3 answers"), so each carries two.
+Instance: ExampleCAMSStabilizationPlanResponse
+InstanceOf: QuestionnaireResponse
+Title: "Example — CAMS Stabilization Plan QuestionnaireResponse"
+Description: "Source CAMS Stabilization Plan QuestionnaireResponse carrying the same content as the ExampleCAMSStabilizationPlan CarePlan: lethal-means steps, coping strategies, the emergency contact, support people, and two treatment barriers with their solutions."
+Usage: #example
+* status = #completed
+* questionnaire = "http://thespierproject.org/fhir/Questionnaire/CAMS-Stabilization-Plan"
+* subject = Reference(Patient/example)
+* authored = "2026-03-19T11:45:00Z"
+* item[+].linkId = "lethal-means"
+* item[=].item[+].linkId = "lethal-means-list"
+* item[=].item[=].answer[+].valueString = "Locked medication box"
+* item[=].item[=].answer[+].valueString = "Firearm transferred to trusted family member; clinic gun-lock voucher accepted"
+* item[+].linkId = "coping-strategies"
+* item[=].item[+].linkId = "coping-list"
+* item[=].item[=].answer[+].valueString = "Mindfulness breathing"
+* item[=].item[=].answer[+].valueString = "Grounding 5-4-3-2-1"
+* item[=].item[=].answer[+].valueString = "Calling the crisis line before pain peaks"
+* item[+].linkId = "emergency-contact"
+* item[=].answer.valueString = "Dr. Chen (555-0200), pager 555-0299; 988 Suicide & Crisis Lifeline"
+* item[+].linkId = "support-people"
+* item[=].item[+].linkId = "support-list"
+* item[=].item[=].answer[+].valueString = "Sister Maria (555-0143)"
+* item[=].item[=].answer[+].valueString = "Best friend Joe (555-0188); NAMI peer support group, Thursdays"
+* item[+].linkId = "treatment-adherence"
+* item[=].item[+].linkId = "barrier-solution-group"
+* item[=].item[=].item[+].linkId = "barrier"
+* item[=].item[=].item[=].answer.valueString = "Transportation"
+* item[=].item[=].item[+].linkId = "solution"
+* item[=].item[=].item[=].answer.valueString = "Ride-share voucher from clinic"
+* item[=].item[+].linkId = "barrier-solution-group"
+* item[=].item[=].item[+].linkId = "barrier"
+* item[=].item[=].item[=].answer.valueString = "Medication cost"
+* item[=].item[=].item[+].linkId = "solution"
+* item[=].item[=].item[=].answer.valueString = "Patient-assistance program"

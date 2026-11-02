@@ -42,4 +42,5 @@ clinical disposition each produce distinct FHIR resources with a workflow
 trigger between them; *Transition* spans two because handing off and
 confirming the receiving side picked up are temporally distinct and produce
 different resources. The other decompositions, and what SPiER leaves to the
-framework, are recorded with the artifacts' design decisions.
+framework, are recorded in the
+[mapping's design decision](https://github.com/SPiER-Project/adoption-guide/blob/main/docs/decisions/zero-suicide-mapping.md).

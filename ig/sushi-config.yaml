@@ -280,7 +280,11 @@ groups:
       - QuestionnaireResponse/ExampleASQResponseNonAcute
       - QuestionnaireResponse/ExampleBSSAResponse
       - QuestionnaireResponse/ExampleCAMSOutcomeDispositionResponse
+      - QuestionnaireResponse/ExampleCAMSSectionAResponse
       - QuestionnaireResponse/ExampleCAMSSectionBResponse
+      - QuestionnaireResponse/ExampleCAMSStabilizationPlanResponse
+      - QuestionnaireResponse/ExampleCAMSTherapeuticWorksheetResponse
+      - QuestionnaireResponse/ExampleCSSRSFullResponse
       - QuestionnaireResponse/ExampleCSSRSPediatricResponse
       - QuestionnaireResponse/ExampleCSSRSScreenerResponse
       - QuestionnaireResponse/ExampleCSSRSSinceLastContactResponse
@@ -346,6 +350,8 @@ groups:
       - Observation/ExampleMeansSafetyActionFirearm
       - Observation/ExampleMeansSafetyActionMedication
       - Procedure/ExampleLethalMeansCounseling
+      - QuestionnaireResponse/ExampleCrisisResponsePlanResponse
+      - QuestionnaireResponse/ExampleStanleyBrownSafetyPlanResponse
   handoffs-follow-up:
     name: "Handoffs and follow-up"
     description: "Transitions of care and what happens after them: the handoff, the discharge safety packet, referral, follow-up appointment, sharing consent, outreach attempts and caring contacts."
@@ -487,12 +493,14 @@ groups:
       - MeasureReport/ExampleFollowUpTimelinessReportSummary
   conformance:
     name: "Conformance"
-    description: "The CapabilityStatement for each system role this guide defines."
+    description: "The CapabilityStatement for each system role this guide defines, and the synthetic patient and practitioner every example refers to."
     resources:
       - CapabilityStatement/hie-intermediary
       - CapabilityStatement/quality-reporter
       - CapabilityStatement/risk-consumer
       - CapabilityStatement/screening-source-ehr
+      - Patient/example
+      - Practitioner/practitioner-1
 resources:
   StructureMap/ASQResultToSuicideRiskConcept:
     name: "ASQResultToSuicideRiskConcept"

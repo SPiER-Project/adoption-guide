@@ -15,6 +15,9 @@ From zero to validating your own resources against SPiER.
   tooling (SUSHI, the HL7 validator, a Firely or HAPI server). The package is
   not yet in the FHIR package registry, so tooling cannot fetch it by name.
   The whole rendered guide is also downloadable, as [full-ig.zip](full-ig.zip).
+- **Licensing** — the package is CC0, but several instruments in it are
+  copyrighted by their developers. Contact SPiER about licensing before you
+  deploy any instrument; see [Licensing](index.html#licensing).
 - **Build locally** — clone [the repository](https://github.com/SPiER-Project/adoption-guide),
   then from `ig/` run [SUSHI](https://fshschool.org/docs/sushi/) to compile the
   FSH sources to FHIR JSON and the HL7 IG Publisher to render this site.

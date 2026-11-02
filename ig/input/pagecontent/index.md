@@ -45,6 +45,29 @@ your own clinical protocols before relying on them (see
 pathway relates to the Zero Suicide framework is on the
 [Zero Suicide ↔ SPiER mapping](zero-suicide-mapping.html) page.
 
+Seven instruments' results share the harmonized tier's LOINC code, so a search
+on that code alone mixes the two layers; read
+[Known limitations](conformance.html#known-limitations) before you query for
+the tier.
+
+### Licensing {#licensing}
+
+The CC0 license covers what SPiER wrote: the profiles, extensions, value sets,
+code systems, maps, pathways, measures and narrative. **It does not cover the
+instruments.** Several Questionnaires reproduce instruments whose developers
+hold the copyright — among them the C-SSRS, CAMS, the Stanley-Brown Safety Plan
+and the SBQ-R — and their terms of use are the developers' to set, not SPiER's.
+Each Questionnaire states its copyright, and each instrument's
+ActivityDefinition carries a coded
+[licensing status](StructureDefinition-instrument-licensing-status.html), which
+can be `unknown`.
+
+> **Before you deploy any instrument, contact SPiER at
+> [ksamuelson@zerooverdose.org](mailto:ksamuelson@zerooverdose.org) about
+> licensing**, and confirm the developer's current terms for your use. No
+> licensing status in this guide has been checked against what the developers
+> publish today.
+
 ### Intellectual property statements
 
 {% include ip-statements.xhtml %}

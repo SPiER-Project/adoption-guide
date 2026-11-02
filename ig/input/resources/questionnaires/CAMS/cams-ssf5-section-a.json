@@ -6,6 +6,7 @@
   "name": "SSF5_SectionA",
   "title": "CAMS Suicide Status Form (SSF-5) - Section A (Patient)",
   "status": "draft",
+  "experimental": true,
   "subjectType": [
     "Patient"
   ],
