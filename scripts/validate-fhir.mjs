@@ -42,7 +42,7 @@ import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, w
 import { fileURLToPath } from 'node:url'
 import { dirname, join, relative, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
-import { FHIR_VERSION, VALIDATOR_VERSION, resolveValidatorJar } from './lib/validator-jar.mjs'
+import { FHIR_VERSION, VALIDATOR_PACKAGE_DEPS as PACKAGE_DEPS, VALIDATOR_VERSION, resolveValidatorJar } from './lib/validator-jar.mjs'
 import { reportFloors } from './lib/floors.mjs'
 import { makeBail, parsePathResource, readConfig } from './lib/ig-config.mjs'
 import { argValue, die as fail } from './lib/cli.mjs'
@@ -55,9 +55,6 @@ const root = resolve(here, '..')
  * — see `scripts/lib/validator-jar.mjs` for why the version is pinned and where
  * to bump it.
  */
-
-/** IG dependencies, mirroring `ig/sushi-config.yaml`. */
-const PACKAGE_DEPS = ['hl7.fhir.us.core#9.0.0', 'hl7.fhir.uv.sdc#4.0.0']
 
 const GENERATED_DIR = join(root, 'ig/fsh-generated/resources')
 // Every `path-resource` directory in ig/sushi-config.yaml — the hand-authored JSON

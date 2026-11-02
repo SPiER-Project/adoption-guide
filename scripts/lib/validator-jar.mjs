@@ -25,6 +25,15 @@ export const VALIDATOR_URL = `https://github.com/hapifhir/org.hl7.fhir.core/rele
 /** The FHIR release every SPiER artifact targets. */
 export const FHIR_VERSION = '4.0.1'
 
+/**
+ * The IG dependencies a validator_cli run must load (`-ig`), mirroring
+ * `ig/sushi-config.yaml`. One list for every script that runs the jar: SPiER
+ * profiles have US Core parents, so a run without US Core cannot resolve them.
+ * `check-fml.mjs` once kept no list at all, and every map stopped compiling the
+ * day the profiles moved onto US Core ("base … could not be resolved").
+ */
+export const VALIDATOR_PACKAGE_DEPS = ['hl7.fhir.us.core#9.0.0', 'hl7.fhir.uv.sdc#4.0.0']
+
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 
 /**
