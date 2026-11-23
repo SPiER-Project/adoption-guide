@@ -16,7 +16,7 @@ By anchoring the pilot on a federal Behavioral Health interoperability dataset a
 
 ## 2. The Clinical Artifact: ASQ Panel
 
-The pilot's primary data payload is the **ASQ panel (LOINC 93373-9)**.
+The pilot's primary data payload is the **ASQ panel (LOINC 115564-7)**.
 
 The ASQ panel is the referenced example for "Suicide Risk Screen" in the active federal Behavioral Health dataset, though it is not explicitly required. The pilot treats this as both leverage (the dataset already names ASQ) and risk (example status is weaker than required status). One pitch element to the federal regulator is the case for promoting the screen from example to required.
 

@@ -194,6 +194,26 @@ never loads `.fml`, so naming a map under a group is a SUSHI error
 `groupingId` is the sanctioned way to pre-declare a publisher-loaded resource,
 and the generator emits those five there.
 
+Also after SUSHI — the Instruments page's tables are generated the same way:
+```
+node scripts/build-ig-instruments.mjs           # regenerate the tables on ig/input/pagecontent/instruments.md
+node scripts/build-ig-instruments.mjs --check   # every form has an activity, a result profile, a worked
+                                                # response and a licensing status; block current
+```
+The instruments group holds 130+ artifacts sorted by resource type, and the
+publisher gives a group no stable anchor — pages linked to it as
+`artifacts.html#1`, a position that moves when a group is added. The page gives
+each instrument a heading (`instruments.html#asq`) and each form a row. Every
+cell is a join over what is already published: tool folder → Questionnaire →
+the ActivityDefinitions naming it in `relatedArtifact` → the `output.profile`
+of the PlanDefinition actions those define → the example responses. Check H
+resolves the generated links a second time. What it cannot see is a wrong join
+(an activity pointed at the wrong Questionnaire is reproduced faithfully), and
+it says nothing about how a result reaches the tier: an `.fml` map names no
+source profile in a form a script can read, so the page links Conformance's
+harmonization table, which is still hand-kept. ⚠️ The marker comments are
+published in the page source, so they name no script — check E would fail them.
+
 ⚠️ **`^purpose` is invisible on a profile, code system or value set page.**
 `fhir.base.template#current` renders `purpose` in the narrative of PlanDefinition
 and ConceptMap pages and nowhere else — on a StructureDefinition or CodeSystem it

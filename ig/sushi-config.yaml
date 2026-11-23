@@ -527,6 +527,10 @@ pages:
     title: Getting Started
   implement-screening-source-ehr.md:
     title: Implementing a Screening-Source EHR
+  exchange.md:
+    title: Exchanging SPiER Data
+  instruments.md:
+    title: Instruments
   how-to-read.md:
     title: Reading the artifacts
   relationship-to-other-igs.md:
@@ -570,6 +574,8 @@ menu:
   Getting Started: getting-started.html
   Guidance:
     Implementing a Screening-Source EHR: implement-screening-source-ehr.html
+    Exchanging SPiER Data: exchange.html
+    Instruments: instruments.html
     Reading the artifacts: how-to-read.html
     Relationship to Other IGs: relationship-to-other-igs.html
     Zero Suicide ↔ SPiER mapping: zero-suicide-mapping.html

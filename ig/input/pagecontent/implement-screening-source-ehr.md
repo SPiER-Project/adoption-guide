@@ -1,16 +1,16 @@
 For a team building the [Screening-Source EHR](CapabilityStatement-screening-source-ehr.html)
 role: the system that captures an instrument and writes the SPiER resources.
-This page gives the smallest path SPiER demonstrates end to end, what to write
-at each step, and what to add after it.
+This page gives the path SPiER demonstrates end to end, what to write at each
+step, and what to add after it.
 
-The role's CapabilityStatement lists every profile a source can produce. This
-guide does not yet say which subset is the minimum for a conformance claim, so
-treat the path below as the recommended starting point, not as a conformance
-level.
+A source can claim the role with one instrument and the risk concept; the
+rule is on [Conformance](conformance.html#source-minimum). The path below uses
+two instruments because that is the pair the pathway demonstrates end to end.
+Step 1 alone meets the minimum.
 
-### The minimum path
+### The starting path
 
-Two instruments and one derived concept. It is the pair the
+Two instruments and one derived concept: the pair the
 [Care Pathway](care-pathway.html) names on its first two steps.
 
 | Step | You load | You write | Worked example |
@@ -114,8 +114,8 @@ concept is *Translate*, and the pathway is *Act*
 
 | Stage | What a source adds | Profiles |
 |---|---|---|
-| 1. Identify Possible Risk | other screens | the [instruments group](artifacts.html#1) |
-| 2. Clarify Risk | other assessments | the [instruments group](artifacts.html#1) |
+| 1. Identify Possible Risk | other screens | [Instruments](instruments.html) |
+| 2. Clarify Risk | other assessments | [Instruments](instruments.html) |
 | 3. Define the Risk Picture | the tier; a clinician's problem-list entry | [Risk Concept](StructureDefinition-spier-suicide-risk-concept.html), [Suicide-Related Condition](StructureDefinition-spier-suicide-related-condition.html) |
 | 4. Document Safety Actions | safety plans, lethal-means counseling, crisis resources | [Stanley-Brown](StructureDefinition-spier-stanley-brown-safety-plan.html), [Crisis Response Plan](StructureDefinition-spier-crisis-response-plan.html), [Lethal-Means Counseling](StructureDefinition-spier-lethal-means-counseling.html), [Crisis Resources Shared](StructureDefinition-spier-crisis-resources-shared.html) |
 | 5. Coordinate Handoffs | handoff, discharge packet, referral, follow-up appointment, sharing consent | [Safety Handoff](StructureDefinition-spier-safety-handoff.html), [Discharge Safety Packet](StructureDefinition-spier-discharge-safety-packet.html), [Safety Referral](StructureDefinition-spier-safety-referral.html), [Follow-Up Appointment](StructureDefinition-spier-follow-up-appointment.html), [Sharing Consent](StructureDefinition-spier-information-sharing-consent.html) |

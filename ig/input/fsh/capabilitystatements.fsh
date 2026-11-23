@@ -22,6 +22,11 @@
 // =============================================================
 
 
+// Expectations (decided 2026-11-23): one instrument plus the risk concept is
+// enough to claim this role. "At least one instrument result profile" cannot
+// be said with the expectation extension, which marks one element at a time,
+// so each instrument profile is MAY and the rule is in the Observation
+// documentation and on the Conformance page. Only this role is marked so far.
 Instance: SPiERScreeningSourceEHR
 InstanceOf: CapabilityStatement
 Title: "SPiER Screening-Source EHR"
@@ -40,45 +45,91 @@ Usage: #definition
 * format[+] = #xml
 * rest[+]
   * mode = #server
-  * documentation = "Captures screening data and writes the SPiER resources as discrete data."
+  * documentation = "Captures screening data and writes the SPiER resources as discrete data. The minimum is one screening or assessment instrument: its QuestionnaireResponse, its result, and the suicide-risk concept derived from it. Every other resource type is optional; a source that supports one SHALL write it to the profile listed and support the interactions listed."
   * resource[+]
     * type = #QuestionnaireResponse
+    * extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * extension[=].valueCode = #SHALL
     * interaction[+].code = #create
     * interaction[+].code = #update
     * interaction[+].code = #read
   * resource[+]
     * type = #Observation
-    * documentation = "Derived instrument results, the harmonized suicide-risk concept, and means-safety actions (Stage 4)."
+    * extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * extension[=].valueCode = #SHALL
+    * documentation = "Derived instrument results, the harmonized suicide-risk concept, and means-safety actions (Stage 4). A source SHALL support the suicide-risk concept and at least one instrument result profile whose result maps into it; each further profile is optional."
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-asq-result"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-bssa-disposition-result"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-cssrs-risk-level"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-phq9-total-score"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-phq9-item9"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-pss3-result"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-pss-full-risk-level"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-safet-risk-level"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-sbqr-total-score"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-cams-ssf-vital"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-cams-outcome-disposition"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-concept"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #SHALL
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-means-safety-action"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * interaction[+].code = #create
     * interaction[+].code = #read
     * interaction[+].code = #search-type
   * resource[+]
     * type = #Condition
+    * extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * extension[=].valueCode = #MAY
     * documentation = "Clinician-asserted suicide-related problems and CAMS-identified suicide drivers on the problem list. Never derived from a screening or assessment result."
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-related-condition"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-cams-suicide-driver"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * interaction[+].code = #create
     * interaction[+].code = #read
   * resource[+]
     * type = #CarePlan
+    * extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * extension[=].valueCode = #MAY
     * documentation = "Stanley-Brown and CAMS safety / stabilization plans, plus the Crisis Response Plan."
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-stanley-brown-safety-plan"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-cams-stabilization-plan"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-cams-therapeutic-worksheet"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-crisis-response-plan"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * interaction[+].code = #create
     * interaction[+].code = #read
   // ─── Stage 4–7 workflow resources ───
@@ -86,78 +137,124 @@ Usage: #definition
   // complete as the resource types the source system will hand over.
   * resource[+]
     * type = #Procedure
+    * extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * extension[=].valueCode = #MAY
     * documentation = "Lethal-means safety counseling delivered (Stage 4)."
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-lethal-means-counseling"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * interaction[+].code = #create
     * interaction[+].code = #read
     * interaction[+].code = #search-type
   * resource[+]
     * type = #Communication
+    * extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * extension[=].valueCode = #MAY
     * documentation = "Crisis resources shared (Stage 4), the suicide-safety handoff (Stage 5), and follow-up outreach attempts and caring contacts (Stage 6)."
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-crisis-resources-shared"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-safety-handoff"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-outreach-attempt"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-caring-contact"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * interaction[+].code = #create
     * interaction[+].code = #read
     * interaction[+].code = #search-type
   * resource[+]
     * type = #DocumentReference
+    * extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * extension[=].valueCode = #MAY
     * documentation = "The discharge safety packet (Stage 5)."
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-discharge-safety-packet"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * interaction[+].code = #create
     * interaction[+].code = #read
     * interaction[+].code = #search-type
   * resource[+]
     * type = #ServiceRequest
+    * extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * extension[=].valueCode = #MAY
     * documentation = "The suicide-safety referral (Stage 5). SHALL support update — tracking a referral past `sent` through to `completed` is the whole reason this is a ServiceRequest, and is what makes referral loop closure measurable."
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-safety-referral"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * interaction[+].code = #create
     * interaction[+].code = #update
     * interaction[+].code = #read
     * interaction[+].code = #search-type
   * resource[+]
     * type = #Appointment
+    * extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * extension[=].valueCode = #MAY
     * documentation = "The follow-up appointment (Stage 5). SHALL support update: the 7- and 30-day follow-up measures read `status = fulfilled`, so a system that can book but never records attendance cannot produce them."
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-follow-up-appointment"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * interaction[+].code = #create
     * interaction[+].code = #update
     * interaction[+].code = #read
     * interaction[+].code = #search-type
   * resource[+]
     * type = #Consent
+    * extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * extension[=].valueCode = #MAY
     * documentation = "Information-sharing consent (Stage 5). Governs what the Share Data activity (TL-045) may share and with whom."
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-information-sharing-consent"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * interaction[+].code = #create
     * interaction[+].code = #read
     * interaction[+].code = #search-type
   * resource[+]
     * type = #Encounter
+    * extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * extension[=].valueCode = #MAY
     * documentation = "The contact during which suicide-safer care happened. Every other resource names its encounter and the encounter names the episode, so one episode's record cannot be assembled without it. SHALL support update so an encounter can be linked to an episode opened after it began and its status advanced."
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-encounter"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * interaction[+].code = #create
     * interaction[+].code = #update
     * interaction[+].code = #read
     * interaction[+].code = #search-type
   * resource[+]
     * type = #EpisodeOfCare
+    * extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * extension[=].valueCode = #MAY
     * documentation = "The suicide-safer care episode (Stage 7) — the cohort anchor for every Stage-8 measure. SHALL support update so the episode can be closed with a reason."
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-episode"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * interaction[+].code = #create
     * interaction[+].code = #update
     * interaction[+].code = #read
     * interaction[+].code = #search-type
   * resource[+]
     * type = #Flag
+    * extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * extension[=].valueCode = #MAY
     * documentation = "The active-episode chart banner (Stage 7)."
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-flag"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * interaction[+].code = #create
     * interaction[+].code = #update
     * interaction[+].code = #read
   * resource[+]
     * type = #Task
+    * extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * extension[=].valueCode = #MAY
     * documentation = "Open safety work — reassessment, care gaps, escalation (Stage 7)."
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-safety-task"
+    * supportedProfile[=].extension[+].url = "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation"
+    * supportedProfile[=].extension[=].valueCode = #MAY
     * interaction[+].code = #create
     * interaction[+].code = #update
     * interaction[+].code = #read
@@ -190,15 +287,34 @@ Usage: #definition
     * interaction[+].code = #create
   * resource[+]
     * type = #Observation
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-asq-result"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-bssa-disposition-result"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-cams-outcome-disposition"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-cams-ssf-vital"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-cssrs-risk-level"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-means-safety-action"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-phq9-item9"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-phq9-total-score"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-pss-full-risk-level"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-pss3-result"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-safet-risk-level"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-sbqr-total-score"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-concept"
     * interaction[+].code = #read
     * interaction[+].code = #search-type
     * interaction[+].code = #create
   * resource[+]
     * type = #Condition
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-cams-suicide-driver"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-related-condition"
     * interaction[+].code = #read
     * interaction[+].code = #search-type
   * resource[+]
     * type = #CarePlan
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-cams-stabilization-plan"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-cams-therapeutic-worksheet"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-crisis-response-plan"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-stanley-brown-safety-plan"
     * interaction[+].code = #read
     * interaction[+].code = #search-type
   // The Stage 4–7 workflow resources move across organizations too — a
@@ -206,40 +322,78 @@ Usage: #definition
   // episode loses exactly the context the receiving site needs.
   * resource[+]
     * type = #Procedure
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-lethal-means-counseling"
     * interaction[+].code = #read
     * interaction[+].code = #search-type
     * interaction[+].code = #create
   * resource[+]
     * type = #Communication
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-caring-contact"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-crisis-resources-shared"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-outreach-attempt"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-safety-handoff"
     * interaction[+].code = #read
     * interaction[+].code = #search-type
     * interaction[+].code = #create
   * resource[+]
     * type = #DocumentReference
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-discharge-safety-packet"
     * interaction[+].code = #read
     * interaction[+].code = #search-type
     * interaction[+].code = #create
   * resource[+]
     * type = #ServiceRequest
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-safety-referral"
     * interaction[+].code = #read
     * interaction[+].code = #search-type
     * interaction[+].code = #create
   * resource[+]
     * type = #Appointment
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-follow-up-appointment"
     * interaction[+].code = #read
     * interaction[+].code = #search-type
     * interaction[+].code = #create
   * resource[+]
     * type = #Consent
     * documentation = "SHALL be moved with the rest: an intermediary that forwards suicide-safety data without the consent governing it cannot honor a deny provision."
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-information-sharing-consent"
     * interaction[+].code = #read
     * interaction[+].code = #search-type
     * interaction[+].code = #create
   * resource[+]
     * type = #EpisodeOfCare
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-episode"
     * interaction[+].code = #read
     * interaction[+].code = #search-type
     * interaction[+].code = #create
+  * resource[+]
+    * type = #Encounter
+    * documentation = "The contact each resource names and the link to its episode. An intermediary that drops it leaves one episode's record impossible to assemble."
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-encounter"
+    * interaction[+].code = #read
+    * interaction[+].code = #search-type
+    * interaction[+].code = #create
+  * resource[+]
+    * type = #Flag
+    * documentation = "The active-episode chart banner."
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-flag"
+    * interaction[+].code = #read
+    * interaction[+].code = #search-type
+    * interaction[+].code = #create
+  * resource[+]
+    * type = #Task
+    * documentation = "Open safety work: reassessment, care gaps and escalation."
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-safety-task"
+    * interaction[+].code = #read
+    * interaction[+].code = #search-type
+    * interaction[+].code = #create
+  // Optional. The pilot's second phase surfaces results through an HIE's
+  // existing bulk infrastructure, and the definition is the one the Quality
+  // Reporter names.
+  * operation[+]
+    * name = "export"
+    * definition = "http://hl7.org/fhir/uv/bulkdata/OperationDefinition/group-export"
+    * documentation = "MAY be supported, so a receiving organization can take a cohort's suicide-safer care record in one request. An intermediary that supports it SHALL apply the same consent restrictions it applies to a single read."
 
 
 Instance: SPiERRiskConsumer
@@ -294,6 +448,12 @@ Usage: #definition
     * type = #EpisodeOfCare
     * documentation = "MAY read the open suicide-safer care episode to show that the patient is in active suicide-safer care."
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-episode"
+    * interaction[+].code = #read
+    * interaction[+].code = #search-type
+  * resource[+]
+    * type = #Encounter
+    * documentation = "MAY read the encounters of an episode. Episode membership runs through the encounter, so a consumer assembling one episode's record needs it."
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-encounter"
     * interaction[+].code = #read
     * interaction[+].code = #search-type
   * resource[+]

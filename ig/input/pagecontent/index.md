@@ -24,9 +24,10 @@ the artifacts.
 
 | You want to… | Go to |
 |---|---|
-| Load an instrument's form (ASQ, PHQ-9, C-SSRS, …) | the [instruments group](artifacts.html#1) on the Artifacts page — each Questionnaire is downloadable as JSON |
+| Find an instrument's form, result profile and worked example (ASQ, PHQ-9, C-SSRS, …) | [Instruments](instruments.html) — each Questionnaire is downloadable as JSON |
 | Get the package and validate your own resources | [Getting Started](getting-started.html) |
 | Build an EHR that captures screens and writes SPiER data | [Implementing a Screening-Source EHR](implement-screening-source-ehr.html) |
+| Move SPiER data between organizations | [Exchanging SPiER Data](exchange.html) |
 | Query a FHIR server for SPiER data | [Quick Starts](quick-starts.html) |
 | Know what conforming to SPiER means | [Conformance](conformance.html) |
 | Run the pathway as a protocol | [Care Pathway](care-pathway.html) |

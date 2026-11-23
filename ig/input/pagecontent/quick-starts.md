@@ -1,165 +1,116 @@
-RESTful patterns for reading SPiER data from a FHIR R4 server that holds
-SPiER-conformant resources, in the style of
-[US Core Quick Starts](https://hl7.org/fhir/us/core/). They are illustrative:
-SPiER defines no server API and no SearchParameters of its own, and every
-parameter below is a standard R4 one. Replace `[base]` with the server's FHIR
-base URL and `[id]` with the patient's logical id.
+RESTful patterns for reading and writing SPiER data on a FHIR R4 server, in
+the style of [US Core Quick Starts](https://hl7.org/fhir/us/core/). They are
+illustrative: SPiER defines no server API and no SearchParameters of its own,
+and every parameter below is a standard R4 one. Replace `[base]` with the
+server's FHIR base URL and `[id]` with the patient's logical id.
 
 ### By instrument
 
-Each block names the Questionnaire a form filler loads, the profile the
-derived result lands in, and the two reads: the response, and the result.
-Each Questionnaire's current version is on its own page.
+Two reads per instrument: the completed form, and the result derived from it.
+[Instruments](instruments.html) lists every form with its Questionnaire,
+result profile and a worked response; every Questionnaire canonical is
+`http://thespierproject.org/fhir/Questionnaire/` followed by the id shown below.
 
-> **⚠️ A `93374-7` query returns every instrument's result, not only the one
-> you name.** The ASQ, BSSA, C-SSRS, CAMS Outcome/Disposition, PSS-3, PSS-Full
-> and SAFE-T results are all coded LOINC `93374-7` with the same categories, and
-> so is the harmonized tier. The `code=` reads below therefore return results
-> from every one of those instruments together, and the harmonized tier with
-> them. Tell an instrument's result apart by its value's code system (each
-> profile binds its own value set) or by `_profile` where your server supports
-> it; [the risk tier section](#risk-tier)
-> has the query for the tier itself. SPiER has not yet published a
-> distinguishing code — see
-> [Known limitations](conformance.html#known-limitations).
+#### The completed form
 
-#### ASQ (Ask Suicide-Screening Questions)
-
-- Questionnaire: [ASQ Screening Tool](Questionnaire-ASQ-Screening-Tool.html) — `http://thespierproject.org/fhir/Questionnaire/ASQ-Screening-Tool`
-- Result: [SPiER ASQ Result](StructureDefinition-spier-asq-result.html), a disposition on LOINC `93374-7`
+One pattern for every form:
 
 ```
-GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/ASQ-Screening-Tool&subject=Patient/[id]
-GET [base]/Observation?code=http://loinc.org|93374-7&subject=Patient/[id]
+GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/[questionnaire-id]&subject=Patient/[id]
 ```
 
-#### BSSA (NIMH Brief Suicide Safety Assessment)
+| Instrument | `[questionnaire-id]` |
+|---|---|
+| ASQ | `ASQ-Screening-Tool` |
+| BSSA | `BSSA` |
+| C-SSRS | `C-SSRS-Screener`, `C-SSRS-Full-Lifetime-Recent`, `C-SSRS-Since-Last-Contact`, `C-SSRS-Pediatric` |
+| CAMS | `CAMS-SSF5-SectionA`, `CAMS-SSF5-SectionB`, `CAMS-SSF5-OutcomeDisposition`, `CAMS-Therapeutic-Worksheet`, `CAMS-Stabilization-Plan` |
+| CRP | `CrisisResponsePlan` |
+| PHQ-9 | `PHQ-9` |
+| PSS-3 | `PSS-3` |
+| PSS-Full | `PSS-Full` |
+| SAFE-T | `SAFE-T` |
+| SBQ-R | `SBQ-R` |
+| Stanley-Brown | `StanleyBrownSafetyPlan` |
 
-- Questionnaire: [BSSA](Questionnaire-BSSA.html) — `http://thespierproject.org/fhir/Questionnaire/BSSA`
-- Result: [SPiER BSSA Disposition Result](StructureDefinition-spier-bssa-disposition-result.html), a disposition on LOINC `93374-7`; a post-positive-screen clinician interview, used after ASQ
+#### The result
 
-```
-GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/BSSA&subject=Patient/[id]
-GET [base]/Observation?code=http://loinc.org|93374-7&subject=Patient/[id]
-```
+How a result is found depends on what it is coded with.
 
-#### C-SSRS (Columbia-Suicide Severity Rating Scale)
-
-- Questionnaires: [Screener](Questionnaire-C-SSRS-Screener.html) (`…/Questionnaire/C-SSRS-Screener`), [Full Lifetime/Recent](Questionnaire-C-SSRS-Full-Lifetime-Recent.html) (`…/Questionnaire/C-SSRS-Full-Lifetime-Recent`), [Since Last Contact](Questionnaire-C-SSRS-Since-Last-Contact.html) (`…/Questionnaire/C-SSRS-Since-Last-Contact`), [Pediatric](Questionnaire-C-SSRS-Pediatric.html) (`…/Questionnaire/C-SSRS-Pediatric`)
-- Result: [SPiER C-SSRS Risk Level](StructureDefinition-spier-cssrs-risk-level.html), a risk level on LOINC `93374-7`, shared by all four forms
-
-```
-GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/C-SSRS-Screener&subject=Patient/[id]
-GET [base]/Observation?code=http://loinc.org|93374-7&subject=Patient/[id]
-```
-
-#### CAMS (Collaborative Assessment and Management of Suicidality)
-
-One tool spanning several capture steps; the three below produce the derived
-resources most consumers need.
-
-- **Section A** (patient self-rated Suicide Status Form) — [CAMS SSF-5 Section A](Questionnaire-CAMS-SSF5-SectionA.html) (`…/Questionnaire/CAMS-SSF5-SectionA`). Result: [SPiER CAMS SSF Vital](StructureDefinition-spier-cams-ssf-vital.html), one Observation per SSF rating; the risk-relevant rating is `overall-risk`:
-
-  ```
-  GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/CAMS-SSF5-SectionA&subject=Patient/[id]
-  GET [base]/Observation?code=http://thespierproject.org/fhir/CodeSystem/cams-ssf|overall-risk&subject=Patient/[id]
-  ```
-
-- **Section B** (clinician-identified drivers) — [CAMS SSF-5 Section B](Questionnaire-CAMS-SSF5-SectionB.html) (`…/Questionnaire/CAMS-SSF5-SectionB`). Result: [SPiER CAMS Suicide Driver](StructureDefinition-spier-cams-suicide-driver.html), a **Condition** on the problem list with a fixed category:
-
-  ```
-  GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/CAMS-SSF5-SectionB&subject=Patient/[id]
-  GET [base]/Condition?category=http://thespierproject.org/fhir/CodeSystem/cams-driver-category|suicide-driver&subject=Patient/[id]
-  ```
-
-- **Outcome/Disposition** (final-session decision) — [CAMS SSF-5 Outcome/Disposition](Questionnaire-CAMS-SSF5-OutcomeDisposition.html) (`…/Questionnaire/CAMS-SSF5-OutcomeDisposition`). Result: [SPiER CAMS Outcome Disposition](StructureDefinition-spier-cams-outcome-disposition.html) on LOINC `93374-7` with a SPiER-local disposition value:
-
-  ```
-  GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/CAMS-SSF5-OutcomeDisposition&subject=Patient/[id]
-  GET [base]/Observation?code=http://loinc.org|93374-7&subject=Patient/[id]
-  ```
-
-The [Therapeutic Worksheet](Questionnaire-CAMS-Therapeutic-Worksheet.html) and
-[Stabilization Plan](Questionnaire-CAMS-Stabilization-Plan.html) are
-session-continuation CarePlans rather than a distinct risk signal.
-
-#### CRP (Crisis Response Plan)
-
-- Questionnaire: [Crisis Response Plan](Questionnaire-CrisisResponsePlan.html) — `http://thespierproject.org/fhir/Questionnaire/CrisisResponsePlan`
-- Result: [SPiER Crisis Response Plan](StructureDefinition-spier-crisis-response-plan.html), a **CarePlan** with one activity per section. An alternative to Stanley-Brown sharing its section vocabulary, so distinguish the two by `_profile`, not `code`
+**Results with a code of their own.** Search on the code:
 
 ```
-GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/CrisisResponsePlan&subject=Patient/[id]
+GET [base]/Observation?code=[system]|[code]&subject=Patient/[id]
+```
+
+| Result | `[system]` | `[code]` |
+|---|---|---|
+| [PHQ-9 item 9](StructureDefinition-spier-phq9-item9.html), the suicide-relevant item | `http://loinc.org` | `44260-8` |
+| [PHQ-9 total score](StructureDefinition-spier-phq9-total-score.html) | `http://loinc.org` | `44261-6` |
+| [SBQ-R total score](StructureDefinition-spier-sbqr-total-score.html) (cutoffs ≥7 / ≥8) | `http://snomed.info/sct` | `225337009` |
+| [CAMS SSF rating](StructureDefinition-spier-cams-ssf-vital.html), one Observation per rating | `http://thespierproject.org/fhir/CodeSystem/cams-ssf` | `overall-risk`, the risk-relevant rating |
+
+The SBQ-R code is a generic SNOMED CT "Suicide risk assessment" concept, used
+because LOINC publishes no SBQ-R code (rechecked July 2026).
+
+**Results that share LOINC `93374-7`.** Seven instrument results and the
+harmonized tier are all coded `93374-7` with the same categories, so a search
+on the code alone returns every one of them together. Five have a value code
+system of their own; add it as `value-concept`, where a token of `system|` with
+no code matches any code in that system:
+
+```
+GET [base]/Observation?code=http://loinc.org|93374-7&value-concept=http://thespierproject.org/fhir/CodeSystem/[value-system]|&subject=Patient/[id]
+```
+
+| Result | `[value-system]` |
+|---|---|
+| [ASQ result](StructureDefinition-spier-asq-result.html) | `asq-screening-result` |
+| [BSSA disposition](StructureDefinition-spier-bssa-disposition-result.html) | `bssa-disposition` |
+| [C-SSRS risk level](StructureDefinition-spier-cssrs-risk-level.html), shared by all four forms | `cssrs-risk-level` |
+| [CAMS outcome/disposition](StructureDefinition-spier-cams-outcome-disposition.html) | `cams-disposition` |
+| [PSS-3 result](StructureDefinition-spier-pss3-result.html) | `pss3-result` |
+
+The [PSS-Full](StructureDefinition-spier-pss-full-risk-level.html) and
+[SAFE-T](StructureDefinition-spier-safet-risk-level.html) risk levels are
+valued on the shared tier directly, so their value system is the harmonized
+tier's. Only the profile tells them apart, where the server supports
+`_profile`:
+
+```
+GET [base]/Observation?_profile=http://thespierproject.org/fhir/StructureDefinition/spier-pss-full-risk-level&subject=Patient/[id]
+GET [base]/Observation?_profile=http://thespierproject.org/fhir/StructureDefinition/spier-safet-risk-level&subject=Patient/[id]
+```
+
+SPiER has not yet published a distinguishing code; see
+[Known limitations](conformance.html#known-limitations).
+
+**Results that are not Observations.**
+
+- A [CAMS suicide driver](StructureDefinition-spier-cams-suicide-driver.html)
+  is a **Condition** on the problem list with a fixed category.
+- A [Stanley-Brown Safety Plan](StructureDefinition-spier-stanley-brown-safety-plan.html)
+  and a [Crisis Response Plan](StructureDefinition-spier-crisis-response-plan.html)
+  are each a **CarePlan** with one activity per step or section.
+
+```
+GET [base]/Condition?category=http://thespierproject.org/fhir/CodeSystem/cams-driver-category|suicide-driver&subject=Patient/[id]
+GET [base]/CarePlan?_profile=http://thespierproject.org/fhir/StructureDefinition/spier-stanley-brown-safety-plan&subject=Patient/[id]
 GET [base]/CarePlan?_profile=http://thespierproject.org/fhir/StructureDefinition/spier-crisis-response-plan&subject=Patient/[id]
 ```
 
-#### PHQ-9 (Patient Health Questionnaire-9)
-
-- Questionnaire: [PHQ-9](Questionnaire-PHQ-9.html) — `http://thespierproject.org/fhir/Questionnaire/PHQ-9`
-- Results: [SPiER PHQ-9 Total Score](StructureDefinition-spier-phq9-total-score.html) (LOINC `44261-6`) and [SPiER PHQ-9 Item 9](StructureDefinition-spier-phq9-item9.html) (LOINC `44260-8`, the suicide-relevant item)
-
-```
-GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/PHQ-9&subject=Patient/[id]
-GET [base]/Observation?code=http://loinc.org|44260-8&subject=Patient/[id]
-GET [base]/Observation?code=http://loinc.org|44261-6&subject=Patient/[id]
-```
-
-#### PSS-3 (Patient Safety Screener, 3-item)
-
-- Questionnaire: [PSS-3](Questionnaire-PSS-3.html) — `http://thespierproject.org/fhir/Questionnaire/PSS-3`
-- Result: [SPiER PSS-3 Result](StructureDefinition-spier-pss3-result.html), a binary result on LOINC `93374-7`; ED-SAFE's universal acute-care screen
-
-```
-GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/PSS-3&subject=Patient/[id]
-GET [base]/Observation?code=http://loinc.org|93374-7&subject=Patient/[id]
-```
-
-#### PSS-Full (Patient Safety Screener, full)
-
-- Questionnaire: [PSS-Full](Questionnaire-PSS-Full.html) — `http://thespierproject.org/fhir/Questionnaire/PSS-Full`
-- Result: [SPiER PSS-Full Risk Level](StructureDefinition-spier-pss-full-risk-level.html) on LOINC `93374-7`; the PSS-3 plus a site-defined stratification step that lands **directly** on the shared tier, with no per-instrument crosswalk
-
-```
-GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/PSS-Full&subject=Patient/[id]
-GET [base]/Observation?code=http://loinc.org|93374-7&subject=Patient/[id]
-```
-
-#### SAFE-T (Suicide Assessment Five-Step Evaluation and Triage)
-
-- Questionnaire: [SAFE-T](Questionnaire-SAFE-T.html) — `http://thespierproject.org/fhir/Questionnaire/SAFE-T`
-- Result: [SPiER SAFE-T Risk Level](StructureDefinition-spier-safet-risk-level.html) on LOINC `93374-7`; a five-step clinician formulation that lands **directly** on the shared tier, like PSS-Full
-
-```
-GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/SAFE-T&subject=Patient/[id]
-GET [base]/Observation?code=http://loinc.org|93374-7&subject=Patient/[id]
-```
-
-#### SBQ-R (Suicide Behaviors Questionnaire-Revised)
-
-- Questionnaire: [SBQ-R](Questionnaire-SBQ-R.html) — `http://thespierproject.org/fhir/Questionnaire/SBQ-R`
-- Result: [SPiER SBQ-R Total Score](StructureDefinition-spier-sbqr-total-score.html) on SNOMED `225337009` (cutoffs ≥7 / ≥8) — a generic "Suicide risk assessment" concept used because LOINC publishes no SBQ-R code (rechecked July 2026)
-
-```
-GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/SBQ-R&subject=Patient/[id]
-GET [base]/Observation?code=http://snomed.info/sct|225337009&subject=Patient/[id]
-```
-
-#### Stanley-Brown Safety Plan
-
-- Questionnaire: [Stanley-Brown Safety Plan](Questionnaire-StanleyBrownSafetyPlan.html) — `http://thespierproject.org/fhir/Questionnaire/StanleyBrownSafetyPlan`
-- Result: [SPiER Stanley-Brown Safety Plan](StructureDefinition-spier-stanley-brown-safety-plan.html), a **CarePlan** with one activity per step; distinguish it from the CRP by `_profile`
-
-```
-GET [base]/QuestionnaireResponse?questionnaire=http://thespierproject.org/fhir/Questionnaire/StanleyBrownSafetyPlan&subject=Patient/[id]
-GET [base]/CarePlan?_profile=http://thespierproject.org/fhir/StructureDefinition/spier-stanley-brown-safety-plan&subject=Patient/[id]
-```
+The two safety plans share a section vocabulary, so they are distinguished by
+`_profile`, not by code. The CAMS
+[Therapeutic Worksheet](StructureDefinition-spier-cams-therapeutic-worksheet.html)
+and [Stabilization Plan](StructureDefinition-spier-cams-stabilization-plan.html)
+are session-continuation CarePlans, found the same way.
 
 ### The risk tier, whichever instrument produced it {#risk-tier}
 
 Every instrument produces a harmonized **suicide-risk concept** Observation on
 the generic LOINC code, tagged with the suicide-risk domain category. Code and
 category alone do **not** isolate it: seven instrument results carry the same
-code and categories (see the warning under *By instrument*). Filter on the
+code and categories (see *Results that share LOINC `93374-7`* above). Filter on the
 value's code system instead — the tier is always valued from
 [SPiERSuicideRiskTier](CodeSystem-spier-suicide-risk-tier.html), and a token
 search on `system|` with no code matches any code in that system:
@@ -249,3 +200,25 @@ specific reverse include the narrow form is safer (the registry query on
 [Measures](measurement.html) uses `_revinclude=Task:based-on`); treat any
 `_revinclude` in this guide as an optimisation to verify against your server,
 and the per-type reads above as the portable path.
+
+### Writing as a source {#writing}
+
+A [Screening-Source EHR](CapabilityStatement-screening-source-ehr.html) writes
+with standard creates; SPiER adds no operation.
+[Implementing a Screening-Source EHR](implement-screening-source-ehr.html)
+says what each resource must contain.
+
+```
+POST [base]/QuestionnaireResponse
+POST [base]/Observation
+```
+
+- **Order matters.** Write the response first, then the instrument result,
+  then the risk concept, so each `derivedFrom` points at a resource that
+  exists. A transaction Bundle writes all three atomically.
+- **Claim the profile.** Put the profile's canonical in `meta.profile` on
+  every resource. The `_profile` searches above return nothing without it.
+- **Name the encounter.** Set `.encounter` on each resource; one episode's
+  record is assembled through it.
+- **Validate before you write.** [Getting Started](getting-started.html) has
+  the validator command.

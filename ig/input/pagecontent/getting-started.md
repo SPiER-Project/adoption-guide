@@ -2,13 +2,13 @@ From zero to validating your own resources against SPiER.
 
 ### 1. Get the artifacts
 
-- **Browse** — the [Artifacts](artifacts.html) page lists everything in eight
-  groups. The first, [Screening and assessment instruments](artifacts.html#1),
-  holds each instrument's Questionnaire (for example the
+- **Browse** — [Instruments](instruments.html) has one section per instrument:
+  the Questionnaire to load into an SDC-capable form filler (for example the
   [ASQ](Questionnaire-ASQ-Screening-Tool.html) and the
-  [PHQ-9](Questionnaire-PHQ-9.html)), ready to load into an SDC-capable form
-  filler, beside the ActivityDefinition that administers it and the profile its
-  result lands in. Every artifact is downloadable as JSON.
+  [PHQ-9](Questionnaire-PHQ-9.html)), the ActivityDefinition that administers
+  it and the profile its result lands in. The [Artifacts](artifacts.html) page
+  lists everything else in eight groups. Every artifact is downloadable as
+  JSON.
 - **IG package** — every definition at once, as the FHIR NPM package
   `thespierproject.fhir` (canonical `http://thespierproject.org/fhir`).
   Download it as [package.tgz](package.tgz) and load that file into your FHIR
@@ -50,7 +50,8 @@ SPiER states conformance per system role, each with a CapabilityStatement:
   captures an instrument and produces the derived Observations. Start with
   [Implementing a Screening-Source EHR](implement-screening-source-ehr.html).
 - [HIE Intermediary](CapabilityStatement-hie-intermediary.html) — stores and
-  forwards them across organizations.
+  forwards them across organizations. Start with
+  [Exchanging SPiER Data](exchange.html).
 - [Risk Consumer](CapabilityStatement-risk-consumer.html) — reads the
   harmonized risk tier at the point of care.
 - [Quality Reporter](CapabilityStatement-quality-reporter.html) — evaluates
