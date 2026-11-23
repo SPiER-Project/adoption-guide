@@ -47,7 +47,8 @@ Observation, say — edited to your own data.
 SPiER states conformance per system role, each with a CapabilityStatement:
 
 - [Screening-Source EHR](CapabilityStatement-screening-source-ehr.html) —
-  captures an instrument and produces the derived Observations.
+  captures an instrument and produces the derived Observations. Start with
+  [Implementing a Screening-Source EHR](implement-screening-source-ehr.html).
 - [HIE Intermediary](CapabilityStatement-hie-intermediary.html) — stores and
   forwards them across organizations.
 - [Risk Consumer](CapabilityStatement-risk-consumer.html) — reads the

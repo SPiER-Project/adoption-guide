@@ -48,20 +48,27 @@ Usage: #definition
     * interaction[+].code = #read
   * resource[+]
     * type = #Observation
-    * documentation = "Derived instrument results and the harmonized suicide-risk concept."
+    * documentation = "Derived instrument results, the harmonized suicide-risk concept, and means-safety actions (Stage 4)."
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-asq-result"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-bssa-disposition-result"
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-cssrs-risk-level"
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-phq9-total-score"
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-phq9-item9"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-pss3-result"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-pss-full-risk-level"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-safet-risk-level"
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-sbqr-total-score"
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-cams-ssf-vital"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-cams-outcome-disposition"
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-concept"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-means-safety-action"
     * interaction[+].code = #create
     * interaction[+].code = #read
     * interaction[+].code = #search-type
   * resource[+]
     * type = #Condition
-    * documentation = "CAMS-identified suicide drivers on the problem list."
+    * documentation = "Clinician-asserted suicide-related problems and CAMS-identified suicide drivers on the problem list. Never derived from a screening or assessment result."
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-related-condition"
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-cams-suicide-driver"
     * interaction[+].code = #create
     * interaction[+].code = #read
@@ -119,9 +126,17 @@ Usage: #definition
     * interaction[+].code = #search-type
   * resource[+]
     * type = #Consent
-    * documentation = "Information-sharing consent (Stage 5). Governs what TL-045 may share and with whom."
+    * documentation = "Information-sharing consent (Stage 5). Governs what the Share Data activity (TL-045) may share and with whom."
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-information-sharing-consent"
     * interaction[+].code = #create
+    * interaction[+].code = #read
+    * interaction[+].code = #search-type
+  * resource[+]
+    * type = #Encounter
+    * documentation = "The contact during which suicide-safer care happened. Every other resource names its encounter and the encounter names the episode, so one episode's record cannot be assembled without it. SHALL support update so an encounter can be linked to an episode opened after it began and its status advanced."
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-encounter"
+    * interaction[+].code = #create
+    * interaction[+].code = #update
     * interaction[+].code = #read
     * interaction[+].code = #search-type
   * resource[+]
@@ -251,10 +266,16 @@ Usage: #definition
     * documentation = "SHALL read the harmonized concept (code 93374-7, category suicide-risk); MAY read the instrument Observations."
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-concept"
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-asq-result"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-bssa-disposition-result"
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-cssrs-risk-level"
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-phq9-total-score"
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-phq9-item9"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-pss3-result"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-pss-full-risk-level"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-safet-risk-level"
     * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-sbqr-total-score"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-cams-ssf-vital"
+    * supportedProfile[+] = "http://thespierproject.org/fhir/StructureDefinition/spier-cams-outcome-disposition"
     * interaction[+].code = #read
     * interaction[+].code = #search-type
   * resource[+]
@@ -350,4 +371,4 @@ Usage: #definition
   * operation[+]
     * name = "export"
     * definition = "http://hl7.org/fhir/uv/bulkdata/OperationDefinition/group-export"
-    * documentation = "TL-044. The conforming analytics extract is a Bulk Data export of the SPiER resource types. The SSC's requirement that an extract carry structured fields AND the timestamps needed for measurement is already met by the profiles: every one mandates a discrete date (Observation.effective, Procedure.performed, Communication.sent, Appointment.start, ServiceRequest.authoredOn, EpisodeOfCare.period, Task.authoredOn). CSV and warehouse extracts are flattenings of the same set."
+    * documentation = "The Export Data activity (TL-044). The conforming analytics extract is a Bulk Data export of the SPiER resource types. The SSC's requirement that an extract carry structured fields AND the timestamps needed for measurement is already met by the profiles: every one mandates a discrete date (Observation.effective, Procedure.performed, Communication.sent, Appointment.start, ServiceRequest.authoredOn, EpisodeOfCare.period, Task.authoredOn). CSV and warehouse extracts are flattenings of the same set."
