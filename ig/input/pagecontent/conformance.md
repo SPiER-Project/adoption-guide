@@ -29,7 +29,8 @@ Following [US Core](https://hl7.org/fhir/us/core/conformance-expectations.html),
 Must-Support is defined **operationally, by role**:
 
 - A **Screening-Source EHR** (producer) *SHALL be capable of populating* every
-  Must-Support element.
+  Must-Support element of each profile it supports;
+  [the minimum](#source-minimum) says which profiles those must include.
 - An **HIE Intermediary** *SHALL be capable of storing and returning* every
   Must-Support element it receives, unchanged — including `derivedFrom`, every
   `category` and `meta.profile` — so a downstream consumer receives what the
@@ -49,6 +50,31 @@ Must-Support is defined **operationally, by role**:
 
 Must-Support says *what must be supported*; it does **not** constrain maximum
 cardinality, so a source system is never forced to strip data out.
+
+### The minimum for a Screening-Source EHR {#source-minimum}
+
+A system can claim the Screening-Source EHR role with **one instrument and
+the risk concept**. It SHALL:
+
+1. capture at least one screening or assessment instrument whose result maps
+   into the harmonized tier (see [Harmonization status](#harmonization-status)),
+   as a `QuestionnaireResponse` to the Questionnaire SPiER publishes for it;
+2. write that instrument's result to its profile; and
+3. write the [SPiER Suicide Risk Concept](StructureDefinition-spier-suicide-risk-concept.html)
+   derived from that result.
+
+Every other resource type and profile in the role's
+[CapabilityStatement](CapabilityStatement-screening-source-ehr.html) is
+optional. A source that supports one SHALL write it to the profile listed and
+support the interactions listed for it. The CapabilityStatement marks each
+resource type and profile `SHALL` or `MAY` accordingly; "at least one
+instrument" is a rule across profiles, so each instrument profile is marked
+`MAY` and the rule is stated here. A claim SHOULD name the instruments it
+covers.
+
+[Implementing a Screening-Source EHR](implement-screening-source-ehr.html)
+walks the minimum and what to add after it. The other three roles do not yet
+have a stated minimum.
 
 ### The concept layer is screening-level
 

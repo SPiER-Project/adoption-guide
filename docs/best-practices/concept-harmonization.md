@@ -4,7 +4,7 @@ How SPiER turns many *different* suicide-risk instruments into one *shared, acti
 
 ## 1. The problem this solves
 
-Partners in a care network do not all use the same instruments. An ED screens with the **ASQ**; an outpatient clinic uses the **Columbia (C-SSRS)**; primary care uses **PHQ-9 Item 9**. Each instrument has its own codes — and some (ASQ item-level) have **no published LOINC codes at all**. A receiving system shouldn't have to understand every instrument to act on the result.
+Partners in a care network do not all use the same instruments. An ED screens with the **ASQ**; an outpatient clinic uses the **Columbia (C-SSRS)**; primary care uses **PHQ-9 Item 9**. Each instrument has its own codes — and some (the BSSA and PSS-3 items) have **no published LOINC codes at all**. A receiving system shouldn't have to understand every instrument to act on the result.
 
 The fix is a **two-layer model**:
 

@@ -36,6 +36,7 @@ on:
       # gates audit: these four were missing, so editing them ran nothing).
       - 'scripts/check-sushi-output.mjs'
       - 'scripts/build-ig-groups.mjs'
+      - 'scripts/build-ig-instruments.mjs'
       - 'scripts/check-canonical-uniqueness.mjs'
       - 'scripts/lib/jsx-comments.mjs'
       - 'scripts/lib/stage-codes.mjs'
@@ -82,6 +83,7 @@ on:
       # gates audit: these four were missing, so editing them ran nothing).
       - 'scripts/check-sushi-output.mjs'
       - 'scripts/build-ig-groups.mjs'
+      - 'scripts/build-ig-instruments.mjs'
       - 'scripts/check-canonical-uniqueness.mjs'
       - 'scripts/lib/jsx-comments.mjs'
       - 'scripts/lib/stage-codes.mjs'
@@ -226,6 +228,15 @@ jobs:
       - name: Check the IG artifact groups
         working-directory: ${{ github.workspace }}
         run: node scripts/build-ig-groups.mjs --check
+
+      # After SUSHI: every cell of the Instruments page is joined from the
+      # compiled ActivityDefinitions and PlanDefinitions and the Questionnaire
+      # JSON, so a form added without its activity, result profile, worked
+      # response or licensing status fails here by name, and so does a page
+      # nobody regenerated.
+      - name: Check the IG instrument directory
+        working-directory: ${{ github.workspace }}
+        run: node scripts/build-ig-instruments.mjs --check
 
       # AFTER the compile, and that is the whole point: a canonical can be
       # assembled from sushi-config.yaml's base plus an id rather than written

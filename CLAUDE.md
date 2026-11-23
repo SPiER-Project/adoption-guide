@@ -112,6 +112,7 @@ node scripts/check-sushi-output.mjs          # gate the warning SHAPE of a SUSHI
 node scripts/check-ig-menu.mjs               # every menu: target is a real page; menu: and pages: agree both ways
 node scripts/check-ig-narrative.mjs          # what the IG's prose may say, and whether what it points at exists
 node scripts/build-ig-groups.mjs [--check]   # the Artifacts page's groups: block, derived from the FSH tree
+node scripts/build-ig-instruments.mjs [--check]  # the Instruments page's per-instrument tables, joined from the compiled IG (after SUSHI)
 node scripts/check-canonical-uniqueness.mjs  # one canonical URL, one definition, across the FSH tree AND the JSON tree
 node scripts/check-md-links.mjs              # every relative link in a tracked .md resolves
 node scripts/check-md-paths.mjs              # every backticked repo-rooted path in prose exists, or is allowed with a reason
