@@ -44,9 +44,14 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Every job here only reads the repository; nothing writes back to it.
+permissions:
+  contents: read
+
 jobs:
   links:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       # Both gates resolve against the working tree and ask git about ignore
       # rules and tracked files, so they need the files but no history.

@@ -123,6 +123,12 @@ Tool-level and cross-cutting work is tracked in [GitHub Issues](https://github.c
 
 Label conventions: `tool:TL-XXX`, `priority:p1|p2|p3`, `type:epic|task`, `stage:<slug>`, `area:<slug>`. Work on a tool is a `type:task` issue carrying that tool's `tool:TL-XXX` label, and filtering on the label is the per-tool view. There are no per-tool epics, and the `status:built|planned|future` labels are retired: a tool's build status comes from the catalog and its ActivityDefinition, not from GitHub. Cross-cutting workstreams are listed in [`docs/README.md`](docs/README.md).
 
+## License
+
+What SPiER wrote in this repository is dedicated to the public domain under [CC0 1.0 Universal](LICENSE): the FHIR profiles, value sets, code systems, maps, pathways and measures, the narrative, and the application and tooling code.
+
+**The dedication does not cover the instruments.** Several Questionnaires under [`ig/input/resources/questionnaires/`](ig/input/resources/questionnaires/), and the reference material under [`docs/instruments/`](docs/instruments/README.md), reproduce screening and assessment instruments whose developers hold the copyright. Their terms of use are the developers' to set. Each Questionnaire states its own copyright, and [`docs/best-practices/licensing-verification-backlog.md`](docs/best-practices/licensing-verification-backlog.md) records what has and has not been checked against each source. Third-party dependencies keep their own licenses.
+
 ## Contributing
 
 This repository holds the canonical source for SPiER's technical and clinical definitions. Read [`CLAUDE.md`](CLAUDE.md) before changing anything under `ig/`, `packages/`, `apps/` or the root tooling — it names the verification gate for each tree, and several of them exist because a defect got through once.

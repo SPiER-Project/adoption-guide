@@ -130,6 +130,7 @@ jobs:
   codings:
     name: Codings in application code
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
@@ -179,6 +180,7 @@ jobs:
   resources:
     name: FHIR resources against the terminology server
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -315,6 +317,7 @@ jobs:
     needs: [codings, resources]
     if: always()
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       TITLE: 'Terminology drift: external codes no longer validate'
