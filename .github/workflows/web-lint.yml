@@ -113,10 +113,10 @@ jobs:
         working-directory: .
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .github/.nvmrc
           cache: npm
@@ -190,10 +190,10 @@ jobs:
         working-directory: .
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .github/.nvmrc
           cache: npm
@@ -216,7 +216,7 @@ jobs:
       # already exists, so the save below can be skipped when it does.
       - name: Is this tree already cached?
         id: fhir-lookup
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: packages/fhir-artifacts/generated
           key: fhir-generated-${{ steps.fhir.outputs.key }}
@@ -236,7 +236,7 @@ jobs:
       # reads the cached copy when the concrete version matches, so a warm cache
       # cannot silently pin an older package than a cold one would.
       - name: Cache FHIR package cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.fhir/packages
           key: fhir-packages-${{ hashFiles('ig/sushi-config.yaml') }}
@@ -282,7 +282,7 @@ jobs:
       # only be a duplicate.
       - name: Cache the generated FHIR tree
         if: steps.fhir-lookup.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: packages/fhir-artifacts/generated
           key: fhir-generated-${{ steps.fhir.outputs.key }}
@@ -325,10 +325,10 @@ jobs:
         working-directory: ./services/guide
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .github/.nvmrc
           cache: npm
@@ -354,10 +354,10 @@ jobs:
         working-directory: ./services/cds
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .github/.nvmrc
           cache: npm
@@ -385,7 +385,7 @@ jobs:
       # Questionnaire input changes the fingerprint and these jobs compile, which
       # is the correct answer rather than a miss to be tuned away.
       - name: Restore the generated FHIR tree
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: packages/fhir-artifacts/generated
           key: fhir-generated-${{ steps.fhir.outputs.key }}
@@ -411,7 +411,7 @@ jobs:
       # reads the cached copy when the concrete version matches, so a warm cache
       # cannot silently pin an older package than a cold one would.
       - name: Cache FHIR package cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.fhir/packages
           key: fhir-packages-${{ hashFiles('ig/sushi-config.yaml') }}
@@ -443,10 +443,10 @@ jobs:
         working-directory: ./services/clinical
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .github/.nvmrc
           cache: npm
@@ -472,10 +472,10 @@ jobs:
         working-directory: ./services/mock-ehr
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .github/.nvmrc
           cache: npm
@@ -503,7 +503,7 @@ jobs:
       # Questionnaire input changes the fingerprint and these jobs compile, which
       # is the correct answer rather than a miss to be tuned away.
       - name: Restore the generated FHIR tree
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: packages/fhir-artifacts/generated
           key: fhir-generated-${{ steps.fhir.outputs.key }}
@@ -530,7 +530,7 @@ jobs:
       # reads the cached copy when the concrete version matches, so a warm cache
       # cannot silently pin an older package than a cold one would.
       - name: Cache FHIR package cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.fhir/packages
           key: fhir-packages-${{ hashFiles('ig/sushi-config.yaml') }}
