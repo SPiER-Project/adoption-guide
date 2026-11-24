@@ -68,8 +68,8 @@ Description: "SPiER-local codes for the PSS-3 item 3a recency of the most recent
 * ^experimental = true
 * ^caseSensitive = true
 * ^content = #complete
-* #within-24-hours "Within past 24 hours (including today)"
-* #within-last-month "Within last month (but not today)"
+* #within-24-hours "Within the past 24 hours (including today)"
+* #within-last-month "Within the last month (but not today)"
 * #between-1-and-6-months "Between 1 and 6 months ago"
 * #more-than-6-months "More than 6 months ago"
 
@@ -182,11 +182,11 @@ Usage: #definition
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "Patient Safety Screener 3 questionnaire"
-* relatedArtifact[=].resource = "http://thespierproject.org/fhir/Questionnaire/PSS-3|1.0.0"
+* relatedArtifact[=].resource = "http://thespierproject.org/fhir/Questionnaire/PSS-3|1.0.1"
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
 * extension[+].url = "http://thespierproject.org/fhir/StructureDefinition/instrument-licensing-status"
-* extension[=].valueCode = #public-domain
-* copyright = "The Patient Safety Screener (PSS-3) was developed through the ED-SAFE study, funded by the National Institute of Mental Health, and is distributed as a free public resource by SAMHSA and the Suicide Prevention Resource Center. No permission or fee is required for use. The tip sheet instructs administering the three questions exactly as worded; the SPiER Questionnaire reproduces the wording, recency options and positive-screen rule verbatim. Basis: docs/instruments/PSS-3/licensing/MEMO.md (issue #64)."
+* extension[=].valueCode = #unknown
+* copyright = "The Patient Safety Screener (PSS-3) was developed at the University of Massachusetts Medical School through the ED-SAFE studies, funded by the National Institute of Mental Health, and is available for download from the Suicide Prevention Resource Center. Its published materials carry no copyright notice and no statement of permission, so the terms of reuse have not been verified with the developers: confirm them before deployment. The tip sheet instructs administering the three questions exactly as worded; the SPiER Questionnaire reproduces the question wording and recency options, and adds a scoring instruction to the text of items 2 and 3. Basis: docs/instruments/PSS-3/licensing/MEMO.md (issue #64), checked against the published tip sheet on 2026-11-23."
 
 
 // ─── Examples ────────────────────────────────────────────────

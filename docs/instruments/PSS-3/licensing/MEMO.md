@@ -1,5 +1,13 @@
 # PSS-3 — Licensing Audit Memo
 
+> ⚠️ **Superseded in part by the source check of 2026-11-23.** The published
+> PSS-3 materials were read on that date and carry no copyright notice and no
+> statement of permission; SAMHSA appears only as the funder of the site that
+> hosts them. The conclusion below was therefore not confirmed at source, and
+> the published status was recoded from `public-domain` to `unknown`. The memo
+> is kept as written, as the record of what was concluded and why. See
+> [`docs/best-practices/licensing-verification-backlog.md`](../../../best-practices/licensing-verification-backlog.md).
+
 > **Status:** Free public resource (NIMH-funded ED-SAFE study; distributed by SAMHSA and SPRC). No permission or fee is required to publish the SPiER FHIR derivatives. This memo records the basis for that conclusion. Template: [`docs/best-practices/licensing-audit-template.md`](../../../best-practices/licensing-audit-template.md). Tracking epic: [#64](https://github.com/SPiER-Project/adoption-guide/issues/64).
 
 ---

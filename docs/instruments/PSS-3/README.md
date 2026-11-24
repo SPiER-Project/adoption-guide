@@ -13,7 +13,7 @@ NIMH-funded **ED-SAFE** study (Boudreaux et al.).
 | **Source** | The ED-SAFE study; printable tool distributed by the [Suicide Prevention Resource Center](https://sprc.org/) and [SAMHSA](https://www.samhsa.gov/resource/dbhis/patient-safety-screener-pss-3-brief-tool-detect-suicide-risk-acute-care-settings) |
 | **Validated populations** | Ages 12+, **universal** — screen regardless of presenting complaint |
 | **Settings** | Emergency department, inpatient medical |
-| **Licensing** | Free public resource; no permission or fee required. The status and its basis are on the `AdministerPSS3` ActivityDefinition; the evidence is in [`licensing/MEMO.md`](licensing/MEMO.md). |
+| **Licensing** | Unknown since 2026-11-23, when a check of the published PSS-3 materials found no permission statement; it was coded public domain before. The status and its basis are on the `AdministerPSS3` ActivityDefinition; the evidence is in [`licensing/MEMO.md`](licensing/MEMO.md). |
 
 ## What's in this folder
 

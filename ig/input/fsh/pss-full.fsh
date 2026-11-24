@@ -17,7 +17,7 @@
 // 2026-07-15). See docs/instruments/PSS-Full/licensing/MEMO.md.
 //
 // Existing Questionnaire:
-//   http://thespierproject.org/fhir/Questionnaire/PSS-Full|1.0.0
+//   http://thespierproject.org/fhir/Questionnaire/PSS-Full|1.0.1
 // =============================================================
 
 
@@ -78,11 +78,11 @@ Usage: #definition
 * code = http://loinc.org#93374-7 "Suicide risk level"
 * relatedArtifact[+].type = #depends-on
 * relatedArtifact[=].display = "Patient Safety Screener / Suicide Risk Screener (Full) questionnaire"
-* relatedArtifact[=].resource = "http://thespierproject.org/fhir/Questionnaire/PSS-Full|1.0.0"
+* relatedArtifact[=].resource = "http://thespierproject.org/fhir/Questionnaire/PSS-Full|1.0.1"
 // Licensing (#127) — see ig/input/fsh/instrument-licensing.fsh
 * extension[+].url = "http://thespierproject.org/fhir/StructureDefinition/instrument-licensing-status"
-* extension[=].valueCode = #public-domain
-* copyright = "The universal-screen portion reproduces the free, public ED-SAFE PSS-3 items distributed by SAMHSA and the Suicide Prevention Resource Center — no permission or fee required. The risk-stratification step is site-defined (local protocol and clinician judgement), not a reproduced proprietary instrument, so no third-party item content is carried. Attribute the screen to the ED-SAFE study / SAMHSA / SPRC. Basis: docs/instruments/PSS-Full/licensing/MEMO.md (issue #64), which records maintainer confirmation on 2026-07-15."
+* extension[=].valueCode = #unknown
+* copyright = "The universal-screen portion reproduces the ED-SAFE PSS-3 items, developed at the University of Massachusetts Medical School with National Institute of Mental Health funding and available for download from the Suicide Prevention Resource Center. Their published materials carry no copyright notice and no statement of permission, so the terms of reuse have not been verified with the developers: confirm them before deployment. The SPiER Questionnaire reproduces their wording, response options and introductory script. The risk-stratification step is site-defined (local protocol and clinician judgement), not a reproduced proprietary instrument, so no third-party item content is carried there. Attribute the screen to the ED-SAFE study. Basis: docs/instruments/PSS-Full/licensing/MEMO.md (issue #64), which records maintainer confirmation on 2026-07-15; item wording checked against the published tip sheet on 2026-11-23."
 
 
 // ─── Examples ────────────────────────────────────────────────

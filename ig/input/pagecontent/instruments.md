@@ -74,7 +74,7 @@ Licensing status: Public domain / free use.
 
 ### PSS-3 {#pss-3}
 
-Licensing status: Public domain / free use.
+Licensing status: Unknown — pending licensing audit.
 
 | Form | Activity | Result profile | Into the tier | Worked example |
 |---|---|---|---|---|
@@ -82,7 +82,7 @@ Licensing status: Public domain / free use.
 
 ### PSS-Full {#pss-full}
 
-Licensing status: Public domain / free use.
+Licensing status: Unknown — pending licensing audit.
 
 | Form | Activity | Result profile | Into the tier | Worked example |
 |---|---|---|---|---|

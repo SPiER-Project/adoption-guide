@@ -10,7 +10,7 @@
 
 The Cultural Assessment of Risk for Suicide (CARS; Chu et al., 2013, *Psychological
 Assessment* 25(2):424–434) is a **copyrighted** research measure. Unlike the
-public-domain instruments (ASQ, PHQ-9, PSS-3, SAFE-T) or the free-with-registration
+public-domain instruments (ASQ, PHQ-9, SAFE-T) or the free-with-registration
 C-SSRS, the CARS requires the authors'/publisher's permission (or a purchased
 license) to reproduce its 39 items. SPiER does not reproduce copyrighted item
 content without a permission grant on file.
