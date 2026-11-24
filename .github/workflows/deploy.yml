@@ -78,6 +78,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
 
     # Handed to the `cloudflare` job so it restores the SAME render cache entry
     # this job just gated. Passed rather than re-resolved: `ig-publisher-release.mjs`
@@ -371,6 +372,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: build
     steps:
       - name: Deploy to GitHub Pages
@@ -395,6 +397,7 @@ jobs:
   clinical:
     name: Deploy the clinical Worker to Cloudflare
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -494,6 +497,7 @@ jobs:
   cds:
     name: Deploy the CDS Hooks Worker to Cloudflare
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     outputs:
       bootstrapped: ${{ steps.deploy.outputs.bootstrapped }}
     steps:
@@ -597,6 +601,7 @@ jobs:
     name: Deploy the mock EHR Worker to Cloudflare
     needs: cds
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -658,6 +663,7 @@ jobs:
     needs: [cds, mock-ehr]
     if: needs.cds.outputs.bootstrapped == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -713,6 +719,7 @@ jobs:
     name: Deploy to Cloudflare Workers
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 

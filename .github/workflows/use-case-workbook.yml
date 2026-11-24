@@ -56,9 +56,14 @@ on:
       - '.github/workflows/use-case-workbook.yml'
   workflow_dispatch:
 
+# Every job here only reads the repository; nothing writes back to it.
+permissions:
+  contents: read
+
 jobs:
   freshness:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - uses: actions/checkout@v4

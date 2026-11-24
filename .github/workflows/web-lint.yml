@@ -94,6 +94,10 @@ concurrency:
   group: web-lint-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+# Every job here only reads the repository; nothing writes back to it.
+permissions:
+  contents: read
+
 jobs:
   # Fast feedback. Every gate here ALSO runs in the `verify` job below, which
   # calls `npm run verify` wholesale — that redundancy is deliberate, not drift.
@@ -103,6 +107,7 @@ jobs:
   # hand-copied-list problem the verify job's comment describes.
   lint-css:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: .
@@ -179,6 +184,7 @@ jobs:
 
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: .
@@ -313,6 +319,7 @@ jobs:
   # symmetry with `cds`.
   guide:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: ./services/guide
@@ -341,6 +348,7 @@ jobs:
   # tree and a root install. The guide job below no longer does.
   cds:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: ./services/cds
@@ -429,6 +437,7 @@ jobs:
   # service-only PR that touches just one of them still gets the verdict.
   clinical:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: ./services/clinical
@@ -457,6 +466,7 @@ jobs:
   # while every web gate stays green.
   mock-ehr:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: ./services/mock-ehr
