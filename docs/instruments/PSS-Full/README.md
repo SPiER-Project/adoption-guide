@@ -19,7 +19,7 @@ whole point of the tool:
 |---|---|
 | **Source** | ED-SAFE study / SAMHSA / SPRC for the screening items; the stratification step is the adopting site's own |
 | **Settings** | Emergency department, inpatient — the Clarify Risk stage |
-| **Licensing** | Public domain, with the reasoning above recorded on the `AdministerPSSFull` ActivityDefinition. The evidence, including maintainer confirmation on 2026-07-15, is in [`licensing/MEMO.md`](licensing/MEMO.md). |
+| **Licensing** | Unknown since 2026-11-23, when a check of the published PSS-3 materials found no permission statement; it was coded public domain before. The reasoning is on the `AdministerPSSFull` ActivityDefinition. The evidence, including maintainer confirmation on 2026-07-15, is in [`licensing/MEMO.md`](licensing/MEMO.md). |
 
 ## What's in this folder
 

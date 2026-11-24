@@ -1,5 +1,13 @@
 # PSS Full — Licensing Audit Memo
 
+> ⚠️ **Superseded in part by the source check of 2026-11-23.** The published
+> PSS-3 materials were read on that date and carry no copyright notice and no
+> statement of permission; SAMHSA appears only as the funder of the site that
+> hosts them. The conclusion below was therefore not confirmed at source, and
+> the published status was recoded from `public-domain` to `unknown`. The memo
+> is kept as written, as the record of what was concluded and why. See
+> [`docs/best-practices/licensing-verification-backlog.md`](../../../best-practices/licensing-verification-backlog.md).
+
 > **Status: GO.** The universal-screen portion uses the free, public ED-SAFE PSS-3 items (SAMHSA/SPRC; no permission required — see the PSS-3 memo). The risk-stratification step is **site-defined** (local protocol/clinician judgment), not a reproduced proprietary instrument. Used under the license/permission held by the SPiER project (maintainer-confirmed 2026-07-15). Template: [`docs/best-practices/licensing-audit-template.md`](../../../best-practices/licensing-audit-template.md). Tracking epic: [#64](https://github.com/SPiER-Project/adoption-guide/issues/64).
 
 ---
