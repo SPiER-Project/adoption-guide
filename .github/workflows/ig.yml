@@ -335,7 +335,7 @@ jobs:
       # and writes to .runtime-fhir, which the validator then reads via
       # --also. On its first run this found 118 errors, including every profile's
       # required concept-domain category missing from every builder.
-      - name: Install web dependencies
+      - name: Install root dependencies
         run: npm ci
         working-directory: .
 

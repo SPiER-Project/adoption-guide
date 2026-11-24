@@ -358,7 +358,7 @@ Usage: #definition
 // The only action in the pathway that declares its transformation. The
 // safety plan is captured as a QuestionnaireResponse and has to become a
 // CarePlan; until #229 that step existed only as TypeScript in the demo app
-// (web/src/lib/carePlanMappers/stanleyBrown.ts), so a partner could read the
+// (packages/core/src/lib/carePlanMappers/stanleyBrown.ts), so a partner could read the
 // Questionnaire and the CarePlan profile and still not know how one becomes
 // the other. `transform` names the StructureMap that says.
 * action[+]

@@ -32,7 +32,7 @@ function asQuestionnaire(json: unknown, path: string): QuestionnaireResource {
 }
 
 // This module is the single owner of the hand-authored Questionnaire JSON
-// imports from ig/input/resources/questionnaires/. Both the form renderer (web/src/data/toolViews.tsx)
+// imports from ig/input/resources/questionnaires/. Both the form renderer (packages/tool-views/src/data/toolViews.tsx)
 // and the ordinal-scoring join below consume the resources through the named
 // exports here, so the raw JSON paths live in exactly one place.
 

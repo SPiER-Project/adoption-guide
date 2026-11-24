@@ -21,7 +21,7 @@ uses "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-con
 
 // ─── Implementation notes (not published — see README.md) ────────────
 //
-// Runtime counterpart: web/src/lib/observationMappers/cssrs.ts.
+// Runtime counterpart: the four cssrs*.ts mappers in packages/core/src/lib/observationMappers/.
 // Crosswalk under clinical review: ig/input/fsh/crosswalk-cssrs.fsh (#77/#93).
 //
 // No `imports` for the ConceptMap — see ASQResultToSuicideRiskConcept.fml.

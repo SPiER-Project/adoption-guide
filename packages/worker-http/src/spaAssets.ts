@@ -1,7 +1,7 @@
 /**
  * Serving a SPiER SMART surface from Cloudflare Static Assets.
  *
- * Two Workers serve a build of `web/` over a Static Assets binding — the
+ * Two Workers serve a build of one of the two apps over a Static Assets binding — the
  * adoption-guide Worker (`services/guide`, the `demo` surface plus the CDS
  * Hooks API and the rendered IG) and the clinical Worker (`services/clinical`,
  * the `clinical` surface and nothing else). Everything they share about *being

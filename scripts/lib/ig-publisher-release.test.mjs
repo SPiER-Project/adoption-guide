@@ -1,6 +1,6 @@
 // The IG Publisher release resolver's failure modes.
 //
-// Reached from web/'s vitest via an extra `test.include` entry rather than a new
+// Reached from the repo root's vitest via an extra `test.include` entry rather than a new
 // pipeline, the same way packages/core's mirror tests are (see CLAUDE.md).
 //
 // Why these assertions and not others: the resolved tag keys the publisher jar

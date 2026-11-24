@@ -29,7 +29,7 @@ uses "http://thespierproject.org/fhir/StructureDefinition/spier-suicide-risk-con
 // Everything above the `uses` lines becomes StructureMap.description in the
 // built IG, so repo mechanics belong here rather than there.
 //
-// Runtime counterpart: web/src/lib/observationMappers/asq.ts.
+// Runtime counterpart: packages/core/src/lib/observationMappers/asq.ts.
 // Crosswalk under clinical review: ig/input/fsh/crosswalk-asq.fsh (#77 / #93).
 // Design background: docs/best-practices/concept-harmonization.md.
 //

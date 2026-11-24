@@ -105,6 +105,18 @@ function LocationProbe() {
   return <span data-testid="landed-on" data-path={useLocation().pathname} hidden />
 }
 
+/**
+ * How long a page may take to settle, and how long its test may run.
+ *
+ * ⚠️ **The test's limit must be the longer one.** Both were 5000 until
+ * 2026-11-24 (the wait explicitly, the test by vitest's default), so a slow
+ * page died on the test's timeout with no assertion message, and the wait's own
+ * "which element is missing" never printed. A page settles in about 300 ms on
+ * an idle machine; two took over five seconds on a busy one.
+ */
+const SETTLE_TIMEOUT_MS = 15_000
+const TEST_TIMEOUT_MS = SETTLE_TIMEOUT_MS + 5_000
+
 /** The guide app, mounted at `path` exactly as a reader's browser would reach it. */
 async function mountGuide(path: string) {
   const { container, getByTestId } = render(
@@ -122,7 +134,7 @@ async function mountGuide(path: string) {
       expect(container.querySelector('.app-shell__body .page-header')).not.toBeNull()
       expect(container.querySelector('.route-loading')).toBeNull()
     },
-    { timeout: 5000 },
+    { timeout: SETTLE_TIMEOUT_MS },
   )
   const landedOn = getByTestId('landed-on').dataset.path
   expect(landedOn, `${path} redirected to ${landedOn} — this read a different page`).toBe(path)
@@ -163,7 +175,7 @@ describe('what every guide page renders', () => {
     const container = await mountGuide(path)
     expect(readerRuns(container).length, 'the page rendered nothing').toBeGreaterThan(50)
     expect(hitsIn(container)).toEqual([])
-  })
+  }, TEST_TIMEOUT_MS)
 })
 
 describe('what every tool page renders', () => {
@@ -177,7 +189,7 @@ describe('what every tool page renders', () => {
     const tool = TOOLS.find((t) => t.id === id)!
     if (tool.copyright) expect(container.querySelector('.tool-page__licence')?.textContent?.length).toBeGreaterThan(40)
     expect(hitsIn(container)).toEqual([])
-  })
+  }, TEST_TIMEOUT_MS)
 
   // Liveness for the lazy form: a Questionnaire filler renders an instrument
   // header, with the published description in its drawer. Halved from the

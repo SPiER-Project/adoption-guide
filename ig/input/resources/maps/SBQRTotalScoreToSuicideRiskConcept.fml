@@ -29,7 +29,7 @@ uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Concept as targ
 // ─── Implementation notes (not published — see README.md) ────────────
 //
 // Source profile: spier-sbqr-total-score (ig/input/fsh/sbqr.fsh).
-// Runtime counterpart: web/src/lib/observationMappers/sbqr.ts — the bands
+// Runtime counterpart: packages/core/src/lib/observationMappers/sbqr.ts — the bands
 // below mirror its thresholds, so the FHIR map and the runtime stay in
 // lockstep. Change one and you must change the other.
 

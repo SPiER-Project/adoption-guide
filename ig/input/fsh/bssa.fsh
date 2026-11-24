@@ -37,10 +37,13 @@ Description: "SPiER-local panel code for the NIMH Brief Suicide Safety Assessmen
 * #bssa "Brief Suicide Safety Assessment (BSSA) panel" "Root code for the BSSA assessment form."
 
 
+// These codes MUST stay in sync with the Questionnaire item codes and
+// packages/core/src/lib/observationMappers/bssa.ts. (That sentence was in the published
+// Description until 2026-11-24, naming a path a reader of the IG cannot open.)
 CodeSystem: BSSAItemCodes
 Id: bssa-item
 Title: "BSSA Discrete Item Codes"
-Description: "SPiER-local codes for the clinically-decisive BSSA interview findings that are extracted as discrete Observations. The BSSA has no published per-item LOINC codes. These MUST stay in sync with the Questionnaire item codes and web/src/lib/observationMappers/bssa.ts."
+Description: "SPiER-local codes for the clinically-decisive BSSA interview findings that are extracted as discrete Observations. The BSSA has no published per-item LOINC codes."
 * ^status = #draft
 * ^experimental = true
 * ^caseSensitive = true

@@ -1,0 +1,60 @@
+{
+  // The compiler options every web-side project shares: the four packages, the
+  // two apps, packages/worker-http and the root's cross-package tests
+  // (tsconfig.app.json). Each of them `extends` this file and adds only what is
+  // its own — `paths`, `types`, `include` — so a strictness flag is set once.
+  //
+  // ⚠️ **Until 2026-11-24 each of those eight files carried its own copy of
+  // everything below**, plus a dozen `paths` entries pointing React, vitest and
+  // the formbox renderer at `node_modules`. Those entries dated from when the
+  // install lived in `web/`, a SIBLING of `packages/`, so no walk-up from a
+  // package could reach it. The install has been at the repo root since the
+  // tooling moved there, every project is under it, and ordinary resolution
+  // finds all of them: removing every one of those mappings typechecked clean.
+  // Do not add one back to fix a "cannot find module"; find out why the
+  // walk-up failed.
+  //
+  // ⚠️ **`paths` is deliberately NOT here.** `extends` replaces `paths`
+  // wholesale, it does not merge, and each project's list is also its
+  // dependency declaration: packages/ui maps no `@spier/*` name, so it cannot
+  // import core; tool-views maps no `@spier/app-shell`. One shared list would
+  // let every package import every other.
+  //
+  // ⚠️ **`tsBuildInfoFile` is not here either.** A relative path in an extended
+  // config resolves against THIS file, so all eight projects would write one
+  // build-info file and invalidate each other.
+  //
+  // The four Workers do not use this file. They have their own base,
+  // packages/worker-tooling/tsconfig.worker.json, because they compile against
+  // the Workers runtime types and no DOM.
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    // ⚠️ **`jsx` matters most to esbuild, not to `tsc`.** esbuild — what vite
+    // and vitest transform .tsx with — finds a tsconfig by walking up from the
+    // FILE and follows `extends`. A package with no config of its own, or one
+    // that does not extend this, compiles to the CLASSIC JSX runtime and its
+    // tests die with "React is not defined" while `tsc` stays green.
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true
+  }
+}

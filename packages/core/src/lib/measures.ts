@@ -128,7 +128,7 @@ interface MeasureDoc {
 
 const measureModules = import.meta.glob<{ default: MeasureDoc }>(
   // ⚠️ Relative, not the alias: Vite does not resolve aliases inside
-  // `import.meta.glob`. Climbs out of web/ into the artifacts package.
+  // `import.meta.glob`. Climbs out of packages/core into the artifacts package.
   '../../../fhir-artifacts/generated/Measure-*.json',
   {
   eager: true,

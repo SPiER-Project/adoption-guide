@@ -134,7 +134,7 @@ The root's `npm run verify` covers **none** of them, and two import the web
 catalog, so a catalog or scenario change can break them with the root green.
 
 ```
-cd services/guide     && npm install && npm run verify   # the Adoption Guide SPA + the rendered IG; OFFLINE (imports @spier/worker-http and nothing else)
+cd services/guide     && npm install && npm run verify   # the Adoption Guide SPA + the rendered IG; OFFLINE (imports @spier/worker-http, plus one notice string from core and deploy-origins.json)
 cd services/cds       && npm install && npm run verify   # the CDS Hooks service; needs copy-fhir and a root install
 cd services/clinical  && npm install && npm run verify   # the two SMART apps; offline, serves dist-clinical as bytes
 cd services/mock-ehr  && npm install && npm run verify   # + check:host-css; builds the pages' client modules before its tests

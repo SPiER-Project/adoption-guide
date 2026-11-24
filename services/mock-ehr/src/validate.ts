@@ -81,7 +81,7 @@ export const CONFORMANCE: ConformanceIndex = buildConformanceIndex([
 // like a working server — the #232 / #261 silent-pass shape, in the one place
 // this service is supposed to be strict. Failing to boot is the correct
 // response, and the message names the fix.
-assertUsableIndex(CONFORMANCE, 'run `npm run copy-fhir -- --force` in web/')
+assertUsableIndex(CONFORMANCE, 'run `npm run copy-fhir -- --force` at the repo root')
 
 /** One problem, in the shape an OperationOutcome issue wants. */
 export interface ValidationProblem {

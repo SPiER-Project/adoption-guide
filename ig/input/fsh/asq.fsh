@@ -108,7 +108,7 @@ Description: "SPiER-local code system for the three possible outcomes of the NIM
 * #acute-positive "Acute Positive Screen" "The acuity question (item 5) answered 'yes'. Do not leave patient alone; initiate emergency safety procedures."
 
 // The ASQ Questionnaire's disposition answerOptions (and the runtime mapper in
-// web/src/lib/observationMappers/asq.ts) label these tiers with the clinical
+// packages/core/src/lib/observationMappers/asq.ts) label these tiers with the clinical
 // consequence appended, because the bare tier name is not self-explanatory to a
 // clinician picking an option. `Coding.display` must match the CodeSystem, so
 // the longer labels are registered here as designations rather than being

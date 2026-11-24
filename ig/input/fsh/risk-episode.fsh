@@ -22,10 +22,10 @@
 //                    docs/plans/stage-7-track-risk-over-time.md.
 //
 // The five ActivityDefinitions live at the bottom of this file; the data
-// layer, recorders, and registry work queue are in web/ (see the design doc).
+// layer, recorders, and registry work queue are in packages/core and packages/tool-views (see the design doc).
 //
 // Resources conformant to these profiles carry the SPiER pathway-stage
-// `meta.tag` (track-risk-over-time) so web/src/lib/patientPathway.ts stages
+// `meta.tag` (track-risk-over-time) so packages/core/src/lib/patientPathway.ts stages
 // them with no resolver change — see the examples below.
 //
 // Terminology note: no published LOINC/SNOMED value sets cover the SSC

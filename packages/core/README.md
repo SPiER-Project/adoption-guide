@@ -14,7 +14,7 @@ Cloudflare Workers reached into an application's source tree with **21 deep
 Those are now `@spier/core/…`, and the count is **zero**.
 
 The point is not tidiness. It is that the independence from the app becomes
-*enforceable*: `npm run check:core-boundary` (in web's `verify`, so CI runs it)
+*enforceable*: `npm run check:core-boundary` (in the root `verify`, so CI runs it)
 fails on a React import, a `.tsx` file, or an unguarded DOM global.
 
 ## What it may not do, and the one exception

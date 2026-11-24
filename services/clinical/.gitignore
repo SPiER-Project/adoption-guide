@@ -1,6 +1,6 @@
 # Vite worker bundle
 dist/
-# Staged copy of the CLINICAL web build (web/dist-clinical), served by the Worker
+# Staged copy of the CLINICAL web build (the repo root's dist-clinical), served by the Worker
 web-dist/
 # wrangler local state (dev cache, logs)
 .wrangler/

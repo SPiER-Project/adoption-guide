@@ -97,7 +97,7 @@ const TOKEN_DEF = /(--[\w-]+)\s*:/g
  * declared in `TOKENS`.
  *
  * The second legitimate source, and **scraped rather than allowlisted**, which
- * is the same choice `web/`'s `check:tokens` makes and for the same reason: an
+ * is the same choice the repo root's `check:tokens` makes and for the same reason: an
  * allowlist outlives the code that earned it, while a scrape dies with it. One
  * today — `--panel-width`, the dock's width, which the chart script reads from
  * the operator's stored preference and which therefore cannot be a static
