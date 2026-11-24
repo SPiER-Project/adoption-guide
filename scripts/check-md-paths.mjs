@@ -170,7 +170,7 @@ for (const f of mdFiles) {
 function ignoredSet(paths) {
   const probes = [...new Set(paths.flatMap((p) => [p.replace(/\/$/, ''), `${p.replace(/\/$/, '')}/`]))]
   if (probes.length === 0) return new Set()
-  let out = ''
+  let out
   try {
     out = execSync('git check-ignore --no-index --stdin', { encoding: 'utf8', input: probes.join('\n') })
   } catch (err) {

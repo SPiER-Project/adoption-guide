@@ -606,7 +606,7 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
     try {
       return { id: await this.create(payload) }
     } catch (err) {
-      throw new Error(describeCreateError(resource.resourceType, err))
+      throw new Error(describeCreateError(resource.resourceType, err), { cause: err })
     }
   }
 
@@ -706,7 +706,7 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
           // status is kept here — `saveResponse` needs it to tell "refused this
           // session" from "refused the write".
           refusals.push(httpStatusOf(err))
-          throw new Error(describeCreateError(resource.resourceType, err))
+          throw new Error(describeCreateError(resource.resourceType, err), { cause: err })
         }
       },
     }

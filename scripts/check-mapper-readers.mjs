@@ -341,8 +341,7 @@ function resolveLinkIds(arg, sourceFile, arrays) {
 /** The reader applied to a `walkItems(…)` result: a `getX` call or a `value[x]`. */
 function readersFor(call, sourceFile) {
   const fromChain = (start) => {
-    let node = start
-    for (let p = node.parent; p; node = p, p = p.parent) {
+    for (let p = start.parent; p; p = p.parent) {
       if (ts.isNonNullExpression(p) || ts.isParenthesizedExpression(p)) continue
       if (ts.isPropertyAccessExpression(p) || ts.isElementAccessExpression(p)) {
         const name = ts.isPropertyAccessExpression(p) ? p.name.text : undefined
