@@ -74,12 +74,11 @@ consequences:
    sees `tsconfig.app.json`. Without a config here that extends
    `tsconfig.base.json`, where `jsx` is set, the views compile to the classic
    JSX runtime and die with "React is not defined" while `tsc` stays green.
-2. **Every bare dependency needs an alias in `vite.config.ts` AND
-   `vitest.config.ts`.** TypeScript needs nothing: since 2026-11-24 no tsconfig
-   maps a dependency into `node_modules`, because ordinary resolution reaches
-   the root install from every package. ⚠️ Use the **anchored exact** alias form; a
-   `@formbox/hs-theme/` *prefix* alias rewrites the path before Vite consults the
-   package's `exports` map and breaks `@formbox/hs-theme/style.css`.
+2. **A bare dependency needs no alias and no `paths` entry.** Since 2026-11-24
+   neither the vite configs nor any tsconfig maps a dependency into
+   `node_modules`: ordinary resolution reaches the root install from here. Only
+   the `@spier/*` packages are aliased, in `vite.config.ts` AND
+   `vitest.config.ts`.
 3. **`vitest.config.ts`'s `test.include` must name this package**, or its
    colocated tests silently do not run and `verify` stays green. That is not
    hypothetical — `packages/ui`'s `Button.test.tsx` executed zero times for a

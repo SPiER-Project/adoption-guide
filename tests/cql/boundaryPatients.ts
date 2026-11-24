@@ -91,12 +91,12 @@ function riskConcept(params: {
             },
           ],
         }),
-  } as FhirResource
+  }
 }
 
 function episode(params: { start: string; end?: string }): FhirResource {
   const e = buildEpisode({ id: 'episode', patientId: null, entryReason: 'positive-screen', startDate: params.start })
-  return { ...e, period: { start: params.start, ...(params.end ? { end: params.end } : {}) } } as FhirResource
+  return { ...e, period: { start: params.start, ...(params.end ? { end: params.end } : {}) } }
 }
 
 const handoff = (sent: string) =>
@@ -365,7 +365,7 @@ export const BOUNDARY_PATIENTS: BoundaryPatient[] = [
           ...buildLethalMeansCounseling({ id: 'calm', patientId: null, performed: at(DAY) }),
           performedDateTime: undefined,
           performedPeriod: { start: at(DAY), end: at(3 * DAY) },
-        } as FhirResource,
+        },
       ] as PatientSlice['procedures'],
     }),
     expectTs: { 'Lethal Means Counseling During Episode': true },

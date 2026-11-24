@@ -68,7 +68,7 @@ function Probe() {
 function renderProbe(source: FhirDataSource, smart: Partial<typeof SMART_STUB> = {}) {
   return render(
     <MemoryRouter initialEntries={['/population']}>
-      <SmartContext.Provider value={{ ...SMART_STUB, ...smart } as never}>
+      <SmartContext.Provider value={{ ...SMART_STUB, ...smart }}>
         <SmartPatientProvider dataSource={source} populationPatients={[...POPULATION_PATIENTS]}>
           <Probe />
         </SmartPatientProvider>

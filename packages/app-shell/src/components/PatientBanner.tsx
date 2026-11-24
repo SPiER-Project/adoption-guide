@@ -84,7 +84,7 @@ export function PatientBanner() {
                 className="patient-banner-switcher"
                 aria-label="Switch patient"
                 value={activePatientId ?? ''}
-                onChange={e => navigate(`/patient/record/${e.target.value}`)}
+                onChange={e => { void navigate(`/patient/record/${e.target.value}`) }}
               >
                 {populationPatients.map(p => (
                   <option key={p.id} value={p.id}>
@@ -96,7 +96,7 @@ export function PatientBanner() {
             <button
               type="button"
               className="patient-banner-close"
-              onClick={() => navigate('/patient/record?new=1')}
+              onClick={() => { void navigate('/patient/record?new=1') }}
               title="Close this patient and return to the blank chart"
             >
               Close patient

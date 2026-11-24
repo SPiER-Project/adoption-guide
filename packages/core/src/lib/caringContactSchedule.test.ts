@@ -21,7 +21,7 @@ const handoff = (offset = 0): CommunicationResource =>
     status: 'completed',
     meta: { profile: [SAFETY_HANDOFF_PROFILE] },
     sent: new Date(T + offset).toISOString(),
-  }) as CommunicationResource
+  })
 
 const packet = (offset = 0): DocumentReferenceResource =>
   ({
@@ -29,7 +29,7 @@ const packet = (offset = 0): DocumentReferenceResource =>
     status: 'current',
     meta: { profile: [PACKET_PROFILE] },
     date: new Date(T + offset).toISOString(),
-  }) as DocumentReferenceResource
+  })
 
 const contact = (offset: number, optOut = false): CommunicationResource =>
   ({
@@ -38,7 +38,7 @@ const contact = (offset: number, optOut = false): CommunicationResource =>
     meta: { profile: [CARING_CONTACT_PROFILE] },
     sent: new Date(T + offset).toISOString(),
     ...(optOut ? { extension: [{ url: CARING_CONTACT_OPT_OUT_EXT, valueBoolean: true }] } : {}),
-  }) as CommunicationResource
+  })
 
 describe('the published caring-contact schedule, read as data', () => {
   it('reads three windows closing at 48 hours, 7 days and 30 days', () => {

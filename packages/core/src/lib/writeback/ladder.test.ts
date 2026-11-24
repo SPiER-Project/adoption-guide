@@ -9,7 +9,7 @@ const qr: QuestionnaireResponseResource = {
   questionnaire: 'http://thespierproject.org/fhir/Questionnaire/PHQ-9',
   status: 'completed',
 }
-const obs: ObservationResource[] = [{ resourceType: 'Observation', id: 'o1', status: 'final' } as ObservationResource]
+const obs: ObservationResource[] = [{ resourceType: 'Observation', id: 'o1', status: 'final' }]
 const documentReference: FhirResource = { resourceType: 'DocumentReference' }
 
 function artifacts(overrides: Partial<WritebackArtifacts> = {}): WritebackArtifacts {

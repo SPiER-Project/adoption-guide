@@ -60,7 +60,7 @@ export const RUBRIC_TOOLS: RubricTool[] = TOOLS.map(t => ({
   toolId: t.id,
   name: t.shortName ?? t.name,
   stage: stageTitleById.get(t.stageId) ?? t.stageId,
-  targets: t.targetMaturity as unknown as Record<string, MaturityLevel>,
+  targets: t.targetMaturity,
 }))
 
 export const STAGE_ORDER = STAGES.map(s => s.title)

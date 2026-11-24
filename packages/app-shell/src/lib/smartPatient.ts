@@ -6,6 +6,7 @@
  * screen and SmartContext's session rehydration.
  */
 import type { SmartClient } from '@spier/core/types/smartClient'
+import type { PatientResource } from '@spier/core/types/fhir'
 import { MRN_SYSTEM } from '@spier/core/lib/fhircast'
 
 export interface SmartPatientSummary {
@@ -25,9 +26,22 @@ export interface SmartPatientSummary {
   [key: string]: unknown
 }
 
+/**
+ * The body of a Patient read, if a Patient is what came back. The client types
+ * it `unknown` on purpose (see `SmartClient.patient.read`); every field below
+ * is optional, so this checks the one thing the type states as fact.
+ */
+function asPatient(body: unknown): PatientResource | undefined {
+  if (typeof body !== 'object' || body === null) return undefined
+  return (body as { resourceType?: unknown }).resourceType === 'Patient' ? (body as PatientResource) : undefined
+}
+
 export async function readSmartPatientSummary(client: SmartClient): Promise<SmartPatientSummary> {
   if (!client.patient.id) return {}
-  const patientData = await client.patient.read()
+  const patientData = asPatient(await client.patient.read())
+  // Not a Patient: keep the id the launch gave us and say the name is unknown,
+  // which is what a Patient with no `name` has always produced.
+  if (!patientData) return { id: client.patient.id, name: 'Unknown Name' }
   const name = patientData.name?.[0]
   const formattedName = name
     ? `${name.given?.join(' ') || ''} ${name.family || ''}`.trim()

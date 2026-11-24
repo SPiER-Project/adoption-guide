@@ -17,9 +17,8 @@ updates:
       root-minor-and-patch:
         update-types: [minor, patch]
     ignore:
-      # Both held back on purpose; the reasons are in package.json's "//pins".
+      # Held back on purpose; the reason is in package.json's "//pins".
       - dependency-name: fhirclient
-      - dependency-name: typescript-eslint
 
   # The four Workers, in ONE block and ONE group. check-service-toolchain.mjs
   # fails any pull request that moves one service's devDependencies or

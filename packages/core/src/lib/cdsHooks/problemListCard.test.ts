@@ -21,7 +21,7 @@ function conceptObs(tier: string, effective: string, display?: string): Observat
     code: { coding: [{ system: 'http://loinc.org', code: '93374-7', display: 'Suicide risk level' }] },
     effectiveDateTime: effective,
     valueCodeableConcept: { coding: [{ system: RISK_TIER_SYSTEM, code: tier, display }] },
-  } as ObservationResource
+  }
 }
 
 describe('tier vocabulary — drift against the published CodeSystem', () => {

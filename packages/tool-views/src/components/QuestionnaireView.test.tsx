@@ -30,7 +30,7 @@ import { MemoryRouter } from 'react-router-dom'
 import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
 /** What the mocked renderer hands to `onSubmit`, and how many times it has mounted. */
-const form = vi.hoisted(() => ({ submitted: null as unknown, mounts: 0 }))
+const form = vi.hoisted((): { submitted: unknown; mounts: number } => ({ submitted: null, mounts: 0 }))
 
 /**
  * ⚠️ **It reports its mount, and that is load-bearing for the *Start over*

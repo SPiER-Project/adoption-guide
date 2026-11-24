@@ -91,7 +91,7 @@ function encounter(id: string, status: string): FhirResource {
     status,
     class: { system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode', code: 'AMB' },
     period: { start: '2026-09-17T10:00:00.000Z' },
-  } as unknown as FhirResource
+  }
 }
 
 describe('saveArtifact — lifecycle resources', () => {
@@ -167,7 +167,7 @@ describe('saveArtifact — lifecycle resources', () => {
       id: 'comm-1',
       status: 'completed',
       encounter: { reference: 'Encounter/encounter-abc' },
-    } as unknown as FhirResource)
+    })
 
     const comm = calls.filter(c => c.method === 'POST').at(-1)?.body as {
       encounter?: { reference?: string }
@@ -208,7 +208,7 @@ describe('saveArtifact — lifecycle resources', () => {
       resourceType: 'QuestionnaireResponse',
       status: 'completed',
       encounter: { reference: 'Encounter/encounter-abc' },
-    } as unknown as FhirResource)
+    })
 
     const qr = calls.filter(c => c.method === 'POST').at(-1)?.body as {
       encounter?: { reference?: string }
@@ -225,7 +225,7 @@ describe('saveArtifact — lifecycle resources', () => {
       id: 'obs-1',
       status: 'final',
       code: { text: 'score' },
-    } as unknown as FhirResource)
+    })
 
     const writes = calls.filter(c => c.method !== 'GET')
     expect(writes.map(w => w.method)).toEqual(['POST'])

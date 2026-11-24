@@ -77,7 +77,7 @@ const ladderQr: QuestionnaireResponseResource = {
   status: 'completed',
 }
 const ladderObservations = ['o1', 'o2', 'o3'].map(
-  id => ({ resourceType: 'Observation', id, status: 'final' }) as ObservationResource,
+  (id): ObservationResource => ({ resourceType: 'Observation', id, status: 'final' }),
 )
 const ladderArtifacts: WritebackArtifacts = {
   qr: ladderQr,

@@ -4,7 +4,6 @@ import type {
   AppointmentResource,
   CarePlanResource,
   CommunicationResource,
-  ConsentResource,
   ObservationResource,
   PatientSlice,
   ServiceRequestResource,
@@ -190,7 +189,7 @@ describe('deriveRegistryRow', () => {
       authored: '2023-01-01T10:00:00Z'
     }
 
-    const row = deriveRegistryRow(patient, { ...sliceWithUndefinedComms, carePlans: [cp] } as PatientSlice)
+    const row = deriveRegistryRow(patient, { ...sliceWithUndefinedComms, carePlans: [cp] })
 
     expect(row.lastActivity).toEqual({
       date: '2023-01-01T10:00:00Z',
@@ -322,7 +321,7 @@ describe('deriveRegistryRow', () => {
               id: 'c1',
               sent: '2026-07-27T10:00:00.000Z',
               reasonCode: [{ text: 'Caring contact' }],
-            } as CommunicationResource,
+            },
           ],
           appointments: [
             {
@@ -331,7 +330,7 @@ describe('deriveRegistryRow', () => {
               status: 'booked',
               start: '2026-09-01T14:00:00.000Z',
               _savedAt: '2026-07-20T09:00:00.000Z',
-            } as AppointmentResource,
+            },
           ],
         },
         now,
@@ -354,7 +353,7 @@ describe('deriveRegistryRow', () => {
               status: 'noshow',
               start: '2026-07-22T14:00:00.000Z',
               description: 'Post-discharge follow-up',
-            } as AppointmentResource,
+            },
           ],
         },
         now,
@@ -387,7 +386,7 @@ describe('deriveRegistryRow', () => {
                 ],
               },
               provision: { type: 'permit' },
-            } as ConsentResource,
+            },
           ],
         },
         now,

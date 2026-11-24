@@ -80,7 +80,7 @@ export function bootstrap(App: ComponentType) {
   if (!rootEl) throw new Error('bootstrap: no #root element in the host HTML')
   createRoot(rootEl).render(
     <StrictMode>
-      <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <HashRouter>
         <App />
       </HashRouter>
     </StrictMode>,

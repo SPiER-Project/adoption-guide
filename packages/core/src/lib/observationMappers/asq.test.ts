@@ -32,7 +32,7 @@ function asqResponse(answers: { q1: boolean; q2: boolean; q3: boolean; q4: boole
         item: [{ linkId: 'q5', answer: [{ valueCoding: code(answers.q5) }] }],
       },
     ],
-  } as QuestionnaireResponseResource
+  }
 }
 
 function resultCoding(r: ReturnType<typeof mapASQ>) {

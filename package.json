@@ -73,7 +73,7 @@
     "lucide-react": "^1.39.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-router-dom": "^6.30.3"
+    "react-router-dom": "^7.18.7"
   },
   "devDependencies": {
     "@cqframework/cql": "5.4.0",
@@ -95,7 +95,7 @@
     "stylelint-config-standard": "^40.0.0",
     "stylelint-declaration-strict-value": "^1.11.1",
     "typescript": "~5.9.3",
-    "typescript-eslint": "~8.56.1",
+    "typescript-eslint": "^8.74.0",
     "vite": "^7.3.6",
     "vitest": "^4.1.9"
   },
@@ -130,21 +130,34 @@
     "with `npm explain <pkg>` before citing one."
   ],
   "//pins": [
-    "Two dependencies are held back on purpose (2026-11-24). Both are in",
-    ".github/dependabot.yml's ignore list for the same reason; lift both together.",
+    "`fhirclient` is exactly 3.0.0 on purpose (tried 3.0.2 on 2026-11-24). It is",
+    "in .github/dependabot.yml's ignore list for the same reason; lift both together.",
     "",
-    "`fhirclient` is exactly 3.0.0. 3.0.2 ships the `types/types.d.ts` that 3.0.0",
-    "omitted, so its own `Client` type resolves again, and it does not satisfy",
-    "the surface packages/core/src/types/smartClient.ts declares: `tsc -b` fails at",
-    "the seam in SmartRedirect.tsx (`patient.read()` returns fhirclient's Patient,",
-    "whose `meta` has no index signature). Taking 3.0.2 means deciding what that",
-    "seam should be, which is its own change.",
+    "3.0.2 ships the `types/types.d.ts` that 3.0.0 omitted, and that file opens",
+    "with `/// <reference lib=\"dom\" />`. services/mock-ehr imports fhirclient in",
+    "one integration test, so the reference pulls the whole DOM library into the",
+    "Worker's typecheck. Three errors follow (DOM's JsonWebKey replaces the",
+    "Workers one in cdsClient.ts; the test's environment no longer satisfies",
+    "fhirclient's Adapter), but the errors are the small part: a Worker project",
+    "that has `document` in scope no longer proves its code is DOM-free. Taking",
+    "3.0.2 means giving that test its own TypeScript project first.",
     "",
-    "`typescript-eslint` is ~8.56. At 8.74 `no-unnecessary-type-assertion` reports",
-    "100 assertions in this tree, and its autofix removes 11 that are needed:",
-    "`tsc -b` fails afterwards in QuestionnaireView.test.tsx, useRegistrySlices.ts",
-    "and WritebackScorecard.test.tsx. The four Workers are on 8.74 and clean."
+    "The app side is ready: SmartClient.patient.read() was the one member 3.0.2's",
+    "types rejected, and it is fixed."
   ],
+  "//overrides": [
+    "fhirpath 4 (which the form renderer requires) pins @lhncbc/ucum-lhc 5, whose",
+    "csv-parse 4 carries a prototype-pollution advisory with no fix inside that",
+    "line. The override gives fhirpath the same ucum-lhc 7 the renderer and",
+    "cql-execution already use. Neither library reaches the browser bundle: the",
+    "build aliases @lhncbc/ucum-lhc to shims/ucum-lhc.ts (check:ucum). Delete this",
+    "when the renderer moves to a fhirpath that asks for ucum-lhc 7 itself."
+  ],
+  "overrides": {
+    "fhirpath": {
+      "@lhncbc/ucum-lhc": "^7.1.10"
+    }
+  },
   "//engines": [
     "jsdom 30's own engines field requires ^22.22.2 || ^24.15.0 || >=26.0.0 (npm test",
     "fails to even boot vitest's jsdom environment below that). .github/.nvmrc pins",

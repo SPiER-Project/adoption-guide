@@ -65,7 +65,7 @@ function positiveAsq(): QuestionnaireResponseResource {
       },
       { linkId: 'acuity-section', item: [{ linkId: 'q5', answer: ans(NO) }] },
     ],
-  } as QuestionnaireResponseResource
+  }
 }
 
 type Submit = (qr: QuestionnaireResponseResource) => void
@@ -119,7 +119,7 @@ function Harness({ onApi }: { onApi: (api: ChartApi) => void }) {
     onApi({
       submit: qr => addResponse('ASQ Screening', qr),
       save: addArtifact,
-      go: route => navigate(route),
+      go: route => { void navigate(route) },
     })
   }, [addResponse, addArtifact, navigate, onApi])
   return <div data-testid="active-patient">{activePatientId ?? 'none'}</div>
@@ -259,7 +259,7 @@ describe('the rest of the correlation funnel', () => {
       id,
       status: 'completed',
       subject: { reference: 'Patient/demo-patient' },
-    } as unknown as FhirResource
+    }
   }
 
   it('links an Appointment in reverse, because R4 gives it no .encounter', async () => {
@@ -273,7 +273,7 @@ describe('the rest of the correlation funnel', () => {
       id: 'appt-reverse',
       status: 'booked',
       participant: [{ actor: { reference: 'Patient/demo-patient' } }],
-    } as unknown as FhirResource)
+    })
 
     await waitFor(() => expect(slice().appointments?.length).toBe(1))
     await waitFor(() =>
@@ -308,7 +308,7 @@ describe('the rest of the correlation funnel', () => {
       id: 'episode-manual',
       status: 'active',
       patient: { reference: 'Patient/demo-patient' },
-    } as unknown as FhirResource)
+    })
 
     await waitFor(() =>
       expect((slice().encounters![0] as EncounterShape).episodeOfCare).toEqual([

@@ -286,7 +286,7 @@ export function closeEpisode(
         },
       },
     ],
-  } as EpisodeOfCareResource
+  }
 }
 
 export function buildFlag(params: { id: string; patientId: string | null; startDate: string }): FlagResource {
@@ -317,7 +317,7 @@ export function buildFlag(params: { id: string; patientId: string | null; startD
 /** Clear a flag when its episode closes. Same id ⇒ upsert replaces it. */
 export function clearFlag(flag: FlagResource, endDate: string): FlagResource {
   const f = flag as FlagResource & { period?: { start?: string } }
-  return { ...f, status: 'inactive', period: { start: f.period?.start, end: endDate } } as FlagResource
+  return { ...f, status: 'inactive', period: { start: f.period?.start, end: endDate } }
 }
 
 export function buildSafetyTask(params: {
@@ -365,7 +365,7 @@ export function buildSafetyTask(params: {
 
 /** Mark a task complete. Same id ⇒ upsert replaces it. */
 export function completeTask(task: TaskResource): TaskResource {
-  return { ...task, status: 'completed' } as TaskResource
+  return { ...task, status: 'completed' }
 }
 
 // ─── Opening an episode from a screen (#263, Decision 1) ─────

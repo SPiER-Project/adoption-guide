@@ -27,14 +27,14 @@ import type { PathwayTierTableProps } from './PathwayView'
 let boxWidth = 0
 const rect = Element.prototype.getBoundingClientRect
 Element.prototype.getBoundingClientRect = function boundingRect(this: Element) {
-  return { ...rect.call(this), width: boxWidth } as DOMRect
+  return { ...rect.call(this), width: boxWidth }
 }
 class StubResizeObserver {
   observe() {}
   unobserve() {}
   disconnect() {}
 }
-globalThis.ResizeObserver = StubResizeObserver as unknown as typeof ResizeObserver
+globalThis.ResizeObserver = StubResizeObserver
 
 const { PathwayTierTable } = await import('./PathwayView')
 

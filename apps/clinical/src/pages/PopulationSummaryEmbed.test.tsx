@@ -45,7 +45,7 @@ const SMART_STUB = {
 function renderEmbed(smart: Partial<typeof SMART_STUB> = {}) {
   return render(
     <MemoryRouter initialEntries={['/population/summary']}>
-      <SmartContext.Provider value={{ ...SMART_STUB, ...smart } as never}>
+      <SmartContext.Provider value={{ ...SMART_STUB, ...smart }}>
         <SmartPatientProvider
           dataSource={new LocalDataSource(DEMO_SEED)}
           populationPatients={[...POPULATION_PATIENTS]}

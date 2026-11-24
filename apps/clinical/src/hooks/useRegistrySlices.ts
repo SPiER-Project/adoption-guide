@@ -128,12 +128,12 @@ export function useRegistrySlices(): RegistrySlices {
 
   const servedCohort = served && served.source === dataSource ? served.cohort : null
 
-  const { patients, scope } = useMemo(() => {
+  const { patients, scope } = useMemo((): { patients: RegistryPatient[]; scope: RegistryScope } => {
     // What the source served, once it has served it.
     // `!== null`, not truthiness: an empty roster is a served cohort. A server
     // that genuinely holds no patients reports a panel of zero, which is a
     // different statement from "this source cannot answer".
-    if (servedCohort !== null) return { patients: servedCohort, scope: 'registry' as RegistryScope }
+    if (servedCohort !== null) return { patients: servedCohort, scope: 'registry' }
     // ⚠️ No server in the picture: the bundled registry IS the cohort, and it is
     // used synchronously so the first paint is populated. `listCohort` is async
     // even on the local source, so waiting for it here would flash a one-patient
@@ -147,13 +147,13 @@ export function useRegistrySlices(): RegistrySlices {
     // dishonesty blocker 1 (#390) closed, re-entering through the new door.
     if (!isSmartSession) {
       return populationPatients.length > 0
-        ? { patients: populationPatients, scope: 'registry' as RegistryScope }
-        : { patients: [], scope: 'no-source' as RegistryScope }
+        ? { patients: populationPatients, scope: 'registry' }
+        : { patients: [], scope: 'no-source' }
     }
     // Connected, and the source has not served a cohort: one chart, said out
     // loud. This is a patient-bound chart launch, or a source with no
     // `listCohort` at all.
-    return { patients: [], scope: 'in-context' as RegistryScope }
+    return { patients: [], scope: 'in-context' }
   }, [servedCohort, isSmartSession, populationPatients])
 
   // First paint uses the sync read when the source has one, so a local session

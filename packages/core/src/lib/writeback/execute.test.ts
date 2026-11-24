@@ -20,8 +20,8 @@ const qr: QuestionnaireResponseResource = {
 
 /** Two Observations whose derivedFrom points at the CLIENT qr id. */
 const observations: ObservationResource[] = [
-  { resourceType: 'Observation', id: 'o1', status: 'final', derivedFrom: [{ reference: 'QuestionnaireResponse/client-qr' }] } as ObservationResource,
-  { resourceType: 'Observation', id: 'o2', status: 'final', derivedFrom: [{ reference: 'QuestionnaireResponse/client-qr' }] } as ObservationResource,
+  { resourceType: 'Observation', id: 'o1', status: 'final', derivedFrom: [{ reference: 'QuestionnaireResponse/client-qr' }] },
+  { resourceType: 'Observation', id: 'o2', status: 'final', derivedFrom: [{ reference: 'QuestionnaireResponse/client-qr' }] },
 ]
 
 const documentReference: FhirResource = { resourceType: 'DocumentReference' }

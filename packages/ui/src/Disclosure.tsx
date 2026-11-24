@@ -93,7 +93,7 @@ export function Disclosure({
       open={open ?? defaultOpen}
       // `toggle` fires after the browser has flipped the attribute, so the
       // element already holds the state the reader asked for.
-      onToggle={onToggle ? (e) => onToggle((e.currentTarget as HTMLDetailsElement).open) : undefined}
+      onToggle={onToggle ? (e) => onToggle((e.currentTarget).open) : undefined}
     >
       <summary className="disclosure__summary">
         <span className="disclosure__label">{summary}</span>

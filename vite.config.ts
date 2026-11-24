@@ -10,12 +10,6 @@ import react from '@vitejs/plugin-react'
 //
 // Neither host is legacy: both are deployed from deploy.yml on every push to
 // main, and both serve the rendered IG at <base>ig/ since 2026-09-18.
-const REACT_DIR = fileURLToPath(new URL('./node_modules/react', import.meta.url))
-const REACT_DOM_DIR = fileURLToPath(new URL('./node_modules/react-dom', import.meta.url))
-const ROUTER_DIR = fileURLToPath(new URL('./node_modules/react-router-dom', import.meta.url))
-const LUCIDE_DIR = fileURLToPath(new URL('./node_modules/lucide-react', import.meta.url))
-const FORMBOX_RENDERER_DIR = fileURLToPath(new URL('./node_modules/@formbox/renderer', import.meta.url))
-const FORMBOX_THEME_DIR = fileURLToPath(new URL('./node_modules/@formbox/hs-theme', import.meta.url))
 
 /**
  * Which app this build is for.
@@ -73,64 +67,21 @@ export default defineConfig({
     // `fhirpath/fhir-context/r4` and resolve it to `<shim>.ts/fhir-context/r4`.
     // That is a real mistake this file made in a draft, and `$` is the fix.
     alias: [
-      // ── React, resolved for packages/ui ──────────────────────────────
-      // packages/ui has no node_modules of its own and is not an npm workspace
-      // (#387), so Vite cannot resolve a bare `react` from it — the first
-      // symptom is `Failed to resolve import "react/jsx-dev-runtime"`. These
-      // point every React specifier at the root install's single copy, which is the only one
-      // in the repo, so nothing about the apps' own resolution changes.
+      // ⚠️ **No alias for React, the router, the icons, the form renderer or
+      // `fhirclient`, and none is needed.** Until 2026-11-24 this list pointed
+      // each of them at `node_modules` by hand, because the packages under
+      // `packages/` had no install of their own to walk up into. The install
+      // has been at the repo root since the tooling moved there, every app and
+      // package is beneath it, and ordinary resolution finds all of them:
+      // both builds and every test passed with the entries deleted. An alias
+      // also rewrites a specifier BEFORE the package's export map is read,
+      // which is how `fhirclient/browser` and `@formbox/hs-theme/style.css`
+      // each broke once. Do not add one back to fix a failed import.
       //
-      // ⚠️ **Written as an anchored regex and a quoted prefix because those are
-      // the two forms `scripts/lib/vite-alias.mjs` can read.** That parser
-      // THROWS on an alias it cannot make sense of, and check:ucum and
-      // check:fhir-r5 both treat "not aliased" as "nothing to guard" — so an
-      // unparseable entry here would take two shim gates down with it. A form
-      // like /^react\// (no `$`) is exactly what it refuses.
-      { find: /^react$/, replacement: REACT_DIR },
-      { find: 'react/', replacement: `${REACT_DIR}/` },
-      { find: /^react-dom$/, replacement: REACT_DOM_DIR },
-      { find: 'react-dom/', replacement: `${REACT_DOM_DIR}/` },
-      { find: /^react-router-dom$/, replacement: ROUTER_DIR },
-      { find: /^lucide-react$/, replacement: LUCIDE_DIR },
-      // ⚠️ **No `fhirclient` alias, and that is required rather than tidy.**
-      // fhirclient 3 is exports-only: `fhirclient/browser` and
-      // `fhirclient/Client` are export-map entries resolving to `esm/entry/
-      // browser.js` and `types/Client.d.ts`, paths that do not exist under
-      // those names on disk. A `fhirclient/` PREFIX alias rewrites the
-      // specifier BEFORE Vite consults the export map, so it sent the build
-      // looking for `<dir>/browser` and failed — the identical trap the
-      // `@formbox/hs-theme` note below records. The bare entry went with it
-      // because fhirclient 3 has no bare entry point at all (its `index.d.ts`
-      // is a stub that says so), and the root install the hoist created is
-      // what the ordinary node walk-up now finds.
-      // ── formbox, resolved for packages/tool-views ────────────────────
-      // Same problem, and the same fix, as React above: packages/tool-views has
-      // no node_modules of its own, so Vite cannot resolve a bare
-      // `@formbox/renderer` from it.
-      //
-      // ⚠️ **Anchored EXACT only — no `@formbox/hs-theme/` prefix entry.** A
-      // prefix alias rewrites the path before Vite consults the package's
-      // `exports` map, and `@formbox/hs-theme/style.css` (imported by App.tsx)
-      // is an export-map entry pointing at `dist/index.css`. Aliasing the prefix
-      // sent it looking for a `style.css` that does not exist on disk. The
-      // subpath gets its own anchored-exact entry just below instead.
-      { find: /^@formbox\/renderer$/, replacement: FORMBOX_RENDERER_DIR },
-      { find: /^@formbox\/hs-theme$/, replacement: FORMBOX_THEME_DIR },
-      // ⚠️ **The stylesheet subpath needs its OWN anchored-exact entry now that
-      // App.tsx lives under apps/.** The note above forbids a
-      // `@formbox/hs-theme/` PREFIX alias, and that still stands — a prefix
-      // rewrite happens before Vite consults the package's `exports` map and
-      // sends `style.css` looking for a file that is not on disk. What changed
-      // is that the subpath used to resolve by the ordinary node_modules
-      // walk-up from web/src, which the split ended. The hoist put the install
-      // back in that walk's path — apps/<app>/src now does reach a root with
-      // node_modules — so this entry is no longer load-bearing for RESOLUTION.
-      // It stays because it pins the subpath to what the exports map says
-      // `./style.css` means, rather than leaving it to resolution order.
-      {
-        find: /^@formbox\/hs-theme\/style\.css$/,
-        replacement: `${FORMBOX_THEME_DIR}/dist/index.css`,
-      },
+      // ⚠️ **Every entry below is an anchored regex or a quoted prefix, because
+      // those are the two forms `scripts/lib/vite-alias.mjs` can read.** That
+      // parser THROWS on an alias it cannot make sense of, and check:ucum and
+      // check:fhir-r5 both treat "not aliased" as "nothing to guard".
       {
         // The demo population (packages/demo-population), step A of the repo
         // reshape (#388). Not an npm workspace yet (#387), so it resolves by

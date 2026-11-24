@@ -119,7 +119,7 @@ export function SmartRedirect() {
                         // EHR data via SmartDataSource) is the destination.
                         // Give the user a brief moment to see success first.
                         setTimeout(() => {
-                            navigate(directed ?? '/patient/record')
+                            void navigate(directed ?? '/patient/record')
                         }, 500)
                     } else {
                         // ── Authenticated, and NO patient in context ──────────
@@ -194,7 +194,7 @@ export function SmartRedirect() {
                                 setTimeout(() => navigate(directed ?? '/population/caseload'), 500)
                             }
                         } else {
-                            navigate('/')
+                            void navigate('/')
                         }
                     }
                 } catch (fetchError) {
@@ -213,7 +213,7 @@ export function SmartRedirect() {
     if (error) {
         return (
             <SmartLaunchErrorNotice failure={error}>
-                <Button variant="secondary" onClick={() => navigate('/')}>
+                <Button variant="secondary" onClick={() => { void navigate('/') }}>
                     Return to Tools
                 </Button>
             </SmartLaunchErrorNotice>

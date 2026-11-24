@@ -896,7 +896,7 @@ export function buildSummaryMeasureReport(
         ...(g.score === null ? {} : { measureScore: { value: Math.round(g.score * 1000) / 1000 } }),
       }
     }),
-  } as MeasureReportResource
+  }
 }
 
 /**

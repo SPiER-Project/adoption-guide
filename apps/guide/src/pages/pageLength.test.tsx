@@ -79,7 +79,7 @@ afterEach(cleanup)
  */
 const realFetch = globalThis.fetch
 beforeAll(() => {
-  globalThis.fetch = (() => Promise.reject(new Error('offline'))) as typeof fetch
+  globalThis.fetch = (() => Promise.reject(new Error('offline')))
 })
 afterAll(() => {
   globalThis.fetch = realFetch

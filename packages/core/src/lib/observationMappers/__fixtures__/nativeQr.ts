@@ -75,5 +75,5 @@ export function booleanQr(
     status: 'completed',
     questionnaire: questionnaireUrl,
     item: Object.entries(answers).map(([linkId, valueBoolean]) => ({ linkId, answer: [{ valueBoolean }] })),
-  } as QuestionnaireResponseResource
+  }
 }
