@@ -184,7 +184,7 @@ export function riskConceptFor(source: ObservationResource): ObservationResource
     derivedFrom: [{ reference: `Observation/${r.id}` }],
     valueCodeableConcept: { coding: [{ system: RISK_TIER_SYSTEM, code: tier, display }] },
     interpretation: [{ coding: [{ ...interpretation }] }],
-  } as ObservationResource
+  }
 }
 
 /**

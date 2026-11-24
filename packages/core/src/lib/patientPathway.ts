@@ -186,9 +186,9 @@ export function stageForArtifact(
   if (!resource) return undefined
   const own = ownStage(resource)
   if (own || !context) return own
-  for (const id of derivedResponseIds(resource as DerivedFromNode, context.observations ?? [])) {
+  for (const id of derivedResponseIds(resource, context.observations ?? [])) {
     const stored = context.responses.find(r => r.id === id)
-    const stage = stored ? ownStage(stored.resource as FhirResourceLike) : undefined
+    const stage = stored ? ownStage(stored.resource) : undefined
     if (stage) return stage
   }
   return undefined
@@ -204,7 +204,7 @@ function ownStage(resource: FhirResourceLike): string | undefined {
   if (fromCategory) return fromCategory
 
   if (resource.resourceType === 'QuestionnaireResponse') {
-    const fromQr = stageForResponse(resource as QuestionnaireResponseLike)
+    const fromQr = stageForResponse(resource)
     if (fromQr) return fromQr
   }
 

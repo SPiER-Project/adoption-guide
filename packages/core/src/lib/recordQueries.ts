@@ -82,7 +82,7 @@ export function sourceResponse(
   resource: FhirResourceLike,
   slice: PatientSlice,
 ): PatientSlice['responses'][number] | null {
-  for (const id of derivedResponseIds(resource as { derivedFrom?: Array<{ reference?: string }> }, slice.observations ?? [])) {
+  for (const id of derivedResponseIds(resource, slice.observations ?? [])) {
     const stored = slice.responses.find(r => r.id === id)
     if (stored) return stored
   }
@@ -103,7 +103,7 @@ export function sourceResponse(
   const sameStage = slice.responses
     .filter(r => stageForArtifact(r.resource as FhirResourceLike) === stage)
     .map(r => {
-      const on = bestArtifactDate(r.resource as FhirResourceLike)
+      const on = bestArtifactDate(r.resource)
       return { stored: r, at: timeOf(on), on }
     })
     .filter(r => Number.isFinite(r.at) && r.at <= at && day(r.on) === day(date))

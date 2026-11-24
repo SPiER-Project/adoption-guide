@@ -28,12 +28,15 @@
  * this codebase sends, so a typo'd `pageLimit` or a missing `method` is an
  * error here and was not before.
  *
- * Revisit if upstream publishes a fix (3.0.0 is the newest release as of
- * 2026-09-20) — but note that adopting it back would be a *loosening*, so the
- * reason to would have to be more than "the import works again".
+ * ⚠️ **Upstream fixed the missing file in 3.0.2, and the repo is still on
+ * 3.0.0** (tried 2026-11-24; package.json's "//pins" has the reason, which is
+ * in the mock EHR and not here). Trying it was still worth something: with
+ * fhirclient's types resolving, the structural check at the seam was real for
+ * the first time, and it caught one member this file had wrong — see
+ * `patient.read` below. If 3.0.2 is taken later, this declaration stays:
+ * importing fhirclient's `Client` instead would be a *loosening*, for the
+ * reason above.
  */
-import type { PatientResource } from './fhir'
-
 /** Search options — the only `fhirOptions` shape the data source passes. */
 export interface SmartSearchOptions {
   /** 0 means "follow every page". */
@@ -69,7 +72,15 @@ export interface SmartClient {
   readonly patient: {
     /** null when the launch carried no patient context (a worklist launch). */
     id: string | null
-    read(): Promise<PatientResource>
+    /**
+     * ⚠️ `unknown`, not `PatientResource`, since 2026-11-24. This is a response
+     * body off the wire, and fhirclient's own return type promises only
+     * `{ resourceType: "Patient" }` with a `meta` this codebase's `Meta` does
+     * not accept. While fhirclient 3.0.0's types are missing that mismatch is
+     * invisible; under 3.0.2, which restores them, the seam did not compile. The one
+     * caller (`readSmartPatientSummary`) checks what came back before reading it.
+     */
+    read(): Promise<unknown>
   }
 
   readonly state: {

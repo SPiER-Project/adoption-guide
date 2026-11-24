@@ -4,7 +4,7 @@ import { nativeQr, type NativeAnswer } from './observationMappers/__fixtures__/n
 import { deriveFromResponse } from './deriveFromResponse'
 import { evaluatePathway } from './pathwayEvaluation'
 import { tierForCodings } from './conceptCrosswalk'
-import { stageForArtifact, PATHWAY_STAGE_SYSTEM, type FhirResourceLike } from './patientPathway'
+import { stageForArtifact, PATHWAY_STAGE_SYSTEM } from './patientPathway'
 import { isRiskConcept, RISK_CONCEPT_PROFILE } from './riskConcept'
 import {
   isPositiveScreenConcept,
@@ -41,7 +41,7 @@ function submitted(questionnaire: string, answers: Record<string, NativeAnswer>,
 
 /** The rule this module replaced, kept here only to prove the switch changed nothing on the corpus. */
 function previousRule(o: ObservationResource, slice: Parameters<typeof stageForArtifact>[1]): boolean {
-  if (!isRiskConcept(o) || stageForArtifact(o as FhirResourceLike, slice) !== 'identify-possible-risk') return false
+  if (!isRiskConcept(o) || stageForArtifact(o, slice) !== 'identify-possible-risk') return false
   const tier = tierForCodings(o.valueCodeableConcept?.coding)
   return !!tier && tier !== 'no-risk'
 }

@@ -3,7 +3,7 @@
  * dating and counting. Pure and React-free; the components that use them live
  * in components/ChartArtifacts.tsx.
  */
-import { bestArtifactDate, type DatedResourceLike } from '@spier/core/lib/artifactDate'
+import { bestArtifactDate } from '@spier/core/lib/artifactDate'
 import { displayFor } from '@spier/core/lib/codedOption'
 import { RISK_TIERS } from '@spier/core/lib/riskEpisode'
 import { tierForCodings } from '@spier/core/lib/conceptCrosswalk'
@@ -11,7 +11,6 @@ import { CONCEPT_DOMAIN_SYSTEM } from '@spier/core/lib/conceptDomain'
 import { toolForResponse } from '@spier/core/lib/patientPathway'
 import type {
   FhirResourceLike,
-  QuestionnaireResponseLike,
   StoredResponseLike,
 } from '@spier/core/lib/patientPathway'
 import type { CodeableConcept } from '@spier/core/types/fhir'
@@ -247,7 +246,7 @@ export function artifactLabel(resource: FhirResourceLike): string {
   if (resource.resourceType === 'QuestionnaireResponse') {
     // The StoredResponse wrapper carries `questionnaireName`, but a bare resource
     // does not — so resolve the instrument from its own canonical instead.
-    return toolForResponse(resource as QuestionnaireResponseLike)?.name ?? 'Completed form'
+    return toolForResponse(resource)?.name ?? 'Completed form'
   }
   if (resource.resourceType === 'Observation') {
     return (
@@ -374,7 +373,7 @@ function observationRow(resource: FhirResourceLike): StageRecordRow | null {
     .join(' — ')
   if (!outcome) return null
 
-  const iso = bestArtifactDate(resource as DatedResourceLike)
+  const iso = bestArtifactDate(resource)
   return {
     tool: instrumentOf(label),
     outcome,
@@ -390,7 +389,7 @@ export function stageRecordRows(buckets: ArtifactBuckets): StageRecordRow[] {
   // when it holds a completed safety plan is the collapsed row at its least
   // useful. Same three columns; the state is the outcome.
   for (const resource of [...buckets.carePlans, ...buckets.workflowArtifacts]) {
-    const iso = bestArtifactDate(resource as DatedResourceLike)
+    const iso = bestArtifactDate(resource)
     rows.push({
       tool: artifactLabel(resource),
       outcome: lifecycleWord((resource as RenderableResource).status) ?? '',

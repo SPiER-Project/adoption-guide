@@ -335,8 +335,8 @@ function positiveScreens(slice: PatientSlice): Array<{ resource: FhirResourceLik
   }
   return positives
     .map(o => {
-      const at = timeOf(bestArtifactDate(o as FhirResourceLike))
-      return { resource: o as FhirResourceLike, at: Number.isFinite(at) ? at : Number.NEGATIVE_INFINITY }
+      const at = timeOf(bestArtifactDate(o))
+      return { resource: o, at: Number.isFinite(at) ? at : Number.NEGATIVE_INFINITY }
     })
     .sort((a, b) => a.at - b.at)
 }
@@ -354,7 +354,7 @@ function tierHistory(slice: PatientSlice): TierPoint[] {
   return (slice.observations ?? [])
     .filter(isRiskConcept)
     .map(o => {
-      const date = bestArtifactDate(o as FhirResourceLike)
+      const date = bestArtifactDate(o)
       return {
         code: tierForCodings(o.valueCodeableConcept?.coding),
         date: date ?? '',
@@ -698,7 +698,7 @@ function evaluateTier(params: {
   }
   const triggerAt = runStart?.at ?? Number.NEGATIVE_INFINITY
   const trigger =
-    artifactPhrase(runStart?.observation as FhirResourceLike | undefined, slice, now) ??
+    artifactPhrase(runStart?.observation, slice, now) ??
     (runStart?.date
       ? `Risk recorded ${shortDate(runStart.date, now)}`
       : // No tier Observation at all — the tier came off the open episode, which

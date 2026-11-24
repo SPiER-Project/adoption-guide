@@ -327,7 +327,7 @@ describe('the parser refuses what it cannot read', () => {
           action: [],
         },
       ],
-    } as unknown as (typeof plan.action)[number])
+    })
     expect(() => parsePathway(plan)).toThrow(/2 tier branches/)
   })
 

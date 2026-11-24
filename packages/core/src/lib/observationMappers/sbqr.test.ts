@@ -18,7 +18,7 @@ function sbqrResponse(codes: { q1: string; q2: string; q3: string; q4: string })
       linkId: q,
       answer: [{ valueCoding: { system: sys(q), code: codes[q] } }],
     })),
-  } as QuestionnaireResponseResource
+  }
 }
 
 function total(r: ReturnType<typeof mapSBQR>) {

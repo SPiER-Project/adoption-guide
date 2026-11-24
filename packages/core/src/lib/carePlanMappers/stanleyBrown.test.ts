@@ -24,7 +24,7 @@ function fullSafetyPlan(shape: PairShape = 'conformant'): QuestionnaireResponseR
       simple('6-1-safety-action', ['Store medications with a friend']),
       simple('7-1-worth-living', ['My children']),
     ],
-  } as QuestionnaireResponseResource
+  }
 }
 
 describe('generateCarePlan (Stanley-Brown)', () => {
@@ -72,7 +72,7 @@ describe('generateCarePlan (Stanley-Brown)', () => {
       status: 'completed',
       questionnaire: 'http://thespierproject.org/fhir/Questionnaire/StanleyBrownSafetyPlan',
       item: [],
-    } as QuestionnaireResponseResource
+    }
 
     const { activities, isEmpty } = generateCarePlan(empty)
     expect(isEmpty).toBe(true)

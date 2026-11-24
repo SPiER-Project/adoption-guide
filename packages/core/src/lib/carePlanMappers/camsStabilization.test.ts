@@ -24,7 +24,7 @@ function fullStabilizationPlan(shape: PairShape = 'conformant'): QuestionnaireRe
         ['No motivation', ''], // no solution case
       ]),
     ],
-  } as QuestionnaireResponseResource
+  }
 }
 
 describe('generateStabilizationCarePlan (CAMS)', () => {
@@ -85,7 +85,7 @@ describe('generateStabilizationCarePlan (CAMS)', () => {
       status: 'completed',
       questionnaire: 'http://thespierproject.org/fhir/Questionnaire/CAMSStabilizationPlan',
       item: [],
-    } as QuestionnaireResponseResource
+    }
 
     const { activities, isEmpty } = generateStabilizationCarePlan(empty)
     expect(isEmpty).toBe(true)

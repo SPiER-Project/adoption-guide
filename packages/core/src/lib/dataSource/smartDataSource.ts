@@ -27,7 +27,7 @@
 import type { SmartClient } from '../../types/smartClient'
 import { toolForQuestionnaireUrl, stripCanonicalVersion } from '../../data/catalog'
 import { deriveFromResponse } from '../deriveFromResponse'
-import { stageForArtifact, PATHWAY_STAGE_SYSTEM, type FhirResourceLike } from '../patientPathway'
+import { stageForArtifact, PATHWAY_STAGE_SYSTEM } from '../patientPathway'
 import type { RiskAlert } from '../observationMappers'
 import { CAMS_DRIVER_CATEGORY } from '../observationMappers/camsSectionB'
 import { parseCapabilityStatement } from '../writeback/capability'
@@ -904,7 +904,7 @@ export class SmartDataSource implements FhirDataSource, WritebackTarget {
     // CarePlan ids like "careplan-stanley-brown-…"), which the server-assigned
     // id won't preserve. A meta.tag against the pathway-stage system is the
     // self-describing channel stageForArtifact reads first.
-    const stageId = stageForArtifact(resource as FhirResourceLike)
+    const stageId = stageForArtifact(resource)
     const meta = (payload.meta ?? {}) as { tag?: { system?: string; code?: string }[] }
     const alreadyTagged = meta.tag?.some(t => t.system === PATHWAY_STAGE_SYSTEM)
     if (stageId && !alreadyTagged) {

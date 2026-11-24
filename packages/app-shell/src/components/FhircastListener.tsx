@@ -95,7 +95,7 @@ export function FhircastListener() {
         if (pathname === `/patient/record/${payload.patientId}`) return
         if (!CHART_ROUTE.test(pathname)) return
         markFollowing(payload.patientId, Date.now())
-        navigate(`/patient/record/${payload.patientId}`)
+        void navigate(`/patient/record/${payload.patientId}`)
         setFollowed({ payload, via })
         return
       }
@@ -110,7 +110,7 @@ export function FhircastListener() {
       // publish effect (which fires once the navigation changes the active
       // patient) suppresses it instead of rebroadcasting — no cross-tab echo.
       markFollowing(payload.patientId, Date.now())
-      navigate(`/patient/record/${payload.patientId}`)
+      void navigate(`/patient/record/${payload.patientId}`)
       setFollowed({ payload, via })
     })
   }, [navigate])

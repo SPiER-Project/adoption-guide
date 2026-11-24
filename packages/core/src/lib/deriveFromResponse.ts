@@ -10,7 +10,7 @@
  */
 import { mapResponseToObservations, type DispatchOptions } from './observationMappers'
 import type { RiskAlert } from './observationMappers'
-import { stageForArtifact, PATHWAY_STAGE_SYSTEM, type FhirResourceLike } from './patientPathway'
+import { stageForArtifact, PATHWAY_STAGE_SYSTEM } from './patientPathway'
 import type { DerivedArtifacts } from './dataSource/types'
 import type { ConditionResource, ObservationResource, QuestionnaireResponseResource } from '../types/fhir'
 
@@ -60,7 +60,7 @@ export function deriveFromResponse(
   // shared by tools at different stages always picks the first-owner tool.
   // stageForArtifact reads meta.tag first (tier 1) and falls back to canonical
   // resolution (tier 3).
-  const stageId = stageForArtifact(storedResource as FhirResourceLike)
+  const stageId = stageForArtifact(storedResource)
   const stageTag = stageId ? [{ system: PATHWAY_STAGE_SYSTEM, code: stageId }] : []
   const observations: ObservationResource[] = result.observations.map(obs => ({
     ...obs,

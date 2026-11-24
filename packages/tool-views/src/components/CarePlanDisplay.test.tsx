@@ -27,7 +27,7 @@ afterEach(cleanup)
 
 const PLAN: GeneratedCarePlan = {
   isEmpty: false,
-  resource: { resourceType: 'CarePlan', id: 'safety-plan-1' } as GeneratedCarePlan['resource'],
+  resource: { resourceType: 'CarePlan', id: 'safety-plan-1' },
   activities: [
     {
       stepTitle: 'Warning signs',

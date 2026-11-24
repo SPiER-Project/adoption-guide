@@ -23,7 +23,7 @@ function nativeQr(scores: number[]): QuestionnaireResponseResource {
       linkId: `q${i + 1}`,
       answer: [{ valueCoding: { system: 'http://loinc.org', code: LA[s as 0 | 1 | 2 | 3] } }],
     })),
-  } as QuestionnaireResponseResource
+  }
 }
 
 /**
@@ -40,7 +40,7 @@ function foreignCodedQr(scores: number[], canonical?: string): QuestionnaireResp
       code: [{ system: 'http://loinc.org', code: ITEM_LOINC[i] }],
       answer: [{ valueCoding: { system: 'http://loinc.org', code: LA[s as 0 | 1 | 2 | 3] } }],
     })),
-  } as QuestionnaireResponseResource
+  }
 }
 
 /** Foreign PHQ-9 QR with LOINC item codes but bare-integer (0–3) answers. */
@@ -54,7 +54,7 @@ function foreignIntegerQr(scores: number[]): QuestionnaireResponseResource {
       code: [{ system: 'http://loinc.org', code: ITEM_LOINC[i] }],
       answer: [{ valueInteger: s }],
     })),
-  } as QuestionnaireResponseResource
+  }
 }
 
 const totalOf = (r: NonNullable<ReturnType<typeof mapResponseToObservations>>) =>
@@ -129,7 +129,7 @@ describe('fallback dispatch — Tier 3 (shape heuristic) is gated', () => {
       status: 'completed',
       questionnaire: 'http://example.org/unknown-depression-tool',
       item: scores.map((s, i) => ({ linkId: `x${i + 1}`, answer: [{ valueInteger: s }] })),
-    } as QuestionnaireResponseResource
+    }
   }
 
   it('an ambiguous shape returns null without allowHeuristic (no fabricated tier)', () => {
@@ -493,7 +493,7 @@ describe('fallback dispatch — ASQ (LOINC 115564-7)', () => {
             : { system: 'http://loinc.org', code: 'LA32-8', display: 'No' },
         }],
       })),
-    } as QuestionnaireResponseResource
+    }
   }
 
   it('recognizes a foreign LOINC-coded ASQ by item code', () => {

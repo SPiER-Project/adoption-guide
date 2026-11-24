@@ -20,7 +20,7 @@ const episode = (id: string, triggerRef?: string): FhirResourceLike =>
     ...(triggerRef
       ? { extension: [{ url: TRIGGER_EXT, valueReference: { reference: triggerRef } }] }
       : {}),
-  }) as FhirResourceLike
+  })
 
 const encounter = (
   id: string,
@@ -33,14 +33,14 @@ const encounter = (
     episodeOfCare: episodeIds.map(e => ({ reference: `EpisodeOfCare/${e}` })),
     period: { start: '2026-08-11T09:00:00Z' },
     ...extra,
-  }) as FhirResourceLike
+  })
 
 const at = (resourceType: string, id: string, encounterId?: string): FhirResourceLike =>
   ({
     resourceType,
     id,
     ...(encounterId ? { encounter: { reference: `Encounter/${encounterId}` } } : {}),
-  }) as FhirResourceLike
+  })
 
 describe('groupByEpisode', () => {
   it('reaches artifacts through the Encounter hinge', () => {
@@ -111,7 +111,7 @@ describe('groupByEpisode', () => {
     const { unassigned } = groupByEpisode({
       episodes: [episode('ep1')],
       encounters: [encounter('e1', ['ep1'])],
-      appointments: [{ resourceType: 'Appointment', id: 'future', status: 'booked' } as FhirResourceLike],
+      appointments: [{ resourceType: 'Appointment', id: 'future', status: 'booked' }],
     })
     expect(unassigned).toEqual([
       { resource: withId('future'), reason: 'not-yet-occurred' },
@@ -122,7 +122,7 @@ describe('groupByEpisode', () => {
     const { unassigned } = groupByEpisode({
       episodes: [episode('ep1')],
       encounters: [encounter('e1', ['ep1'])],
-      appointments: [{ resourceType: 'Appointment', id: 'held', status: 'fulfilled' } as FhirResourceLike],
+      appointments: [{ resourceType: 'Appointment', id: 'held', status: 'fulfilled' }],
     })
     expect(unassigned[0].reason).toBe('no-encounter')
   })
@@ -156,8 +156,8 @@ describe('groupByEpisode', () => {
     const { records } = groupByEpisode({
       episodes: [episode('ep1')],
       encounters: [
-        { ...(encounter('late', ['ep1']) as object), period: { start: '2026-08-12T09:00:00Z' } } as FhirResourceLike,
-        { ...(encounter('early', ['ep1']) as object), period: { start: '2026-08-10T09:00:00Z' } } as FhirResourceLike,
+        { ...(encounter('late', ['ep1']) as object), period: { start: '2026-08-12T09:00:00Z' } },
+        { ...(encounter('early', ['ep1']) as object), period: { start: '2026-08-10T09:00:00Z' } },
       ],
     })
     expect(records[0].encounters.map(e => e.id)).toEqual(['early', 'late'])
@@ -177,7 +177,7 @@ describe('the shipped scenarios actually group', () => {
     const empty: string[] = []
     for (const [patientId, scenario] of Object.entries(POPULATION_SCENARIOS)) {
       if (!(scenario.episodes ?? []).length) continue
-      const { records } = groupByEpisode(scenario as never)
+      const { records } = groupByEpisode(scenario)
       for (const record of records) {
         if (record.artifacts.length === 0) empty.push(`${patientId}:${record.episode.id}`)
       }
@@ -189,7 +189,7 @@ describe('the shipped scenarios actually group', () => {
     const byReason = new Map<string, Set<string>>()
     for (const scenario of Object.values(POPULATION_SCENARIOS)) {
       if (!(scenario.episodes ?? []).length) continue
-      for (const { resource, reason } of groupByEpisode(scenario as never).unassigned) {
+      for (const { resource, reason } of groupByEpisode(scenario).unassigned) {
         const set = byReason.get(reason) ?? new Set<string>()
         set.add(String(resource.resourceType))
         byReason.set(reason, set)

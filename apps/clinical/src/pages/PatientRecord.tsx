@@ -181,7 +181,7 @@ export function PatientRecord() {
     if (!row || row.resource.resourceType !== 'QuestionnaireResponse') return []
     return [...observations, ...carePlans].filter(
       r => sourceResponse(r as FhirResourceLike, slice)?.id === row.resource.id,
-    ) as FhirResourceLike[]
+    )
   }, [row, observations, carePlans, slice])
   const cameFrom = useMemo(() => {
     if (!row || row.resource.resourceType === 'QuestionnaireResponse') return null

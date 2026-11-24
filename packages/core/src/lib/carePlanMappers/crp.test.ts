@@ -13,7 +13,7 @@ function crpResponse(answers: Record<string, string[]>): QuestionnaireResponseRe
       linkId,
       answer: values.map(valueString => ({ valueString })),
     })),
-  } as QuestionnaireResponseResource
+  }
 }
 
 describe('generateCrisisResponseCarePlan', () => {

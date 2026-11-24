@@ -20,7 +20,7 @@ import {
   taskDueDate,
   tasksForEpisode,
 } from '@spier/core/lib/riskEpisode'
-import type { EpisodeOfCareResource, ObservationResource, TaskResource } from '@spier/core/types/fhir'
+import type { ObservationResource, TaskResource } from '@spier/core/types/fhir'
 
 const openEpisode = () =>
   buildEpisode({
@@ -46,7 +46,7 @@ const task = (over: Partial<Record<string, unknown>> = {}) =>
 
 describe('episode lifecycle', () => {
   it('builds an open, stage-tagged, profiled episode with entry reason and tier', () => {
-    const e = openEpisode() as EpisodeOfCareResource & { meta?: { profile?: string[]; tag?: { code?: string }[] } }
+    const e = openEpisode()
     expect(isEpisodeOpen(e)).toBe(true)
     expect(e.meta?.profile?.[0]).toContain('spier-suicide-risk-episode')
     expect(e.meta?.tag?.[0]?.code).toBe('track-risk-over-time')

@@ -51,14 +51,14 @@ vi.mock('@spier/tool-views/context/PatientContext', () => ({
 let panelWidth = 0
 const rect = Element.prototype.getBoundingClientRect
 Element.prototype.getBoundingClientRect = function boundingRect(this: Element) {
-  return { ...rect.call(this), width: panelWidth } as DOMRect
+  return { ...rect.call(this), width: panelWidth }
 }
 class StubResizeObserver {
   observe() {}
   unobserve() {}
   disconnect() {}
 }
-globalThis.ResizeObserver = StubResizeObserver as unknown as typeof ResizeObserver
+globalThis.ResizeObserver = StubResizeObserver
 
 const { PanelShell } = await import('./PanelShell')
 

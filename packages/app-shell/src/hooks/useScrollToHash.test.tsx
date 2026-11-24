@@ -36,7 +36,7 @@ function stubRect(el: Element, top: number, height = 100) {
       x: 0,
       y: top,
       toJSON: () => ({}),
-    }) as DOMRect
+    })
 }
 
 function setWindowScrollY(y: number) {
@@ -212,7 +212,7 @@ describe('useScrollToHash', () => {
     const { navigate } = renderWithRoute('/patient/record#activity', useScrollToHash)
     expect(scrollToSpy).toHaveBeenCalledWith(0, 300)
 
-    act(() => navigate('/patient/record#documents'))
+    act(() => { void navigate('/patient/record#documents') })
     expect(scrollToSpy).toHaveBeenCalledWith(0, 800)
   })
 })
@@ -222,7 +222,7 @@ describe('useScrollToTopOnNavigate', () => {
     const { navigate } = renderWithRoute('/population', useScrollToTopOnNavigate)
     scrollToSpy.mockClear()
 
-    act(() => navigate('/patient/record/patient-001'))
+    act(() => { void navigate('/patient/record/patient-001') })
 
     expect(scrollToSpy).toHaveBeenCalledWith(0, 0)
   })
@@ -231,7 +231,7 @@ describe('useScrollToTopOnNavigate', () => {
     const { navigate } = renderWithRoute('/patient/record', useScrollToTopOnNavigate)
     scrollToSpy.mockClear()
 
-    act(() => navigate('/patient/record?new=1'))
+    act(() => { void navigate('/patient/record?new=1') })
 
     expect(scrollToSpy).toHaveBeenCalledWith(0, 0)
   })
@@ -242,7 +242,7 @@ describe('useScrollToTopOnNavigate', () => {
     const { navigate } = renderWithRoute('/population', useScrollToTopOnNavigate)
     scrollToSpy.mockClear()
 
-    act(() => navigate('/patient/record/patient-001#documents'))
+    act(() => { void navigate('/patient/record/patient-001#documents') })
 
     expect(scrollToSpy).not.toHaveBeenCalled()
   })
@@ -256,7 +256,7 @@ describe('useScrollToTopOnNavigate', () => {
     document.body.appendChild(content)
 
     const { navigate } = renderWithRoute('/population', useScrollToTopOnNavigate)
-    act(() => navigate('/guide'))
+    act(() => { void navigate('/guide') })
 
     expect(content.scrollTo).toHaveBeenCalledWith(0, 0)
     expect(scrollToSpy).toHaveBeenCalledWith(0, 0)

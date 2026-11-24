@@ -170,7 +170,7 @@ describe('write path: stampLaunchStage stamps the launching tool’s stage', () 
           item: [1, 2, 3, 4, 5, 6].map((n) => ({ linkId: `${n}-score`, answer: [{ valueInteger: 2 }] })),
         },
       ],
-    }) as QuestionnaireResponseResource
+    })
 
   const stampedSubmission = (): QuestionnaireResponseResource =>
     stampLaunchStage(rawSubmission(), owner!.id)
@@ -422,7 +422,7 @@ describe('every CarePlan in every shipped scenario resolves to a stage', () => {
     const unresolved: string[] = []
     for (const [patientId, scenario] of Object.entries(POPULATION_SCENARIOS)) {
       for (const plan of scenario.carePlans ?? []) {
-        if (!stageForArtifact(plan as FhirResourceLike)) {
+        if (!stageForArtifact(plan)) {
           unresolved.push(`${patientId}:${(plan as { id?: string }).id}`)
         }
       }

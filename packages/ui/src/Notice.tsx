@@ -43,7 +43,7 @@ export function Notice({
 }) {
   const resolvedRole = role ?? (tone === 'warning' || tone === 'danger' ? 'alert' : 'status')
   return (
-    <Tag className={cx('notice', `notice--${tone}`)} role={resolvedRole} aria-label={ariaLabel} ref={ref as Ref<never>}>
+    <Tag className={cx('notice', `notice--${tone}`)} role={resolvedRole} aria-label={ariaLabel} ref={ref}>
       {title !== undefined && <strong className="notice__title">{title}</strong>}
       {children}
     </Tag>

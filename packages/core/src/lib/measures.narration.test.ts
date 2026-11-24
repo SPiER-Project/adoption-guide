@@ -49,7 +49,7 @@ const PERIOD = trailingPeriod(365)
 
 function sliceFor(patientId: string): PatientSlice {
   const empty: PatientSlice = { responses: [], observations: [], carePlans: [], riskAlerts: [] }
-  return { ...empty, ...POPULATION_SCENARIOS[patientId] } as PatientSlice
+  return { ...empty, ...POPULATION_SCENARIOS[patientId] }
 }
 
 function walkthroughOf(patientId: string): ScenarioEncounter[] {

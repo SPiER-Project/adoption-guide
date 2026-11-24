@@ -26,7 +26,7 @@ describe('generateTherapeuticCarePlan', () => {
         simple('so-increase', 'Intense feelings of shame'),
         simple('so-decrease', 'Thinking of children'),
       ],
-    } as QuestionnaireResponseResource
+    }
 
     const { resource, activities, isEmpty } = generateTherapeuticCarePlan(fullResponse)
     expect(isEmpty).toBe(false)
@@ -95,7 +95,7 @@ describe('generateTherapeuticCarePlan', () => {
       status: 'completed',
       questionnaire: 'http://thespierproject.org/fhir/Questionnaire/CamsTherapeuticWorksheet',
       item: [],
-    } as QuestionnaireResponseResource
+    }
 
     const { activities, isEmpty } = generateTherapeuticCarePlan(empty)
     expect(isEmpty).toBe(true)
@@ -115,7 +115,7 @@ describe('generateTherapeuticCarePlan', () => {
         simple('dd-feelings', 'Sadness'),
         simple('dd-themes', 'Loss'),
       ],
-    } as QuestionnaireResponseResource
+    }
 
     const { activities } = generateTherapeuticCarePlan(partialResponse)
     expect(activities[1].description).toBe('Feelings: Sadness; Themes: Loss')
@@ -129,7 +129,7 @@ describe('generateTherapeuticCarePlan', () => {
         simple('si-increase', 'Work stress'),
         simple('sd-decrease', 'Exercise'),
       ],
-    } as QuestionnaireResponseResource
+    }
 
     const { activities } = generateTherapeuticCarePlan(partialResponse)
     expect(activities[3].description).toBe(

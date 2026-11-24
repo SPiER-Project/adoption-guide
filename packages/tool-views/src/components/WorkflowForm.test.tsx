@@ -81,7 +81,7 @@ function patientValue(session: {
     ...EMPTY,
     ...session,
     dataSource: {} as PatientContextType['dataSource'],
-    patient: { resourceType: 'Patient' } as PatientContextType['patient'],
+    patient: { resourceType: 'Patient' },
     patientDisplay: {} as PatientContextType['patientDisplay'],
     populationPatient: null,
     populationPatients: [],

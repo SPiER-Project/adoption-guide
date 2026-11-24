@@ -29,7 +29,7 @@ function phq9Response(scores: number[]): QuestionnaireResponseResource {
       linkId: `q${i + 1}`,
       answer: [{ valueCoding: { system: 'http://loinc.org', code: CODE[s as 0 | 1 | 2 | 3] } }],
     })),
-  } as QuestionnaireResponseResource
+  }
 }
 
 describe('mapPHQ9', () => {

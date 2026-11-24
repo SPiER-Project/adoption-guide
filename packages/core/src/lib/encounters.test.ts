@@ -17,10 +17,10 @@ const enc = (over: Record<string, unknown> = {}): EncounterResource =>
     status: 'in-progress',
     period: { start: '2026-08-11T09:00:00Z' },
     ...over,
-  }) as EncounterResource
+  })
 
 const episode = (id = 'ep1'): EpisodeOfCareResource =>
-  ({ resourceType: 'EpisodeOfCare', id }) as EpisodeOfCareResource
+  ({ resourceType: 'EpisodeOfCare', id })
 
 describe('buildEncounter', () => {
   it('does NOT claim the SPiER profile — episodeOfCare is 1..* there, and no episode exists yet', () => {
@@ -72,7 +72,7 @@ describe('attachEpisode', () => {
     const out = attachEpisode(
       enc({ meta: { profile: ['http://example.org/other'] } }),
       episode(),
-    ) as EncounterResource & { meta?: { profile?: string[] } }
+    )
     expect(out.meta?.profile).toEqual(['http://example.org/other', ENCOUNTER_PROFILE])
   })
 })
