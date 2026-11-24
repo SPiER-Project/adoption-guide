@@ -88,11 +88,11 @@ jobs:
       pub_tag: ${{ steps.pub.outputs.tag }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # ── Companion web app (Vite → dist) ───────────────────────────────
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .github/.nvmrc
           cache: npm
@@ -162,7 +162,7 @@ jobs:
       - name: Restore rendered IG
         id: ig-cache
         if: ${{ github.event.inputs.force_ig_render != 'true' }}
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: |
             ig/output
@@ -199,7 +199,7 @@ jobs:
       # ── Everything below to the render step runs only on a cache miss ──────
       - name: Setup Java
         if: steps.plan.outputs.render == 'true'
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 17
@@ -241,7 +241,7 @@ jobs:
       # treatment as ig-publish.yml.
       - name: Cache FHIR package cache
         if: steps.plan.outputs.render == 'true'
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.fhir/packages
           key: fhir-packages-${{ hashFiles('ig/sushi-config.yaml') }}
@@ -251,7 +251,7 @@ jobs:
       - name: Cache IG Publisher jar
         if: steps.plan.outputs.render == 'true'
         id: jar
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: publisher.jar
           key: ig-publisher-${{ steps.pub.outputs.tag }}
@@ -316,7 +316,7 @@ jobs:
       # that failed QA must not become the cached answer for its inputs.
       - name: Cache the rendered IG
         if: steps.plan.outputs.render == 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: |
             ig/output
@@ -360,10 +360,10 @@ jobs:
 
       # ── Publish the combined site ─────────────────────────────────────────
       - name: Setup Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v6
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: './dist' # app at /adoption-guide/, rendered IG at /adoption-guide/ig/
 
@@ -377,7 +377,7 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
   # ── Cloudflare Workers: the CLINICAL surface, its own Worker, its own origin ──
   #
@@ -399,10 +399,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .github/.nvmrc
 
@@ -419,7 +419,7 @@ jobs:
         run: npm ci
 
       - name: Cache FHIR package cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.fhir/packages
           key: fhir-packages-${{ hashFiles('ig/sushi-config.yaml') }}
@@ -501,10 +501,10 @@ jobs:
     outputs:
       bootstrapped: ${{ steps.deploy.outputs.bootstrapped }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .github/.nvmrc
 
@@ -517,7 +517,7 @@ jobs:
         run: npm ci
 
       - name: Cache FHIR package cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.fhir/packages
           key: fhir-packages-${{ hashFiles('ig/sushi-config.yaml') }}
@@ -603,10 +603,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .github/.nvmrc
 
@@ -619,7 +619,7 @@ jobs:
         run: npm ci
 
       - name: Cache FHIR package cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.fhir/packages
           key: fhir-packages-${{ hashFiles('ig/sushi-config.yaml') }}
@@ -665,10 +665,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .github/.nvmrc
 
@@ -681,7 +681,7 @@ jobs:
         run: npm ci
 
       - name: Cache FHIR package cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.fhir/packages
           key: fhir-packages-${{ hashFiles('ig/sushi-config.yaml') }}
@@ -721,10 +721,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .github/.nvmrc
 
@@ -733,7 +733,7 @@ jobs:
       # fresh render the exact key hits and on a reuse the prefix does.
       - name: Restore the gated IG render
         id: ig-cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: |
             ig/output

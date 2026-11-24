@@ -132,10 +132,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .github/.nvmrc
 
@@ -168,7 +168,7 @@ jobs:
 
       - name: Upload log
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: codings-log
           path: ${{ runner.temp }}/codings.log
@@ -182,15 +182,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .github/.nvmrc
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 17
@@ -234,13 +234,13 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Cache validator jar
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .fhir-validator
           key: fhir-validator-${{ steps.validator.outputs.version }}
 
       - name: Cache FHIR package cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.fhir/packages
           key: fhir-packages-${{ hashFiles('ig/sushi-config.yaml') }}
@@ -293,7 +293,7 @@ jobs:
 
       - name: Upload log
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: resources-log
           path: ${{ runner.temp }}/resources.log
@@ -323,11 +323,11 @@ jobs:
       TITLE: 'Terminology drift: external codes no longer validate'
       DRIFTED: ${{ needs.codings.result == 'failure' || needs.resources.result == 'failure' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Download logs
         if: env.DRIFTED == 'true' && github.event_name != 'pull_request'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: ${{ runner.temp }}/logs
           merge-multiple: true
