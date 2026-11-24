@@ -146,7 +146,7 @@ export const GROUPS = [
     id: 'conformance',
     name: 'Conformance',
     description:
-      'The CapabilityStatement for each system role this guide defines, and the synthetic patient and practitioner every example refers to.',
+      'The CapabilityStatement for each system role this guide defines, and the synthetic patient, practitioner, receiving organization and support person the examples refer to.',
   },
 ]
 
@@ -312,6 +312,8 @@ for (const d of defs) {
 const EXTERNAL_PROFILES = new Map([
   ['USCorePatientProfile', 'Patient'],
   ['USCorePractitionerProfile', 'Practitioner'],
+  ['USCoreOrganizationProfile', 'Organization'],
+  ['USCoreRelatedPersonProfile', 'RelatedPerson'],
   ['USCoreObservationScreeningAssessmentProfile', 'Observation'],
   ['USCoreSimpleObservationProfile', 'Observation'],
   ['USCoreConditionProblemsHealthConcernsProfile', 'Condition'],

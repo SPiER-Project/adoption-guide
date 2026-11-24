@@ -123,8 +123,8 @@ PlanDefinition, which is how an engine applies one protocol from inside another.
 
 - [SPiERReassessmentSchedule](PlanDefinition-SPiERReassessmentSchedule.html) —
   the per-tier reassessment cadence this pathway references.
-- The eight stage PlanDefinitions (the [pathway group](artifacts.html#6) on the
-  Artifacts page) — each a `workflow-definition` cataloguing what a stage *can*
+- The eight stage PlanDefinitions (under *The care pathway (Act)* on the
+  [Artifacts](artifacts.html) page) — each a `workflow-definition` cataloguing what a stage *can*
   contain. This pathway is a `clinical-protocol`: one course of care drawn from
   that catalogue, which is what the stage codes on its action groups tie back to.
 - [Measures](measurement.html) — how the Measures above are scored.

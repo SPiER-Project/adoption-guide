@@ -493,14 +493,16 @@ groups:
       - MeasureReport/ExampleFollowUpTimelinessReportSummary
   conformance:
     name: "Conformance"
-    description: "The CapabilityStatement for each system role this guide defines, and the synthetic patient and practitioner every example refers to."
+    description: "The CapabilityStatement for each system role this guide defines, and the synthetic patient, practitioner, receiving organization and support person the examples refer to."
     resources:
       - CapabilityStatement/hie-intermediary
       - CapabilityStatement/quality-reporter
       - CapabilityStatement/risk-consumer
       - CapabilityStatement/screening-source-ehr
+      - Organization/receiving-organization
       - Patient/example
       - Practitioner/practitioner-1
+      - RelatedPerson/support-person
 resources:
   StructureMap/ASQResultToSuicideRiskConcept:
     name: "ASQResultToSuicideRiskConcept"
@@ -537,6 +539,8 @@ pages:
     title: Relationship to Other IGs
   conformance.md:
     title: Conformance
+  harmonization-and-limitations.md:
+    title: Harmonization and Limitations
   quick-starts.md:
     title: Quick Starts
   zero-suicide-mapping.md:
@@ -581,6 +585,7 @@ menu:
     Zero Suicide ↔ SPiER mapping: zero-suicide-mapping.html
     Care Pathway: care-pathway.html
     Measures: measurement.html
+    Harmonization and Limitations: harmonization-and-limitations.html
   Conformance: conformance.html
   Quick Starts: quick-starts.html
   Artifacts: artifacts.html

@@ -64,8 +64,11 @@ boolean.
   | Item 3 positive, or item 6 positive but not in the past three months | `moderate` |
   | Item 4 or 5 positive, or item 6 positive in the past three months | `high` |
 
-  The highest row that applies wins. The example also carries the matching
-  LOINC answer code as a second coding.
+  The highest row that applies wins. `none` is a value of the result
+  Observation only: the form's hidden `risk-level` item offers `low`,
+  `moderate` and `high`, so a response with no positive item leaves it
+  unanswered. The example also carries the matching LOINC answer code as a
+  second coding.
 - **Risk concept.** Translate the risk level with
   [C-SSRS Risk Level → Risk Tier](ConceptMap-CSSRSRiskLevelToRiskTier.html):
   `none` becomes `no-risk`, and `low`, `moderate` and `high` keep their names.
@@ -85,7 +88,7 @@ the most recent.
 
 The C-SSRS risk level and the risk concept share LOINC `93374-7`. They differ
 in the code system of their value; see
-[Known limitations](conformance.html#known-limitations).
+[Known limitations](harmonization-and-limitations.html#known-limitations).
 
 A screen never becomes a `Condition`. A problem-list entry is a clinician's
 assertion; see [Conformance](conformance.html).
@@ -137,6 +140,6 @@ cohort.
   [Licensing](index.html#licensing) before deploying either.
 - **Tier assignments are illustrative.** No crosswalk has clinical sign-off;
   validate both against your own protocol
-  ([Harmonization status](conformance.html#harmonization-status)).
+  ([Harmonization status](harmonization-and-limitations.html#harmonization-status)).
 - **Validate what you write.** [Getting Started](getting-started.html) has the
   validator command; run it against each profile above.
