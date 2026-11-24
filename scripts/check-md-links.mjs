@@ -113,7 +113,7 @@ function tracked() {
 function ignored(paths) {
   if (paths.length === 0) return new Set()
   const probes = [...new Set(paths.flatMap((p) => [p, `${p}/`]))]
-  let out = ''
+  let out
   try {
     out = execFileSync('git', ['check-ignore', '--no-index', '--stdin'], {
       cwd: repoRoot,

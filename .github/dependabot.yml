@@ -1,0 +1,45 @@
+# Dependency updates, weekly, as few pull requests as the gates allow.
+#
+# Before this file (2026-11-24) nothing watched the lockfiles: the root install
+# had 11 high-severity advisories and each Worker two critical ones, all in
+# build tooling, and no workflow or bot said so.
+#
+# Minor and patch updates arrive grouped, one pull request per block. Majors
+# arrive one at a time, because each is a decision.
+version: 2
+updates:
+  # The root install: both apps, every package, the gates.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      root-minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      # Both held back on purpose; the reasons are in package.json's "//pins".
+      - dependency-name: fhirclient
+      - dependency-name: typescript-eslint
+
+  # The four Workers, in ONE block and ONE group. check-service-toolchain.mjs
+  # fails any pull request that moves one service's devDependencies or
+  # lockfile ahead of the other three, so they have to move together.
+  - package-ecosystem: npm
+    directories:
+      - /services/cds
+      - /services/clinical
+      - /services/guide
+      - /services/mock-ehr
+    schedule:
+      interval: weekly
+    groups:
+      workers:
+        patterns: ["*"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
