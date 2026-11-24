@@ -61,10 +61,10 @@ both in, and only the clinical app mounts it. Merging the two back would let
 ⚠️ **`tsconfig.json`'s most important job is `jsx`, and not for `tsc`.** esbuild
 — what vite and vitest actually transform `.tsx` with — finds a tsconfig by
 walking up from the FILE. From `packages/app-shell/src` that walk reaches the
-repo root and never sees `tsconfig.app.json`, so without `"jsx":
-"react-jsx"` here every component compiles to the classic runtime and dies with
-"React is not defined" **while `tsc` stays green**. `packages/ui` and
-`packages/tool-views` both record the same thing.
+repo root and never sees `tsconfig.app.json`, so without a config here that
+extends `tsconfig.base.json` (where `"jsx": "react-jsx"` is set, once) every
+component compiles to the classic runtime and dies with "React is not defined"
+**while `tsc` stays green**.
 
 ⚠️ **`fhirclient` is imported here and `packages/core` is not — that is the
 split, and it changed shape at fhirclient 3 (2026-09-20).** `SmartLaunch`,

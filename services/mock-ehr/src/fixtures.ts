@@ -174,7 +174,7 @@ function buildHeld(scenarios: Record<string, unknown>): HeldResource[] {
   if (held.length === 0) {
     // The #232/#261 failure mode: an empty dataset would serve empty Bundles
     // and look like a working server. `npm run copy-fhir` has not run.
-    throw new Error('[mock-ehr] No Patient resources found. Run `npm run copy-fhir` in web/ first.')
+    throw new Error('[mock-ehr] No Patient resources found. Run `npm run copy-fhir` at the repo root first.')
   }
 
   for (const [patientId, scenario] of Object.entries(scenarios)) {

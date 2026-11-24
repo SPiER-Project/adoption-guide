@@ -35,10 +35,13 @@ Description: "SPiER-local panel code for the Patient Safety Screener 3. Used bec
 * #pss3 "Patient Safety Screener 3 (PSS-3) panel" "Root code for the PSS-3 screening form."
 
 
+// These codes MUST stay in sync with the Questionnaire item codes and
+// packages/core/src/lib/observationMappers/pss3.ts. (That sentence was in the published
+// Description until 2026-11-24, naming a path a reader of the IG cannot open.)
 CodeSystem: PSS3ItemCodes
 Id: pss3-item
 Title: "PSS-3 Item Codes"
-Description: "SPiER-local codes for the three PSS-3 screening items, extracted as discrete Observations. The PSS-3 has no published per-item LOINC codes. These MUST stay in sync with the Questionnaire item codes and web/src/lib/observationMappers/pss3.ts."
+Description: "SPiER-local codes for the three PSS-3 screening items, extracted as discrete Observations. The PSS-3 has no published per-item LOINC codes."
 * ^status = #draft
 * ^experimental = true
 * ^caseSensitive = true

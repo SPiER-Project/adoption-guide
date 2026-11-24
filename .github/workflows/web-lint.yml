@@ -391,9 +391,9 @@ jobs:
           key: fhir-generated-${{ steps.fhir.outputs.key }}
 
       # The service's `pretest` shells out to `npm --prefix ../.. run
-      # copy-fhir` (its tests import web's catalog and mappers), so web's
+      # copy-fhir` (its tests import core's catalog and mappers), so the root's
       # dependencies have to be present too.
-      - name: Install web dependencies
+      - name: Install root dependencies
         working-directory: .
         run: npm ci
 
@@ -511,8 +511,8 @@ jobs:
       # `pretest` shells out to `npm --prefix ../.. run copy-fhir` (the 14
       # Patient resources it serves are SUSHI output), and the integration test
       # resolves fhirclient out of node_modules rather than keeping a second
-      # copy — so web's dependencies have to be installed too.
-      - name: Install web dependencies
+      # copy — so the root's dependencies have to be installed too.
+      - name: Install root dependencies
         working-directory: .
         run: npm ci
 

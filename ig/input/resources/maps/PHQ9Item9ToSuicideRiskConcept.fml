@@ -34,7 +34,7 @@ uses "http://hl7.org/fhir/StructureDefinition/Observation" alias Concept as targ
 // ─── Implementation notes (not published — see README.md) ────────────
 //
 // Source profile: spier-phq9-item9 (ig/input/fsh/phq9.fsh).
-// Runtime counterpart: web/src/lib/observationMappers/phq9.ts, which escalates
+// Runtime counterpart: packages/core/src/lib/observationMappers/phq9.ts, which escalates
 // its alert urgency at score >= 2. That is an alert heuristic, not a tier
 // claim, and is why the runtime's threshold and this map's bands differ
 // without either being wrong.

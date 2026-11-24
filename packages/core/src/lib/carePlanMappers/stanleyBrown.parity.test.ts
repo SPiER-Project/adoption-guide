@@ -31,7 +31,7 @@ import { readFileSync } from 'node:fs'
 import { generateCarePlan } from '@spier/core/lib/carePlanMappers/stanleyBrown'
 import type { QuestionnaireResponseResource } from '@spier/core/types/fhir'
 
-// Paths are relative to `web/`, which is vitest's cwd.
+// Paths are relative to the repo root, which is vitest's cwd.
 const GOLDEN_CARE_PLAN = 'scripts/fixtures/stanley-brown/careplan-expected.json'
 
 /**

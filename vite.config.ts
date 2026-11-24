@@ -77,8 +77,8 @@ export default defineConfig({
       // packages/ui has no node_modules of its own and is not an npm workspace
       // (#387), so Vite cannot resolve a bare `react` from it — the first
       // symptom is `Failed to resolve import "react/jsx-dev-runtime"`. These
-      // point every React specifier at web's single copy, which is the only one
-      // in the repo, so nothing about web's own resolution changes.
+      // point every React specifier at the root install's single copy, which is the only one
+      // in the repo, so nothing about the apps' own resolution changes.
       //
       // ⚠️ **Written as an anchored regex and a quoted prefix because those are
       // the two forms `scripts/lib/vite-alias.mjs` can read.** That parser

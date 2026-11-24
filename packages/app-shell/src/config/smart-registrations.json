@@ -11,7 +11,7 @@
     "A client_id is NOT a secret — it travels in the /authorize query string in the",
     "clear, and SPiER is a public client using PKCE. This file is data rather than",
     "a credential store, and it is checked in on purpose: see",
-    "web/src/lib/smartClients.ts for why it must not be an environment variable.",
+    "packages/app-shell/src/lib/smartClients.ts for why it must not be an environment variable.",
     "",
     "One place, and the tooling reads it: scripts/medplum-register-launch.mjs",
     "parses THIS file rather than restating a UUID, so a registration it writes and",

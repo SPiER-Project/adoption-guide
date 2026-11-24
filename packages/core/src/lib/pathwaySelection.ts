@@ -7,9 +7,9 @@
  *
  * Two consumers, and they must not drift:
  *
- *   - the `guided-pathway` preset (`web/src/data/toolPresets.ts`), which decides
+ *   - the `guided-pathway` preset (`apps/clinical/src/data/toolPresets.ts`), which decides
  *     what a deployment turns on;
- *   - the stage pages (`web/src/pages/PathwayStage.tsx`), which decide what a
+ *   - the stage pages (`apps/clinical/src/pages/PathwayStage.tsx`), which decide what a
  *     clinician is shown.
  *
  * ⚠️ **They are different questions with the same answer, and that is why this
@@ -22,7 +22,7 @@
  *
  * ⚠️ **React-free and DOM-free**, like the rest of `packages/core` — the CDS
  * Hooks Worker is the third consumer this will need when the per-site toolset
- * becomes something the SERVICE can read (see `web/src/lib/toolEnablement.ts`).
+ * becomes something the SERVICE can read (see `apps/clinical/src/lib/toolEnablement.ts`).
  */
 import { launchableTools, type Tool } from '../data/catalog/tools'
 import { isStageId, type StageId } from '@spier/fhir-artifacts/generated/stage-ids.generated'

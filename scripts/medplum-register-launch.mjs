@@ -31,7 +31,7 @@
  * and the app renders its launch screen with nothing to do — a blank-looking
  * failure at the end of a redirect chain that every visible step of has worked.
  *
- * The bare app base is what to register. `web/src/main.tsx` bootstraps it: a
+ * The bare app base is what to register. `apps/clinical/src/main.tsx` bootstraps it: a
  * load at the default route carrying `iss` and `launch` sets `#/launch` itself,
  * before the router mounts. That is the same reason `redirectUris` is the bare
  * base too — an OAuth redirect URI cannot carry a fragment at all.

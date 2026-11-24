@@ -98,7 +98,7 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Install web dependencies
+      - name: Install root dependencies
         working-directory: .
         run: npm ci
 
@@ -410,7 +410,7 @@ jobs:
       # its own `prebuild:clinical` hook produces via copy-fhir. That is a SUSHI
       # compile on a cold cache, so the same package cache the other jobs use is
       # restored here too.
-      - name: Install web dependencies
+      - name: Install root dependencies
         working-directory: .
         run: npm ci
 
@@ -765,7 +765,7 @@ jobs:
           fi
           echo "restored $matched"
 
-      - name: Install web dependencies
+      - name: Install root dependencies
         working-directory: .
         run: npm ci
 

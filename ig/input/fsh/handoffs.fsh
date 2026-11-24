@@ -317,7 +317,7 @@ Description: "Whether suicide-safety information may be shared with another prov
 // cannot be profiled — so there is NO way to bind the nested slice where the
 // exclusions actually live. The binding below documents the vocabulary and
 // applies at the root; what enforces it on nested provisions is
-// web/src/lib/handoffs.ts and its unit tests, not this profile.
+// packages/core/src/lib/handoffs.ts and its unit tests, not this profile.
 * provision.code from HandoffContent (extensible)
 * category 1..*
 // Pattern-discriminated slice (same approach as SPiERSuicideRiskConcept.category)
