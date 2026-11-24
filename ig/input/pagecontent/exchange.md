@@ -43,7 +43,7 @@ Seven instrument results and the harmonized tier share LOINC `93374-7`. A
 store that aggregates several sources holds all of them under one code. Do
 not index or summarize on the code alone:
 [Quick Starts](quick-starts.html#risk-tier) has the query that isolates the
-tier, and [Known limitations](conformance.html#known-limitations) explains why.
+tier, and [Known limitations](harmonization-and-limitations.html#known-limitations) explains why.
 
 ### Consent {#consent}
 
@@ -74,6 +74,23 @@ case where no consent is on file; the
 one withheld category. An intermediary SHOULD keep those entries, so the
 receiver knows the record is incomplete on purpose.
 
+### Source organization and duplicates {#source-and-duplicates}
+
+Two things an intermediary needs that no SPiER profile carries. Both are
+guidance, not requirements of any profile.
+
+- **Which organization produced a resource.** Use
+  [US Core Provenance](https://hl7.org/fhir/us/core/STU9/StructureDefinition-us-core-provenance.html),
+  which SPiER already depends on. A source SHOULD send a Provenance targeting
+  the resources it writes, with its organization as the author. An
+  intermediary SHOULD keep it and add its own, naming itself as the
+  transmitter. SPiER publishes no Provenance profile of its own.
+- **The same result received twice.** A source SHOULD put a stable business
+  identifier in `identifier` on each result it writes, and reuse it whenever
+  it sends that result again. An intermediary SHOULD treat two resources with
+  the same identifier from the same source as one. Without an identifier,
+  duplicates cannot be recognised reliably.
+
 ### What this guide does not specify {#not-specified}
 
 Each of these is open. An intermediary applies its own policy, and should not
@@ -83,8 +100,7 @@ read the guide's silence as either a requirement or a permission.
 |---|---|
 | **Transport** | Whether data is pushed or queried, and what a bundle of it looks like. The CapabilityStatement lists RESTful interactions and an optional bulk export, and nothing more. |
 | **Document-based exchange** | SPiER publishes no C-CDA mapping. Carrying an instrument's answers as discrete entries in a document is outside this guide. |
-| **Which organization produced a resource** | No profile requires a source organization, and SPiER publishes no Provenance profile. In a store fed by several organizations, record the source yourself. |
 | **References across systems** | Whether an intermediary keeps the source's ids, rewrites them, or carries the chain in one bundle. The chains above say what must stay resolvable, not how. |
-| **Patient identity and duplicates** | No profile requires a business identifier. Matching a patient across organizations, and recognizing the same screen received twice, are yours to handle. |
-| **Identifying a recipient** | The consent names a recipient in `provision.actor`, and the worked example does so by display text alone. How that is matched to a requesting organization is not defined. |
+| **Patient identity** | Matching a patient across organizations is yours to handle; SPiER adds nothing to US Core here. |
+| **Identifying a recipient** | The consent names a recipient by reference in `provision.actor`. How that reference is matched to a requesting organization is not defined. |
 | **Privacy law and security labels** | SPiER defines no security labels and does not address 42 CFR Part 2 or state law. The consent profile records a patient's sharing decision; it is not a statement of what the law requires. |

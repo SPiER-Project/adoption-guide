@@ -31,7 +31,7 @@ The artifacts fall into three steps that build on each other:
 The Translate layer is **derived from** the Capture layer and linked back via
 `Observation.derivedFrom`; it never replaces it. Which instruments cross into
 the harmonized tier by ConceptMap and which by StructureMap is listed under
-[Harmonization status](conformance.html#harmonization-status). The derived
+[Harmonization status](harmonization-and-limitations.html#harmonization-status). The derived
 concept is a **screening-level, unconfirmed** signal — it flags a need for
 follow-up, not a diagnosis. The pattern follows the HL7
 [Gravity Project](https://hl7.org/fhir/us/sdoh-clinicalcare/) and

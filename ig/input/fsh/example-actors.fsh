@@ -28,3 +28,30 @@ Usage: #example
 * identifier.value = "SPIER-PRACT-0001"
 * name.family = "Chen"
 * name.given = "Sam"
+
+
+// The receiving organization and the support person the handoff examples name.
+// They exist so a sharing consent can point at its recipients by reference: a
+// recipient named by display text alone cannot be matched to a requester, so a
+// deny naming one could not be enforced.
+Instance: receiving-organization
+InstanceOf: USCoreOrganizationProfile
+Title: "Example — Synthetic receiving organization"
+Description: "The synthetic behavioral-health organization the handoff examples transfer care to, and the recipient the example sharing consent permits. Not a real organization."
+Usage: #example
+* identifier.system = "http://thespierproject.org/fhir/identifier/organization"
+* identifier.value = "SPIER-ORG-0001"
+* active = true
+* name = "Riverside Behavioral Health"
+
+
+Instance: support-person
+InstanceOf: USCoreRelatedPersonProfile
+Title: "Example — Synthetic support person"
+Description: "A synthetic support person of the example patient, whom the example sharing consent excludes as a recipient. Not a real person."
+Usage: #example
+* active = true
+* patient = Reference(Patient/example)
+* relationship = http://terminology.hl7.org/CodeSystem/v3-RoleCode#FRND "unrelated friend"
+* name.family = "Rivera"
+* name.given = "Jordan"

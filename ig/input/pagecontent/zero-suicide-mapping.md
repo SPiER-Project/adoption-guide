@@ -24,7 +24,7 @@ models and which are organizational concerns it deliberately does not encode.
 
 SPiER's eight technical stages decompose *Identify*, *Engage*, *Treat*,
 *Transition* and *Improve* into EHR workflow steps, each published as a
-PlanDefinition (the [pathway group](artifacts.html#6) on the Artifacts page):
+PlanDefinition (under *The care pathway (Act)* on the [Artifacts](artifacts.html) page):
 
 | SPiER stage | Zero Suicide element | What the EHR does at this stage |
 |---|---|---|

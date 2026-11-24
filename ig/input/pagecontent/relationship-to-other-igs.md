@@ -39,7 +39,7 @@ rather than restating them.
   domain category on every resource. SPiER departs from Gravity in one place:
   Gravity gives each derived result its own code, while SPiER's instrument
   results and harmonized tier share one (see
-  [Known limitations](conformance.html#known-limitations)).
+  [Known limitations](harmonization-and-limitations.html#known-limitations)).
 
 ### Other standards SPiER uses
 

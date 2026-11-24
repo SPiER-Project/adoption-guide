@@ -517,7 +517,8 @@ Usage: #example
 * subject = Reference(Patient/example)
 * authoredOn = "2026-07-20T15:05:00Z"
 * reasonCode[+] = ReferralReasonCodes#post-discharge-follow-up "Post-discharge follow-up"
-* performer[+].display = "Riverside Behavioral Health"
+* performer[+] = Reference(Organization/receiving-organization)
+* performer[=].display = "Riverside Behavioral Health"
 
 
 Instance: ExampleFollowUpAppointment
@@ -557,6 +558,7 @@ Usage: #example
 * provision.period.start = "2026-07-20"
 * provision.period.end = "2027-07-20"
 * provision.actor[+].role = http://terminology.hl7.org/CodeSystem/v3-ParticipationType#IRCP "information recipient"
+* provision.actor[=].reference = Reference(Organization/receiving-organization)
 * provision.actor[=].reference.display = "Riverside Behavioral Health"
 // Two nested denies, NOT one. Within a single provision the criteria are ANDed
 // — actor + code in the same provision would mean "deny this category to this
@@ -564,6 +566,7 @@ Usage: #example
 // provisions keep the two preferences independent.
 * provision.provision[+].type = #deny
 * provision.provision[=].actor[+].role = http://terminology.hl7.org/CodeSystem/v3-ParticipationType#IRCP "information recipient"
+* provision.provision[=].actor[=].reference = Reference(RelatedPerson/support-person)
 * provision.provision[=].actor[=].reference.display = "Support person — declined by patient"
 * provision.provision[+].type = #deny
 * provision.provision[=].code[+] = HandoffContentCodes#recent-assessment "Most recent suicide-risk assessment"

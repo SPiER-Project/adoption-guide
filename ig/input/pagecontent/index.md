@@ -22,35 +22,37 @@ the artifacts.
 
 ### Find what you need
 
+**By what you are building:**
+
+| You are building… | Start at |
+|---|---|
+| An EHR that captures screens and writes SPiER data | [Implementing a Screening-Source EHR](implement-screening-source-ehr.html) |
+| An HIE or platform that moves SPiER data between organizations | [Exchanging SPiER Data](exchange.html) |
+| A client that reads suicide risk at the point of care | [Quick Starts](quick-starts.html) |
+| Quality reporting over the pathway | [Measures](measurement.html) |
+
+**By task:**
+
 | You want to… | Go to |
 |---|---|
 | Find an instrument's form, result profile and worked example (ASQ, PHQ-9, C-SSRS, …) | [Instruments](instruments.html) — each Questionnaire is downloadable as JSON |
 | Get the package and validate your own resources | [Getting Started](getting-started.html) |
-| Build an EHR that captures screens and writes SPiER data | [Implementing a Screening-Source EHR](implement-screening-source-ehr.html) |
-| Move SPiER data between organizations | [Exchanging SPiER Data](exchange.html) |
-| Query a FHIR server for SPiER data | [Quick Starts](quick-starts.html) |
 | Know what conforming to SPiER means | [Conformance](conformance.html) |
 | Run the pathway as a protocol | [Care Pathway](care-pathway.html) |
-| Score the quality measures | [Measures](measurement.html) |
 | Understand the model and the clinical terms | [Reading the artifacts](how-to-read.html) |
+| See how the pathway relates to Zero Suicide | [Zero Suicide ↔ SPiER mapping](zero-suicide-mapping.html) |
 | Browse everything | [Artifacts](artifacts.html), in eight groups |
 
 ### Status
 
-Profiles, crosswalks and CapabilityStatements are `draft` / `experimental` and
-may change before Trial-Use; if you implement now, pin version `0.1.0`. The
-cross-instrument risk-tier harmonization is a **proposed reference model**
-authored by SPiER and not yet reviewed by suicide-prevention subject-matter
-experts or the Zero Suicide Institute — validate the tier assignments against
-your own clinical protocols before relying on them (see
-[Harmonization status](conformance.html#harmonization-status)). How the
-pathway relates to the Zero Suicide framework is on the
-[Zero Suicide ↔ SPiER mapping](zero-suicide-mapping.html) page.
-
-Seven instruments' results share the harmonized tier's LOINC code, so a search
-on that code alone mixes the two layers; read
-[Known limitations](conformance.html#known-limitations) before you query for
-the tier.
+Everything here is `draft` / `experimental` and may change before Trial-Use;
+if you implement now, pin version `0.1.0`. Two things to know before relying
+on it: the risk-tier harmonization is a **proposed reference model** that
+suicide-prevention subject-matter experts have not yet reviewed, so validate
+the tier assignments against your own clinical protocols; and seven
+instruments' results share the harmonized tier's LOINC code, so a search on
+that code alone mixes them. Both are explained on
+[Harmonization and Limitations](harmonization-and-limitations.html).
 
 ### Licensing {#licensing}
 

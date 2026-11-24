@@ -83,7 +83,7 @@ GET [base]/Observation?_profile=http://thespierproject.org/fhir/StructureDefinit
 ```
 
 SPiER has not yet published a distinguishing code; see
-[Known limitations](conformance.html#known-limitations).
+[Known limitations](harmonization-and-limitations.html#known-limitations).
 
 **Results that are not Observations.**
 
@@ -218,7 +218,9 @@ POST [base]/Observation
   exists. A transaction Bundle writes all three atomically.
 - **Claim the profile.** Put the profile's canonical in `meta.profile` on
   every resource. The `_profile` searches above return nothing without it.
-- **Name the encounter.** Set `.encounter` on each resource; one episode's
-  record is assembled through it.
+- **Name the encounter.** No profile requires `.encounter`, but the episode
+  queries above find a resource only through it, so a resource written without
+  one is missing from its episode's record. Set it on everything produced
+  during an encounter. `Appointment` and `Consent` have no such element.
 - **Validate before you write.** [Getting Started](getting-started.html) has
   the validator command.

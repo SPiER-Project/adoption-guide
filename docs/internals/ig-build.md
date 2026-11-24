@@ -207,11 +207,20 @@ each instrument a heading (`instruments.html#asq`) and each form a row. Every
 cell is a join over what is already published: tool folder → Questionnaire →
 the ActivityDefinitions naming it in `relatedArtifact` → the `output.profile`
 of the PlanDefinition actions those define → the example responses. Check H
-resolves the generated links a second time. What it cannot see is a wrong join
-(an activity pointed at the wrong Questionnaire is reproduced faithfully), and
-it says nothing about how a result reaches the tier: an `.fml` map names no
-source profile in a form a script can read, so the page links Conformance's
-harmonization table, which is still hand-kept. ⚠️ The marker comments are
+resolves the generated links a second time. The **Into the tier** column is the same idea for the crosswalks: a ConceptMap
+is joined to the result profile that binds its source code system, an `.fml`
+map to the profile its `uses … as source` names, and a profile bound to the
+tier's own value set reads "directly". Three maps name no SPiER source a script
+can read (the PHQ-9 and SBQ-R `.fml` declare a plain Observation; the CAMS
+ConceptMap's source is a rating scale no profile binds), so `MAP_SOURCE` states
+those three by hand. The gate holds it from both ends: an Observation result
+with no route fails unless `NO_ROUTE` gives the reason, a map attributed to
+nothing fails unless `NOT_A_TIER_MAP` does, and an entry in any of the three
+tables that no longer matches anything fails too. What it cannot see is a wrong
+join (an activity pointed at the wrong Questionnaire is reproduced faithfully)
+or a wrong `MAP_SOURCE` entry, and no artifact states clinical sign-off, so
+the harmonization table is still hand-kept for that.
+⚠️ The marker comments are
 published in the page source, so they name no script — check E would fail them.
 
 ⚠️ **`^purpose` is invisible on a profile, code system or value set page.**
